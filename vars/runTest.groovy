@@ -20,18 +20,21 @@ def call(Map config) {
     // Once that is fixed all of the below should be pushed up into the
     // Jenkinsfile post { stable/unstable/failure/etc. }
     if (rc != 0) {
-        stepResult name: env.STAGE_NAME, context: "test", result: "FAILURE"
+        status = "FAILURE"
     } else if (rc == 0) {
         if (config['junit_files'] != null) {
             if (sh(script: "grep \"<error \" ${config.junit_files}",
                    returnStatus: true) == 0) {
-                stepResult name: env.STAGE_NAME, context: "test", result: "FAILURE"
+                status = "FAILURE"
             } else if (sh(script: "grep \"<failure \" ${config.junit_files}",
                           returnStatus: true) == 0) {
-                stepResult name: env.STAGE_NAME, context: "test", result: "UNSTABLE"
+                status = "UNSTABLE"
             } else {
-                stepResult name: env.STAGE_NAME, context: "test", result: "SUCCESS"
+                status = "SUCCESS"
             }
+        } else {
+            status = "SUCCESS"
         }
     }
+    stepResult name: env.STAGE_NAME, context: "test", result: status
 }
