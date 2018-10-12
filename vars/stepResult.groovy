@@ -23,10 +23,11 @@ def call(Map config) {
                     result = "ERROR"
                     break
             }
-            githubNotify description: ${config.name}, context:
-                                      ${config.context} + "/" +
-                                      ${config.name},
-                                      status: result
+            githubNotify credentialsId: 'daos-jenkins-commit-status',
+                         description: config['name'], context:
+                                      config['context'] + "/" +
+                                      config['name'],
+                                      status: config['result']
         }
     }
 }
