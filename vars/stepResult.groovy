@@ -24,10 +24,9 @@ def call(Map config) {
                     break
             }
             githubNotify credentialsId: 'daos-jenkins-commit-status',
-                         description: config['name'], context:
-                                      config['context'] + "/" +
-                                      config['name'],
-                                      status: config['result']
+                         description: config['name'],
+                         context: config['context'] + "/" + config['name'],
+                         status: config['result']
         }
     }
 }

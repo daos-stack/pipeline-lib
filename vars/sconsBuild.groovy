@@ -7,6 +7,11 @@ def call(Map config) {
     def c = new com.intel.checkoutScm()
     c.checkoutScmWithSubmodules()
 
+    githubNotify credentialsId: 'daos-jenkins-commit-status',
+                 description: env.STAGE_NAME,
+                 context: "build" + "/" + env.STAGE_NAME,
+                 status: "PENDING"
+
     script = '''if git show -s --format=%B | grep "^Skip-build: true"; then
                     exit 0
                 fi

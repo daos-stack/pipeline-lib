@@ -21,6 +21,11 @@ def call(Map config) {
         ]]
     ])
 
+    githubNotify credentialsId: 'daos-jenkins-commit-status',
+                 description: env.STAGE_NAME,
+                 context: "pre-build" + "/" + env.STAGE_NAME,
+                 status: "PENDING"
+
     script = 'GH_USER=' + config['user'] + \
              ' GH_PASS=' + config['password'] + \
              ' jenkins/code_review/jenkins_github_checkwarn.sh'
@@ -32,8 +37,9 @@ def call(Map config) {
     // Once that is fixed all of the below should be pushed up into the
     // Jenkinsfile post { stable/unstable/failure/etc. }
     if (rc != 0) {
-        stepResult name: env.STAGE_NAME, context: "pre-build", result: "FAILURE"
+        status = "FAILURE"
     } else if (rc == 0) {
-        stepResult name: env.STAGE_NAME, context: "pre-build", result: "SUCCESS"
+        status = "SUCCESS"
     }
+    stepResult name: env.STAGE_NAME, context: "pre-build", result: status
 }
