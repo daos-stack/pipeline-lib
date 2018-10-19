@@ -8,6 +8,11 @@ def call(Map config) {
         unstash it
     }
 
+    githubNotify credentialsId: 'daos-jenkins-commit-status',
+                 description: env.STAGE_NAME,
+                 context: "test" + "/" + env.STAGE_NAME,
+                 status: "PENDING"
+
     script = '''if git show -s --format=%B | grep "^Skip-test: true"; then
                     exit 0
                 fi\n''' + config['script']
