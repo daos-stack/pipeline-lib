@@ -4,19 +4,29 @@ import com.intel.checkoutScm
 
 def call(Map config) {
 
-    def c= new com.intel.checkoutScm()
+    def c = new com.intel.checkoutScm()
     c.checkoutScmWithSubmodules()
+
+    if(config['jenkins_review']) {
+        rev_num = config['jenkins_review']
+        branch = 'FETCH_HEAD'
+        refspec = 'refs/changes/' + rev_num
+    } else {
+        branch = 'master'
+        refspec = '+refs/heads/master:refs/remotes/origin/master'
+    }
 
     // Need the jenkins module to do linting
     checkout([
         $class: 'GitSCM',
-        branches: [[name: 'master']],
+        branches: [[name: branch]],
         doGenerateSubmoduleConfigurations: false,
         extensions: [[$class: 'RelativeTargetDirectory',
-                      relativeTargetDir: 'jenkins']],
+                              relativeTargetDir: 'jenkins']],
         submoduleCfg: [],
         userRemoteConfigs: [[
             credentialsId: 'bf21c68b-9107-4a38-8077-e929e644996a',
+            refspec: refspec,
             url: 'ssh://review.hpdd.intel.com:29418/exascale/jenkins'
         ]]
     ])
