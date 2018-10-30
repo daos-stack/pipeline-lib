@@ -39,4 +39,12 @@ def call(Map config) {
     } else if (rc == 0) {
         stepResult name: env.STAGE_NAME, context: "build", result: "SUCCESS"
     }
+
+    println "sconsBuild returning: " + rc
+    /* return rc
+     * doesn't seem to work
+     * only way I could get this to "return" rc was:
+     */
+    sh(script: "exit " + rc, returnStdout: true)
+
 }
