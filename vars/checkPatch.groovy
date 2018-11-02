@@ -1,13 +1,33 @@
 // vars/checkPatch.groovy
 
+/**
+ * checkPatch.groovy
+ *
+ * checkPatch variable
+ */
+
 import com.intel.checkoutScm
 
-def call(Map config) {
+/**
+ * Method to check the status of a patch and notify GitHub of the results
+ * 
+ * @param config Map of parameters passed.
+ *
+ * config['jenkins_review'] is the optional revision number to use.
+ *
+ */
+def call(Map config = [:]) {
+    if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
+      println "Jenkins not configured to notify github of builds."
+      stepResult name: env.STAGE_NAME, context: "pre-build",
+                 result: "SUCCESS"
+      return
+    }
 
     def c = new com.intel.checkoutScm()
     c.checkoutScmWithSubmodules()
 
-    if(config['jenkins_review']) {
+    if (config['jenkins_review']) {
         rev_num = config['jenkins_review']
         branch = 'FETCH_HEAD'
         refspec = 'refs/changes/' + rev_num
@@ -35,12 +55,15 @@ def call(Map config) {
                  description: env.STAGE_NAME,
                  context: "pre-build" + "/" + env.STAGE_NAME,
                  status: "PENDING"
-
-    script = 'GH_USER=' + config['user'] + \
-             ' GH_PASS=' + config['password'] + \
-             ' jenkins/code_review/jenkins_github_checkwarn.sh'
-    rc = sh(script: script, returnStatus: true)
-
+    withCredentials([[$class: 'UsernamePasswordMultiBinding', 
+                    credentialsId: 'aa4ae90b-b992-4fb6-b33b-236a53a26f77',
+                    usernameVariable: 'GITHUB_USR',
+                    passwordVariable: 'GITHUB_PSW']]) {
+      script = 'GH_USER="' + GITHUB_USR + '"' + \
+               ' GH_PASS="' + GITHUB_PSW + '"' + \
+               ' jenkins/code_review/jenkins_github_checkwarn.sh'
+      rc = sh(script: script, returnStatus: true)
+    }
     // All of this really should be done in the post section of the main
     // Jenkinsfile but it cannot due to
     // https://issues.jenkins-ci.org/browse/JENKINS-39203
