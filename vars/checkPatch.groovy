@@ -8,14 +8,6 @@
 
 import com.intel.checkoutScm
 
-private def run_review(usr, psw, ignored_files) {
-  script = 'GH_USER="' + usr + '"' + \
-    ' GH_PASS="' + psw + '"' + \
-    ' CHECKPATCH_IGNORED_FILES="' + ignored_files + '"' + \
-    ' jenkins/code_review/jenkins_github_checkwarn.sh'
-    return sh(script: script, returnStatus: true)
-}
-
 /**
  * Method to check the status of a patch and notify GitHub of the results
  * 
@@ -35,7 +27,6 @@ def call(Map config = [:]) {
 
     def c = new com.intel.checkoutScm()
     c.checkoutScmWithSubmodules()
-    println "checked out scm with submodules"
     if (config['jenkins_review']) {
         rev_num = config['jenkins_review']
         branch = 'FETCH_HEAD'
@@ -70,18 +61,25 @@ def call(Map config = [:]) {
                  context: "pre-build" + "/" + env.STAGE_NAME,
                  status: "PENDING"
 
-    println "Starting fake review"
     rc = 1
     if (config['review_creds']) {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', 
                       credentialsId: config['review_creds'],
                       usernameVariable: 'GITHUB_USR',
                       passwordVariable: 'GITHUB_PSW']]) {
-        rc = run_review(GITHUB_USR, GITHUB_PSW, ignored_files)
+        script = 'GH_USER="${GITHUB_USR}"' + \
+                 ' GH_PASS="${GITHUB_PSW}"' + \
+                 ' CHECKPATCH_IGNORED_FILES="' + ignored_files + '"' + \
+                 ' jenkins/code_review/jenkins_github_checkwarn.sh'
+        rc = sh(script: script, returnStatus: true)
       }
     } else {
       // Older method to be deprecated
-      rc = run_review(GITHUB_USR, GITHUB_PSW, ignored_files)
+      script = 'GH_USER="' + usr + '"' + \
+        ' GH_PASS="' + psw + '"' + \
+        ' CHECKPATCH_IGNORED_FILES="' + ignored_files + '"' + \
+        ' jenkins/code_review/jenkins_github_checkwarn.sh'
+      rc = sh(script: script, returnStatus: true)
     }
 
     // All of this really should be done in the post section of the main
