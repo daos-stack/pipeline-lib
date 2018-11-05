@@ -7,13 +7,18 @@ def call(Map config) {
     def c = new com.intel.checkoutScm()
     c.checkoutScmWithSubmodules()
 
-    if(config['jenkins_review']) {
+    if (config['jenkins_review']) {
         rev_num = config['jenkins_review']
         branch = 'FETCH_HEAD'
         refspec = 'refs/changes/' + rev_num
     } else {
         branch = 'master'
         refspec = '+refs/heads/master:refs/remotes/origin/master'
+    }
+
+    ignored_files="code_review/checkpatch.pl"
+    if (config['ignored_files']) {
+        ignored_files += ":" + config['ignored_files']
     }
 
     // Need the jenkins module to do linting
@@ -36,8 +41,9 @@ def call(Map config) {
                  context: "pre-build" + "/" + env.STAGE_NAME,
                  status: "PENDING"
 
-    script = 'GH_USER=' + config['user'] + \
-             ' GH_PASS=' + config['password'] + \
+    script = 'GH_USER="' + config['user'] + '"' + \
+             ' GH_PASS="' + config['password'] + '"' + \
+             ' CHECKPATCH_IGNORED_FILES="' + ignored_files + '"' + \
              ' jenkins/code_review/jenkins_github_checkwarn.sh'
     rc = sh(script: script, returnStatus: true)
 
