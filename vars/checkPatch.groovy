@@ -45,7 +45,6 @@ def call(Map config = [:]) {
     checkout([
         $class: 'GitSCM',
         branches: [[name: branch]],
-        doGenerateSubmoduleConfigurations: false,
         extensions: [[$class: 'RelativeTargetDirectory',
                               relativeTargetDir: 'jenkins']],
         submoduleCfg: [],
@@ -62,21 +61,20 @@ def call(Map config = [:]) {
                  status: "PENDING"
 
     rc = 1
+    script = 'CHECKPATCH_IGNORED_FILES="' + ignored_files + '"' + \
+             ' jenkins/code_review/jenkins_github_checkwarn.sh'
+
     if (config['review_creds']) {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', 
                       credentialsId: config['review_creds'],
                       usernameVariable: 'GH_USER',
                       passwordVariable: 'GH_PASS']]) {
-        script = 'CHECKPATCH_IGNORED_FILES="' + ignored_files + '"' + \
-                 ' jenkins/code_review/jenkins_github_checkwarn.sh'
         rc = sh(script: script, returnStatus: true)
       }
     } else {
-      // Older method to be deprecated
-      script = 'GH_USER="' + usr + '"' + \
-        ' GH_PASS="' + psw + '"' + \
-        ' CHECKPATCH_IGNORED_FILES="' + ignored_files + '"' + \
-        ' jenkins/code_review/jenkins_github_checkwarn.sh'
+      // Older method using username/password
+      script = 'GH_USER="' + config['user'] + '"' + \
+        ' GH_PASS="' + config['password'] + '"' + script
       rc = sh(script: script, returnStatus: true)
     }
 
