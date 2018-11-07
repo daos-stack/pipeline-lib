@@ -72,9 +72,9 @@ def call(Map config = [:]) {
         rc = sh(script: script, returnStatus: true)
       }
     } else {
-      // Older method using username/password
+      // Alternate method using username/password
       script = 'GH_USER="' + config['user'] + '"' + \
-        ' GH_PASS="' + config['password'] + '"' + script
+        ' GH_PASS="' + config['password'] + '" ' + script
       rc = sh(script: script, returnStatus: true)
     }
 
