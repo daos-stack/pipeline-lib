@@ -6,8 +6,6 @@
  * checkPatch variable
  */
 
-import com.intel.checkoutScm
-
 /**
  * Method to check the status of a patch and notify GitHub of the results
  * 
@@ -25,8 +23,12 @@ def call(Map config = [:]) {
       return
     }
 
-    def c = new com.intel.checkoutScm()
-    c.checkoutScmWithSubmodules()
+    if (env.CHANGE_ID == null) {
+      println "This was not triggered by a pull request."
+      return
+    }
+
+    checkoutSCM withSubmodules: true
     if (config['jenkins_review']) {
         rev_num = config['jenkins_review']
         branch = 'FETCH_HEAD'
@@ -42,18 +44,9 @@ def call(Map config = [:]) {
     }
 
     // Need the jenkins module to do linting
-    checkout([
-        $class: 'GitSCM',
-        branches: [[name: branch]],
-        extensions: [[$class: 'RelativeTargetDirectory',
-                              relativeTargetDir: 'jenkins']],
-        submoduleCfg: [],
-        userRemoteConfigs: [[
-            credentialsId: 'bf21c68b-9107-4a38-8077-e929e644996a',
-            refspec: refspec,
-            url: 'ssh://review.hpdd.intel.com:29418/exascale/jenkins'
-        ]]
-    ])
+    checkoutSCM url: 'ssh://review.hpdd.intel.com:29418/exascale/jenkins',
+                checkoutDir: 'jenkins',
+                credentialsId: 'bf21c68b-9107-4a38-8077-e929e644996a'
 
     githubNotify credentialsId: 'daos-jenkins-commit-status',
                  description: env.STAGE_NAME,

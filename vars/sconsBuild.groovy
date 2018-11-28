@@ -1,11 +1,8 @@
 // vars/sconsBuild.groovy
 
-import com.intel.checkoutScm
-
 def call(Map config) {
 
-    def c = new com.intel.checkoutScm()
-    c.checkoutScmWithSubmodules()
+    checkoutSCM withSubmodules: true
 
     githubNotify credentialsId: 'daos-jenkins-commit-status',
                  description: env.STAGE_NAME,
@@ -17,7 +14,7 @@ def call(Map config) {
                 fi
                 scons -c
                 # scons -c is not perfect so get out the big hammer
-                rm -rf _build.external install build
+                rm -rf _build.external* install build
                 SCONS_ARGS="--update-prereq=all --build-deps=yes USE_INSTALLED=all install"
                 # the config cache is unreliable so always force a reconfig
                 # with "--config=force"

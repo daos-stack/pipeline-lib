@@ -3,9 +3,9 @@
 import com.intel.checkoutScmInternal
 
 /**
- * checkoutGit.groovy
+ * checkoutSCM.groovy
  *
- * checkoutGit pipeline step
+ * checkoutSCM pipeline step
  *
  */
 
