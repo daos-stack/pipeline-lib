@@ -40,7 +40,7 @@ def checkoutScmInternal(Map config = [:]) {
       branches = [[name: '*/master']]
     }
     if (config['credentialsId']) {
-      userRemoteConfig.add([credentialsId: config['credentialsId']])
+      userRemoteConfig.put([credentialsId: config['credentialsId']])
     }
     userRemoteConfigs = [userRemoteConfig]
   } else {
