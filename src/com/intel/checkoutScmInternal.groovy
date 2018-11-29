@@ -33,15 +33,16 @@ def checkoutScmInternal(Map config = [:]) {
   }
   branches = scm.branches
   if (config['url']) {
-    userRemoteConfigs = [[url: config['url']]]
+    userRemoteConfig = [url: config['url']]
     if (config['branch']) {
       branches = [[name: config['branch']]]
     } else {
       branches = [[name: '*/master']]
     }
     if (config['credentialsId']) {
-      userRemoteConfigs.add([credentialsId: config['credentialsId']])
+      userRemoteConfig.add([credentialsId: config['credentialsId']])
     }
+    UserRemoteConfigs = [userRemoteConfig]
   } else {
     userRemoteConfigs = scm.userRemoteConfigs
   }
