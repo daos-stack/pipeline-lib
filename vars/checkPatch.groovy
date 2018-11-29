@@ -28,7 +28,7 @@ def call(Map config = [:]) {
       return
     }
 
-    checkoutSCM withSubmodules: true
+    checkoutScm withSubmodules: true
     if (config['jenkins_review']) {
         rev_num = config['jenkins_review']
         branch = 'FETCH_HEAD'
@@ -44,7 +44,7 @@ def call(Map config = [:]) {
     }
 
     // Need the jenkins module to do linting
-    checkoutSCM url: 'ssh://review.hpdd.intel.com:29418/exascale/jenkins',
+    checkoutScm url: 'ssh://review.hpdd.intel.com:29418/exascale/jenkins',
                 checkoutDir: 'jenkins',
                 credentialsId: 'bf21c68b-9107-4a38-8077-e929e644996a'
 
