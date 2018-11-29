@@ -42,7 +42,7 @@ def checkoutScmInternal(Map config = [:]) {
     if (config['credentialsId']) {
       userRemoteConfig.add([credentialsId: config['credentialsId']])
     }
-    UserRemoteConfigs = [userRemoteConfig]
+    userRemoteConfigs = [userRemoteConfig]
   } else {
     userRemoteConfigs = scm.userRemoteConfigs
   }
