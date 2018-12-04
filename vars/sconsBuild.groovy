@@ -1,7 +1,5 @@
 // vars/sconsBuild.groovy
 
-import com.intel.checkoutScm
-
 /**
  * sconsBuild.groovy
  *
@@ -15,7 +13,7 @@ def call(Map config = [:]) {
    * sconsBuild step method
    *
    * @param config Map of parameters passed
-   * @return Integer status of script 
+   * @return Integer status of script
    *
    * config['build_deps'] Setting for --build-deps.  Default 'yes'.
    * config['clean'] Space separated filenames to be removed after
@@ -37,7 +35,7 @@ def call(Map config = [:]) {
    *  with a symlink.
    * config['SRC_PREFIX'] Directories to find the prefetched source code in.
    *  Defaults to config['target'] if config['target'] is specified.
-   * config['target'] Target if only one component is being built. 
+   * config['target'] Target if only one component is being built.
    * config['target_dirs'] Space delimited list build targets or prebuilt
    *  targets to be in 'TARGET_PREFIX'.  Defaults to config['target'] if
    *  config['target'] is specified.
@@ -124,7 +122,7 @@ def call(Map config = [:]) {
     //scons -c is not perfect so get out the big hammer
     clean_files = "_build.external* install build"
     if (config['clean']) {
-        clean_files = config['clean']
+        clean_files = config['clean'] + ' install build'
     }
     clean_cmd = "scons -c ${sconstruct}\n"
     if (clean_files) {
@@ -178,7 +176,8 @@ def call(Map config = [:]) {
                      cat config.log || true
                      exit \$rc
                  fi'''
-    full_script = "#!/bin/bash\n" + set_cwd + prebuild + prefix_1 + script
+    full_script = "#!/bin/bash\nset -e\n" +
+                  set_cwd + prebuild + prefix_1 + script
     rc = sh(script: full_script, returnStatus: true)
     // All of this really should be done in the post section of the main
     // Jenkinsfile but it cannot due to
