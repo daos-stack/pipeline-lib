@@ -120,7 +120,7 @@ def call(Map config = [:]) {
         scons_args += " REQUIRES=${config['target']}"
     }
     //scons -c is not perfect so get out the big hammer
-    clean_files = "_build.external* install build"
+    clean_files = "_build.external{,-Linux} install build"
     if (config['clean']) {
         clean_files = config['clean'] + ' install build'
     }
