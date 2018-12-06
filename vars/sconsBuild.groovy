@@ -120,10 +120,11 @@ def call(Map config = [:]) {
         scons_args += " REQUIRES=${config['target']}"
     }
     //scons -c is not perfect so get out the big hammer
-    clean_files = "_build.external{,-Linux} install build"
+    clean_files = "_build.external{,-Linux}"
     if (config['clean']) {
-        clean_files = config['clean'] + ' install build'
+        clean_files = config['clean']
     }
+    clean_files += ' install build {daos_m,{iof,cart}-Linux}.conf'
     clean_cmd = "scons -c ${sconstruct}\n"
     if (clean_files) {
         clean_cmd += "rm -rf ${clean_files}\n"
