@@ -170,13 +170,13 @@ def call(Map config = [:]) {
                         exit 0
                     fi\n'''
     script += clean_cmd
-    script += 'SCONS_ARGS="' + scons_args +'"\n'
+    script += 'SCONS_ARGS="' + scons_args + '"\n'
     script += '''# the config cache is unreliable so always force a reconfig
                  # with "--config=force"
                  if ! scons --config=force $SCONS_ARGS; then
                      rc=\${PIPESTATUS[0]}
                      echo "$SCONS_ARGS failed"
-                     cat config.log || true
+                     cat config{,-Linux}.log || true
                      exit \$rc
                  fi'''
     def full_script = "#!/bin/bash\nset -e\n" +
