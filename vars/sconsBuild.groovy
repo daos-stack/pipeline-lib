@@ -186,7 +186,7 @@ def call(Map config = [:]) {
     // Once that is fixed all of the below should be pushed up into the
     // Jenkinsfile post { stable/unstable/failure/etc. }
 
-    if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
+    if (env.DAOS_JENKINS_NOTIFY_STATUS != null) {
         if (rc != 0) {
             stepResult name: env.STAGE_NAME, context: "build",
                        result: "FAILURE"
