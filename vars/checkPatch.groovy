@@ -46,7 +46,7 @@ def call(Map config = [:]) {
     // Need the jenkins module to do linting
     checkoutScm url: 'ssh://review.hpdd.intel.com:29418/exascale/jenkins',
                 checkoutDir: 'jenkins',
-                credentialsId: 'bf21c68b-9107-4a38-8077-e929e644996a'
+                credentialsId: 'daos-gerrit-read'
 
     githubNotify credentialsId: 'daos-jenkins-commit-status',
                  description: env.STAGE_NAME,
