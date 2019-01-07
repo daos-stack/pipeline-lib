@@ -101,5 +101,23 @@ def call(Map config = [:]) {
         error "One or more nodes failed to provision!"
       }
     }
+    // Prepare the node for daos/cart testing
+    def provision_script = '''set -ex
+                              groupadd -g 1101 jenkins
+                              useradd -b /localhome -g 1101 -u 1101 jenkins
+                              mkdir -p /localhome/jenkins/.ssh
+                              cat /tmp/id_rsa.pub >> /localhome/jenkins/.ssh/authorized_keys
+                              mv /tmp/id_rsa /localhome/jenkins/.ssh/
+                              chmod 700 /localhome/jenkins/.ssh
+                              chmod 600 /localhome/jenkins/.ssh/{authorized_keys,id_rsa}
+                              chown -R jenkins.jenkins /localhome/jenkins/.ssh
+                              echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins
+                              yum copr -y enable jhli/ipmctl
+                              yum copr -y enable jhli/safeclib
+                              yum install -y libipmctl-devel openmpi CUnit fuse python34-PyYAML python34-nose python34-pip valgrind python34-paramiko'''
+    sh script: 'set -x; pdcp -R ssh -l root -w ' + config['NODELIST'] +
+               ' /var/lib/jenkins/.ssh/id_rsa* /tmp/;' +
+               ' pdsh -R ssh -l root -w ' + config['NODELIST'] +
+               ' "' + provision_script + '" 2>&1 | dshbak -c'
   } //sshagent
 }
