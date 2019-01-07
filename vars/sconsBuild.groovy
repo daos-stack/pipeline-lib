@@ -119,6 +119,9 @@ def call(Map config = [:]) {
     } else if (config['target']) {
         scons_args += " REQUIRES=${config['target']}"
     }
+    if (config['COMPILER']) {
+        scons_args += " COMPILER=${config['COMPILER']}"
+    }
     //scons -c is not perfect so get out the big hammer
     clean_files = "_build.external{,-Linux}"
     if (config['clean']) {
