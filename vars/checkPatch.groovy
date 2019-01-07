@@ -29,6 +29,9 @@ def call(Map config = [:]) {
     }
 
     checkoutScm withSubmodules: true
+    def rev_num = ''
+    def branch = ''
+    def refspec = ''
     if (config['jenkins_review']) {
         rev_num = config['jenkins_review']
         branch = 'FETCH_HEAD'
@@ -38,7 +41,7 @@ def call(Map config = [:]) {
         refspec = '+refs/heads/master:refs/remotes/origin/master'
     }
 
-    ignored_files="code_review/checkpatch.pl"
+    def ignored_files="code_review/checkpatch.pl"
     if (config['ignored_files']) {
         ignored_files += ":" + config['ignored_files']
     }
@@ -53,9 +56,9 @@ def call(Map config = [:]) {
                  context: "pre-build" + "/" + env.STAGE_NAME,
                  status: "PENDING"
 
-    rc = 1
-    script = 'CHECKPATCH_IGNORED_FILES="' + ignored_files + '"' + \
-             ' jenkins/code_review/jenkins_github_checkwarn.sh'
+    int rc = 1
+    def script = 'CHECKPATCH_IGNORED_FILES="' + ignored_files + '"' + \
+                 ' jenkins/code_review/jenkins_github_checkwarn.sh'
 
     if (config['review_creds']) {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', 
@@ -76,6 +79,7 @@ def call(Map config = [:]) {
     // https://issues.jenkins-ci.org/browse/JENKINS-39203
     // Once that is fixed all of the below should be pushed up into the
     // Jenkinsfile post { stable/unstable/failure/etc. }
+    def status = ''
     if (rc != 0) {
         status = "FAILURE"
     } else if (rc == 0) {
