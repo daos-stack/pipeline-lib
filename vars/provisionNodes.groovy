@@ -9,7 +9,7 @@
 /**
  * Method to provision a set of nodes
  *
- * 
+ *
  * @param config Map of parameters passed.
  *
  * config['arch']       Architecture to use.  Default 'x86_64'
@@ -28,14 +28,15 @@
  */
 def call(Map config = [:]) {
 
-  nodeString = config['NODELIST']
+  def nodeString = config['NODELIST']
   if (config['node_count']) {
-    node_list = config['NODELIST'].split(',')
-    node_cnt = node_list.size()
+    def node_list = config['NODELIST'].split(',')
+    def node_cnt = node_list.size()
     if (config['node_count'] < node_cnt) {
       // take is blacklisted by Jenkins.
       //new_list = node_list.take(config['clients'])
-      new_list = []
+      def new_list = []
+      int ii
       for (ii = 0; ii < config['node_count']; ii++) {
         new_list.add(node_list[ii])
       }
@@ -49,9 +50,9 @@ def call(Map config = [:]) {
   checkoutScm url: 'ssh://review.hpdd.intel.com:29418/exascale/jenkins',
                                   checkoutDir: 'jenkins',
                                   credentialsId: 'daos-gerrit-read'
-  options = ''
-  snapshot = ''
-  wait_for_it = true
+  def options = ''
+  def snapshot = ''
+  def wait_for_it = true
   if (config['snapshot']) {
     options += ' --snapshot'
     wait_for_it = false
@@ -78,7 +79,7 @@ def call(Map config = [:]) {
          returnStatus: true
     }
 
-    woptions = ''
+    def woptions = ''
     if (wait_for_it) {
       if (config['timeout']) {
         if (config['timeout'] <= 0) {
@@ -92,6 +93,7 @@ def call(Map config = [:]) {
       }
     }
     if (wait_for_it) {
+      def rc = 0
       rc = sh script: """./jenkins/test_manager/wait_for_node_ready.py \
                        --nodes=${nodeString} ${woptions}""",
               returnStatus: true
