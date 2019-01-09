@@ -1,4 +1,5 @@
 // vars/stepResult.groovy
+
 def call(Map config) {
 
     node {
@@ -15,6 +16,7 @@ def call(Map config) {
                                     "display/redirect")
             }
 
+            def result = ''
             switch(config['result']) {
                 case "UNSTABLE":
                     result = "FAILURE"

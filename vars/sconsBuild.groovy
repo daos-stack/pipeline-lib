@@ -54,7 +54,7 @@ def call(Map config = [:]) {
        sh "rm -rf \"\${WORKSPACE}/${config['target']}/scons_local\""
     }
 
-    scm_config = [withSubmodules: true]
+    def scm_config = [withSubmodules: true]
     if (config['scm']) {
         scm_config = config['scm']
         if (config['target'] && !scm_config['checkoutDir']) {
@@ -78,15 +78,15 @@ def call(Map config = [:]) {
              """
     }
 
-    set_cwd = ''
+    def set_cwd = ''
     if (config['directory']) {
         set_cwd = "cd ${config['directory']}\n"
     } else if (config['target']) {
         set_cwd = "cd ${config['target']}\n"
     }
 
-    scons_args = ''
-    sconstruct = ''
+    def scons_args = ''
+    def sconstruct = ''
     if (config['sconstruct']) {
         sconstruct = " --sconstruct=${config['sconstruct']}"
         scons_args += sconstruct
@@ -123,12 +123,12 @@ def call(Map config = [:]) {
         scons_args += " COMPILER=${config['COMPILER']}"
     }
     //scons -c is not perfect so get out the big hammer
-    clean_files = "_build.external{,-Linux}"
+    def clean_files = "_build.external{,-Linux}"
     if (config['clean']) {
         clean_files = config['clean']
     }
     clean_files += ' install build {daos_m,{iof,cart}-Linux}.conf'
-    clean_cmd = "scons -c ${sconstruct}\n"
+    def clean_cmd = "scons -c ${sconstruct}\n"
     if (clean_files) {
         clean_cmd += "rm -rf ${clean_files}\n"
         if (config['target']) {
@@ -136,22 +136,22 @@ def call(Map config = [:]) {
         }
     }
 
-    prebuild = ''
+    def prebuild = ''
     if (config['prebuild']) {
       prebuild = config['prebuild'] + '\n'
     }
-    prefix_1 = ''
+    def prefix_1 = ''
 
     if (config['TARGET_PREFIX']) {
       scons_args += " TARGET_PREFIX=${config['TARGET_PREFIX']}"
       if (config['target_work']) {
-        target_dirs = ''
+        def target_dirs = ''
         if (config['target_dirs']) {
           target_dirs = config['target_dirs']
         } else if (config['target']) {
           target_dirs = config['target']
         }
-        target_work = config['target_work']
+        def target_work = config['target_work']
         prefix_1 =
           """for new_dir in ${target_dirs}; do
                mkdir -p "\${WORKSPACE}/${target_work}/\${new_dir}"
@@ -166,10 +166,9 @@ def call(Map config = [:]) {
         scons_args += ' ' + config['scons_args']
     }
 
-    script = '''if git show -s --format=%B | grep "^Skip-build: true"; then
-                    exit 0
-                fi
-                '''
+    def script = '''if git show -s --format=%B | grep "^Skip-build: true"; then
+                        exit 0
+                    fi\n'''
     script += clean_cmd
     script += 'SCONS_ARGS="' + scons_args +'"\n'
     script += '''# the config cache is unreliable so always force a reconfig
@@ -180,8 +179,9 @@ def call(Map config = [:]) {
                      cat config.log || true
                      exit \$rc
                  fi'''
-    full_script = "#!/bin/bash\nset -e\n" +
-                  set_cwd + prebuild + prefix_1 + script
+    def full_script = "#!/bin/bash\nset -e\n" +
+                      set_cwd + prebuild + prefix_1 + script
+    int rc = 0
     rc = sh(script: full_script, returnStatus: true)
     // All of this really should be done in the post section of the main
     // Jenkinsfile but it cannot due to
