@@ -14,10 +14,11 @@ def call(Map config) {
                  context: "test" + "/" + env.STAGE_NAME,
                  status: "PENDING"
 
-    script = '''if git show -s --format=%B | grep "^Skip-test: true"; then
-                    exit 0
-                fi\n''' + config['script']
+    def script = '''if git show -s --format=%B | grep "^Skip-test: true"; then
+                        exit 0
+                    fi\n''' + config['script']
 
+    int rc = 0
     rc = sh(script: script, returnStatus: true)
 
     // All of this really should be done in the post section of the main
@@ -25,6 +26,7 @@ def call(Map config) {
     // https://issues.jenkins-ci.org/browse/JENKINS-39203
     // Once that is fixed all of the below should be pushed up into the
     // Jenkinsfile post { stable/unstable/failure/etc. }
+    def status = ''
     if (rc != 0) {
         status = "FAILURE"
     } else if (rc == 0) {
