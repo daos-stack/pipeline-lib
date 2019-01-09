@@ -115,7 +115,15 @@ def call(Map config = [:]) {
                               echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins
                               yum copr -y enable jhli/ipmctl
                               yum copr -y enable jhli/safeclib
-                              yum install -y libipmctl-devel openmpi CUnit fuse python34-PyYAML python34-nose python34-pip valgrind python34-paramiko'''
+                              yum install -y openmpi CUnit fuse python34-PyYAML python34-nose    \
+                                             python34-pip valgrind python34-paramiko             \
+                                             python2-avocado python2-avocado-plugins-output-html \
+                                             python2-avocado-plugins-varianter-yaml-to-mux       \
+                                             python-debuginfo python2-aexpect libcmocka          \
+                                             yum-plugin-copr python-pathlib python2-numpy git
+                              yum copr -y enable jhli/ipmctl
+                              yum copr -y enable jhli/safeclib
+                              yum install -y libipmctl'''
     sh script: 'set -x; rm -f ci_key*; ssh-keygen -N "" -f ci_key;' +
                ' pdcp -R ssh -l root -w ' + nodeString +
                ' ci_key* /tmp/;' +
