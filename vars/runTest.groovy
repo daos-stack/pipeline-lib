@@ -45,4 +45,8 @@ def call(Map config) {
         }
     }
     stepResult name: env.STAGE_NAME, context: "test", result: status
+
+    if (status != "SUCCESS") {
+        error "Failure in runTest"
+    }
 }
