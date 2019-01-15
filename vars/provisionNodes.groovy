@@ -115,12 +115,14 @@ def call(Map config = [:]) {
                               echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins
                               yum copr -y enable jhli/ipmctl
                               yum copr -y enable jhli/safeclib
+                              yum install -y epel-release
                               yum install -y openmpi CUnit fuse python34-PyYAML python34-nose    \
                                              python34-pip valgrind python34-paramiko             \
                                              python2-avocado python2-avocado-plugins-output-html \
                                              python2-avocado-plugins-varianter-yaml-to-mux       \
                                              python-debuginfo python2-aexpect libcmocka          \
-                                             yum-plugin-copr python-pathlib python2-numpy git
+                                             yum-plugin-copr python-pathlib python2-numpy git    \
+                                             golang-bin
                               yum copr -y enable jhli/ipmctl
                               yum copr -y enable jhli/safeclib
                               yum install -y libipmctl'''
