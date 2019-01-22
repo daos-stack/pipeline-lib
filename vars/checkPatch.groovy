@@ -85,5 +85,6 @@ def call(Map config = [:]) {
     } else if (rc == 0) {
         status = "SUCCESS"
     }
-    stepResult name: env.STAGE_NAME, context: "pre-build", result: status
+    stepResult name: env.STAGE_NAME, context: "pre-build", result: status,
+               ignore_failure: true
 }
