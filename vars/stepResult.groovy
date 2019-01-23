@@ -3,7 +3,9 @@
 def call(Map config) {
 
     node {
-        currentBuild.result = config.get('result')
+        if (!config['ignore_failure']) {
+            currentBuild.result = config.get('result')
+        }
 
         if (env.CHANGE_ID) {
            if (config['result'] == "ABORTED" ||
