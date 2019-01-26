@@ -18,7 +18,7 @@ def call(Map config) {
                                     "display/redirect")
             }
 
-            def result = ''
+            def result = config['result']
             switch(config['result']) {
                 case "UNSTABLE":
                     result = "FAILURE"
@@ -30,7 +30,7 @@ def call(Map config) {
             githubNotify credentialsId: 'daos-jenkins-commit-status',
                          description: config['name'],
                          context: config['context'] + "/" + config['name'],
-                         status: config['result']
+                         status: result
         }
     }
 }
