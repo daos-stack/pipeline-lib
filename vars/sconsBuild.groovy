@@ -175,8 +175,8 @@ def call(Map config = [:]) {
                  # with "--config=force"
                  if ! scons --config=force $SCONS_ARGS; then
                      rc=\${PIPESTATUS[0]}
-                     echo "$SCONS_ARGS failed"
-                     cat config{,-Linux}.log || true
+                     echo "scons failed: \$rc."
+                     echo "Look in the artifacts for the config.log."
                      exit \$rc
                  fi'''
     def full_script = "#!/bin/bash\nset -e\n" +
