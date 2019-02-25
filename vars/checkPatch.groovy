@@ -47,8 +47,8 @@ def call(Map config = [:]) {
     }
 
     // Need the jenkins module to do linting
-    checkoutScm url: 'ssh://review.hpdd.intel.com:29418/exascale/jenkins',
-                checkoutDir: 'jenkins',
+    checkoutScm url: 'https://github.com/daos-stack/code_review.git',
+                checkoutDir: 'code_review',
                 credentialsId: 'daos-gerrit-read'
 
     githubNotify credentialsId: 'daos-jenkins-commit-status',
@@ -58,7 +58,7 @@ def call(Map config = [:]) {
 
     int rc = 1
     def script = 'CHECKPATCH_IGNORED_FILES="' + ignored_files + '"' + \
-                 ' jenkins/code_review/jenkins_github_checkwarn.sh'
+                 ' code_review/jenkins_github_checkwarn.sh'
 
     if (config['review_creds']) {
       withCredentials([[$class: 'UsernamePasswordMultiBinding', 
