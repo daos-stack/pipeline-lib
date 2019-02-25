@@ -49,7 +49,6 @@ def call(Map config = [:]) {
     // Need the jenkins module to do linting
     checkoutScm url: 'https://github.com/daos-stack/code_review.git',
                 checkoutDir: 'code_review',
-                credentialsId: 'daos-gerrit-read'
 
     githubNotify credentialsId: 'daos-jenkins-commit-status',
                  description: env.STAGE_NAME,
