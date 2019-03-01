@@ -12,8 +12,8 @@
  * @param config Map of parameters passed.
  *
  * config['ignored_files'] is colon delimited string of files not to check.
- * config['jenkins_review'] is the optional revision number to use.
  * config['review_creds'] is the credentials needed for a code review.
+ * config['branch'] is the code_review repo branch to use.
  *
  */
 def call(Map config = [:]) {
@@ -29,16 +29,9 @@ def call(Map config = [:]) {
     }
 
     checkoutScm withSubmodules: true
-    def rev_num = ''
-    def branch = ''
-    def refspec = ''
-    if (config['jenkins_review']) {
-        rev_num = config['jenkins_review']
-        branch = 'FETCH_HEAD'
-        refspec = 'refs/changes/' + rev_num
-    } else {
-        branch = 'master'
-        refspec = '+refs/heads/master:refs/remotes/origin/master'
+    def branch = 'master'
+    if (config['branch']) {
+        branch = config['branch']
     }
 
     def ignored_files="code_review/checkpatch.pl"
@@ -48,7 +41,8 @@ def call(Map config = [:]) {
 
     // Need the jenkins module to do linting
     checkoutScm url: 'https://github.com/daos-stack/code_review.git',
-                checkoutDir: 'code_review'
+                checkoutDir: 'code_review',
+                branch: branch
 
     githubNotify credentialsId: 'daos-jenkins-commit-status',
                  description: env.STAGE_NAME,
