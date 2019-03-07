@@ -5,7 +5,7 @@ package com.intel
 /**
  * cancelPreviousBuildsInternal.groovy
  *
- * Routine to canel old builds in progress
+ * Routine to cancel old builds in progress
  */
 
 
@@ -25,7 +25,7 @@ def cancelPreviousBuildsInternal(Map config = [:]) {
   /* Iterating over the builds for specific job */
   for (def build : currentJob.builds) {
     /* If there is a build that is currently running and it's not current build */
-    if (build.isBuilding() && build.number.toInteger() != buildNumber) {
+    if (build.isBuilding() && build.number.toInteger() < buildNumber) {
       print "Stopping currently running build #${build.number}"
       /* Than stopping it */
       build.doStop()
