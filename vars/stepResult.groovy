@@ -30,7 +30,8 @@ def call(Map config) {
             githubNotify credentialsId: 'daos-jenkins-commit-status',
                          description: config['name'],
                          context: config['context'] + "/" + config['name'],
-                         status: result
+                         status: result,
+                         targetUrl: 'http://foo.example.com'
         }
     }
 }
