@@ -58,13 +58,13 @@ def call(Map config = [:]) {
                       credentialsId: config['review_creds'],
                       usernameVariable: 'GH_USER',
                       passwordVariable: 'GH_PASS']]) {
-        rc = sh(script: script, returnStatus: true)
+        rc = sh(script: script, label: env.STAGE_NAME, returnStatus: true)
       }
     } else {
       // Alternate method using username/password
       script = 'GH_USER="' + config['user'] + '"' + \
         ' GH_PASS="' + config['password'] + '" ' + script
-      rc = sh(script: script, returnStatus: true)
+      rc = sh(script: script, label: env.STAGE_NAME, returnStatus: true)
     }
 
     // All of this really should be done in the post section of the main
