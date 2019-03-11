@@ -1,8 +1,74 @@
 // vars/stepResult.groovy
 
+import com.intel.doGetHttpRequest
+import groovy.json.JsonSlurperClassic
+
+/**
+ * stepResult.groovy
+ *
+ * stepResult pipeline step
+ *
+ */
 def call(Map config) {
+  /**
+   * step reporting method.
+   *
+   * @param config Map of parameters passed
+   * @return none
+   *
+   * config['result'] The result to post.
+   * config['ignore_failure'] Whether a FAILURE result should post a failed step.
+   * config['name'] The description to post in the GitHub commit status.
+   * config['context'] The context to post in the GitHub commit status.
+   */
 
     node {
+        def log_url = null
+        def jsonSlurperClassic = new JsonSlurperClassic()
+
+        def h = new com.intel.doGetHttpRequest()
+        resp = h.doGetHttpRequest(env.JOB_URL - ~/job\/[^\/]*\/$/ +
+            "/view/change-requests/job/${env.BRANCH_NAME}/" +
+            "${env.BUILD_ID}/wfapi/describe");
+
+        def job = jsonSlurperClassic.parseText(resp)
+        assert job instanceof Map
+
+        def stage
+        for (s in job['stages']) {
+            if (s['name'] == env.STAGE_NAME) {
+                stage = s
+                break
+            }
+        }
+
+        resp = h.doGetHttpRequest("${env.JENKINS_URL}" + stage['_links']['self']['href'])
+
+        stage = jsonSlurperClassic.parseText(resp)
+        assert stage instanceof Map
+
+        def stageFlowNode = null
+
+        for (s in stage['stageFlowNodes']) {
+            if (s['name'] == env.STAGE_NAME) {
+                stageFlowNode = s
+                break
+            }
+        }
+        if (!stageFlowNode) {
+            error("No step named \"" + env.STAGE_NAME + "\" could be found for this stage.")
+            config['result'] = "FAILURE"
+            config['ignore_failure'] = false
+        } else {
+            resp = h.doGetHttpRequest("${env.JENKINS_URL}" + stageFlowNode['_links']['log']['href'])
+
+            log = jsonSlurperClassic.parseText(resp)
+            assert log instanceof Map
+
+            log_url = "${env.JENKINS_URL}${log.consoleUrl}"
+        }
+        jsonSlurperClassic = null
+
         if (!config['ignore_failure']) {
             currentBuild.result = config.get('result')
         }
@@ -27,10 +93,18 @@ def call(Map config) {
                     result = "ERROR"
                     break
             }
-            githubNotify credentialsId: 'daos-jenkins-commit-status',
-                         description: config['name'],
-                         context: config['context'] + "/" + config['name'],
-                         status: result
+            if (log_url) {
+                githubNotify credentialsId: 'daos-jenkins-commit-status',
+                             description: config['name'],
+                             context: config['context'] + "/" + config['name'],
+                             targetUrl: log_url,
+                             status: result
+            } else {
+                githubNotify credentialsId: 'daos-jenkins-commit-status',
+                             description: config['name'],
+                             context: config['context'] + "/" + config['name'],
+                             status: result
+            }
         }
     }
 }

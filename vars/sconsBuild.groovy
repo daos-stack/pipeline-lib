@@ -182,7 +182,7 @@ def call(Map config = [:]) {
     def full_script = "#!/bin/bash\nset -e\n" +
                       set_cwd + prebuild + prefix_1 + script
     int rc = 0
-    rc = sh(script: full_script, returnStatus: true)
+    rc = sh(script: full_script, label: env.STAGE_NAME, returnStatus: true)
     // All of this really should be done in the post section of the main
     // Jenkinsfile but it cannot due to
     // https://issues.jenkins-ci.org/browse/JENKINS-39203

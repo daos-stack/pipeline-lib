@@ -19,7 +19,7 @@ def call(Map config) {
                     fi\n''' + config['script']
 
     int rc = 0
-    rc = sh(script: script, returnStatus: true)
+    rc = sh(script: script, label: env.STAGE_NAME, returnStatus: true)
 
     // All of this really should be done in the post section of the main
     // Jenkinsfile but it cannot due to
