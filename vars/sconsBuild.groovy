@@ -45,6 +45,7 @@ def call(Map config = [:]) {
    * config['update_prereq'] Setting for --update-prereq.  Default 'all'.
    * config['USE_INSTALLED'] setting for USE_INSTALLED.  Default 'yes'.
    *  If false, a failure of the scons commands will cause this step to fail.
+   * config['failure_artifacts'] Artifacts to link to when scons fails
    */
 
     /* If we have to tamper with the checkout, we also need to remove
@@ -176,7 +177,10 @@ def call(Map config = [:]) {
                  if ! scons --config=force $SCONS_ARGS; then
                      rc=\${PIPESTATUS[0]}
                      echo "scons failed: \$rc."
-                     echo "Look in the artifacts for the config.log."
+                     set +x
+                     echo -n "If the error is not in the output above, it might be in the config.log: "
+                     echo "${JOB_URL%/job/*}/view/change-requests/job/$BRANCH_NAME/$BUILD_ID/artifact/''' +
+                          config['failure_artifacts'] + '"' + '''
                      exit \$rc
                  fi'''
     def full_script = "#!/bin/bash\nset -e\n" +
