@@ -1,6 +1,24 @@
 // vars/runTest.groovy
 
+/**
+ * runTest.groovy
+ *
+ * runTest pipeline step
+ *
+ */
+
 def call(Map config) {
+  /**
+   * runTest step method
+   *
+   * @param config Map of parameters passed
+   * @return None
+   *
+   * config['junit_files'] Junit files to look for errors in
+   * config['script'] The test code to run
+   * config['stashes'] Stashes from the build to unstash
+   * config['failure_artifacts'] Artifacts to link to when test fails, if any
+   */
 
     dir('install') {
         deleteDir()
@@ -17,6 +35,11 @@ def call(Map config) {
     def script = '''if git show -s --format=%B | grep "^Skip-test: true"; then
                         exit 0
                     fi\n''' + config['script']
+    if (config['failure_artifacts']) {
+        script += '''\nset +x\necho -n "Test artifacts can be found at: "
+                     echo "${JOB_URL%/job/*}/view/change-requests/job/$BRANCH_NAME/$BUILD_ID/artifact/''' +
+                          config['failure_artifacts'] + '"'
+    }
 
     int rc = 0
     rc = sh(script: script, label: env.STAGE_NAME, returnStatus: true)
