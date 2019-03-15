@@ -56,7 +56,7 @@ def call(Map config) {
             }
         }
         if (!stageFlowNode) {
-            error("No step named \"" + env.STAGE_NAME + "\" could be found for this stage.")
+            echo("No step named \"" + env.STAGE_NAME + "\" could be found for this stage.")
             config['result'] = "FAILURE"
             config['ignore_failure'] = false
         } else {
