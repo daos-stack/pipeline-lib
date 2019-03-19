@@ -128,7 +128,7 @@ def call(Map config = [:]) {
     if (config['clean']) {
         clean_files = config['clean']
     }
-    clean_files += ' install build {daos_m,{iof,cart}-Linux}.conf'
+    clean_files += ' install build {daos_m,iof,cart-Linux}.conf'
     def clean_cmd = "scons -c ${sconstruct}\n"
     if (clean_files) {
         clean_cmd += "rm -rf ${clean_files}\n"
