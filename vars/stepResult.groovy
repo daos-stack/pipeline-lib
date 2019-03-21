@@ -9,7 +9,7 @@ import groovy.json.JsonSlurperClassic
  * stepResult pipeline step
  *
  */
-def call(Map config) {
+def call(Map config= [:]) {
   /**
    * step reporting method.
    *
@@ -24,6 +24,12 @@ def call(Map config) {
 
     node {
         def log_url = null
+
+        if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
+          println "Jenkins not configured to notify github of builds."
+          return
+        }
+
         def jsonSlurperClassic = new JsonSlurperClassic()
 
         def h = new com.intel.doGetHttpRequest()
