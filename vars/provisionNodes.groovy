@@ -122,13 +122,12 @@ def call(Map config = [:]) {
                                              python-pathlib python2-numpy git                    \
                                              golang-bin'''
     def rc = 0
-    rc = sh(script: """set -ex
-                       rm -f ci_key*
-                       ssh-keygen -N "" -f ci_key
-                       pdcp -R ssh -l root -w ${nodeString} ci_key* /tmp/
-                       pdsh -R ssh -l root -w ${nodeString} """" +
-                    provision_script + '''" 2>&1 | dshbak -c
-                       exit ${PIPESTATUS[0]}''',
+    rc = sh(script: 'set -x; rm -f ci_key*; ssh-keygen -N "" -f ci_key;' +
+                    ' pdcp -R ssh -l root -w ' + nodeString +
+                    ' ci_key* /tmp/;' +
+                    ' pdsh -R ssh -l root -w ' + nodeString +
+                    ' "' + provision_script + '" 2>&1 | dshbak -c;' +
+                    ' exit ${PIPESTATUS[0]}',
             label: "Post provision configuration",
             returnStatus: true)
     if (rc != 0) {
