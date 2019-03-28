@@ -121,10 +121,18 @@ def call(Map config = [:]) {
                                              python-debuginfo python2-aexpect libcmocka          \
                                              python-pathlib python2-numpy git                    \
                                              golang-bin'''
-    sh script: 'set -x; rm -f ci_key*; ssh-keygen -N "" -f ci_key;' +
-               ' pdcp -R ssh -l root -w ' + nodeString +
-               ' ci_key* /tmp/;' +
-               ' pdsh -R ssh -l root -w ' + nodeString +
-               ' "' + provision_script + '" 2>&1 | dshbak -c'
+    def rc = 0
+    rc = sh(script: 'set -x; rm -f ci_key*; ssh-keygen -N "" -f ci_key;' +
+                    ' pdcp -R ssh -l root -w ' + nodeString +
+                    ' ci_key* /tmp/;' +
+                    ' pdsh -R ssh -l root -w ' + nodeString +
+                    ' "' + provision_script + '" 2>&1 | dshbak -c;' +
+                    ' exit ${PIPESTATUS[0]}',
+            label: "Post provision configuration",
+            returnStatus: true)
+    if (rc != 0) {
+      stepResult name: env.STAGE_NAME, context: "test", result: "FAILURE"
+      error "One or more nodes failed post-provision configuration!"
+    }
   } //sshagent
 }
