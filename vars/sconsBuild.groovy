@@ -43,10 +43,16 @@ def call(Map config = [:]) {
    * config['target_work'] Directory in workspace containing directories
    *  symlinked from the target prefix.
    * config['update_prereq'] Setting for --update-prereq.  Default 'all'.
-   * config['USE_INSTALLED'] setting for USE_INSTALLED.  Default 'yes'.
+   * config['USE_INSTALLED'] setting for USE_INSTALLED.  Default 'all'.
    *  If false, a failure of the scons commands will cause this step to fail.
    * config['failure_artifacts'] Artifacts to link to when scons fails
+   * config['log_to_file'] Copy build output to a file
    */
+
+    def tee_file = ''
+    if (config['log_to_file']) {
+        tee_file = "| tee ${WORKSPACE}/" + config['log_to_file']
+    }
 
     /* If we have to tamper with the checkout, we also need to remove
      * the potential tampering before the scm operation.
@@ -174,7 +180,13 @@ def call(Map config = [:]) {
     script += 'SCONS_ARGS="' + scons_args + '"\n'
     script += '''# the config cache is unreliable so always force a reconfig
                  # with "--config=force"
-                 if ! scons --config=force $SCONS_ARGS; then
+                 if ! scons --config=force $SCONS_ARGS''' +
+                 tee_file + '''; then
+                     rc=\${PIPESTATUS[1]}
+                     echo "Trying to write to log file failed: \$rc"
+                     exit \$rc
+                 fi
+                 if [ \${PIPESTATUS[0]} != 0 ]; then
                      rc=\${PIPESTATUS[0]}
                      echo "scons failed: \$rc."
                      set +x
@@ -183,7 +195,7 @@ def call(Map config = [:]) {
                           config['failure_artifacts'] + '"' + '''
                      exit \$rc
                  fi'''
-    def full_script = "#!/bin/bash\nset -e\n" +
+    def full_script = "#!/bin/bash\nset -ex\n" +
                       set_cwd + prebuild + prefix_1 + script
     int rc = 0
     rc = sh(script: full_script, label: env.STAGE_NAME, returnStatus: true)
