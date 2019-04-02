@@ -102,7 +102,7 @@ def call(Map config = [:]) {
       }
     }
     // Prepare the node for daos/cart testing
-    def provision_script = """set -ex
+    def provision_script = '''set -ex
                               groupadd -g 1101 jenkins
                               useradd -b /localhome -g 1101 -u 1101 jenkins
                               mkdir -p /localhome/jenkins/.ssh
@@ -113,22 +113,14 @@ def call(Map config = [:]) {
                               chmod 600 /localhome/jenkins/.ssh/{authorized_keys,id_rsa*}
                               chown -R jenkins.jenkins /localhome/jenkins/.ssh
                               echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins
-                              yum -y install yum-utils
-                              pkgs=\\"openpa libfabric mercury pmix ompi\\"
-                              for ext in \\\$pkgs; do
-                                  rm -f /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\"\\\${ext}\\"_job_*.repo
-                                  yum-config-manager --add-repo=${env.JENKINS_URL}job/daos-stack/job/\\"\\\${ext}\\"/job/master/lastSuccessfulBuild/artifact/artifacts/
-                                  echo \\"gpgcheck = False\\" >> /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\"\\\${ext}\\"_job_master_lastSuccessfulBuild_artifact_artifacts_.repo
-                              done
-                              yum -y erase \\\$pkgs
                               yum install -y epel-release
-                              yum install -y CUnit fuse python34-PyYAML python34-nose            \
+                              yum install -y openmpi CUnit fuse python34-PyYAML python34-nose    \
                                              python34-pip valgrind python34-paramiko             \
                                              python2-avocado python2-avocado-plugins-output-html \
                                              python2-avocado-plugins-varianter-yaml-to-mux       \
                                              python-debuginfo python2-aexpect libcmocka          \
                                              python-pathlib python2-numpy git                    \
-                                             golang-bin \\\$pkgs"""
+                                             golang-bin'''
     def rc = 0
     rc = sh(script: 'set -x; rm -f ci_key*; ssh-keygen -N "" -f ci_key;' +
                     ' pdcp -R ssh -l root -w ' + nodeString +
