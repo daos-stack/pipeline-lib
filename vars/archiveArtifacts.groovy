@@ -17,7 +17,8 @@ def call(Map config = [:]) {
                     fi
                     exit 0\n'''
     int rc = 0
-    rc = sh(script: script, label: env.STAGE_NAME, returnStatus: true)
+    rc = sh(script: script, label: env.STAGE_NAME + '_archiveArtifacts',
+            returnStatus: true)
     if (rc != 0) {
         config['allowEmptyArchive'] = true;
     }

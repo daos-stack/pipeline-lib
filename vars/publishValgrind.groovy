@@ -8,7 +8,7 @@
  */
 
 def call(Map config = [:]) {
-    println "Entering publishedValgrind override."
+    println "Entering publishValgrind override."
     def script = '''if [ "${NO_CI_TESTING}" == 'true' ]; then
                         exit 1
                     fi
@@ -17,7 +17,8 @@ def call(Map config = [:]) {
                     fi
                     exit 0\n'''
     int rc = 0
-    rc = sh(script: script, label: env.STAGE_NAME, returnStatus: true)
+    rc = sh(script: script, label: env.STAGE_NAME + '_publishValgrind',
+            returnStatus: true)
     if (rc != 0) {
         config['failBuildOnMissingReports'] = false;
     }
