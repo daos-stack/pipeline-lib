@@ -121,6 +121,10 @@ def call(Map config = [:]) {
                                              python-debuginfo python2-aexpect libcmocka          \
                                              python-pathlib python2-numpy git                    \
                                              golang-bin
+                              if [ ! -e /usr/bin/pip3 ] &&
+                                 [ -e /usr/bin/pip3.4 ]; then
+                                  ln -s pip3.4 /usr/bin/pip3
+                              fi
                               if [ ! -e /usr/bin/python3 ] &&
                                  [ -e /usr/bin/python3.4 ]; then
                                   ln -s python3.4 /usr/bin/python3
