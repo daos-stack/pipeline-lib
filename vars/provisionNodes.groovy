@@ -114,20 +114,20 @@ def call(Map config = [:]) {
                               chown -R jenkins.jenkins /localhome/jenkins/.ssh
                               echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins
                               yum install -y epel-release
-                              yum install -y openmpi CUnit fuse python34-PyYAML python34-nose    \
-                                             python34-pip valgrind python34-paramiko             \
+                              yum install -y openmpi CUnit fuse python36-PyYAML python36-nose    \
+                                             python36-pip valgrind python36-paramiko             \
                                              python2-avocado python2-avocado-plugins-output-html \
                                              python2-avocado-plugins-varianter-yaml-to-mux       \
                                              python-debuginfo python2-aexpect libcmocka          \
                                              python-pathlib python2-numpy git                    \
                                              golang-bin
                               if [ ! -e /usr/bin/pip3 ] &&
-                                 [ -e /usr/bin/pip3.4 ]; then
-                                  ln -s pip3.4 /usr/bin/pip3
+                                 [ -e /usr/bin/pip3.6 ]; then
+                                  ln -s pip3.6 /usr/bin/pip3
                               fi
                               if [ ! -e /usr/bin/python3 ] &&
-                                 [ -e /usr/bin/python3.4 ]; then
-                                  ln -s python3.4 /usr/bin/python3
+                                 [ -e /usr/bin/python3.6 ]; then
+                                  ln -s python3.6 /usr/bin/python3
                               fi'''
     def rc = 0
     rc = sh(script: 'set -x; rm -f ci_key*; ssh-keygen -N "" -f ci_key;' +
