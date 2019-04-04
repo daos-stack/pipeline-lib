@@ -11,15 +11,16 @@
 
 def call(String testResults = '') {
     println "Entering junit(String) override."
-        Map config = [:];
+    Map config = [:]
     if (testResults != '') {
         config['testResults'] = testResults
     } else {
        error("Need to provide testResults: path.")
     }
+    call(config)
 }
 
-def call(config map [:])
+def call(config Map [:]) {
     println "Entering junit(Map) override."
     def script = '''if [ "${NO_CI_TESTING}" == 'true' ]; then
                         exit 1
