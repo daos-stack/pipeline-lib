@@ -9,14 +9,10 @@
 
 
 
-def call(String testResults = '') {
+def call(String testResults) {
     println "Entering junit(String) override."
     Map config = [:]
-    if (testResults != '') {
-        config['testResults'] = testResults
-    } else {
-       error("Need to provide testResults: path.")
-    }
+    config['testResults'] = testResults
     call(config)
 }
 
