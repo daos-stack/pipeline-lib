@@ -120,7 +120,11 @@ def call(Map config = [:]) {
                                              python2-avocado-plugins-varianter-yaml-to-mux       \
                                              python-debuginfo python2-aexpect libcmocka          \
                                              python-pathlib python2-numpy git                    \
-                                             golang-bin'''
+                                             golang-bin
+                              if [ ! -e /usr/bin/python3 ] &&
+                                 [ -e /usr/bin/python3.4 ]; then
+                                  ln -s python3.4 /usr/bin/python3
+                              fi'''
     def rc = 0
     rc = sh(script: 'set -x; rm -f ci_key*; ssh-keygen -N "" -f ci_key;' +
                     ' pdcp -R ssh -l root -w ' + nodeString +
