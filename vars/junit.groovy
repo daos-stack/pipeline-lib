@@ -20,7 +20,7 @@ def call(String testResults = '') {
     call(config)
 }
 
-def call(Map config [:]) {
+def call(Map config = [:]) {
     println "Entering junit(Map) override."
     def script = '''if [ "${NO_CI_TESTING}" == 'true' ]; then
                         exit 1
