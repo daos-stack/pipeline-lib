@@ -29,9 +29,10 @@
 def call(Map config = [:]) {
 
   def nodeString = config['NODELIST']
+  def node_list = config['NODELIST'].split(',')
+  def node_max_cnt = node_list.size()
+  def node_cnt = node_max_cnt
   if (config['node_count']) {
-    def node_list = config['NODELIST'].split(',')
-    def node_cnt = node_list.size()
     if (config['node_count'] < node_cnt) {
       // take is blacklisted by Jenkins.
       //new_list = node_list.take(config['clients'])
@@ -41,10 +42,16 @@ def call(Map config = [:]) {
         new_list.add(node_list[ii])
       }
       nodeString = new_list.join(',')
+      node_cnt = config['node_count']
     } else if (config['node_count'] > node_cnt) {
       echo "${config['node_count']} clients requested."
       error "Only ${node_cnt} clients available!"
     }
+  }
+
+  if (env.NO_CI_PROVISIONING != null) {
+      println "Jenkins not configured for CI provisioning."
+      return node_cnt
   }
 
   checkoutScm url: 'ssh://review.hpdd.intel.com:29418/exascale/jenkins',

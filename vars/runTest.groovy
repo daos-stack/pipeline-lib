@@ -7,7 +7,7 @@
  *
  */
 
-def call(Map config) {
+def call(Map config = [:]) {
   /**
    * runTest step method
    *
@@ -27,12 +27,34 @@ def call(Map config) {
         unstash it
     }
 
-    githubNotify credentialsId: 'daos-jenkins-commit-status',
-                 description: env.STAGE_NAME,
-                 context: "test" + "/" + env.STAGE_NAME,
-                 status: "PENDING"
+    if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
+        println "Jenkins not configured to notify github of builds."
+    } else {
+        githubNotify credentialsId: 'daos-jenkins-commit-status',
+                     description: env.STAGE_NAME,
+                     context: "test" + "/" + env.STAGE_NAME,
+                     status: "PENDING"
+    }
 
-    def script = '''if git show -s --format=%B | grep "^Skip-test: true"; then
+    def script = '''skipped=0
+                    if [ "${NO_CI_TESTING}" == 'true' ]; then
+                        skipped=1
+                    fi
+                    if git show -s --format=%B | grep "^Skip-test: true"; then
+                        skipped=1
+                    fi
+                    if [ ${skipped} -ne 0 ]; then
+                        # cart
+                        testdir1="install/Linux/TESTING/testLogs"
+                        testdir2="${testdir1}_valgrind"
+                        # daos
+                        testdir3="src/tests/ftest/avocado/job-results"
+                        mkdir -p "${testdir1}"
+                        mkdir -p "${testdir2}"
+                        mkdir -p "${testdir3}"
+                        touch "${testdir1}/skipped_tests"
+                        touch "${testdir2}/skipped_tests"
+                        touch "${testdir3}/skipped_tests"
                         exit 0
                     fi\n''' + config['script']
     if (config['failure_artifacts']) {
