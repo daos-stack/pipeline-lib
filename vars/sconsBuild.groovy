@@ -180,20 +180,24 @@ def call(Map config = [:]) {
     script += 'SCONS_ARGS="' + scons_args + '"\n'
     script += '''# the config cache is unreliable so always force a reconfig
                  # with "--config=force"
-                 if ! scons --config=force $SCONS_ARGS''' +
-                 tee_file + '''; then
-                     rc=\${PIPESTATUS[1]}
-                     echo "Trying to write to log file failed: \$rc"
-                     exit \$rc
+                 if ! scons --config=force $SCONS_ARGS'''
+    if (tee_file != '') {
+        script += ' ' + tee_file + '''; then
+                     rc=${PIPESTATUS[1]}
+                     echo "Trying to write to log file failed: $rc"
+                     exit $rc
                  fi
-                 if [ \${PIPESTATUS[0]} != 0 ]; then
-                     rc=\${PIPESTATUS[0]}
-                     echo "scons failed: \$rc."
+                 if [ ${PIPESTATUS[0]} != 0 ]; then'''
+    } else {
+        script += '; then'
+    }
+    script += '''\nrc=${PIPESTATUS[0]}
+                     echo "scons failed: $rc."
                      set +x
                      echo -n "If the error is not in the output above, it might be in the config.log: "
                      echo "${JOB_URL%/job/*}/view/change-requests/job/$BRANCH_NAME/$BUILD_ID/artifact/''' +
                           config['failure_artifacts'] + '"' + '''
-                     exit \$rc
+                     exit $rc
                  fi'''
     def full_script = "#!/bin/bash\nset -ex\n" +
                       set_cwd + prebuild + prefix_1 + script
