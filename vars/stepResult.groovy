@@ -56,6 +56,7 @@ def call(Map config= [:]) {
         def stageFlowNode = null
 
         for (s in stage['stageFlowNodes']) {
+            println 'found stage: ' + s['name']
             if (s['name'] == env.STAGE_NAME) {
                 stageFlowNode = s
                 break
