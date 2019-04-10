@@ -89,5 +89,11 @@ def call(Map config = [:]) {
             status = "SUCCESS"
         }
     }
+
     stepResult name: env.STAGE_NAME, context: "test", result: status
+
+    if (status == 'FAILURE') {
+        error(env.STAGE_NAME + " failed: " + rc)
+    }
+
 }
