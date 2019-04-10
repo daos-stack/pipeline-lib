@@ -31,10 +31,10 @@ def call(Map config= [:]) {
           return
         }
 
-        if (config['junit_files'] && config['result] !="FAILURE") {
+        if (config['junit_files'] && config['result'] != 'FAILURE') {
             log_url = env.JOB_URL - ~/job\/[^\/]*\/$/ +
                       "/view/change-requests/job/${env.BRANCH_NAME}/" +
-                      "${env.BUILD_ID}/testReport/")
+                      "${env.BUILD_ID}/testReport/"
         } else {
             def jsonSlurperClassic = new JsonSlurperClassic()
 
