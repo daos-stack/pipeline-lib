@@ -89,5 +89,6 @@ def call(Map config = [:]) {
             status = "SUCCESS"
         }
     }
-    stepResult name: env.STAGE_NAME, context: "test", result: status
+    stepResult name: env.STAGE_NAME, context: "test", result: status,
+               junit_files: config['junit_files']
 }
