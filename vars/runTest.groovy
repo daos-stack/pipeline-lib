@@ -90,7 +90,8 @@ def call(Map config = [:]) {
         }
     }
 
-    stepResult name: env.STAGE_NAME, context: "test", result: status
+    stepResult name: env.STAGE_NAME, context: "test", result: status,
+               junit_files: config['junit_files']
 
     if (status == 'FAILURE') {
         error(env.STAGE_NAME + " failed: " + rc)
