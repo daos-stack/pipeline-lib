@@ -67,8 +67,8 @@ def call(Map config = [:]) {
         if (config['target'] && !scm_config['checkoutDir']) {
             scm_config['checkoutDir'] = config['target']
         }
+        checkoutScm(scm_config)
     }
-    checkoutScm(scm_config)
     if (env.DAOS_JENKINS_NOTIFY_STATUS != null) {
         githubNotify credentialsId: 'daos-jenkins-commit-status',
                      description: env.STAGE_NAME,
