@@ -49,7 +49,7 @@ def call(Map config = [:]) {
    * config['log_to_file'] Copy build output to a file
    */
 
-    def tee_file = ''
+    def tee_file = '| true'
     if (config['log_to_file']) {
         tee_file = "| tee ${WORKSPACE}/" + config['log_to_file']
     }
@@ -186,8 +186,8 @@ def call(Map config = [:]) {
                      echo "Trying to write to log file failed: \$rc"
                      exit \$rc
                  fi
-                 if [ \${PIPESTATUS[0]} != 0 ]; then
-                     rc=\${PIPESTATUS[0]}
+                 rc=\${PIPESTATUS[0]}
+                 if [ \$rc != 0 ]; then
                      echo "scons failed: \$rc."
                      set +x
                      echo -n "If the error is not in the output above, it might be in the config.log: "
