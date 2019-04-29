@@ -49,7 +49,7 @@ def call(Map config = [:]) {
    * config['log_to_file'] Copy build output to a file
    */
 
-    def tee_file = '| true'
+    def tee_file = '| cat'
     if (config['log_to_file']) {
         tee_file = "| tee ${WORKSPACE}/" + config['log_to_file']
     }
