@@ -121,7 +121,7 @@ def call(Map config = [:]) {
                               chown -R jenkins.jenkins /localhome/jenkins/.ssh
                               echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins
                               yum -y install epel-release
-                              if ! yum -y install openmpi CUnit fuse
+                              if ! yum -y install openmpi CUnit fuse           \
                                                   python36-PyYAML              \
                                                   python36-nose                \
                                                   python36-pip valgrind        \
