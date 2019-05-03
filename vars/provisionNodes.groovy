@@ -140,7 +140,7 @@ def call(Map config = [:]) {
     rc = sh(script: 'set -x; rm -f ci_key*; ssh-keygen -N "" -f ci_key;' +
                     ' pdcp -R ssh -l root -w ' + nodeString +
                     ' ci_key* /tmp/;' +
-                    ' pdsh -R ssh -l root -w ' + nodeString +
+                    ' pdsh -R ssh -S -l root -w ' + nodeString +
                     ' "' + provision_script + '" 2>&1 | dshbak -c;' +
                     ' exit ${PIPESTATUS[0]}',
             label: "Post provision configuration",
