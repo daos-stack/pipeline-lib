@@ -120,14 +120,26 @@ def call(Map config = [:]) {
                               chmod 600 /localhome/jenkins/.ssh/{authorized_keys,id_rsa*}
                               chown -R jenkins.jenkins /localhome/jenkins/.ssh
                               echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins
-                              yum install -y epel-release
-                              yum install -y openmpi CUnit fuse python36-PyYAML python36-nose    \
-                                             python36-pip valgrind python36-paramiko             \
-                                             python2-avocado python2-avocado-plugins-output-html \
-                                             python2-avocado-plugins-varianter-yaml-to-mux       \
-                                             python-debuginfo python2-aexpect libcmocka          \
-                                             python-pathlib python2-numpy git                    \
-                                             golang-bin
+                              yum -y install epel-release
+                              if ! yum -y install openmpi CUnit fuse
+                                                  python36-PyYAML              \
+                                                  python36-nose                \
+                                                  python36-pip valgrind        \
+                                                  python36-paramiko            \
+                                                  python2-avocado              \
+                                                  python2-avocado-plugins-output-html \
+                                                  python2-avocado-plugins-varianter-yaml-to-mux \
+                                                  python-debuginfo             \
+                                                  python2-aexpect libcmocka    \
+                                                  python-pathlib python2-numpy \
+                                                  git golang-bin; then
+                                  rc=\\${PIPESTATUS[0]}
+                                  for file in /etc/yum.repos.d/*.repo; do
+                                      echo \\"---- \\$file ----\\"
+                                      cat \\$file
+                                  done
+                                  exit \\$rc
+                              fi
                               if [ ! -e /usr/bin/pip3 ] &&
                                  [ -e /usr/bin/pip3.6 ]; then
                                   ln -s pip3.6 /usr/bin/pip3
@@ -140,7 +152,7 @@ def call(Map config = [:]) {
     rc = sh(script: 'set -x; rm -f ci_key*; ssh-keygen -N "" -f ci_key;' +
                     ' pdcp -R ssh -l root -w ' + nodeString +
                     ' ci_key* /tmp/;' +
-                    ' pdsh -R ssh -l root -w ' + nodeString +
+                    ' pdsh -R ssh -S -l root -w ' + nodeString +
                     ' "' + provision_script + '" 2>&1 | dshbak -c;' +
                     ' exit ${PIPESTATUS[0]}',
             label: "Post provision configuration",
