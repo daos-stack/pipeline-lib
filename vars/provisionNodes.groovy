@@ -110,8 +110,8 @@ def call(Map config = [:]) {
     }
     // Prepare the node for daos/cart testing
     def provision_script = '''set -ex
-                              groupadd -g 1101 jenkins
-                              useradd -b /localhome -g 1101 -u 1101 jenkins
+                              groupadd -g 1101 jenkins || true
+                              useradd -b /localhome -g 1101 -u 1101 jenkins || true
                               mkdir -p /localhome/jenkins/.ssh
                               cat /tmp/ci_key.pub >> /localhome/jenkins/.ssh/authorized_keys
                               mv /tmp/ci_key.pub /localhome/jenkins/.ssh/id_rsa.pub
@@ -147,7 +147,8 @@ def call(Map config = [:]) {
                               if [ ! -e /usr/bin/python3 ] &&
                                  [ -e /usr/bin/python3.6 ]; then
                                   ln -s python3.6 /usr/bin/python3
-                              fi'''
+                              fi
+                              sync'''
     def rc = 0
     rc = sh(script: 'set -x; rm -f ci_key*; ssh-keygen -N "" -f ci_key;' +
                     ' pdcp -R ssh -l root -w ' + nodeString +
