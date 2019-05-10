@@ -112,11 +112,11 @@ def call(Map config = [:]) {
     // Prepare the node for daos/cart testing
     def provision_script = "set -ex\n" +
                            "my_uid=" + env.UID + "\n" +
-                           '''if ! grep ":$my_uid:" /etc/group; then
-                                groupadd -g $my_uid jenkins
+                           '''if ! grep ":\\$my_uid:" /etc/group; then
+                                groupadd -g \\$my_uid jenkins
                               fi
-                              if ! grep ":$my_uid:$my_uid:" /etc/passwd; then
-                                useradd -b /localhome -g $my_uid -u $my_uid jenkins
+                              if ! grep ":\\$my_uid:\\$my_uid:" /etc/passwd; then
+                                useradd -b /localhome -g \\$my_uid -u \\$my_uid jenkins
                               fi
                               mkdir -p /localhome/jenkins/.ssh
                               cat /tmp/ci_key.pub >> /localhome/jenkins/.ssh/authorized_keys
