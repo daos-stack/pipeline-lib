@@ -90,11 +90,16 @@ def call(Map config= [:]) {
            if (config['result'] == "ABORTED" ||
                config['result'] == "UNSTABLE" ||
                config['result'] == "FAILURE") {
+                def comment_url = env.BUILD_URL + "display/redirect"
+
+                if (log_url) {
+                    comment_url = log_url
+                }
+
                 pullRequest.comment("Test stage ${config.name}" +
                                     " completed with status " +
                                     "${config.result}" +
-                                    ".  " + env.BUILD_URL +
-                                    "display/redirect")
+                                    ".  " + comment_url)
             }
 
             def result = config['result']
