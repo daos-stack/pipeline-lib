@@ -108,10 +108,16 @@ def call(Map config = [:]) {
         error "One or more nodes failed to provision!"
       }
     }
+
     // Prepare the node for daos/cart testing
-    def provision_script = '''set -ex
-                              groupadd -g 1101 jenkins
-                              useradd -b /localhome -g 1101 -u 1101 jenkins
+    def provision_script = "set -ex\n" +
+                           "my_uid=" + env.UID + "\n" +
+                           '''if ! grep ":\\$my_uid:" /etc/group; then
+                                groupadd -g \\$my_uid jenkins
+                              fi
+                              if ! grep ":\\$my_uid:\\$my_uid:" /etc/passwd; then
+                                useradd -b /localhome -g \\$my_uid -u \\$my_uid jenkins
+                              fi
                               mkdir -p /localhome/jenkins/.ssh
                               cat /tmp/ci_key.pub >> /localhome/jenkins/.ssh/authorized_keys
                               mv /tmp/ci_key.pub /localhome/jenkins/.ssh/id_rsa.pub
@@ -147,7 +153,8 @@ def call(Map config = [:]) {
                               if [ ! -e /usr/bin/python3 ] &&
                                  [ -e /usr/bin/python3.6 ]; then
                                   ln -s python3.6 /usr/bin/python3
-                              fi'''
+                              fi
+                              sync'''
     def rc = 0
     rc = sh(script: 'set -x; rm -f ci_key*; ssh-keygen -N "" -f ci_key;' +
                     ' pdcp -R ssh -l root -w ' + nodeString +
