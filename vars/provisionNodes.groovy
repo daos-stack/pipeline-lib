@@ -124,7 +124,7 @@ host wolf-*
 EOF'''
     if (config['distro'] == "sles12sp3") {
         provision_script += '\nssh root@' + nodeString +
-                          ''' "zypper --non-interactive ar --gpgcheck-allow-unsigned -f https://build.hpdd.intel.com/job/daos-stack/job/pdsh/job/master/lastSuccessfulBuild/artifact/artifacts/sles12.3/ pdsh
+                          ''' "zypper --non-interactive ar --gpgcheck-allow-unsigned -f ${JENKINS_URL}job/daos-stack/job/pdsh/job/master/lastSuccessfulBuild/artifact/artifacts/sles12.3/ pdsh
                             zypper --non-interactive --gpg-auto-import-keys ref pdsh
                             zypper --non-interactive install pdsh sudo"'''
     }
