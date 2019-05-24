@@ -54,9 +54,9 @@ def call(Map config = [:]) {
       return node_cnt
   }
 
-  checkoutScm url: 'ssh://review.hpdd.intel.com:29418/exascale/jenkins',
+  checkoutScm url: 'git@gitlab.hpdd.intel.com:lab/ci-node-mgmt.git',
                                   checkoutDir: 'jenkins',
-                                  credentialsId: 'daos-gerrit-read'
+                                  credentialsId: 'daos-special-read'
   def options = ''
   def snapshot = ''
   def wait_for_it = true
@@ -77,11 +77,11 @@ def call(Map config = [:]) {
   sshagent (credentials: ['daos-provisioner']) {
 
     if (config['power_only']) {
-      sh script: """./jenkins/test_manager/node_powercycle.py \
+      sh script: """./jenkins/node_powercycle.py \
                      --node=${nodeString}""",
          returnStatus: true
     } else {
-      sh script: """./jenkins/test_manager/node_provision_start.py \
+      sh script: """./jenkins/node_provision_start.py \
                      --nodes=${nodeString} ${options}""",
          returnStatus: true
     }
@@ -101,7 +101,7 @@ def call(Map config = [:]) {
     }
     if (wait_for_it) {
       def rc = 0
-      rc = sh script: """./jenkins/test_manager/wait_for_node_ready.py \
+      rc = sh script: """./jenkins/wait_for_node_ready.py \
                        --nodes=${nodeString} ${woptions}""",
               returnStatus: true
       if (rc != 0) {
