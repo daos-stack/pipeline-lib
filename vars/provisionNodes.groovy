@@ -110,22 +110,45 @@ def call(Map config = [:]) {
     }
 
     // Prepare the node for daos/cart testing
-    def provision_script = "set -ex\n" +
-                           "my_uid=" + env.UID + "\n" +
-                           '''if ! grep ":\\$my_uid:" /etc/group; then
-                                groupadd -g \\$my_uid jenkins
-                              fi
-                              if ! grep ":\\$my_uid:\\$my_uid:" /etc/passwd; then
-                                useradd -b /localhome -g \\$my_uid -u \\$my_uid jenkins
-                              fi
-                              mkdir -p /localhome/jenkins/.ssh
-                              cat /tmp/ci_key.pub >> /localhome/jenkins/.ssh/authorized_keys
-                              mv /tmp/ci_key.pub /localhome/jenkins/.ssh/id_rsa.pub
-                              mv /tmp/ci_key /localhome/jenkins/.ssh/id_rsa
-                              chmod 700 /localhome/jenkins/.ssh
-                              chmod 600 /localhome/jenkins/.ssh/{authorized_keys,id_rsa*}
-                              chown -R jenkins.jenkins /localhome/jenkins/.ssh
-                              echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins
+    def provision_script = '''set -ex
+                              rm -f ci_key*
+                              ssh-keygen -N "" -f ci_key
+                              mkdir -p .ssh
+                              chmod 700 .ssh
+                              cat << "EOF" > .ssh/config
+host wolf-*
+    CheckHostIp no
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    LogLevel error
+EOF'''
+    if (config['distro'] == "sles12sp3") {
+        provision_script += '\nssh root@' + nodeString +
+                          ''' "zypper --non-interactive ar --gpgcheck-allow-unsigned -f ${JENKINS_URL}job/daos-stack/job/pdsh/job/master/lastSuccessfulBuild/artifact/artifacts/sles12.3/ pdsh
+                            zypper --non-interactive --gpg-auto-import-keys ref pdsh
+                            zypper --non-interactive install pdsh sudo"'''
+    }
+    provision_script += '\npdcp -R ssh -l root -w ' + nodeString +
+                      ''' ci_key* /tmp/
+                          pdsh -R ssh -S -l root -w ''' + nodeString +
+                      ''' "set -ex
+                          my_uid=''' + env.UID + '''
+                          if ! grep \\":\\$my_uid:\\" /etc/group; then
+                            groupadd -g \\$my_uid jenkins
+                          fi
+                          if ! grep \\":\\$my_uid:\\$my_uid:\\" /etc/passwd; then
+                            useradd -b /localhome -g \\$my_uid -u \\$my_uid jenkins
+                          fi
+                          mkdir -p /localhome/jenkins/.ssh
+                          cat /tmp/ci_key.pub >> /localhome/jenkins/.ssh/authorized_keys
+                          mv /tmp/ci_key.pub /localhome/jenkins/.ssh/id_rsa.pub
+                          mv /tmp/ci_key /localhome/jenkins/.ssh/id_rsa
+                          chmod 700 /localhome/jenkins/.ssh
+                          chmod 600 /localhome/jenkins/.ssh/{authorized_keys,id_rsa*}
+                          chown -R jenkins.jenkins /localhome/jenkins/.ssh
+                          echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins
+                          if [ -z \\"''' + config['distro'] + '''\\" ] ||
+                             [[ \\"''' + config['distro'] + '''\\" = el7* ]]; then
                               yum -y install epel-release
                               if ! yum -y install openmpi CUnit fuse           \
                                                   python36-PyYAML              \
@@ -154,14 +177,13 @@ def call(Map config = [:]) {
                                  [ -e /usr/bin/python3.6 ]; then
                                   ln -s python3.6 /usr/bin/python3
                               fi
-                              sync'''
+                          elif [[ \\"''' + config['distro'] + '''\\" = sles* ]]; then
+                              : # do nothing (for now?)
+                          fi
+                          sync" 2>&1 | dshbak -c
+                       exit ${PIPESTATUS[0]}'''
     def rc = 0
-    rc = sh(script: 'set -x; rm -f ci_key*; ssh-keygen -N "" -f ci_key;' +
-                    ' pdcp -R ssh -l root -w ' + nodeString +
-                    ' ci_key* /tmp/;' +
-                    ' pdsh -R ssh -S -l root -w ' + nodeString +
-                    ' "' + provision_script + '" 2>&1 | dshbak -c;' +
-                    ' exit ${PIPESTATUS[0]}',
+    rc = sh(script: provision_script,
             label: "Post provision configuration",
             returnStatus: true)
     if (rc != 0) {
