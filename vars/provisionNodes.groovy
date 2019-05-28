@@ -60,6 +60,7 @@ def call(Map config = [:]) {
   def options = ''
   def snapshot = ''
   def wait_for_it = true
+  def distro='el7'
   if (config['snapshot']) {
     options += ' --snapshot'
     wait_for_it = false
@@ -69,6 +70,7 @@ def call(Map config = [:]) {
   }
   if (config['distro']) {
     options += " --distro=${config['distro']}"
+    distro = config['distro']
   }
   if (config['profile']) {
     options += " --profile=${config['profile']}"
@@ -122,7 +124,7 @@ host wolf-*
     UserKnownHostsFile /dev/null
     LogLevel error
 EOF'''
-    if (config['distro'] == "sles12sp3") {
+    if (distro == "sles12sp3") {
         provision_script += '\nssh root@' + nodeString +
                           ''' "zypper --non-interactive ar --gpgcheck-allow-unsigned -f ${JENKINS_URL}job/daos-stack/job/pdsh/job/master/lastSuccessfulBuild/artifact/artifacts/sles12.3/ pdsh
                             zypper --non-interactive --gpg-auto-import-keys ref pdsh
@@ -147,8 +149,8 @@ EOF'''
                           chmod 600 /localhome/jenkins/.ssh/{authorized_keys,id_rsa*}
                           chown -R jenkins.jenkins /localhome/jenkins/.ssh
                           echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins
-                          if [ -z \\"''' + config['distro'] + '''\\" ] ||
-                             [[ \\"''' + config['distro'] + '''\\" = el7* ]]; then
+                          if [ -z \\"''' + distro + '''\\" ] ||
+                             [[ \\"''' + distro + '''\\" = el7* ]]; then
                               yum -y install epel-release
                               if ! yum -y install openmpi CUnit fuse           \
                                                   python36-PyYAML              \
@@ -177,7 +179,7 @@ EOF'''
                                  [ -e /usr/bin/python3.6 ]; then
                                   ln -s python3.6 /usr/bin/python3
                               fi
-                          elif [[ \\"''' + config['distro'] + '''\\" = sles* ]]; then
+                          elif [[ \\"''' + distro + '''\\" = sles* ]]; then
                               : # do nothing (for now?)
                           fi
                           sync" 2>&1 | dshbak -c
