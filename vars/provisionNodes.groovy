@@ -59,6 +59,7 @@ def call(Map config = [:]) {
                                   credentialsId: 'daos-special-read'
   def options = ''
   def snapshot = ''
+  def distro = 'el7'
   def wait_for_it = true
   if (config['snapshot']) {
     options += ' --snapshot'
@@ -69,6 +70,7 @@ def call(Map config = [:]) {
   }
   if (config['distro']) {
     options += " --distro=${config['distro']}"
+    distro = config['distro']
   }
   if (config['profile']) {
     options += " --profile=${config['profile']}"
@@ -113,16 +115,14 @@ def call(Map config = [:]) {
     def provision_script = '''set -ex
                               rm -f ci_key*
                               ssh-keygen -N "" -f ci_key
-                              mkdir -p .ssh
-                              chmod 700 .ssh
-                              cat << "EOF" > .ssh/config
+                              cat << "EOF" > ci_key_ssh_config
 host wolf-*
     CheckHostIp no
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
     LogLevel error
 EOF'''
-    if (config['distro'] == "sles12sp3") {
+    if (distro == "sles12sp3") {
         provision_script += '\nssh root@' + nodeString +
                           ''' "zypper --non-interactive ar --gpgcheck-allow-unsigned -f ${JENKINS_URL}job/daos-stack/job/pdsh/job/master/lastSuccessfulBuild/artifact/artifacts/sles12.3/ pdsh
                             zypper --non-interactive --gpg-auto-import-keys ref pdsh
@@ -143,12 +143,12 @@ EOF'''
                           cat /tmp/ci_key.pub >> /localhome/jenkins/.ssh/authorized_keys
                           mv /tmp/ci_key.pub /localhome/jenkins/.ssh/id_rsa.pub
                           mv /tmp/ci_key /localhome/jenkins/.ssh/id_rsa
+                          mv /tmp/ci_key_ssh_config /localhome/jenkins/.ssh/config
                           chmod 700 /localhome/jenkins/.ssh
-                          chmod 600 /localhome/jenkins/.ssh/{authorized_keys,id_rsa*}
+                          chmod 600 /localhome/jenkins/.ssh/{authorized_keys,id_rsa*,config}
                           chown -R jenkins.jenkins /localhome/jenkins/.ssh
                           echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins
-                          if [ -z \\"''' + config['distro'] + '''\\" ] ||
-                             [[ \\"''' + config['distro'] + '''\\" = el7* ]]; then
+                          if [[ \\"''' + distro + '''\\" = el7* ]]; then
                               yum -y install epel-release
                               if ! yum -y install openmpi CUnit fuse           \
                                                   python36-PyYAML              \
@@ -177,7 +177,7 @@ EOF'''
                                  [ -e /usr/bin/python3.6 ]; then
                                   ln -s python3.6 /usr/bin/python3
                               fi
-                          elif [[ \\"''' + config['distro'] + '''\\" = sles* ]]; then
+                          elif [[ \\"''' + distro + '''\\" = sles* ]]; then
                               : # do nothing (for now?)
                           fi
                           sync" 2>&1 | dshbak -c
