@@ -59,8 +59,8 @@ def call(Map config = [:]) {
                                   credentialsId: 'daos-special-read'
   def options = ''
   def snapshot = ''
+  def distro = 'el7'
   def wait_for_it = true
-  def distro='el7'
   if (config['snapshot']) {
     options += ' --snapshot'
     wait_for_it = false
@@ -115,9 +115,7 @@ def call(Map config = [:]) {
     def provision_script = '''set -ex
                               rm -f ci_key*
                               ssh-keygen -N "" -f ci_key
-                              mkdir -p .ssh
-                              chmod 700 .ssh
-                              cat << "EOF" > .ssh/config
+                              cat << "EOF" > ci_key_ssh_config
 host wolf-*
     CheckHostIp no
     StrictHostKeyChecking no
@@ -145,12 +143,12 @@ EOF'''
                           cat /tmp/ci_key.pub >> /localhome/jenkins/.ssh/authorized_keys
                           mv /tmp/ci_key.pub /localhome/jenkins/.ssh/id_rsa.pub
                           mv /tmp/ci_key /localhome/jenkins/.ssh/id_rsa
+                          mv /tmp/ci_key_ssh_config /localhome/jenkins/.ssh/config
                           chmod 700 /localhome/jenkins/.ssh
-                          chmod 600 /localhome/jenkins/.ssh/{authorized_keys,id_rsa*}
+                          chmod 600 /localhome/jenkins/.ssh/{authorized_keys,id_rsa*,config}
                           chown -R jenkins.jenkins /localhome/jenkins/.ssh
                           echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins
-                          if [ -z \\"''' + distro + '''\\" ] ||
-                             [[ \\"''' + distro + '''\\" = el7* ]]; then
+                          if [[ \\"''' + distro + '''\\" = el7* ]]; then
                               yum -y install epel-release
                               if ! yum -y install openmpi CUnit fuse           \
                                                   python36-PyYAML              \
