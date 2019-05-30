@@ -61,6 +61,7 @@ def call(Map config = [:]) {
   def snapshot = ''
   def distro = 'el7'
   def wait_for_it = true
+  def distro='el7'
   if (config['snapshot']) {
     options += ' --snapshot'
     wait_for_it = false
