@@ -161,7 +161,7 @@ EOF'''
                                                   python-debuginfo             \
                                                   libcmocka python-pathlib     \
                                                   python2-numpy git            \
-                                                  clustershell                 \
+                                                  python2-clustershell         \
                                                   golang-bin; then
                                   rc=\\${PIPESTATUS[0]}
                                   for file in /etc/yum.repos.d/*.repo; do
