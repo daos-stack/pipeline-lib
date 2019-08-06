@@ -18,6 +18,7 @@ def call(Map config = [:]) {
    * config['script'] The test code to run
    * config['stashes'] Stashes from the build to unstash
    * config['failure_artifacts'] Artifacts to link to when test fails, if any
+   * config['ignore_failure'] Whether a FAILURE result should post a failed step
    */
 
     dir('install') {
@@ -25,6 +26,11 @@ def call(Map config = [:]) {
     }
     config['stashes'].each {
         unstash it
+    }
+
+    def ignore_failure = false
+    if (config['ignore_failure']) {
+        ignore_failure = true
     }
 
     if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
@@ -91,7 +97,8 @@ def call(Map config = [:]) {
     }
 
     stepResult name: env.STAGE_NAME, context: "test", result: status,
-               junit_files: config['junit_files']
+               junit_files: config['junit_files'],
+               ignore_failure, ignore_failure
 
     if (status == 'FAILURE') {
         error(env.STAGE_NAME + " failed: " + rc)
