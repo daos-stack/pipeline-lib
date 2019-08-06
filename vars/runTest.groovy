@@ -98,7 +98,7 @@ def call(Map config = [:]) {
 
     stepResult name: env.STAGE_NAME, context: "test", result: status,
                junit_files: config['junit_files'],
-               ignore_failure, ignore_failure
+               ignore_failure: ignore_failure
 
     if (status == 'FAILURE') {
         error(env.STAGE_NAME + " failed: " + rc)
