@@ -82,10 +82,10 @@ def call(Map config = [:]) {
         status = "FAILURE"
     } else if (rc == 0) {
         if (config['junit_files'] != null) {
-            if (sh(script: "grep \"<error \" ${config.junit_files}",
+            if (sh(script: "junit_files=$(ls ${config.junit_files} || true); if [ -n "$junit_files" ]; then grep \"<error \" $junit_files; fi",
                    returnStatus: true) == 0) {
                 status = "FAILURE"
-            } else if (sh(script: "grep \"<failure \" ${config.junit_files}",
+            } else if (sh(script: "junit_files=$(ls ${config.junit_files} || true); if [ -n "$junit_files" ]; then grep \"<failure \" $junit_files; fi",
                           returnStatus: true) == 0) {
                 status = "UNSTABLE"
             } else {
