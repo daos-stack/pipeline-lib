@@ -88,6 +88,26 @@ def call(Map config = [:]) {
       inst_repos = config['inst_repos']
   }
 
+  def repository = ''
+  def distro_type = 'el'
+  if (distro.startsWith("sles") || distro.startsWith("leap")) {
+      distro_type = 'suse'
+  }
+  if (env.REPOSITORY_URL != null) {
+    if (distro.startsWith("el7") && (env.DAOS_STACK_EL_7_GROUP_REPO != null)) {
+        repository = env.repository_url + env.DAOS_STACK_EL_7_GROUP_REPO
+    } else if (distro.startsWith("sles12") &&
+               (env.DAOS_STACK_SLES_12_3_GROUP_REPO != null)) {
+        repository = env.repository_url + env.DAOS_STACK_SLES_12_3_GROUP_REPO
+    } else if (distro.startsWith("sles15") &&
+               (env.DAOS_STACK_SLES_15_GROUP_REPO != null)) {
+        repository = env.repository_url + env.DAOS_STACK_SLES_15_GROUP_REPO
+    }  else if (distro.startsWith("leap15") &&
+                (env.DAOS_STACK_SLES_15_GROUP_REPO != null)) {
+        repository = env.repository_url + env.DAOS_STACK_LEAP_15_GROUP_REPO
+    }
+  }
+
   sshagent (credentials: ['daos-provisioner']) {
 
     if (config['power_only']) {
@@ -134,7 +154,7 @@ host wolf-*
     UserKnownHostsFile /dev/null
     LogLevel error
 EOF'''
-    if (distro.startsWith("sles12")) {
+    if (distro_type == "suse") {
         provision_script += '\nclush -B -S -l root -w ' + nodeString +
                             ' "zypper --non-interactive install sudo"'
     }
@@ -172,10 +192,26 @@ EOF'''
     if (distro.startsWith("el7")) {
        // Since we don't have CORCI-711 yet, erase things we know could have
        // been put on the node previously
-       provision_script += '\nyum -y erase fio fuse ior-hpc mpich-autoload ompi argobots cart daos daos-client dpdk fuse-libs libisa-l libpmemobj mercury mpich openpa pmix protobuf-c spdk libfabric libpmem libpmemblk'
+      provision_script += '\nyum -y erase fio fuse ior-hpc mpich-autoload' +
+                             ' ompi argobots cart daos daos-client dpdk ' +
+                             ' fuse-libs libisa-l libpmemobj mercury mpich' +
+                             ' openpa pmix protobuf-c spdk libfabric libpmem' +
+                             ' libpmemblk munge-libs munge slurm' +
+                             ' slurm-example-configs slurmctld slurm-slurmmd'
+      provision_script +=   '\nyum -y install yum-utils'
+      if (repository != '') {
+        def repo_file = repository.substring(repository.lastIndexOf('/') + 1,
+                                             repository.length())
+        if (repo_file == '') {
+            error "Could not extract a repo file from ${repository}"
+        }
+        provision_script += '\nrm -f /etc/yum.repos.d/*' + repo_file + '.repo'
+        provision_script += '\nyum-config-manager --add-repo=' + repository
+        provision_script += '\necho \\"gpgcheck = False\\" >> ' +
+                              '/etc/yum.repos.d/*' + repo_file + '.repo'
+      }
       if (inst_repos) {
-        provision_script +=   '\nyum -y install yum-utils' +
-                              '\n' + iterate_repos +
+        provision_script += '\n' + iterate_repos +
                             '''\n  rm -f /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_*.repo
                                    yum-config-manager --add-repo=''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/centos7/
                                    echo \\"gpgcheck = False\\" >> /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_\\\${branch}_\\\${build_number}_artifact_artifacts_centos7_.repo
@@ -218,15 +254,22 @@ EOF'''
                              [ -e /usr/bin/python3.6 ]; then
                               ln -s python3.6 /usr/bin/python3
                           fi'''
-    } else if (distro.startsWith("sles")) {
+    } else if (distro_type == "suse") {
+      if (repository != '') {
+        provision_script += '\nzypper --non-interactive ar ' +
+                            '--gpgcheck-allow-unsigned -f ' +
+                            repository + ' daos-stack-group-repo'
+      }
       if (inst_repos) {
         provision_script +=   '\n' + iterate_repos +
                             '''\n    zypper --non-interactive ar --gpgcheck-allow-unsigned -f ''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/sles12.3/ \\\$repo
                                  done'''
       }
-      provision_script += '''\nzypper --non-interactive --gpg-auto-import-keys ref'''
+      provision_script += '\nzypper --non-interactive' +
+                          ' --gpg-auto-import-keys --no-gpg-checks ref'
       if (inst_rpms) {
-        provision_script += '''\nzypper --non-interactive in ''' + inst_rpms
+        provision_script += '\nzypper --non-interactive --no-gpg-checks in ' + 
+                            inst_rpms
       }
     } else {
         error("Don't know how to handle repos for distro: \"" + distro + "\"")
