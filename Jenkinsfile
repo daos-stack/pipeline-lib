@@ -87,9 +87,9 @@ pipeline {
                     provisionNodes NODELIST: env.NODELIST,
                                    distro: 'el7',
                                    node_count: 1,
-                                    snapshot: true,
-                                    inst_rpms: "slurm slurm-example-configs" +
-                                               " slurm-slurmtld slurm-slurmmd"
+                                   snapshot: true,
+                                   inst_rpms: "slurm slurm-example-configs" +
+                                              " slurm-slurmctld slurm-slurmd"
                             runTest(
                         script: '''NODE=${NODELIST%%,*}
                                    ssh $SSH_KEY_ARGS jenkins@$NODE "set -x
@@ -125,8 +125,8 @@ pipeline {
                     provisionNodes NODELIST: env.NODELIST,
                                    distro: 'sles12sp3',
                                    node_count: 1,
-                                    snapshot: true,
-                                    inst_rpms: "slurm"
+                                   snapshot: true,
+                                   inst_rpms: "slurm"
                             runTest(
                         script: '''NODE=${NODELIST%%,*}
                                    ssh $SSH_KEY_ARGS jenkins@$NODE "set -x

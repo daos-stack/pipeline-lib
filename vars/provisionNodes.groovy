@@ -230,7 +230,6 @@ EOF'''
                                                    python2-avocado              \
                                                    python2-avocado-plugins-output-html \
                                                    python2-avocado-plugins-varianter-yaml-to-mux \
-                                                   python-debuginfo             \
                                                    libcmocka python-pathlib     \
                                                    python2-numpy git            \
                                                    python2-clustershell         \
