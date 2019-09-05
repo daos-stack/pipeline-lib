@@ -19,46 +19,138 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 // DEALINGS IN THE SOFTWARE.
 
-@Library(value="pipeline-lib@corci-734") _
+// The @library line needs to be edited in a PR for adding a test.
+// This needs be commented out before deleting the branch used for a PR.
+@Library(value="pipeline-lib@jem-corci-749") _
 
 pipeline {
-    agent none
+    agent { label 'lightweight' }
+    environment {
+        BAHTTPS_PROXY = "${env.HTTP_PROXY ? '--build-arg HTTP_PROXY="' + env.HTTP_PROXY + '" --build-arg http_proxy="' + env.HTTP_PROXY + '"' : ''}"
+        BAHTTP_PROXY = "${env.HTTP_PROXY ? '--build-arg HTTPS_PROXY="' + env.HTTPS_PROXY + '" --build-arg https_proxy="' + env.HTTPS_PROXY + '"' : ''}"
+        UID = sh(script: "id -u", returnStdout: true)
+        SSH_KEY_FILE='ci_key'
+        SSH_KEY_ARGS="-i$SSH_KEY_FILE"
+        CLUSH_ARGS="-o$SSH_KEY_ARGS"
+    }
 
     stages {
-        stage('publishToRepository tests') {
-            agent {
-                dockerfile {
-                    filename 'docker/Dockerfile.centos.7'
-                    label 'docker_runner'
-                    additionalBuildArgs  '--build-arg UID=$(id -u)'
+        stage('Test') {
+          parallel {
+            stage('publishToRepository tests') {
+                agent {
+                    dockerfile {
+                        filename 'docker/Dockerfile.centos.7'
+                        label 'docker_runner'
+                        additionalBuildArgs  '--build-arg UID=$(id -u)'
+                    }
                 }
-            }
-            steps {
-                // Populate an artifact directory
-                copyArtifacts projectName: '/daos-stack/libfabric/master',
-                              filter: 'artifacts/centos7/**',
-                              target: 'artifact'
-                publishToRepository(
-                    product: 'zzz_pl-' + env.BRANCH_NAME + '_' + env.BUILD_ID,
-                    format: 'yum',
-                    maturity: 'test',
-                    tech: 'el7',
-                    repo_dir: 'artifact/artifacts/centos7',
-                    download_dir: 'artifact/download',
-                    test: true)
-            }
-            post {
-                unsuccessful {
-                    daosStackNotifyStatus description: env.STAGE_NAME,
-                                          context: 'test/' + env.STAGE_NAME,
-                                          status: 'FAILURE'
+                steps {
+                    // Populate an artifact directory
+                    copyArtifacts projectName: '/daos-stack/libfabric/master',
+                                  filter: 'artifacts/centos7/**',
+                                  target: 'artifact'
+                    publishToRepository(
+                        product: 'zzz_pl-' + env.BRANCH_NAME + '_' +
+                                  env.BUILD_ID,
+                        format: 'yum',
+                        maturity: 'test',
+                        tech: 'el7',
+                        repo_dir: 'artifact/artifacts/centos7',
+                        download_dir: 'artifact/download',
+                        test: true)
                 }
-                success {
-                    daosStackNotifyStatus description: env.STAGE_NAME,
-                                          context: 'test/' + env.STAGE_NAME,
-                                          status: 'SUCCESS'
+                post {
+                    unsuccessful {
+                        daosStackNotifyStatus(
+                            description: env.STAGE_NAME,
+                            context: 'test/' + env.STAGE_NAME,
+                            status: 'FAILURE')
+                    }
+                    success {
+                        daosStackNotifyStatus(
+                            description: env.STAGE_NAME,
+                            context: 'test/' + env.STAGE_NAME,
+                            status: 'SUCCESS')
+                    }
                 }
-            }
-        }
+            } //stage('publishToRepository tests')
+            stage('provisionNodes_with_slurm_el7') {
+                when {
+                    beforeAgent true
+                    expression { env.NO_CI_TESTING != "true" }
+                }
+                agent {
+                    label 'ci_vm1'
+                }
+                steps {
+                    provisionNodes NODELIST: env.NODELIST,
+                                   distro: 'el7',
+                                   node_count: 1,
+                                   snapshot: true,
+                                   inst_rpms: "slurm slurm-example-configs" +
+                                              " slurm-slurmctld slurm-slurmd"
+                            runTest(
+                        script: '''NODE=${NODELIST%%,*}
+                                   ssh $SSH_KEY_ARGS jenkins@$NODE "set -x
+                                     set -e
+                                     which scontrol"''',
+                        junit_files: null,
+                        failure_artifacts: env.STAGE_NAME)
+                }
+                post {
+                    unsuccessful {
+                        daosStackNotifyStatus(
+                            description: env.STAGE_NAME,
+                            context: 'test/' + env.STAGE_NAME,
+                            status: 'FAILURE')
+                    }
+                    success {
+                        daosStackNotifyStatus(
+                            description: env.STAGE_NAME,
+                            context: 'test/' + env.STAGE_NAME,
+                            status: 'SUCCESS')
+                    }
+                }
+            } //stage('provisionNodes_with_slurm_el7')
+            stage('provisionNodes_with_slurm_sles12') {
+                when {
+                    beforeAgent true
+                    expression { env.NO_CI_TESTING != "true" }
+                }
+                agent {
+                    label 'ci_vm1'
+                }
+                steps {
+                    provisionNodes NODELIST: env.NODELIST,
+                                   distro: 'sles12sp3',
+                                   node_count: 1,
+                                   snapshot: true,
+                                   inst_rpms: "slurm"
+                            runTest(
+                        script: '''NODE=${NODELIST%%,*}
+                                   ssh $SSH_KEY_ARGS jenkins@$NODE "set -x
+                                     set -e
+                                     which scontrol"''',
+                        junit_files: null,
+                        failure_artifacts: env.STAGE_NAME)
+                }
+                post {
+                    unsuccessful {
+                        daosStackNotifyStatus(
+                            description: env.STAGE_NAME,
+                            context: 'test/' + env.STAGE_NAME,
+                            status: 'FAILURE')
+                    }
+                    success {
+                        daosStackNotifyStatus(
+                            description: env.STAGE_NAME,
+                            context: 'test/' + env.STAGE_NAME,
+                            status: 'SUCCESS')
+                    }
+                }
+            } //stage('provisionNodes_with_slurm_sles12')
+          } // parallel
+        } // stage('Test')
     }
 }
