@@ -20,8 +20,12 @@
 // DEALINGS IN THE SOFTWARE.
 
 // The @library line needs to be edited in a PR for adding a test.
-// This needs be commented out before deleting the branch used for a PR.
-@Library(value="pipeline-lib@jem-corci-749") _
+// Adding a test requires two PRs.  One to add the test.
+// That PR should be landed with out deleting the PR branch.
+// Then a second PR submitted to comment out the @Library line, and when it
+// is landed, both PR branches can be deleted.
+
+// @Library(value="pipeline-lib@my_pr_branch") _
 
 pipeline {
     agent { label 'lightweight' }
