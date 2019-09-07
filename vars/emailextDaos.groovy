@@ -15,7 +15,6 @@ def call(Map config = [:]) {
         return
     }
 
-    println("emailextDaos, onPR: " + config['onPR']
     def onPR = false
     if (config['onPR'] && config['onPR'] == true) {
         onPR = true

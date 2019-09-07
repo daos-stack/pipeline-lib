@@ -11,8 +11,6 @@
  */
 
 def call(Map config = [:]) {
-    println("env.GIT_BRANCH: " + env.GIT_BRANCH)
-    println("env['GIT_BRANCH']: " + env['GIT_BRANCH'])
 
     if (config['branches']) {
         branches = config['branches'].split()
@@ -33,24 +31,17 @@ def call(Map config = [:]) {
                      [$class: 'DevelopersRecipientProvider'],
                      [$class: 'RequesterRecipientProvider']
                  ],
-                 subject: 'Build broken on ' + env.GIT_BRANCH
+                 subject: 'Build broken on ' + env.GIT_BRANCH,
                  onPR: config['onPR']
 
     def branch = env['GIT_BRANCH'].toUpperCase().replaceAll("-", "_")
-    println("branch: " + branch)
     def watchers = env["DAOS_STACK_${branch}_WATCHER"]
-    println("watchers: " + watchers)
-
-    def nonwatchers = env["DAOS_STACK_FOOBAR_WATCHER"]
-    println("nonwatchers: " + nonwatchers)
 
     if (watchers != "null") {
-        println("emailing : " + watchers)
-        println("onPR : " + config['onPR'])
         emailextDaos body: env.GIT_BRANCH + ' is broken.\n\n' +
                            'See ' + env.BUILD_URL + ' for more details.',
-                     to: watchers
-                     subject: 'Build broken on ' + env.GIT_BRANCH
+                     to: watchers,
+                     subject: 'Build broken on ' + env.GIT_BRANCH,
                      onPR: config['onPR']
     }
     
