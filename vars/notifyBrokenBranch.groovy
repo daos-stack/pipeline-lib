@@ -45,7 +45,8 @@ def call(Map config = [:]) {
     println("nonwatchers: " + nonwatchers)
 
     if (watchers != "null") {
-        println("emailing : " + nonwatchers)
+        println("emailing : " + watchers)
+        println("onPR : " + config['onPR'])
         emailextDaos body: env.GIT_BRANCH + ' is broken.\n\n' +
                            'See ' + env.BUILD_URL + ' for more details.',
                      to: watchers
