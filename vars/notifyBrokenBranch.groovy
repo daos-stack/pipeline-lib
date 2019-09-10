@@ -1,0 +1,47 @@
+// vars/notifyBrokenBranch.groovy
+
+/**
+ * notifyBrokenBranch.groovy
+ *
+ * email responsible parties when a branch is broken.
+ *
+ * config['branches']     List of branches to notify for.  Default "master"
+ *
+ */
+
+def call(Map config = [:]) {
+    println("env.GIT_BRANCH: " + env.GIT_BRANCH)
+    println("env['GIT_BRANCH']: " + env.['GIT_BRANCH'])
+
+    if (config['branches']) {
+        branches = config['branches'].split()
+    } else {
+        branches = ["master"]
+    }
+
+    if (!branches.contains(env.GIT_BRANCH)) {
+        return
+    }
+
+    emailextDaos body: env.GIT_BRANCH + ' is broken and you are one of the people\n' +
+                       'who have committed to it since it was last successful.  Please\n' +
+                       'investigate if your recent patch(es) to ' + env.GIT_BRANCH + '\n' +
+                       'are responsible for breaking it.\n\n' +
+                       'See ' + env.BUILD_URL + ' for more details.',
+                 recipientProviders: [
+                     [$class: 'DevelopersRecipientProvider'],
+                     [$class: 'RequesterRecipientProvider']
+                 ],
+                 subject: 'Build broken on ' + env.GIT_BRANCH
+
+    def branch = env.GIT_BRANCH
+    println("branch: " + branch)
+    def watchers = System.getenv("DAOS_STACK_${branch.toUpperCase()}_WATCHER")
+    println("watchers: " + watchers)
+
+    emailextDaos body: env.GIT_BRANCH + ' is broken.\n\n' +
+                       'See ' + env.BUILD_URL + ' for more details.',
+                 to: watchers
+                 subject: 'Build broken on ' + env.GIT_BRANCH
+    
+}
