@@ -5,7 +5,8 @@
  *
  * email responsible parties when a branch is broken.
  *
- * config['branches']     List of branches to notify for.  Default "master"
+ * config['branches']   List of branches to notify for.  Default "master"
+ * config['onPR']       Send e-mail when called from a PR.  Default false
  *
  */
 
@@ -33,6 +34,7 @@ def call(Map config = [:]) {
                      [$class: 'RequesterRecipientProvider']
                  ],
                  subject: 'Build broken on ' + env.GIT_BRANCH
+                 onPR: config['onPR']
 
     def branch = env['GIT_BRANCH'].toUpperCase().replaceAll("-", "_")
     println("branch: " + branch)
@@ -42,9 +44,13 @@ def call(Map config = [:]) {
     def nonwatchers = env["DAOS_STACK_FOOBAR_WATCHER"]
     println("nonwatchers: " + nonwatchers)
 
-    emailextDaos body: env.GIT_BRANCH + ' is broken.\n\n' +
-                       'See ' + env.BUILD_URL + ' for more details.',
-                 to: watchers
-                 subject: 'Build broken on ' + env.GIT_BRANCH
+    if (watchers != "null") {
+        println("emailing : " + nonwatchers)
+        emailextDaos body: env.GIT_BRANCH + ' is broken.\n\n' +
+                           'See ' + env.BUILD_URL + ' for more details.',
+                     to: watchers
+                     subject: 'Build broken on ' + env.GIT_BRANCH
+                     onPR: config['onPR']
+    }
     
 }
