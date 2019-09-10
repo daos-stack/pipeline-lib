@@ -11,7 +11,7 @@
 
 def call(Map config = [:]) {
     println("env.GIT_BRANCH: " + env.GIT_BRANCH)
-    println("env['GIT_BRANCH']: " + env.['GIT_BRANCH'])
+    println("env['GIT_BRANCH']: " + env['GIT_BRANCH'])
 
     if (config['branches']) {
         branches = config['branches'].split()
@@ -34,10 +34,13 @@ def call(Map config = [:]) {
                  ],
                  subject: 'Build broken on ' + env.GIT_BRANCH
 
-    def branch = env.GIT_BRANCH
+    def branch = env['GIT_BRANCH'].toUpperCase().replaceAll("-", "_")
     println("branch: " + branch)
-    def watchers = System.getenv("DAOS_STACK_${branch.toUpperCase()}_WATCHER")
+    def watchers = env["DAOS_STACK_${branch}_WATCHER"]
     println("watchers: " + watchers)
+
+    def nonwatchers = env["DAOS_STACK_FOOBAR_WATCHER"]
+    println("nonwatchers: " + nonwatchers)
 
     emailextDaos body: env.GIT_BRANCH + ' is broken.\n\n' +
                        'See ' + env.BUILD_URL + ' for more details.',
