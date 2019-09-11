@@ -256,8 +256,10 @@ EOF'''
       if (inst_rpms) {
          provision_script += '''\nyum -y erase ''' + inst_rpms
       }
-      provision_script += '\nrpm --import https://download.fedoraproject.org/' +
-                                         'pub/epel//RPM-GPG-KEY-EPEL-7'
+      provision_script += '\nrpm --import /etc/pki/rpm-gpg/*'
+      provision_script += '\nrpm --import ' +
+              'https://copr-be.cloud.fedoraproject.org/results/jhli' +
+              '/ipmctl/pubkey.gpg'
       provision_script += '''\nrm -f /etc/profile.d/openmpi.sh
                                yum -y erase metabench mdtest simul IOR compat-openmpi16
                                yum -y install epel-release
@@ -296,6 +298,9 @@ EOF'''
       provision_script += '\nrpm --import http://download.opensuse.org/' +
                                  'repositories/science:/HPC/' +
                                  'openSUSE_Leap_42.3/repodata/repomd.xml.key'
+      provision_script += '\nrpm --import http://download.opensuse.org/' +
+                                 'repositories/home:/jhli/SLE_15/' +
+                                 'repodata/repomd.xml.key'
       if (repository_g != '') {
         provision_script += '\nzypper --non-interactive ar -f ' +
                             repository_g + ' daos-stack-group-repo'
