@@ -94,6 +94,20 @@ def call(Map config = [:]) {
   if (distro.startsWith("sles") || distro.startsWith("leap")) {
       distro_type = 'suse'
   }
+  def gpg_key_urls = []
+  if (env.DAOS_STACK_REPO_SUPPORT != null) {
+     gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT + 'RPM-GPG-KEY-CentOS-7')
+     gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT +
+                      'RPM-GPG-KEY-CentOS-Debug-7')
+     gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT +
+                      'RPM-GPG-KEY-CentOS-Testing-7')
+     gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT +
+                      'RPM-GPG-KEY-EPEL-7')
+     if (env.DAOS_STACK_REPO_PUB_KEY) {
+       gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT +
+                        env.DAOS_STACK_REPO_PUB_KEY)
+     }
+  }
   if (env.REPOSITORY_URL != null) {
     if (distro.startsWith("el7")) {
         if (env.DAOS_STACK_EL_7_GROUP_REPO != null) {
@@ -256,7 +270,9 @@ EOF'''
       if (inst_rpms) {
          provision_script += '''\nyum -y erase ''' + inst_rpms
       }
-      provision_script += '\nrpm --import /etc/pki/rpm-gpg/*'
+      gpg_key_urls.each { gpg_url ->
+        provision_script += '\nrpm --import ' + gpg_url
+      }
       provision_script += '\nrpm --import ' +
               'https://copr-be.cloud.fedoraproject.org/results/jhli' +
               '/ipmctl/pubkey.gpg'
@@ -295,10 +311,10 @@ EOF'''
                           fi'''
     } else if (distro_type == "suse") {
       // Needed for sles-12.3/leap-42.3 only
-      provision_script += '\nrpm --import http://download.opensuse.org/' +
+      provision_script += '\nrpm --import https://download.opensuse.org/' +
                                  'repositories/science:/HPC/' +
                                  'openSUSE_Leap_42.3/repodata/repomd.xml.key'
-      provision_script += '\nrpm --import http://download.opensuse.org/' +
+      provision_script += '\nrpm --import https://download.opensuse.org/' +
                                  'repositories/home:/jhli/SLE_15/' +
                                  'repodata/repomd.xml.key'
       if (repository_g != '') {
