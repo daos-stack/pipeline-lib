@@ -36,9 +36,10 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-// To use a test branch (i.e. PR) until it lands to master
-// I.e. for testing library changes
-//@Library(value="pipeline-lib@your_branch") _
+// To test changes to this pipeline you need push changes to this file to
+// a PR and then to modify the
+//@Library(value="pipeline-lib@your_branch") _ line the Jenkinsfile for a
+//project to point to the above branch.  Then build and test as usual
 
 def call(Map pipeline_args) {
     pipeline {
