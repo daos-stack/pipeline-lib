@@ -25,7 +25,7 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 
-// @Library(value="pipeline-lib@my_pr_branch") _
+@Library(value="pipeline-lib@corci-768a") _
 
 pipeline {
     agent { label 'lightweight' }
@@ -59,7 +59,7 @@ pipeline {
                                   env.BUILD_ID,
                         format: 'yum',
                         maturity: 'test',
-                        tech: 'el7',
+                        tech: 'el-7',
                         repo_dir: 'artifact/artifacts/centos7',
                         download_dir: 'artifact/download',
                         test: true)
@@ -93,7 +93,8 @@ pipeline {
                                    node_count: 1,
                                    snapshot: true,
                                    inst_rpms: "slurm slurm-example-configs" +
-                                              " slurm-slurmctld slurm-slurmd"
+                                              " slurm-slurmctld slurm-slurmd" +
+                                              " ipmctl"
                             runTest(
                         script: '''NODE=${NODELIST%%,*}
                                    ssh $SSH_KEY_ARGS jenkins@$NODE "set -x
@@ -130,7 +131,7 @@ pipeline {
                                    distro: 'sles12sp3',
                                    node_count: 1,
                                    snapshot: true,
-                                   inst_rpms: "slurm"
+                                   inst_rpms: "slurm ipmctl"
                             runTest(
                         script: '''NODE=${NODELIST%%,*}
                                    ssh $SSH_KEY_ARGS jenkins@$NODE "set -x

@@ -88,23 +88,61 @@ def call(Map config = [:]) {
       inst_repos = config['inst_repos']
   }
 
-  def repository = ''
+  def repository_g = ''
+  def repository_l = ''
   def distro_type = 'el'
   if (distro.startsWith("sles") || distro.startsWith("leap")) {
       distro_type = 'suse'
   }
+  def gpg_key_urls = []
+  if (env.DAOS_STACK_REPO_SUPPORT != null) {
+     gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT + 'RPM-GPG-KEY-CentOS-7')
+     gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT +
+                      'RPM-GPG-KEY-CentOS-Debug-7')
+     gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT +
+                      'RPM-GPG-KEY-CentOS-Testing-7')
+     gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT +
+                      'RPM-GPG-KEY-EPEL-7')
+     if (env.DAOS_STACK_REPO_PUB_KEY) {
+       gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT +
+                        env.DAOS_STACK_REPO_PUB_KEY)
+     }
+  }
   if (env.REPOSITORY_URL != null) {
-    if (distro.startsWith("el7") && (env.DAOS_STACK_EL_7_GROUP_REPO != null)) {
-        repository = env.repository_url + env.DAOS_STACK_EL_7_GROUP_REPO
-    } else if (distro.startsWith("sles12") &&
-               (env.DAOS_STACK_SLES_12_3_GROUP_REPO != null)) {
-        repository = env.repository_url + env.DAOS_STACK_SLES_12_3_GROUP_REPO
-    } else if (distro.startsWith("sles15") &&
-               (env.DAOS_STACK_SLES_15_GROUP_REPO != null)) {
-        repository = env.repository_url + env.DAOS_STACK_SLES_15_GROUP_REPO
-    }  else if (distro.startsWith("leap15") &&
-                (env.DAOS_STACK_SLES_15_GROUP_REPO != null)) {
-        repository = env.repository_url + env.DAOS_STACK_LEAP_15_GROUP_REPO
+    if (distro.startsWith("el7")) {
+        if (env.DAOS_STACK_EL_7_GROUP_REPO != null) {
+            repository_g = env.REPOSITORY_URL + env.DAOS_STACK_EL_7_GROUP_REPO
+        }
+        if (env.DAOS_STACK_EL_7_LOCAL_REPO != null) {
+            repository_l = env.REPOSITORY_URL + env.DAOS_STACK_EL_7_LOCAL_REPO
+        }
+    } else if (distro.startsWith("sles12")) {
+        if (env.DAOS_STACK_SLES_12_GROUP_REPO != null) {
+            repository_g = env.REPOSITORY_URL +
+                env.DAOS_STACK_SLES_12_GROUP_REPO
+        }
+        if (env.DAOS_STACK_SLES_12_LOCAL_REPO != null) {
+            repository_l = env.REPOSITORY_URL +
+                env.DAOS_STACK_SLES_12_LOCAL_REPO
+        }
+    } else if (distro.startsWith("sles15")) {
+        if (env.DAOS_STACK_SLES_15_GROUP_REPO != null) {
+            repository_g = env.REPOSITORY_URL +
+                env.DAOS_STACK_SLES_15_GROUP_REPO
+        }
+        if (env.DAOS_STACK_SLES_15_LOCAL_REPO != null) {
+            repository_g = env.REPOSITORY_URL +
+                env.DAOS_STACK_SLES_15_LOCAL_REPO
+        }
+    }  else if (distro.startsWith("leap15")) {
+        if (env.DAOS_STACK_LEAP_15_GROUP_REPO != null) {
+            repository_g = env.REPOSITORY_URL +
+                env.DAOS_STACK_LEAP_15_GROUP_REPO
+        }
+        if (env.DAOS_STACK_LEAP_15_LOCAL_REPO != null) {
+            repository_g = env.REPOSITORY_URL +
+                env.DAOS_STACK_LEAP_15_LOCAL_REPO
+        }
     }
   }
 
@@ -199,17 +237,29 @@ EOF'''
                              ' libpmemblk munge-libs munge slurm' +
                              ' slurm-example-configs slurmctld slurm-slurmmd'
       provision_script +=   '\nyum -y install yum-utils'
-      if (repository != '') {
-        def repo_file = repository.substring(repository.lastIndexOf('/') + 1,
-                                             repository.length())
+      if (repository_g != '') {
+        def repo_file = repository_g.substring(
+                            repository_g.lastIndexOf('/') + 1,
+                            repository_g.length())
         if (repo_file == '') {
-            error "Could not extract a repo file from ${repository}"
+            error "Could not extract a repo file from ${repository_g}"
         }
         provision_script += '\nrm -f /etc/yum.repos.d/*' + repo_file + '.repo'
-        provision_script += '\nyum-config-manager --add-repo=' + repository
+        provision_script += '\nyum-config-manager --add-repo=' + repository_g
+      }
+      if (repository_l != '') {
+        def repo_file = repository_l.substring(
+                            repository_l.lastIndexOf('/') + 1,
+                            repository_l.length())
+        if (repo_file == '') {
+            error "Could not extract a repo file from ${repository_l}"
+        }
+        provision_script += '\nrm -f /etc/yum.repos.d/*' + repo_file + '.repo'
+        provision_script += '\nyum-config-manager --add-repo=' + repository_l
         provision_script += '\necho \\"gpgcheck = False\\" >> ' +
                               '/etc/yum.repos.d/*' + repo_file + '.repo'
       }
+
       if (inst_repos) {
         provision_script += '\n' + iterate_repos +
                             '''\n  rm -f /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_*.repo
@@ -220,6 +270,12 @@ EOF'''
       if (inst_rpms) {
          provision_script += '''\nyum -y erase ''' + inst_rpms
       }
+      gpg_key_urls.each { gpg_url ->
+        provision_script += '\nrpm --import ' + gpg_url
+      }
+      provision_script += '\nrpm --import ' +
+              'https://copr-be.cloud.fedoraproject.org/results/jhli' +
+              '/ipmctl/pubkey.gpg'
       provision_script += '''\nrm -f /etc/profile.d/openmpi.sh
                                yum -y erase metabench mdtest simul IOR compat-openmpi16
                                yum -y install epel-release
@@ -254,10 +310,26 @@ EOF'''
                               ln -s python3.6 /usr/bin/python3
                           fi'''
     } else if (distro_type == "suse") {
-      if (repository != '') {
-        provision_script += '\nzypper --non-interactive ar ' +
-                            '--gpgcheck-allow-unsigned -f ' +
-                            repository + ' daos-stack-group-repo'
+      // Needed for sles-12.3/leap-42.3 only
+      provision_script += '\nrpm --import https://download.opensuse.org/' +
+                                 'repositories/science:/HPC/' +
+                                 'openSUSE_Leap_42.3/repodata/repomd.xml.key'
+      provision_script += '\nrpm --import https://download.opensuse.org/' +
+                                 'repositories/home:/jhli/SLE_15/' +
+                                 'repodata/repomd.xml.key'
+      if (repository_g != '') {
+        provision_script += '\nzypper --non-interactive ar -f ' +
+                            repository_g + ' daos-stack-group-repo'
+        provision_script += '\nzypper --non-interactive mr ' +
+                            '--gpgcheck-allow-unsigned-repo ' +
+                            'daos-stack-group-repo'
+      }
+      if (repository_l != '') {
+        provision_script += '\nzypper --non-interactive ar' +
+                            ' --gpgcheck-allow-unsigned -f ' +
+                            repository_l + ' daos-stack-local-repo'
+        provision_script += '\nzypper --non-interactive mr' +
+                            ' --no-gpgcheck daos-stack-local-repo'
       }
       if (inst_repos) {
         provision_script +=   '\n' + iterate_repos +
@@ -267,8 +339,7 @@ EOF'''
       provision_script += '\nzypper --non-interactive' +
                           ' --gpg-auto-import-keys --no-gpg-checks ref'
       if (inst_rpms) {
-        provision_script += '\nzypper --non-interactive --no-gpg-checks in ' + 
-                            inst_rpms
+        provision_script += '\nzypper --non-interactive in ' + inst_rpms
       }
     } else {
         error("Don't know how to handle repos for distro: \"" + distro + "\"")
