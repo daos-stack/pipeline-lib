@@ -86,12 +86,12 @@ def call(Map config= [:]) {
             currentBuild.result = config.get('result')
         }
 
-        if (env.CHANGE_ID) {
-           if (config['result'] == "ABORTED" ||
-               config['result'] == "UNSTABLE" ||
-               config['result'] == "FAILURE") {
-                def comment_url = env.BUILD_URL + "display/redirect"
+        if (config['result'] == "ABORTED" ||
+            config['result'] == "UNSTABLE" ||
+            config['result'] == "FAILURE") {
+             def comment_url = env.BUILD_URL + "display/redirect"
 
+            if (env.CHANGE_ID) {
                 if (log_url) {
                     comment_url = log_url
                 }
@@ -101,28 +101,28 @@ def call(Map config= [:]) {
                                     "${config.result}" +
                                     ".  " + comment_url)
             }
+        }
 
-            def result = config['result']
-            switch(config['result']) {
-                case "UNSTABLE":
-                    result = "FAILURE"
-                    break
-                case "FAILURE":
-                    result = "ERROR"
-                    break
-            }
-            if (log_url) {
-                githubNotify credentialsId: 'daos-jenkins-commit-status',
-                             description: config['name'],
-                             context: config['context'] + "/" + config['name'],
-                             targetUrl: log_url,
-                             status: result
-            } else {
-                githubNotify credentialsId: 'daos-jenkins-commit-status',
-                             description: config['name'],
-                             context: config['context'] + "/" + config['name'],
-                             status: result
-            }
+        def result = config['result']
+        switch(config['result']) {
+            case "UNSTABLE":
+                result = "FAILURE"
+                break
+            case "FAILURE":
+                result = "ERROR"
+                break
+        }
+        if (log_url) {
+            githubNotify credentialsId: 'daos-jenkins-commit-status',
+                         description: config['name'],
+                         context: config['context'] + "/" + config['name'],
+                         targetUrl: log_url,
+                         status: result
+        } else {
+            githubNotify credentialsId: 'daos-jenkins-commit-status',
+                         description: config['name'],
+                         context: config['context'] + "/" + config['name'],
+                         status: result
         }
     }
 }
