@@ -25,7 +25,7 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 
-@Library(value="pipeline-lib@corci-768a") _
+//@Library(value="pipeline-lib@corci-768a") _
 
 pipeline {
     agent { label 'lightweight' }
