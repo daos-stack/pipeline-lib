@@ -135,7 +135,8 @@ def call(Map pipeline_args) {
                                                     maturity: 'stable',
                                                     tech: 'el-7',
                                                     repo_dir: 'artifacts/centos7/'
-                                archiveArtifacts artifacts: pipeline_args.get('add_artifacts', ''),
+                                archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
+                                                                              'no-optional-artifacts-to-archive'),
                                                             allowEmptyArchive: true
                             }
                             unsuccessful {
