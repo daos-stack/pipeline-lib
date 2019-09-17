@@ -36,8 +36,8 @@ def call(Map config = [:]) {
         return
     }
 
-    // Don't publish from PRs
-    if (env.CHANGE_ID) {
+    // Don't publish from PRs (unless testing)
+    if (env.CHANGE_ID && !config['test']) {
         return
     }
 
