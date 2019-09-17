@@ -35,6 +35,12 @@ def call(Map config = [:]) {
         println('No REPOSITORY_URL environment variable configured.')
         return
     }
+
+    // Don't publish from PRs (unless testing)
+    if (env.CHANGE_ID && !config['test']) {
+        return
+    }
+
     try {
         return publishToRepositorySystem(config)
     } catch (java.lang.NoSuchMethodError e) {
