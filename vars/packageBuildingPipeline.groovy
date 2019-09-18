@@ -43,8 +43,12 @@
 
 def call(Map pipeline_args) {
     pipeline {
-        agent none
+        agent { label 'lightweight' }
 
+        environment {
+            QUICKBUILD = sh(script: "git show -s --format=%B | grep \"^Quick-build: true\"",
+                            returnStatus: true)
+        }
         stages {
             stage('Cancel Previous Builds') {
                 when { changeRequest() }
@@ -53,6 +57,12 @@ def call(Map pipeline_args) {
                 }
             }
             stage('Lint') {
+                when {
+                    beforeAgent true
+                    allOf {
+                        expression { return env.QUICKBUILD == '1' }
+                    }
+                }
                 parallel {
                     stage('RPM Lint') {
                         agent {
@@ -102,7 +112,9 @@ def call(Map pipeline_args) {
                     stage('Build on CentOS 7') {
                         when {
                             beforeAgent true
-                            expression { pipeline_args['distros'].contains('centos7')}
+                            allOf {
+                                expression { pipeline_args['distros'].contains('centos7')}
+                            }
                         }
                         agent {
                             dockerfile {
@@ -169,6 +181,7 @@ def call(Map pipeline_args) {
                             allOf {
                                 environment name: 'SLES12_3_DOCKER', value: 'true'
                                 expression { pipeline_args['distros'].contains('sles12.3')}
+                                expression { return env.QUICKBUILD == '1' }
                             }
                         }
                         agent {
@@ -227,7 +240,10 @@ def call(Map pipeline_args) {
                     stage('Build on Leap 42.3') {
                         when {
                             beforeAgent true
-                            expression { pipeline_args['distros'].contains('leap42.3')}
+                            allOf {
+                                expression { pipeline_args['distros'].contains('leap42.3')}
+                                expression { return env.QUICKBUILD == '1' }
+                            }
                         }
                         agent {
                             dockerfile {
@@ -285,7 +301,10 @@ def call(Map pipeline_args) {
                     stage('Build on Leap 15') {
                         when {
                             beforeAgent true
-                            expression { pipeline_args['distros'].contains('leap15')}
+                            allOf {
+                                expression { pipeline_args['distros'].contains('leap15')}
+                                expression { return env.QUICKBUILD == '1' }
+                            }
                         }
                         agent {
                             dockerfile {
@@ -343,7 +362,10 @@ def call(Map pipeline_args) {
                     stage('Build on Ubuntu 18.04') {
                         when {
                             beforeAgent true
-                            expression { pipeline_args['distros'].contains('ubuntu18.04')}
+                            allOf {
+                                expression { pipeline_args['distros'].contains('ubuntu18.04')}
+                                expression { return env.QUICKBUILD == '1' }
+                            }
                         }
                         agent {
                             dockerfile {
@@ -395,7 +417,10 @@ def call(Map pipeline_args) {
                     stage('Build on Ubuntu 18.10') {
                         when {
                             beforeAgent true
-                            expression { pipeline_args['distros'].contains('ubuntu18.10')}
+                            allOf {
+                                expression { pipeline_args['distros'].contains('ubuntu18.10')}
+                                expression { return env.QUICKBUILD == '1' }
+                            }
                         }
                         agent {
                             dockerfile {
@@ -444,8 +469,30 @@ def call(Map pipeline_args) {
                             }
                         }
                     } //stage('Build on Ubuntu 18.10')
-                }
+                } // parallel
             } //stage('Build')
+            stage('Test') {
+                parallel {
+                    stage('Test on CentOS 7') {
+                        agent {
+                            dockerfile {
+                                filename 'packaging/Dockerfile.centos.7'
+                                label 'docker_runner'
+                                args  ' --cap-add=SYS_ADMIN' +
+                                      ' --privileged=true' +
+                                      ' -u 0'
+                                additionalBuildArgs '--build-arg UID=$(id -u)' +
+                                                    ' --build-arg JENKINS_URL=' +
+                                                    env.JENKINS_URL
+                            }
+                        }
+                        steps {
+                            sh label: "Test",
+                               script: "make test"
+                        }
+                    } // stage('Test on CentOS 7')
+                } // parallel
+            } // stage('Test')
         } // stages
     } // pipeline
 } // call
