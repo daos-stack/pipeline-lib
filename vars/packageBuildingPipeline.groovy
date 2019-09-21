@@ -48,6 +48,14 @@ def call(Map pipeline_args) {
         environment {
             QUICKBUILD = sh(script: "git show -s --format=%B | grep \"^Quick-build: true\"",
                             returnStatus: true)
+            PACKAGING_BRANCH = sh(script: '''b=$(git show -s --format=%B |
+                                                 sed -ne 's/^Packaging-branch: *\\(.*\\)/\\1/p')
+                                             if [ -n "$b" ]; then
+                                                 echo "$b"
+                                             else
+                                                 echo "master"
+                                             fi''',
+                                  returnStdout: true)
         }
         stages {
             stage('Cancel Previous Builds') {
@@ -85,7 +93,8 @@ def call(Map pipeline_args) {
                         agent { label 'lightweight' }
                         steps {
                             checkoutScm url: 'https://github.com/daos-stack/packaging.git',
-                                        checkoutDir: 'packaging-module'
+                                        checkoutDir: 'packaging-module',
+                                        branch: env.PACKAGING_BRANCH
                             catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS') {
                                 sh 'make ' + pipeline_args.get('make args', '') +
                                  ''' PACKAGING_CHECK_DIR=packaging-module \
