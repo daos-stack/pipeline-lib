@@ -49,7 +49,7 @@ def call(Map pipeline_args) {
         distros = pipeline_args['distros']
     } else {
         distros = ['centos7', 'sles12.3', 'leap42.3',
-                   'leap15', 'ubuntu18.04', 'ubuntu_rolling']
+                   'leap15', 'ubuntu_rolling']
     }
     if (pipeline_args['name']) {
         package_name = pipeline_args['name']
