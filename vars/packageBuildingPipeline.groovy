@@ -42,6 +42,20 @@
 //project to point to the above branch.  Then build and test as usual
 
 def call(Map pipeline_args) {
+    if (!pipeline_args) {
+        pipeline_args = [:]
+    }
+    if (pipeline_args['distros']) {
+        distros = pipeline_args['distros']
+    } else {
+        distros = ['centos7', 'sles12.3', 'leap42.3',
+                   'leap15', 'ubuntu_rolling']
+    }
+    if (pipeline_args['name']) {
+        package_name = pipeline_args['name']
+    } else {
+        package_name = jobName()
+    }
     pipeline {
         agent { label 'lightweight' }
 
@@ -122,7 +136,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { pipeline_args['distros'].contains('centos7')}
+                                expression { distros.contains('centos7')}
                             }
                         }
                         agent {
@@ -140,18 +154,18 @@ def call(Map pipeline_args) {
                         steps {
                             sh label: "Build package",
                                script: '''rm -rf artifacts/centos7/
-                                  mkdir -p artifacts/centos7/
-                                  make ''' + pipeline_args.get('make args', '') + ' chrootbuild ' +
-                                  pipeline_args.get('add_make_targets', '')
+                                          mkdir -p artifacts/centos7/
+                                          make ''' + pipeline_args.get('make args', '') + ' chrootbuild ' +
+                                          pipeline_args.get('add_make_targets', '')
                         }
                         post {
                             success {
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/epel-7-x86_64/result/ &&
-                                       cp -r . $OLDPWD/artifacts/centos7/)\n''' +
-                                       pipeline_args.get('add_archiving_cmds', '') +
-                                      '\ncreaterepo artifacts/centos7/'
-                                publishToRepository product: pipeline_args['name'],
+                                              cp -r . $OLDPWD/artifacts/centos7/)\n''' +
+                                              pipeline_args.get('add_archiving_cmds', '') +
+                                             '\ncreaterepo artifacts/centos7/'
+                                publishToRepository product: package_name,
                                                     format: 'yum',
                                                     maturity: 'stable',
                                                     tech: 'el-7',
@@ -163,21 +177,22 @@ def call(Map pipeline_args) {
                             unsuccessful {
                                 sh label: "Collect artifacts",
                                    script: '''mockroot=/var/lib/mock/epel-7-x86_64
-                                      artdir=$PWD/artifacts/centos7
-                                      cp -af _topdir/SRPMS $artdir
-                                      (cd $mockroot/result/ &&
-                                       cp -r . $artdir)
-                                      (if cd $mockroot/root/builddir/build/BUILD/*/; then
-                                           find . -name configure -printf %h\\\\n | \
-                                           while read dir; do
-                                               if [ ! -f $dir/config.log ]; then
-                                                   continue
-                                               fi
-                                               tdir="$artdir/autoconf-logs/$dir"
-                                               mkdir -p $tdir
-                                               cp -a $dir/config.log $tdir/
-                                           done
-                                       fi)'''
+                                              cat mockroot/results/{root,build}.log
+                                              artdir=$PWD/artifacts/centos7
+                                              cp -af _topdir/SRPMS $artdir
+                                              (cd $mockroot/result/ &&
+                                               cp -r . $artdir)
+                                              (if cd $mockroot/root/builddir/build/BUILD/*/; then
+                                                   find . -name configure -printf %h\\\\n | \
+                                                   while read dir; do
+                                                       if [ ! -f $dir/config.log ]; then
+                                                           continue
+                                                       fi
+                                                       tdir="$artdir/autoconf-logs/$dir"
+                                                       mkdir -p $tdir
+                                                       cp -a $dir/config.log $tdir/
+                                                   done
+                                               fi)'''
                             }
                             cleanup {
                                 archiveArtifacts artifacts: 'artifacts/centos7/**'
@@ -189,7 +204,7 @@ def call(Map pipeline_args) {
                             beforeAgent true
                             allOf {
                                 environment name: 'SLES12_3_DOCKER', value: 'true'
-                                expression { pipeline_args['distros'].contains('sles12.3')}
+                                expression { distros.contains('sles12.3')}
                                 expression { return env.QUICKBUILD == '1' }
                             }
                         }
@@ -206,19 +221,19 @@ def call(Map pipeline_args) {
                         steps {
                             sh label: "Build package",
                                script: '''rm -rf artifacts/sles12.3/
-                                  mkdir -p artifacts/sles12.3/
-                                  make chrootbuild'''
+                                          mkdir -p artifacts/sles12.3/
+                                          make chrootbuild'''
                         }
                         post {
                             success {
                                 sh label: "Collect artifacts",
                                    script: '''mockbase=/var/tmp/build-root/home/abuild
-                                      mockroot=$mockbase/rpmbuild
-                                      artdir=$PWD/artifacts/sles12.3
-                                      (cd $mockroot &&
-                                       cp {RPMS/*,SRPMS}/* $artdir)
-                                      createrepo $artdir/'''
-                                publishToRepository product: pipeline_args['name'],
+                                              mockroot=$mockbase/rpmbuild
+                                              artdir=$PWD/artifacts/sles12.3
+                                              (cd $mockroot &&
+                                               cp {RPMS/*,SRPMS}/* $artdir)
+                                              createrepo $artdir/'''
+                                publishToRepository product: package_name,
                                                     format: 'yum',
                                                     maturity: 'stable',
                                                     tech: 'sles-12',
@@ -227,19 +242,19 @@ def call(Map pipeline_args) {
                             unsuccessful {
                                 sh label: "Collect artifacts",
                                    script: '''mockbase=/var/tmp/build-root/home/abuild
-                                      mockroot=$mockbase/rpmbuild
-                                      artdir=$PWD/artifacts/sles12.3
-                                      (if cd $mockroot/BUILD; then
-                                           find . -name configure -printf %h\\\\n | \
-                                           while read dir; do
-                                               if [ ! -f $dir/config.log ]; then
-                                                   continue
-                                               fi
-                                               tdir="$artdir/autoconf-logs/$dir"
-                                               mkdir -p $tdir
-                                               cp -a $dir/config.log $tdir/
-                                           done
-                                       fi)'''
+                                              mockroot=$mockbase/rpmbuild
+                                              artdir=$PWD/artifacts/sles12.3
+                                              (if cd $mockroot/BUILD; then
+                                                   find . -name configure -printf %h\\\\n | \
+                                                   while read dir; do
+                                                       if [ ! -f $dir/config.log ]; then
+                                                           continue
+                                                       fi
+                                                       tdir="$artdir/autoconf-logs/$dir"
+                                                       mkdir -p $tdir
+                                                       cp -a $dir/config.log $tdir/
+                                                   done
+                                               fi)'''
                             }
                             cleanup {
                                 archiveArtifacts artifacts: 'artifacts/sles12.3/**'
@@ -250,7 +265,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { pipeline_args['distros'].contains('leap42.3')}
+                                expression { distros.contains('leap42.3')}
                                 expression { return env.QUICKBUILD == '1' }
                             }
                         }
@@ -267,19 +282,19 @@ def call(Map pipeline_args) {
                         steps {
                             sh label: "Build package",
                                script: '''rm -rf artifacts/leap42.3/
-                                  mkdir -p artifacts/leap42.3/
-                                  make chrootbuild'''
+                                          mkdir -p artifacts/leap42.3/
+                                          make chrootbuild'''
                         }
                         post {
                             success {
                                 sh label: "Collect artifacts",
                                    script: '''mockbase=/var/tmp/build-root/home/abuild
-                                      mockroot=$mockbase/rpmbuild
-                                      artdir=$PWD/artifacts/leap42.3
-                                      (cd $mockroot &&
-                                       cp {RPMS/*,SRPMS}/* $artdir)
-                                      createrepo $artdir/'''
-                                publishToRepository product: pipeline_args['name'],
+                                              mockroot=$mockbase/rpmbuild
+                                              artdir=$PWD/artifacts/leap42.3
+                                              (cd $mockroot &&
+                                               cp {RPMS/*,SRPMS}/* $artdir)
+                                              createrepo $artdir/'''
+                                publishToRepository product: package_name,
                                                     format: 'yum',
                                                     maturity: 'stable',
                                                     tech: 'leap-42',
@@ -288,19 +303,19 @@ def call(Map pipeline_args) {
                             unsuccessful {
                                 sh label: "Collect artifacts",
                                    script: '''mockbase=/var/tmp/build-root/home/abuild
-                                      mockroot=$mockbase/rpmbuild
-                                      artdir=$PWD/artifacts/leap42.3
-                                      (if cd $mockroot/BUILD; then
-                                       find . -name configure -printf %h\\\\n | \
-                                       while read dir; do
-                                           if [ ! -f $dir/config.log ]; then
-                                               continue
-                                           fi
-                                           tdir="$artdir/autoconf-logs/$dir"
-                                           mkdir -p $tdir
-                                           cp -a $dir/config.log $tdir/
-                                           done
-                                       fi)'''
+                                              mockroot=$mockbase/rpmbuild
+                                              artdir=$PWD/artifacts/leap42.3
+                                              (if cd $mockroot/BUILD; then
+                                               find . -name configure -printf %h\\\\n | \
+                                               while read dir; do
+                                                   if [ ! -f $dir/config.log ]; then
+                                                       continue
+                                                   fi
+                                                   tdir="$artdir/autoconf-logs/$dir"
+                                                   mkdir -p $tdir
+                                                   cp -a $dir/config.log $tdir/
+                                                   done
+                                               fi)'''
                             }
                             cleanup {
                                 archiveArtifacts artifacts: 'artifacts/leap42.3/**'
@@ -311,7 +326,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { pipeline_args['distros'].contains('leap15')}
+                                expression { distros.contains('leap15')}
                                 expression { return env.QUICKBUILD == '1' }
                             }
                         }
@@ -328,19 +343,19 @@ def call(Map pipeline_args) {
                         steps {
                             sh label: "Build package",
                                script: '''rm -rf artifacts/leap15/
-                                  mkdir -p artifacts/leap15/
-                                  make chrootbuild'''
+                                          mkdir -p artifacts/leap15/
+                                          make chrootbuild'''
                         }
                         post {
                             success {
                                 sh label: "Collect artifacts",
                                    script: '''mockbase=/var/tmp/build-root/home/abuild
-                                      mockroot=$mockbase/rpmbuild
-                                      artdir=$PWD/artifacts/leap15
-                                      (cd $mockroot &&
-                                       cp {RPMS/*,SRPMS}/* $artdir)
-                                      createrepo $artdir/'''
-                                publishToRepository product: pipeline_args['name'],
+                                              mockroot=$mockbase/rpmbuild
+                                              artdir=$PWD/artifacts/leap15
+                                              (cd $mockroot &&
+                                               cp {RPMS/*,SRPMS}/* $artdir)
+                                              createrepo $artdir/'''
+                                publishToRepository product: package_name,
                                                     format: 'yum',
                                                     maturity: 'stable',
                                                     tech: 'leap-15',
@@ -349,19 +364,19 @@ def call(Map pipeline_args) {
                             unsuccessful {
                                 sh label: "Collect artifacts",
                                    script: '''mockbase=/var/tmp/build-root/home/abuild
-                                      mockroot=$mockbase/rpmbuild
-                                      artdir=$PWD/artifacts/leap15
-                                      (if cd $mockroot/BUILD; then
-                                       find . -name configure -printf %h\\\\n | \
-                                       while read dir; do
-                                           if [ ! -f $dir/config.log ]; then
-                                               continue
-                                           fi
-                                           tdir="$artdir/autoconf-logs/$dir"
-                                           mkdir -p $tdir
-                                           cp -a $dir/config.log $tdir/
-                                           done
-                                       fi)'''
+                                              mockroot=$mockbase/rpmbuild
+                                              artdir=$PWD/artifacts/leap15
+                                              (if cd $mockroot/BUILD; then
+                                               find . -name configure -printf %h\\\\n | \
+                                               while read dir; do
+                                                   if [ ! -f $dir/config.log ]; then
+                                                       continue
+                                                   fi
+                                                   tdir="$artdir/autoconf-logs/$dir"
+                                                   mkdir -p $tdir
+                                                   cp -a $dir/config.log $tdir/
+                                                   done
+                                               fi)'''
                             }
                             cleanup {
                                 archiveArtifacts artifacts: 'artifacts/leap15/**'
@@ -372,7 +387,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { pipeline_args['distros'].contains('ubuntu18.04')}
+                                expression { distros.contains('ubuntu18.04')}
                                 expression { return env.QUICKBUILD == '1' }
                                 expression { env.DAOS_STACK_REPO_PUB_KEY != null }
                                 expression { env.DAOS_STACK_REPO_SUPPORT != null }
@@ -390,12 +405,12 @@ def call(Map pipeline_args) {
                         steps {
                             sh label: "Build package",
                                script: '''rm -rf artifacts/ubuntu18.04/
-                                  mkdir -p artifacts/ubuntu18.04/
-                                  : "${DEBEMAIL:="$env.DAOS_EMAIL"}"
-                                  : "${DEBFULLNAME:="$env.DAOS_FULLNAME"}"
-                                  export DEBEMAIL
-                                  export DEBFULLNAME
-                                  make chrootbuild'''
+                                          mkdir -p artifacts/ubuntu18.04/
+                                          : "${DEBEMAIL:="$env.DAOS_EMAIL"}"
+                                          : "${DEBFULLNAME:="$env.DAOS_FULLNAME"}"
+                                          export DEBEMAIL
+                                          export DEBFULLNAME
+                                          make chrootbuild'''
                         }
                         post {
                             success {
@@ -407,7 +422,7 @@ def call(Map pipeline_args) {
                                                 dpkg-scanpackages . /dev/null | \
                                                   gzip -9c > Packages.gz
                                               popd'''
-                                publishToRepository product: pipeline_args['name'],
+                                publishToRepository product: package_name,
                                                     format: 'apt',
                                                     maturity: 'stable',
                                                     tech: 'ubuntu-18.04',
@@ -427,7 +442,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { pipeline_args['distros'].contains('ubuntu_rolling')}
+                                expression { distros.contains('ubuntu_rolling')}
                                 expression { return env.QUICKBUILD == '1' }
                             }
                         }
@@ -460,7 +475,7 @@ def call(Map pipeline_args) {
                                                 dpkg-scanpackages . /dev/null | \
                                                   gzip -9c > Packages.gz
                                               popd'''
-                                publishToRepository product: pipeline_args['name'],
+                                publishToRepository product: package_name,
                                                     format: 'apt',
                                                     maturity: 'stable',
                                                     tech: 'ubuntu-rolling',
