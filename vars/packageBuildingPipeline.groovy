@@ -374,17 +374,17 @@ def call(Map pipeline_args) {
                             allOf {
                                 expression { pipeline_args['distros'].contains('ubuntu18.04')}
                                 expression { return env.QUICKBUILD == '1' }
-                            }
+                                expression { env.DAOS_STACK_REPO_PUB_KEY != null }
+                                expression { env.DAOS_STACK_REPO_SUPPORT != null }
+                                expression { env.DAOS_STACK_REPO_UBUNTU_18_04_LIST != null}
+                             }
                         }
                         agent {
                             dockerfile {
                                 filename 'packaging/Dockerfile.ubuntu.18.04'
                                 label 'docker_runner'
-                                additionalBuildArgs '--build-arg UID=$(id -u) ' +
-                                                    ' --build-arg JENKINS_URL=' +
-                                                    env.JENKINS_URL +
-                                                    ' --build-arg CACHEBUST=' +
-                                                    currentBuild.startTimeInMillis
+                                args '--privileged=true'
+                                additionalBuildArgs '--build-arg UID=$(id -u) '
                             }
                         }
                         steps {
@@ -395,18 +395,18 @@ def call(Map pipeline_args) {
                                   : "${DEBFULLNAME:="$env.DAOS_FULLNAME"}"
                                   export DEBEMAIL
                                   export DEBFULLNAME
-                                  make debs'''
+                                  make chrootbuild'''
                         }
                         post {
                             success {
                                 sh label: "Collect artifacts",
-                                   script: '''ln -v \
-                                       _topdir/BUILD/*{.build,.changes,.deb,.dsc,.gz,.xz} \
-                                       artifacts/ubuntu18.04/
-                                      pushd artifacts/ubuntu18.04/
-                                        dpkg-scanpackages . /dev/null | \
-                                          gzip -9c > Packages.gz
-                                      popd'''
+                                   script: '''cp -v \
+                                                /var/cache/pbuilder/result/*{.buildinfo,.changes,.deb,.dsc,.gz,.xz} \
+                                                artifacts/ubuntu18.04/
+                                              pushd artifacts/ubuntu18.04/
+                                                dpkg-scanpackages . /dev/null | \
+                                                  gzip -9c > Packages.gz
+                                              popd'''
                                 publishToRepository product: pipeline_args['name'],
                                                     format: 'apt',
                                                     maturity: 'stable',
@@ -415,7 +415,7 @@ def call(Map pipeline_args) {
                             }
                             unsuccessful {
                                 sh label: "Collect artifacts",
-                                   script: "cat _topdir/BUILD/*.build",
+                                   script: "cat /var/cache/pbuilder/result/*.buildinfo",
                                    returnStatus: true
                             }
                             cleanup {
@@ -423,61 +423,59 @@ def call(Map pipeline_args) {
                             }
                         }
                     } //stage('Build on Ubuntu 18.04')
-                    stage('Build on Ubuntu 18.10') {
+                    stage('Build on Ubuntu rolling') {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { pipeline_args['distros'].contains('ubuntu18.10')}
+                                expression { pipeline_args['distros'].contains('ubuntu_rolling')}
                                 expression { return env.QUICKBUILD == '1' }
                             }
                         }
                         agent {
                             dockerfile {
-                                filename 'packaging/Dockerfile.ubuntu.18.10'
+                                filename 'packaging/Dockerfile.ubuntu.rolling'
                                 label 'docker_runner'
-                                additionalBuildArgs '--build-arg UID=$(id -u) ' +
-                                                    ' --build-arg JENKINS_URL=' +
-                                                    env.JENKINS_URL +
-                                                    ' --build-arg CACHEBUST=' +
-                                                    currentBuild.startTimeInMillis
+                                args '--privileged=true'
+                                additionalBuildArgs '--build-arg UID=$(id -u) '
                             }
                         }
                         steps {
-                            sh '''rm -rf artifacts/ubuntu18.10/
-                                  mkdir -p artifacts/ubuntu18.10/
-                                  mkdir -p _topdir
-                                  : "${DEBEMAIL:="$env.DAOS_EMAIL"}"
-                                  : "${DEBFULLNAME:="$env.DAOS_FULLNAME"}"
-                                  export DEBEMAIL
-                                  export DEBFULLNAME
-                                  make debs'''
+                            sh label: "Build package",
+                               script: '''rm -rf artifacts/ubuntu_rolling/
+                                          mkdir -p artifacts/ubuntu_rolling/
+                                          mkdir -p _topdir
+                                          : "${DEBEMAIL:="$env.DAOS_EMAIL"}"
+                                          : "${DEBFULLNAME:="$env.DAOS_FULLNAME"}"
+                                          export DEBEMAIL
+                                          export DEBFULLNAME
+                                          make chrootbuild'''
                         }
                         post {
                             success {
                                 sh label: "Collect artifacts",
-                                   script: '''ln -v \
-                                       _topdir/BUILD/*{.build,.changes,.deb,.dsc,.gz,.xz} \
-                                       artifacts/ubuntu18.10/
-                                      pushd artifacts/ubuntu18.10/
-                                        dpkg-scanpackages . /dev/null | \
-                                          gzip -9c > Packages.gz
-                                      popd'''
+                                   script: '''cp -v \
+                                                /var/cache/pbuilder/result/*{.buildinfo,.changes,.deb,.dsc,.gz,.xz} \
+                                                artifacts/ubuntu_rolling/
+                                              pushd artifacts/ubuntu_rolling/
+                                                dpkg-scanpackages . /dev/null | \
+                                                  gzip -9c > Packages.gz
+                                              popd'''
                                 publishToRepository product: pipeline_args['name'],
                                                     format: 'apt',
                                                     maturity: 'stable',
-                                                    tech: 'ubuntu-18.10',
-                                                    repo_dir: 'artifacts/ubuntu18.10/'
+                                                    tech: 'ubuntu-rolling',
+                                                    repo_dir: 'artifacts/ubuntu_rolling/'
                             }
                             unsuccessful {
                                 sh label: "Collect artifacts",
-                                   script: "cat _topdir/BUILD/*.build",
+                                   script: "cat /var/cache/pbuilder/result/*.buildinfo",
                                    returnStatus: true
                             }
                             cleanup {
-                                archiveArtifacts artifacts: 'artifacts/ubuntu18.10/**'
+                                archiveArtifacts artifacts: 'artifacts/ubuntu_rolling/**'
                             }
                         }
-                    } //stage('Build on Ubuntu 18.10')
+                    } //stage('Build on Ubuntu rolling')
                 } // parallel
             } //stage('Build')
             stage('Test') {
