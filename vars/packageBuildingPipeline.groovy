@@ -416,8 +416,11 @@ def call(Map pipeline_args) {
                             success {
                                 sh label: "Collect artifacts",
                                    script: '''cp -v \
-                                                /var/cache/pbuilder/result/*{.buildinfo,.changes,.deb,.dsc,.gz,.xz} \
+                                                /var/cache/pbuilder/result/*{.buildinfo,.changes,.deb,.dsc,.xz} \
                                                 artifacts/ubuntu18.04/
+                                              cp -v \
+                                                _topdir/BUILD/*.orig.tar.* \
+                                                artifacts/ubuntu18.04
                                               pushd artifacts/ubuntu18.04/
                                                 dpkg-scanpackages . /dev/null | \
                                                   gzip -9c > Packages.gz
@@ -469,8 +472,11 @@ def call(Map pipeline_args) {
                             success {
                                 sh label: "Collect artifacts",
                                    script: '''cp -v \
-                                                /var/cache/pbuilder/result/*{.buildinfo,.changes,.deb,.dsc,.gz,.xz} \
+                                                /var/cache/pbuilder/result/*{.buildinfo,.changes,.deb,.dsc,.xz} \
                                                 artifacts/ubuntu_rolling/
+                                              cp -v \
+                                                _topdir/BUILD/*.orig.tar.* \
+                                                artifacts/ubuntu_rolling
                                               pushd artifacts/ubuntu_rolling/
                                                 dpkg-scanpackages . /dev/null | \
                                                   gzip -9c > Packages.gz
