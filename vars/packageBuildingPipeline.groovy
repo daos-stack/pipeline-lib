@@ -98,9 +98,11 @@ def call(Map pipeline_args) {
                             }
                         }
                         steps {
-                            sh 'make ' +
-                               pipeline_args.get('make args', '') +
-                               ' rpmlint'
+                            sh script: 'make ' +
+                                       pipeline_args.get('make args', '') +
+                                       ' rpmlint',
+                               returnStatus: !pipeline_args.get('rpmlint_check',
+                                                                 true)
                         }
                     }
                     stage('Check Packaging') {
