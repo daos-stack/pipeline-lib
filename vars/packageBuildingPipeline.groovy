@@ -225,7 +225,8 @@ def call(Map pipeline_args) {
                             sh label: "Build package",
                                script: '''rm -rf artifacts/sles12.3/
                                           mkdir -p artifacts/sles12.3/
-                                          make chrootbuild'''
+                                          make ''' + pipeline_args.get('make args', '') + ' chrootbuild ' +
+                                          pipeline_args.get('add_make_targets', '')
                         }
                         post {
                             success {
@@ -286,7 +287,8 @@ def call(Map pipeline_args) {
                             sh label: "Build package",
                                script: '''rm -rf artifacts/leap42.3/
                                           mkdir -p artifacts/leap42.3/
-                                          make chrootbuild'''
+                                          make ''' + pipeline_args.get('make args', '') + ' chrootbuild ' +
+                                          pipeline_args.get('add_make_targets', '')
                         }
                         post {
                             success {
@@ -347,7 +349,8 @@ def call(Map pipeline_args) {
                             sh label: "Build package",
                                script: '''rm -rf artifacts/leap15/
                                           mkdir -p artifacts/leap15/
-                                          make chrootbuild'''
+                                          make ''' + pipeline_args.get('make args', '') + ' chrootbuild ' +
+                                          pipeline_args.get('add_make_targets', '')
                         }
                         post {
                             success {
@@ -413,7 +416,8 @@ def call(Map pipeline_args) {
                                           : "${DEBFULLNAME:="$env.DAOS_FULLNAME"}"
                                           export DEBEMAIL
                                           export DEBFULLNAME
-                                          make chrootbuild'''
+                                          make ''' + pipeline_args.get('make args', '') + ' chrootbuild ' +
+                                          pipeline_args.get('add_make_targets', '')
                         }
                         post {
                             success {
@@ -469,7 +473,8 @@ def call(Map pipeline_args) {
                                           : "${DEBFULLNAME:="$env.DAOS_FULLNAME"}"
                                           export DEBEMAIL
                                           export DEBFULLNAME
-                                          make chrootbuild'''
+                                          make ''' + pipeline_args.get('make args', '') + ' chrootbuild ' +
+                                          pipeline_args.get('add_make_targets', '')
                         }
                         post {
                             success {
@@ -519,7 +524,7 @@ def call(Map pipeline_args) {
                         }
                         steps {
                             sh label: "Test",
-                               script: "make test"
+                               script: 'make ' + pipeline_args.get('make args', '') + ' test'
                         }
                     } // stage('Test on CentOS 7')
                 } // parallel
