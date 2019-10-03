@@ -16,6 +16,7 @@ def call(Map config = [:]) {
    * @return Integer status of script
    *
    * config['build_deps'] Setting for --build-deps.  Default 'yes'.
+   * config['scons_exe'] Name of scons executable.  Default 'scons'.
    * config['clean'] Space separated filenames to be removed after
    *  the prebuild option.
    *  Defaults _build.external* install build'.
@@ -92,8 +93,12 @@ def call(Map config = [:]) {
         set_cwd = "cd ${config['target']}\n"
     }
 
+    def scons_exe = 'scons'
     def scons_args = ''
     def sconstruct = ''
+    if (config['scons_exe']) {
+        scons_exe = "${config['scons_exe']}"
+    }
     if (config['sconstruct']) {
         sconstruct = " --sconstruct=${config['sconstruct']}"
         scons_args += sconstruct
@@ -135,7 +140,7 @@ def call(Map config = [:]) {
         clean_files = config['clean']
     }
     clean_files += ' install build {daos_m,daos,iof,cart-Linux}.conf'
-    def clean_cmd = "scons -c ${sconstruct}\n"
+    def clean_cmd = scons_exe + " -c ${sconstruct}\n"
     if (clean_files) {
         clean_cmd += "rm -rf ${clean_files}\n"
         if (config['target']) {
@@ -180,7 +185,7 @@ def call(Map config = [:]) {
     script += 'SCONS_ARGS="' + scons_args + '"\n'
     script += '''# the config cache is unreliable so always force a reconfig
                  # with "--config=force"
-                 if ! scons --config=force $SCONS_ARGS''' +
+                 if ! ''' + scons_exe + ''' --config=force $SCONS_ARGS''' +
                  tee_file + '''; then
                      rc=\${PIPESTATUS[1]}
                      echo "Trying to write to log file failed: \$rc"
