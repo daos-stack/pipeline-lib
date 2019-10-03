@@ -277,6 +277,7 @@ EOF'''
               'https://copr-be.cloud.fedoraproject.org/results/jhli' +
               '/ipmctl/pubkey.gpg'
       provision_script += '''\nrm -f /etc/profile.d/openmpi.sh
+                               rm -f /tmp/daos_control.log
                                yum -y erase metabench mdtest simul IOR compat-openmpi16
                                yum -y install epel-release
                                if ! yum -y install CUnit fuse python36-PyYAML   \
