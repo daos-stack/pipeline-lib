@@ -179,7 +179,8 @@ def call(Map pipeline_args) {
                             unsuccessful {
                                 sh label: "Collect artifacts",
                                    script: '''mockroot=/var/lib/mock/epel-7-x86_64
-                                              cat mockroot/results/{root,build}.log
+                                              ls -l $mockroot/result/
+                                              cat $mockroot/result/{root,build}.log
                                               artdir=$PWD/artifacts/centos7
                                               cp -af _topdir/SRPMS $artdir
                                               (cd $mockroot/result/ &&
