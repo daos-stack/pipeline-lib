@@ -224,7 +224,6 @@ def call(Map pipeline_args) {
                             sh label: "Build package",
                                script: '''rm -rf artifacts/sles12.3/
                                           mkdir -p artifacts/sles12.3/
-                                          make chrootbuild'''
                                           make ''' + pipeline_args.get('make args', '') + ' chrootbuild ' +
                                           pipeline_args.get('add_make_targets', '')
                         }
