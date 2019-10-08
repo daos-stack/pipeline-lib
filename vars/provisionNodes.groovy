@@ -60,7 +60,7 @@ def call(Map config = [:]) {
   // corci-792 will convert the VM in a physical CI allocation to be
   // a physical node, so we want to skip the snapshot restore when
   // the only node is not a VM.
-  if (config['snapshot'] && (config['NODELIST'].indexOF('vm') < 0)) {
+  if (config['snapshot'] && (config['NODELIST'].indexOf('vm') < 0)) {
     println "Skipping re-provisioning snapshot for physical nodes."
     return 0
   }
