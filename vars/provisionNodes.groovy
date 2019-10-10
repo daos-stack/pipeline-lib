@@ -75,6 +75,8 @@ def call(Map config = [:]) {
   if (config['distro']) {
     options += " --distro=${config['distro']}"
     distro = config['distro']
+  } else {
+    options += " --distro=el7.7"
   }
   if (config['profile']) {
     options += " --profile=${config['profile']}"
