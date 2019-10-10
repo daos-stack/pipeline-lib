@@ -74,9 +74,11 @@ def call(Map config = [:]) {
   def wait_for_it = true
   def inst_rpms = ''
   def inst_repos = ''
+  def python3_pip = "python3-pip"
   if (config['snapshot']) {
     options += ' --snapshot'
     wait_for_it = false
+      python3_pip = "https://kojipkgs.fedoraproject.org//packages/python-pip/8.1.2/8.el7/noarch/python36-pip-8.1.2-8.el7.noarch.rpm"
   }
   if (config['arch']) {
     options += " --arch=${config['arch']}"
@@ -241,13 +243,13 @@ EOF'''
        // Since we don't have CORCI-711 yet, erase things we know could have
        // been put on the node previously
       provision_script += '''\nrm -f /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_*_job_*.repo
-                             yum -y erase fio fuse ior-hpc mpich-autoload''' +
+                             yum -y install dnf dnf-plugins-core
+                             dnf -y erase fio fuse ior-hpc mpich-autoload''' +
                             ' ompi argobots cart daos daos-client dpdk ' +
                             ' fuse-libs libisa-l libpmemobj mercury mpich' +
                             ' openpa pmix protobuf-c spdk libfabric libpmem' +
                             ' libpmemblk munge-libs munge slurm' +
                             ' slurm-example-configs slurmctld slurm-slurmmd'
-      provision_script +=   '\nyum -y install yum-utils'
       if (repository_g != '') {
         def repo_file = repository_g.substring(
                             repository_g.lastIndexOf('/') + 1,
@@ -256,7 +258,7 @@ EOF'''
             error "Could not extract a repo file from ${repository_g}"
         }
         provision_script += '\nrm -f /etc/yum.repos.d/*' + repo_file + '.repo'
-        provision_script += '\nyum-config-manager --add-repo=' + repository_g
+        provision_script += '\ndnf config-manager --add-repo=' + repository_g
       }
       if (repository_l != '') {
         def repo_file = repository_l.substring(
@@ -265,20 +267,25 @@ EOF'''
         if (repo_file == '') {
             error "Could not extract a repo file from ${repository_l}"
         }
+        repo_name = repository_l.substring(
+                        repository_l.indexOf(':') + 3,
+                        repository_l.length()).replace('/', '_')
         provision_script += '\nrm -f /etc/yum.repos.d/*' + repo_file + '.repo'
-        provision_script += '\nyum-config-manager --add-repo=' + repository_l
-        provision_script += '\necho \\"gpgcheck = False\\" >> ' +
-                              '/etc/yum.repos.d/*' + repo_file + '.repo'
+        provision_script += '\ndnf config-manager --add-repo=' + repository_l
+        provision_script += '\ndnf config-manager --save --setopt=gpgcheck=False ' +
+                              repo_name
       }
 
       if (inst_repos) {
         provision_script += '\n' + iterate_repos +
-                            '''\nyum-config-manager --add-repo=''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/centos7/
-                               echo \\"gpgcheck = False\\" >> /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_\\\${branch}_\\\${build_number}_artifact_artifacts_centos7_.repo
-                           done'''
+                          '''\ndnf config-manager --add-repo=''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/centos7/
+                             repo_name=\\\$(cd /etc/yum.repos.d/ && ls *.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_\\\${branch}_\\\${build_number}_artifact_artifacts_centos7_.repo)
+                             repo_name=\\\${repo_name%.repo}
+                             dnf config-manager --save --setopt=gpgcheck=False \\\${repo_name}
+                         done'''
       }
       if (inst_rpms) {
-         provision_script += '''\nyum -y erase ''' + inst_rpms
+         provision_script += '''\ndnf -y erase ''' + inst_rpms
       }
       gpg_key_urls.each { gpg_url ->
         provision_script += '\nrpm --import ' + gpg_url
@@ -286,20 +293,22 @@ EOF'''
       provision_script += '\nrpm --import ' +
               'https://copr-be.cloud.fedoraproject.org/results/jhli' +
               '/ipmctl/pubkey.gpg'
-      provision_script += '''\nrm -f /etc/profile.d/openmpi.sh
+      provision_script += '''\ndnf repolist
+                               rm -f /etc/profile.d/openmpi.sh
                                rm -f /tmp/daos_control.log
-                               yum -y erase metabench mdtest simul IOR compat-openmpi16
-                               yum -y install epel-release
-                               if ! yum -y install CUnit fuse python36-PyYAML   \
-                                                   python36-nose                \
-                                                   python36-pip valgrind        \
-                                                   python36-paramiko            \
-                                                   python2-avocado              \
-                                                   python2-avocado-plugins-output-html \
+                               dnf -y erase metabench mdtest simul IOR compat-openmpi16
+                               dnf -y install epel-release
+                               dnf repoquery --qf %{name}-%{evr}:%{repoid} protobuf-c pmix
+                               if ! dnf --debugsolver -y install CUnit fuse python36-PyYAML                 \
+                                                   python36-nose                                 \
+                                                   ${python3_pip} valgrind                       \
+                                                   python36-paramiko                             \
+                                                   python2-avocado                               \
+                                                   python2-avocado-plugins-output-html           \
                                                    python2-avocado-plugins-varianter-yaml-to-mux \
-                                                   libcmocka python-pathlib     \
-                                                   python2-numpy git            \
-                                                   python2-clustershell         \
+                                                   libcmocka python-pathlib                      \
+                                                   python2-numpy git                             \
+                                                   python2-clustershell                          \
                                                    golang-bin'''
       if (inst_rpms) {
          provision_script += ' ' + inst_rpms
@@ -312,6 +321,9 @@ EOF'''
                               done
                               exit \\$rc
                           fi
+                          cat debugdata/rpms/testcase.t
+                          cat debugdata/rpms/solver.result
+                          rm -rf debugdata
                           if [ ! -e /usr/bin/pip3 ] &&
                              [ -e /usr/bin/pip3.6 ]; then
                               ln -s pip3.6 /usr/bin/pip3
@@ -344,8 +356,10 @@ EOF'''
       }
       if (inst_repos) {
         provision_script +=   '\n' + iterate_repos +
-                            '''\n    zypper --non-interactive ar --gpgcheck-allow-unsigned -f ''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/sles12.3/ \\\$repo
-                                 done'''
+                            '''\n    zypper --non-interactive ar --gpgcheck-allow-unsigned -f ''' +
+                                env.JENKINS_URL +
+                            '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/sles12.3/ \\\$repo
+                           done'''
       }
       provision_script += '\nzypper --non-interactive' +
                           ' --gpg-auto-import-keys --no-gpg-checks ref'
@@ -356,7 +370,7 @@ EOF'''
         error("Don't know how to handle repos for distro: \"" + distro + "\"")
     }
     provision_script += '''\nsync"
-                           exit ${PIPESTATUS[0]}'''
+                           exit \${PIPESTATUS[0]}'''
     def rc = 0
     rc = sh(script: provision_script,
             label: "Post provision configuration",
