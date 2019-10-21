@@ -378,6 +378,7 @@ def call(Map pipeline_args) {
                                    script: '''(cd /var/lib/mock/opensuse-leap-15.1-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/leap15/)\n''' +
                                               pipeline_args.get('add_archiving_cmds', '') +
+                                             '\ncreaterepo artifacts/centos7/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
                                                     maturity: 'stable',
