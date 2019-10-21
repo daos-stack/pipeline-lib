@@ -121,7 +121,10 @@ pipeline {
             stage('provisionNodes_with_slurm_sles12') {
                 when {
                     beforeAgent true
-                    expression { env.NO_CI_TESTING != "true" }
+                    allOf {
+                        expression { false }
+                        expression { env.NO_CI_TESTING != "true" }
+                    }
                 }
                 agent {
                     label 'ci_vm1'
