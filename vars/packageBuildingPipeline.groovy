@@ -208,6 +208,7 @@ def call(Map pipeline_args) {
                             beforeAgent true
                             allOf {
                                 environment name: 'SLES12_3_DOCKER', value: 'true'
+                                expression { false }
                                 expression { distros.contains('sles12.3')}
                                 expression { return env.QUICKBUILD == '1' }
                             }
@@ -278,6 +279,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
+                                expression { false }
                                 expression { distros.contains('leap42.3')}
                                 expression { return env.QUICKBUILD == '1' }
                             }
@@ -368,7 +370,7 @@ def call(Map pipeline_args) {
                             sh label: "Build package",
                                script: '''rm -rf artifacts/leap15/
                                           mkdir -p artifacts/leap15/
-                                          make CHROOT_NAME="opensude-leap-15.1-x86_64" ''' +
+                                          make CHROOT_NAME="opensuse-leap-15.1-x86_64" ''' +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
                         }
