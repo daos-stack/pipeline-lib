@@ -299,7 +299,7 @@ EOF'''
                                dnf -y erase metabench mdtest simul IOR compat-openmpi16
                                dnf -y install epel-release
                                dnf repoquery --qf %{name}-%{evr}:%{repoid} protobuf-c pmix
-                               if ! dnf --debugsolver -y install CUnit fuse python36-PyYAML                 \
+                               if ! dnf --best --debugsolver -y install CUnit fuse python36-PyYAML                 \
                                                    python36-nose                                 \
                                                    ${python3_pip} valgrind                       \
                                                    python36-paramiko                             \
