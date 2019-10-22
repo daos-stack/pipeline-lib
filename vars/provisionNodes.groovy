@@ -319,6 +319,9 @@ EOF'''
                                   echo \\"---- \\$file ----\\"
                                   cat \\$file
                               done
+                              cat debugdata/rpms/testcase.t
+                              cat debugdata/rpms/solver.result
+                              rm -rf debugdata
                               exit \\$rc
                           fi
                           cat debugdata/rpms/testcase.t
