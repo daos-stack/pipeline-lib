@@ -218,6 +218,7 @@ EOF'''
                           fi
                           mkdir -p /localhome/jenkins/.ssh
                           cat /tmp/ci_key.pub >> /localhome/jenkins/.ssh/authorized_keys
+                          cat /tmp/ci_key.pub >> /root/.ssh/authorized_keys
                           mv /tmp/ci_key.pub /localhome/jenkins/.ssh/id_rsa.pub
                           mv /tmp/ci_key /localhome/jenkins/.ssh/id_rsa
                           mv /tmp/ci_key_ssh_config /localhome/jenkins/.ssh/config
