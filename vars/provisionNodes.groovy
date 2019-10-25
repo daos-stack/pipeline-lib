@@ -240,12 +240,13 @@ EOF'''
     if (distro.startsWith("el7")) {
        // Since we don't have CORCI-711 yet, erase things we know could have
        // been put on the node previously
-      provision_script += '\nyum -y erase fio fuse ior-hpc mpich-autoload' +
-                             ' ompi argobots cart daos daos-client dpdk ' +
-                             ' fuse-libs libisa-l libpmemobj mercury mpich' +
-                             ' openpa pmix protobuf-c spdk libfabric libpmem' +
-                             ' libpmemblk munge-libs munge slurm' +
-                             ' slurm-example-configs slurmctld slurm-slurmmd'
+      provision_script += '''\nrm -f /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_*_job_*.repo
+                             yum -y erase fio fuse ior-hpc mpich-autoload''' +
+                            ' ompi argobots cart daos daos-client dpdk ' +
+                            ' fuse-libs libisa-l libpmemobj mercury mpich' +
+                            ' openpa pmix protobuf-c spdk libfabric libpmem' +
+                            ' libpmemblk munge-libs munge slurm' +
+                            ' slurm-example-configs slurmctld slurm-slurmmd'
       provision_script +=   '\nyum -y install yum-utils'
       if (repository_g != '') {
         def repo_file = repository_g.substring(
@@ -272,10 +273,9 @@ EOF'''
 
       if (inst_repos) {
         provision_script += '\n' + iterate_repos +
-                            '''\n  rm -f /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_*.repo
-                                   yum-config-manager --add-repo=''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/centos7/
-                                   echo \\"gpgcheck = False\\" >> /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_\\\${branch}_\\\${build_number}_artifact_artifacts_centos7_.repo
-                               done'''
+                            '''\nyum-config-manager --add-repo=''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/centos7/
+                               echo \\"gpgcheck = False\\" >> /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_\\\${branch}_\\\${build_number}_artifact_artifacts_centos7_.repo
+                           done'''
       }
       if (inst_rpms) {
          provision_script += '''\nyum -y erase ''' + inst_rpms
