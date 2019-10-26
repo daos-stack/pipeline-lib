@@ -74,11 +74,9 @@ def call(Map config = [:]) {
   def wait_for_it = true
   def inst_rpms = ''
   def inst_repos = ''
-  def python3_pip = "python3-pip"
   if (config['snapshot']) {
     options += ' --snapshot'
     wait_for_it = false
-      python3_pip = "https://kojipkgs.fedoraproject.org//packages/python-pip/8.1.2/8.el7/noarch/python36-pip-8.1.2-8.el7.noarch.rpm"
   }
   if (config['arch']) {
     options += " --arch=${config['arch']}"
@@ -301,7 +299,7 @@ EOF'''
                                dnf repoquery --qf %{name}-%{evr}:%{repoid} protobuf-c pmix
                                if ! dnf --best --debugsolver -y install CUnit fuse python36-PyYAML                 \
                                                    python36-nose                                 \
-                                                   ${python3_pip} valgrind                       \
+                                                   python36-pip valgrind        \
                                                    python36-paramiko                             \
                                                    python2-avocado                               \
                                                    python2-avocado-plugins-output-html           \
