@@ -19,7 +19,7 @@ def call(Map config = [:]) {
    */
 
   if (jobName() == "daos") {
-      if (sh(script: "git log | grep \"CORCI-818 build: Skip hardware testing option\""
+      if (sh(script: 'git log | grep "CORCI-818 build: Skip hardware testing option"',
               label: "Check required commits",
               returnStatus: true) != 0) {
         error "Your PR needs to be merged with latest master before it will build in CI."
