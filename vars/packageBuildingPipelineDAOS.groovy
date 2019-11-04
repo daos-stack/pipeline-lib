@@ -138,7 +138,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { distros.contains('centos7')}
+                                expression { distros.contains('centos7') }
                             }
                         }
                         agent {
@@ -207,7 +207,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { distros.contains('centos8')}
+                                expression { distros.contains('centos8') }
                             }
                         }
                         agent {
@@ -278,7 +278,7 @@ def call(Map pipeline_args) {
                             allOf {
                                 environment name: 'SLES12_3_DOCKER', value: 'true'
                                 expression { pipeline_args.get('sles12_build', false) }
-                                expression { distros.contains('sles12.3')}
+                                expression { distros.contains('sles12.3') }
                                 expression { return env.QUICKBUILD == '1' }
                             }
                         }
@@ -349,7 +349,7 @@ def call(Map pipeline_args) {
                             beforeAgent true
                             allOf {
                                 expression { pipeline_args.get('sles12_build', false) }
-                                expression { distros.contains('leap42.3')}
+                                expression { distros.contains('leap42.3') }
                                 expression { return env.QUICKBUILD == '1' }
                             }
                         }
@@ -419,7 +419,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { distros.contains('leap15')}
+                                expression { distros.contains('leap15') }
                                 expression { return env.QUICKBUILD == '1' }
                             }
                         }
@@ -489,7 +489,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { distros.contains('ubuntu18.04')}
+                                expression { distros.contains('ubuntu18.04') }
                                 expression { return env.QUICKBUILD == '1' }
                                 expression { env.DAOS_STACK_REPO_PUB_KEY != null }
                                 expression { env.DAOS_STACK_REPO_SUPPORT != null }
@@ -548,7 +548,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { distros.contains('ubuntu_rolling')}
+                                expression { distros.contains('ubuntu_rolling') }
                                 expression { return env.QUICKBUILD == '1' }
                             }
                         }
@@ -609,7 +609,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { distros.contains('centos7')}
+                                expression { distros.contains('centos7') }
                             }
                         }
                         agent {
@@ -654,7 +654,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { distros.contains('leap15')}
+                                expression { distros.contains('leap15') }
                             }
                         }
                         agent {
