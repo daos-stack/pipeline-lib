@@ -48,8 +48,7 @@ def call(Map pipeline_args) {
     if (pipeline_args['distros']) {
         distros = pipeline_args['distros']
     } else {
-        distros = ['centos7', 'sles12.3', 'leap42.3',
-                   'leap15', 'ubuntu_rolling']
+        distros = ['centos7', 'leap15', 'ubuntu_rolling']
     }
     if (pipeline_args['name']) {
         package_name = pipeline_args['name']
@@ -277,7 +276,6 @@ def call(Map pipeline_args) {
                             beforeAgent true
                             allOf {
                                 environment name: 'SLES12_3_DOCKER', value: 'true'
-                                expression { pipeline_args.get('sles12_build', false) }
                                 expression { distros.contains('sles12.3') }
                                 expression { return env.QUICKBUILD == '1' }
                             }
@@ -348,7 +346,6 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { pipeline_args.get('sles12_build', false) }
                                 expression { distros.contains('leap42.3') }
                                 expression { return env.QUICKBUILD == '1' }
                             }
