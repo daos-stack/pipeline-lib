@@ -48,8 +48,7 @@ def call(Map pipeline_args) {
     if (pipeline_args['distros']) {
         distros = pipeline_args['distros']
     } else {
-        distros = ['centos7', 'sles12.3', 'leap42.3',
-                   'leap15', 'ubuntu_rolling']
+        distros = ['centos7', 'leap15', 'ubuntu_rolling']
     }
     if (pipeline_args['name']) {
         package_name = pipeline_args['name']
@@ -138,7 +137,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { distros.contains('centos7')}
+                                expression { distros.contains('centos7') }
                             }
                         }
                         agent {
@@ -203,13 +202,81 @@ def call(Map pipeline_args) {
                             }
                         }
                     } //stage('Build on CentOS 7')
+                    stage('Build on CentOS 8') {
+                        when {
+                            beforeAgent true
+                            allOf {
+                                expression { distros.contains('centos8') }
+                            }
+                        }
+                        agent {
+                            dockerfile {
+                                filename 'packaging/Dockerfile.mockbuild'
+                                label 'docker_runner'
+                                args  '--group-add mock' +
+                                      ' --cap-add=SYS_ADMIN' +
+                                      ' --privileged=true'
+                                additionalBuildArgs '--build-arg UID=$(id -u)' +
+                                                    ' --build-arg JENKINS_URL=' +
+                                                    env.JENKINS_URL
+                            }
+                        }
+                        steps {
+                            sh label: "Build package",
+                               script: '''rm -rf artifacts/8/
+                                          mkdir -p artifacts/centos8/
+                                          make CHROOT_NAME="epel-8-x86_64" ''' +
+                                       pipeline_args.get('make args', '') + ' chrootbuild ' +
+                                       pipeline_args.get('add_make_targets', '')
+                        }
+                        post {
+                            success {
+                                sh label: "Collect artifacts",
+                                   script: '''(cd /var/lib/mock/epel-8-x86_64/result/ &&
+                                              cp -r . $OLDPWD/artifacts/centos8/)\n''' +
+                                              pipeline_args.get('add_archiving_cmds', '') +
+                                             '\ncreaterepo artifacts/centos8/'
+                                publishToRepository product: package_name,
+                                                    format: 'yum',
+                                                    maturity: 'stable',
+                                                    tech: 'el-8',
+                                                    repo_dir: 'artifacts/centos8/'
+                                archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
+                                                                              'no-optional-artifacts-to-archive'),
+                                                            allowEmptyArchive: true
+                            }
+                            unsuccessful {
+                                sh label: "Collect artifacts",
+                                   script: '''mockroot=/var/lib/mock/epel-8-x86_64
+                                              ls -l $mockroot/result/
+                                              cat $mockroot/result/{root,build}.log
+                                              artdir=$PWD/artifacts/centos8
+                                              cp -af _topdir/SRPMS $artdir
+                                              (cd $mockroot/result/ &&
+                                               cp -r . $artdir)
+                                              (if cd $mockroot/root/builddir/build/BUILD/*/; then
+                                                   find . -name configure -printf %h\\\\n | \
+                                                   while read dir; do
+                                                       if [ ! -f $dir/config.log ]; then
+                                                           continue
+                                                       fi
+                                                       tdir="$artdir/autoconf-logs/$dir"
+                                                       mkdir -p $tdir
+                                                       cp -a $dir/config.log $tdir/
+                                                   done
+                                               fi)'''
+                            }
+                            cleanup {
+                                archiveArtifacts artifacts: 'artifacts/centos8/**'
+                            }
+                        }
+                    } //stage('Build on CentOS 8')
                     stage('Build on SLES 12.3') {
                         when {
                             beforeAgent true
                             allOf {
                                 environment name: 'SLES12_3_DOCKER', value: 'true'
-                                expression { false }
-                                expression { distros.contains('sles12.3')}
+                                expression { distros.contains('sles12.3') }
                                 expression { return env.QUICKBUILD == '1' }
                             }
                         }
@@ -279,8 +346,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { false }
-                                expression { distros.contains('leap42.3')}
+                                expression { distros.contains('leap42.3') }
                                 expression { return env.QUICKBUILD == '1' }
                             }
                         }
@@ -350,7 +416,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { distros.contains('leap15')}
+                                expression { distros.contains('leap15') }
                                 expression { return env.QUICKBUILD == '1' }
                             }
                         }
@@ -420,7 +486,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { distros.contains('ubuntu18.04')}
+                                expression { distros.contains('ubuntu18.04') }
                                 expression { return env.QUICKBUILD == '1' }
                                 expression { env.DAOS_STACK_REPO_PUB_KEY != null }
                                 expression { env.DAOS_STACK_REPO_SUPPORT != null }
@@ -479,7 +545,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { distros.contains('ubuntu_rolling')}
+                                expression { distros.contains('ubuntu_rolling') }
                                 expression { return env.QUICKBUILD == '1' }
                             }
                         }
@@ -537,6 +603,12 @@ def call(Map pipeline_args) {
             stage('Test') {
                 parallel {
                     stage('Test build with DAOS on CentOS 7') {
+                        when {
+                            beforeAgent true
+                            allOf {
+                                expression { distros.contains('centos7') }
+                            }
+                        }
                         agent {
                             dockerfile {
                                 filename 'packaging/Dockerfile.mockbuild'
@@ -576,6 +648,12 @@ def call(Map pipeline_args) {
                         }
                     } // stage('Test build with DAOS on CentOS 7')
                     stage('Test build with DAOS on Leap 15') {
+                        when {
+                            beforeAgent true
+                            allOf {
+                                expression { distros.contains('leap15') }
+                            }
+                        }
                         agent {
                             dockerfile {
                                 filename 'packaging/Dockerfile.mockbuild'
