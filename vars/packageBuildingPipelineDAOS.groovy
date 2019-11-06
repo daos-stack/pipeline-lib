@@ -631,7 +631,7 @@ def call(Map pipeline_args) {
                                           git checkout ''' + pipeline_args.get('daos_test_branch',
                                                                                'origin/master') + '''
                                           git submodule update --init
-                                          if make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
+                                          if ! make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
                                                '@' + env.BRANCH_NAME + ':' + env.BUILD_NUMBER +
                                                ' ' + pipeline_args.get('test_repos', '') + '''" \
                                                CHROOT_NAME=epel-7-x86_64                        \
