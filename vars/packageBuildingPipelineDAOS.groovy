@@ -631,14 +631,16 @@ def call(Map pipeline_args) {
                                           git checkout ''' + pipeline_args.get('daos_test_branch',
                                                                                'origin/master') + '''
                                           git submodule update --init
-                                          if ! make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
+                                          if make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
                                                '@' + env.BRANCH_NAME + ':' + env.BUILD_NUMBER +
                                                ' ' + pipeline_args.get('test_repos', '') + '''" \
                                                CHROOT_NAME=epel-7-x86_64                        \
                                                -C utils/rpms chrootbuild; then
                                             grep 'No matching package to install'               \
                                                  /var/lib/mock/epel-7-x86_64/result/root.log
-                                            fi'''
+                                          else
+                                            exit ${PIPESTATUS[0]}
+                                          fi'''
                         }
                         post {
                             always {
@@ -686,6 +688,8 @@ def call(Map pipeline_args) {
                                                -C utils/rpms chrootbuild; then
                                             grep 'No matching package to install'               \
                                                  /var/lib/mock/opensuse-leap-15.1-x86_64/result/root.log
+                                          else
+                                            exit ${PIPESTATUS[0]}
                                           fi'''
                         }
                         post {
