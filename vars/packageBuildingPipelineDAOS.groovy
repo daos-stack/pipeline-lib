@@ -636,10 +636,10 @@ def call(Map pipeline_args) {
                                                ' ' + pipeline_args.get('test_repos', '') + '''" \
                                                CHROOT_NAME=epel-7-x86_64                        \
                                                -C utils/rpms chrootbuild; then
+                                            # We need to allow failures from missing other packages
+                                            # we build for creating an initial set of packages
                                             grep 'No matching package to install'               \
                                                  /var/lib/mock/epel-7-x86_64/result/root.log
-                                          else
-                                            exit ${PIPESTATUS[0]}
                                           fi'''
                         }
                         post {
@@ -688,8 +688,8 @@ def call(Map pipeline_args) {
                                                -C utils/rpms chrootbuild; then
                                             grep 'No matching package to install'               \
                                                  /var/lib/mock/opensuse-leap-15.1-x86_64/result/root.log
-                                          else
-                                            exit ${PIPESTATUS[0]}
+                                            # We need to allow failures from missing other packages
+                                            # we build for creating an initial set of packages
                                           fi'''
                         }
                         post {
