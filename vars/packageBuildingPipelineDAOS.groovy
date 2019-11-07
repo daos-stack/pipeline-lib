@@ -631,11 +631,16 @@ def call(Map pipeline_args) {
                                           git checkout ''' + pipeline_args.get('daos_test_branch',
                                                                                'origin/master') + '''
                                           git submodule update --init
-                                          make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
+                                          if ! make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
                                                '@' + env.BRANCH_NAME + ':' + env.BUILD_NUMBER +
                                                ' ' + pipeline_args.get('test_repos', '') + '''" \
                                                CHROOT_NAME=epel-7-x86_64                        \
-                                               -C utils/rpms chrootbuild'''
+                                               -C utils/rpms chrootbuild; then
+                                            # We need to allow failures from missing other packages
+                                            # we build for creating an initial set of packages
+                                            grep 'No matching package to install'               \
+                                                 /var/lib/mock/epel-7-x86_64/result/root.log
+                                          fi'''
                         }
                         post {
                             always {
@@ -676,11 +681,16 @@ def call(Map pipeline_args) {
                                           git checkout ''' + pipeline_args.get('daos_test_branch',
                                                                                'origin/master') + '''
                                           git submodule update --init
-                                          make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
+                                          if ! make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
                                                '@' + env.BRANCH_NAME + ':' + env.BUILD_NUMBER +
                                                ' ' + pipeline_args.get('test_repos', '') + '''" \
                                                CHROOT_NAME=opensuse-leap-15.1-x86_64            \
-                                               -C utils/rpms chrootbuild'''
+                                               -C utils/rpms chrootbuild; then
+                                            grep 'No matching package to install'               \
+                                                 /var/lib/mock/opensuse-leap-15.1-x86_64/result/root.log
+                                            # We need to allow failures from missing other packages
+                                            # we build for creating an initial set of packages
+                                          fi'''
                         }
                         post {
                             always {
