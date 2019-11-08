@@ -184,14 +184,17 @@ def call(Map pipeline_args) {
                                               artdir=$PWD/artifacts/centos7
                                               cp -af _topdir/SRPMS $artdir
                                               (cd $mockroot/result/ &&
-                                               cp -r . $artdir)
-                                              (if cd $mockroot/root/builddir/build/BUILD/*/; then
+                                               cp -r . $artdir)'''
+                            }
+                            always {
+                                sh label: "Collect config.log(s)",
+                                   script: '''(if cd /var/lib/mock/epel-7-x86_64/root/builddir/build/BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
                                                            continue
                                                        fi
-                                                       tdir="$artdir/autoconf-logs/$dir"
+                                                       tdir="$OLDPWD/artifacts/centos7/autoconf-logs/$dir"
                                                        mkdir -p $tdir
                                                        cp -a $dir/config.log $tdir/
                                                    done
@@ -253,14 +256,17 @@ def call(Map pipeline_args) {
                                               artdir=$PWD/artifacts/centos8
                                               cp -af _topdir/SRPMS $artdir
                                               (cd $mockroot/result/ &&
-                                               cp -r . $artdir)
-                                              (if cd $mockroot/root/builddir/build/BUILD/*/; then
+                                               cp -r . $artdir)'''
+                            }
+                            always {
+                                sh label: "Collect config.log(s)",
+                                   script: '''(if cd /var/lib/mock/epel-8-x86_64/root/builddir/build/BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
                                                            continue
                                                        fi
-                                                       tdir="$artdir/autoconf-logs/$dir"
+                                                       tdir="$OLDPWD/artifacts/centos8/autoconf-logs/$dir"
                                                        mkdir -p $tdir
                                                        cp -a $dir/config.log $tdir/
                                                    done
@@ -276,7 +282,6 @@ def call(Map pipeline_args) {
                             beforeAgent true
                             allOf {
                                 environment name: 'SLES12_3_DOCKER', value: 'true'
-                                expression { false }
                                 expression { distros.contains('sles12.3') }
                                 expression { return env.QUICKBUILD == '1' }
                             }
@@ -325,14 +330,17 @@ def call(Map pipeline_args) {
                                               artdir=$PWD/artifacts/sles12.3
                                               cp -af _topdir/SRPMS $artdir
                                               (cd $mockroot/result/ &&
-                                               cp -r . $artdir)
-                                              (if cd $mockroot/root/builddir/build/BUILD/*/; then
+                                               cp -r . $artdir)'''
+                            }
+                            always {
+                                sh label: "Collect config.log(s)",
+                                   script: '''(if /var/lib/mock/sles-12.3-x86_64/root/builddir/build/BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
                                                            continue
                                                        fi
-                                                       tdir="$artdir/autoconf-logs/$dir"
+                                                       tdir="$OLDPWD/artifacts/sles12.3/autoconf-logs/$dir"
                                                        mkdir -p $tdir
                                                        cp -a $dir/config.log $tdir/
                                                    done
@@ -347,7 +355,6 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { false }
                                 expression { distros.contains('leap42.3') }
                                 expression { return env.QUICKBUILD == '1' }
                             }
@@ -396,14 +403,17 @@ def call(Map pipeline_args) {
                                               artdir=$PWD/artifacts/leap42.3
                                               cp -af _topdir/SRPMS $artdir
                                               (cd $mockroot/result/ &&
-                                               cp -r . $artdir)
-                                              (if cd $mockroot/root/builddir/build/BUILD/*/; then
+                                               cp -r . $artdir)'''
+                            }
+                            always {
+                                sh label: "Collect config.log(s)",
+                                   script: '''(if /var/lib/mock/opensuse-leap-42.3-x86_64/root/builddir/build/BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
                                                            continue
                                                        fi
-                                                       tdir="$artdir/autoconf-logs/$dir"
+                                                       tdir="$OLDPWD/artifacts/leap42.3/autoconf-logs/$dir"
                                                        mkdir -p $tdir
                                                        cp -a $dir/config.log $tdir/
                                                    done
@@ -466,14 +476,17 @@ def call(Map pipeline_args) {
                                               artdir=$PWD/artifacts/leap15
                                               cp -af _topdir/SRPMS $artdir
                                               (cd $mockroot/result/ &&
-                                               cp -r . $artdir)
-                                              (if cd $mockroot/root/builddir/build/BUILD/*/; then
+                                               cp -r . $artdir)'''
+                            }
+                            always {
+                                sh label: "Collect config.log(s)",
+                                   script: '''(if /var/lib/mock/opensuse-leap-15.1-x86_64/root/builddir/build/BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
                                                            continue
                                                        fi
-                                                       tdir="$artdir/autoconf-logs/$dir"
+                                                       tdir="$OLDPWD/artifacts/leap15/autoconf-logs/$dir"
                                                        mkdir -p $tdir
                                                        cp -a $dir/config.log $tdir/
                                                    done
