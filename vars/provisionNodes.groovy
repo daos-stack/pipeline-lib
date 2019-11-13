@@ -355,7 +355,7 @@ EOF'''
     } else {
         error("Don't know how to handle repos for distro: \"" + distro + "\"")
     }
-    provision_script += '''\nsync"
+    provision_script += '''\nsync; sync"
                            exit ${PIPESTATUS[0]}'''
     def rc = 0
     rc = sh(script: provision_script,
