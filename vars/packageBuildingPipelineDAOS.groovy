@@ -61,14 +61,11 @@ def call(Map pipeline_args) {
         environment {
             QUICKBUILD = sh(script: "git show -s --format=%B | grep \"^Quick-build: true\"",
                             returnStatus: true)
-            PACKAGING_BRANCH = sh(script: '''b=$(git show -s --format=%B |
-                                                 sed -ne 's/^Packaging-branch: *\\(.*\\)/\\1/p')
-                                             if [ -n "$b" ]; then
-                                                 echo "$b"
-                                             else
-                                                 echo "master"
-                                             fi''',
-                                  returnStdout: true)
+            PACKAGING_BRANCH = commitPragma pragma: 'Packaging-branch',
+                                            def_val: 'master'
+            DAOS_TESTING_BRANCH = commitPragma pragma: 'DAOS-test-branch',
+                                               def_val: pipeline_args.get('daos_test_branch',
+                                                                          'origin/master')
         }
         stages {
             stage('Cancel Previous Builds') {
@@ -628,8 +625,7 @@ def call(Map pipeline_args) {
                                           pushd test_dir
                                           git clone https://github.com/daos-stack/daos.git
                                           cd daos
-                                          git checkout ''' + pipeline_args.get('daos_test_branch',
-                                                                               'origin/master') + '''
+                                          git checkout ''' + env.DAOS_TESTING_BRANCH + '''
                                           git submodule update --init
                                           if ! make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
                                                '@' + env.BRANCH_NAME + ':' + env.BUILD_NUMBER +
@@ -678,8 +674,7 @@ def call(Map pipeline_args) {
                                           pushd test_dir
                                           git clone https://github.com/daos-stack/daos.git
                                           cd daos
-                                          git checkout ''' + pipeline_args.get('daos_test_branch',
-                                                                               'origin/master') + '''
+                                          git checkout ''' + env.DAOS_TESTING_BRANCH + '''
                                           git submodule update --init
                                           if ! make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
                                                '@' + env.BRANCH_NAME + ':' + env.BUILD_NUMBER +
