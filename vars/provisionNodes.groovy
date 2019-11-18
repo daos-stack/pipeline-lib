@@ -156,19 +156,22 @@ def call(Map config = [:]) {
   }
 
   sshagent (credentials: ['daos-provisioner']) {
-
-    sh script:'clush -l root -w ' + nodeString +
-              ' --connect_timeout 30' +
-              ' "ls -lh /tmp/*.log; rm -f /tmp/daos.log /tmp/server.log"'
-        returnStatus: true
+    def ns_rc = 0
+    ns_rc = sh script:'clush -l root -w ' + nodeString +
+                      ' --connect_timeout 30 -S' +
+                      ' "ls -lh /tmp/*.log; rm -f /tmp/daos.log /tmp/server.log"'
+               returnStatus: true
+    println "Cleanup result = ${ns_rc}"
     if (config['power_only']) {
-      sh script: """./jenkins/node_powercycle.py \
-                     --node=${nodeString}""",
-         returnStatus: true
+      ns_rc = sh script: """./jenkins/node_powercycle.py \
+                            --node=${nodeString}""",
+                 returnStatus: true
+      println "Powercycle result = ${ns_rc}"
     } else {
-      sh script: """./jenkins/node_provision_start.py \
-                     --nodes=${nodeString} ${options}""",
-         returnStatus: true
+      ns_rc = sh script: """./jenkins/node_provision_start.py \
+                            --nodes=${nodeString} ${options}""",
+                 returnStatus: true
+      println "Snapshot restore result = ${ns_rc}"
     }
 
     def woptions = ''
