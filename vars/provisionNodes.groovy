@@ -159,7 +159,7 @@ def call(Map config = [:]) {
     def ns_rc = 0
     ns_rc = sh script:'clush -l root -w ' + nodeString +
                       ' --connect_timeout 30 -S' +
-                      ' "ls -lh /tmp/*.log; rm -f /tmp/daos.log /tmp/server.log"'
+                      ' "ls -lh /tmp/*.log; rm -f /tmp/daos.log /tmp/server.log"',
                returnStatus: true
     println "Cleanup result = ${ns_rc}"
     if (config['power_only']) {
