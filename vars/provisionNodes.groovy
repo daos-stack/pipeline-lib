@@ -157,6 +157,10 @@ def call(Map config = [:]) {
 
   sshagent (credentials: ['daos-provisioner']) {
 
+    sh script:'clush -l root -w ' + nodeString +
+              ' --connect_timeout 30' +
+              ' "ls -lh /tmp/*.log; rm -f /tmp/daos.log /tmp/server.log"'
+        returnStatus: true
     if (config['power_only']) {
       sh script: """./jenkins/node_powercycle.py \
                      --node=${nodeString}""",
