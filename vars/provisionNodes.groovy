@@ -161,6 +161,9 @@ def call(Map config = [:]) {
                       ' --connect_timeout 30 -S' +
                       ' "ls -lh /tmp/*.log; rm -f /tmp/daos.log /tmp/server.log"',
                returnStatus: true
+    if (ns_rc != 0) {
+      error("Failed to remove pre-existing /tmp/server.log file(s)")
+    }
     println "Cleanup result = ${ns_rc}"
     if (config['power_only']) {
       ns_rc = sh script: """./jenkins/node_powercycle.py \
