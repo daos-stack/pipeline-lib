@@ -219,6 +219,7 @@ EOF'''
                       ''' ci_key* --dest=/tmp/
                           clush -B -S -l root -w ''' + nodeString +
                       ''' "set -ex
+                          env > /root/last_run-env.txt
                           my_uid=''' + env.UID + '''
                           if ! grep \\":\\$my_uid:\\" /etc/group; then
                             groupadd -g \\$my_uid jenkins
