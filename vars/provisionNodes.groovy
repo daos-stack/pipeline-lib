@@ -156,20 +156,39 @@ def call(Map config = [:]) {
   }
 
   sshagent (credentials: ['daos-provisioner']) {
+    // Prefer to attempt delete these logs before the reboot / re-image attempt
+    // so that we have some record.
     def ns_rc = 0
     ns_rc = sh script:'clush -l root -w ' + nodeString +
                       ' --connect_timeout 30 -S' +
-                      ' "ls -lh /tmp/*.log; rm -f /tmp/daos.log /tmp/server.log"',
+                      ' "ls -lh /tmp/*.log;' +
+                      ' rm -f /tmp/daos.log /tmp/server.log /localhome/jenkins/.spdk*;' +
+                      ' rm -rf /tmp/Functional_*"',
                returnStatus: true
     if (ns_rc != 0) {
-      error("Failed to remove pre-existing /tmp/server.log file(s)")
+      println("Failed to remove pre-existing /tmp/server.log file(s), etc.")
     }
     println "Cleanup result = ${ns_rc}"
     if (config['power_only']) {
+      sh script:'clush -l root -w ' + nodeString +
+                ' --connect_timeout 30 --command_timeout 120 -S' +
+                ' "sync;sync"',
+               returnStatus: true
       ns_rc = sh script: """./jenkins/node_powercycle.py \
                             --node=${nodeString}""",
                  returnStatus: true
       println "Powercycle result = ${ns_rc}"
+      ns_rc = sh script:'clush -l root -w ' + nodeString +
+                        ' --connect_timeout 30 -S' +
+                        ' "ls -lh /tmp/*.log; ' +
+                        ' rm -f /tmp/daos.log /tmp/server.log /localhome/jenkins/.spdk*;' +
+                        ' rm -rf /tmp/Functional_*"',
+               returnStatus: true
+      if (ns_rc != 0) {
+        // If a powercycle fails to clean things up fail the stage.
+        error("Failed to remove pre-existing /tmp/server.log file(s), etc.")
+      }
+
     } else {
       ns_rc = sh script: """./jenkins/node_provision_start.py \
                             --nodes=${nodeString} ${options}""",
