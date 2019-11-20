@@ -155,15 +155,17 @@ def call(Map config = [:]) {
     }
   }
 
+  def cleanup_logs = 'clush -l root -w ' + nodeString +
+                     ' --connect_timeout 30 -S' +
+                     ' "ls -lh /tmp/*.log;' +
+                     ' rm -f /tmp/daos.log /tmp/server.log /localhome/jenkins/.spdk*;' +
+                     ' rm -rf /tmp/Functional_*"'
+
   sshagent (credentials: ['daos-provisioner']) {
     // Prefer to attempt delete these logs before the reboot / re-image attempt
     // so that we have some record.
     def ns_rc = 0
-    ns_rc = sh script:'clush -l root -w ' + nodeString +
-                      ' --connect_timeout 30 -S' +
-                      ' "ls -lh /tmp/*.log;' +
-                      ' rm -f /tmp/daos.log /tmp/server.log /localhome/jenkins/.spdk*;' +
-                      ' rm -rf /tmp/Functional_*"',
+    ns_rc = sh script: cleanup_logs,
                returnStatus: true
     if (ns_rc != 0) {
       println("Failed to remove pre-existing /tmp/server.log file(s), etc.")
@@ -178,11 +180,7 @@ def call(Map config = [:]) {
                             --node=${nodeString}""",
                  returnStatus: true
       println "Powercycle result = ${ns_rc}"
-      ns_rc = sh script:'clush -l root -w ' + nodeString +
-                        ' --connect_timeout 30 -S' +
-                        ' "ls -lh /tmp/*.log; ' +
-                        ' rm -f /tmp/daos.log /tmp/server.log /localhome/jenkins/.spdk*;' +
-                        ' rm -rf /tmp/Functional_*"',
+      ns_rc = sh script: cleanup_logs,
                returnStatus: true
       if (ns_rc != 0) {
         // If a powercycle fails to clean things up fail the stage.
