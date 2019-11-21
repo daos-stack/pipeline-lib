@@ -180,13 +180,6 @@ def call(Map config = [:]) {
                             --node=${nodeString}""",
                  returnStatus: true
       println "Powercycle result = ${ns_rc}"
-      ns_rc = sh script: cleanup_logs,
-               returnStatus: true
-      if (ns_rc != 0) {
-        // If a powercycle fails to clean things up fail the stage.
-        error("Failed to remove pre-existing /tmp/server.log file(s), etc.")
-      }
-
     } else {
       ns_rc = sh script: """./jenkins/node_provision_start.py \
                             --nodes=${nodeString} ${options}""",
@@ -215,6 +208,13 @@ def call(Map config = [:]) {
       if (rc != 0) {
         error "One or more nodes failed to provision!"
       }
+      ns_rc = sh script: cleanup_logs,
+                 returnStatus: true
+      if (ns_rc != 0) {
+        // If a powercycle fails to clean things up fail the stage.
+        error("Failed to remove pre-existing /tmp/server.log file(s), etc.")
+      }
+
     }
 
     // Prepare the node for daos/cart testing
