@@ -38,8 +38,8 @@ def call(Map config = [:]) {
     }
 
     def publish_branch = 'master'
-    if (config['npublish_branch']) {
-        publish_branch = config['npublish_branch']
+    if (config['publish_branch']) {
+        publish_branch = config['publish_branch']
     }
 
     // Don't publish from PRs (unless testing)
