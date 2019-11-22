@@ -14,20 +14,21 @@
  * @param config Map of parameters passed
  * @return none
  *
- * config['arch']     Architecture, default 'x86_64'.
- * config['maturity'] Maturity level: eg: 'stable'|'dev'|'test'.
- *                    Default 'test'.
- * config['product']  Name of product.
- * config['repo_dir'] Directory to post artifacts from.
- * config['tech']     Distro/version code for reposiory eg: 'el7'
- * config['test']     Test by creating a temporary repo and then deleting it.
- *                    default false.  Used to unit test this step.
- * config['type']     Type of repository.  Default 'hosted'.
+ * config['arch']         Architecture, default 'x86_64'.
+ * config['maturity']     Maturity level: eg: 'stable'|'dev'|'test'.
+ *                        Default 'test'.
+ * config['product']      Name of product.
+ * config['repo_dir']     Directory to post artifacts from.
+ * config['tech']         Distro/version code for reposiory eg: 'el7'
+ * config['test']         Test by creating a temporary repo and then deleting it.
+ *                        default false.  Used to unit test this step.
+ * config['type']         Type of repository.  Default 'hosted'.
  * config['download_dir'] If present, download the artifacts after the upload
  *                        to validate.
  *                        The publishToRepositorySystem step should dowload
  *                        the artifacts back to this directory and fail the
  *                        step if the contents differ.
+ * config['publish_branch'] The branch to publish from.  Default 'master'.
  */
 
 def call(Map config = [:]) {
@@ -36,8 +37,13 @@ def call(Map config = [:]) {
         return
     }
 
+    def publish_branch = 'master'
+    if (config['npublish_branch']) {
+        publish_branch = config['npublish_branch']
+    }
+
     // Don't publish from PRs (unless testing)
-    if (env.CHANGE_ID && !config['test']) {
+    if (env.BRANCH_NAME != publish_branch && !config['test']) {
         return
     }
 
