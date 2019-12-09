@@ -45,30 +45,33 @@ def call(Map pipeline_args) {
     if (!pipeline_args) {
         pipeline_args = [:]
     }
+
     if (pipeline_args['distros']) {
         distros = pipeline_args['distros']
     } else {
         distros = ['centos7', 'leap15', 'ubuntu_rolling']
     }
+    
     if (pipeline_args['name']) {
         package_name = pipeline_args['name']
     } else {
         package_name = jobName()
     }
+
+    if (pipeline_args['publish_branch']) {
+        publish_branch = pipeline_args['publish_branch']
+    } else {
+        publish_branch = 'master'
+    }
+
     pipeline {
         agent { label 'lightweight' }
 
         environment {
             QUICKBUILD = sh(script: "git show -s --format=%B | grep \"^Quick-build: true\"",
                             returnStatus: true)
-            PACKAGING_BRANCH = sh(script: '''b=$(git show -s --format=%B |
-                                                 sed -ne 's/^Packaging-branch: *\\(.*\\)/\\1/p')
-                                             if [ -n "$b" ]; then
-                                                 echo "$b"
-                                             else
-                                                 echo "master"
-                                             fi''',
-                                  returnStdout: true)
+            PACKAGING_BRANCH = commitPragma pragma: 'Packaging-branch',
+                                            def_val: 'master'
         }
         stages {
             stage('Cancel Previous Builds') {
@@ -171,7 +174,8 @@ def call(Map pipeline_args) {
                                                     format: 'yum',
                                                     maturity: 'stable',
                                                     tech: 'el-7',
-                                                    repo_dir: 'artifacts/centos7/'
+                                                    repo_dir: 'artifacts/centos7/',
+                                                    publish_branch: publish_branch
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
                                                             allowEmptyArchive: true
@@ -240,7 +244,8 @@ def call(Map pipeline_args) {
                                                     format: 'yum',
                                                     maturity: 'stable',
                                                     tech: 'el-8',
-                                                    repo_dir: 'artifacts/centos8/'
+                                                    repo_dir: 'artifacts/centos8/',
+                                                    publish_branch: publish_branch
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
                                                             allowEmptyArchive: true
@@ -312,7 +317,8 @@ def call(Map pipeline_args) {
                                                     format: 'yum',
                                                     maturity: 'stable',
                                                     tech: 'sles-12',
-                                                    repo_dir: 'artifacts/sles12.3/'
+                                                    repo_dir: 'artifacts/sles12.3/',
+                                                    publish_branch: publish_branch
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
                                                             allowEmptyArchive: true
@@ -383,7 +389,8 @@ def call(Map pipeline_args) {
                                                     format: 'yum',
                                                     maturity: 'stable',
                                                     tech: 'leap-42',
-                                                    repo_dir: 'artifacts/leap42.3/'
+                                                    repo_dir: 'artifacts/leap42.3/',
+                                                    publish_branch: publish_branch
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
                                                             allowEmptyArchive: true
@@ -453,7 +460,8 @@ def call(Map pipeline_args) {
                                                     format: 'yum',
                                                     maturity: 'stable',
                                                     tech: 'leap-15',
-                                                    repo_dir: 'artifacts/leap15/'
+                                                    repo_dir: 'artifacts/leap15/',
+                                                    publish_branch: publish_branch
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
                                                             allowEmptyArchive: true
@@ -531,7 +539,8 @@ def call(Map pipeline_args) {
                                                     format: 'apt',
                                                     maturity: 'stable',
                                                     tech: 'ubuntu-18.04',
-                                                    repo_dir: 'artifacts/ubuntu18.04/'
+                                                    repo_dir: 'artifacts/ubuntu18.04/',
+                                                    publish_branch: publish_branch
                             }
                             unsuccessful {
                                 sh label: "Collect artifacts",
@@ -588,7 +597,8 @@ def call(Map pipeline_args) {
                                                     format: 'apt',
                                                     maturity: 'stable',
                                                     tech: 'ubuntu-rolling',
-                                                    repo_dir: 'artifacts/ubuntu_rolling/'
+                                                    repo_dir: 'artifacts/ubuntu_rolling/',
+                                                    publish_branch: publish_branch
                             }
                             unsuccessful {
                                 sh label: "Collect artifacts",
