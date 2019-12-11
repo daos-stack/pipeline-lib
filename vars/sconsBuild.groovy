@@ -183,6 +183,22 @@ def call(Map config = [:]) {
                     fi\n'''
     script += clean_cmd
     script += 'SCONS_ARGS="' + scons_args + '"\n'
+
+    if (config['coverity']) {
+        sh 'rm -rf ./cov_analysis ./cov-int'
+        Map cov_config = [:]
+        cov_config['project'] = config['coverity']
+        cov_config['tool_path'] = './cov_analysis'
+        try {
+            coverityToolDownloadSystem(cov_config)
+        } catch (java.lang.NoSuchMethodError e) {
+            println('Could not find a coverityToolDownloadSystem step in' +
+                    ' a shared groovy library')
+            return
+        }
+        script += "PATH+=:${WORKSPACE}/cov_analysis/bin\n"
+        scons_exe = "cov-build --dir cov-int " + scons_exe
+    }
     script += '''# the config cache is unreliable so always force a reconfig
                  # with "--config=force"
                  if ! ''' + scons_exe + ''' --config=force $SCONS_ARGS''' +

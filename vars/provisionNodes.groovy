@@ -155,16 +155,36 @@ def call(Map config = [:]) {
     }
   }
 
-  sshagent (credentials: ['daos-provisioner']) {
+  def cleanup_logs = 'clush -l root -w ' + nodeString +
+                     ' --connect_timeout 30 -S' +
+                     ' "ls -lh /tmp/*.log;' +
+                     ' rm -f /tmp/daos.log /tmp/server.log /localhome/jenkins/.spdk*;' +
+                     ' rm -rf /tmp/Functional_*"'
 
+  sshagent (credentials: ['daos-provisioner']) {
+    // Prefer to attempt delete these logs before the reboot / re-image attempt
+    // so that we have some record.
+    def ns_rc = 0
+    ns_rc = sh script: cleanup_logs,
+               returnStatus: true
+    if (ns_rc != 0) {
+      println("Failed to remove pre-existing /tmp/server.log file(s), etc.")
+    }
+    println "Cleanup result = ${ns_rc}"
     if (config['power_only']) {
-      sh script: """./jenkins/node_powercycle.py \
-                     --node=${nodeString}""",
-         returnStatus: true
+      sh script:'clush -l root -w ' + nodeString +
+                ' --connect_timeout 30 --command_timeout 120 -S' +
+                ' "sync;sync"',
+               returnStatus: true
+      ns_rc = sh script: """./jenkins/node_powercycle.py \
+                            --node=${nodeString}""",
+                 returnStatus: true
+      println "Powercycle result = ${ns_rc}"
     } else {
-      sh script: """./jenkins/node_provision_start.py \
-                     --nodes=${nodeString} ${options}""",
-         returnStatus: true
+      ns_rc = sh script: """./jenkins/node_provision_start.py \
+                            --nodes=${nodeString} ${options}""",
+                 returnStatus: true
+      println "Snapshot restore result = ${ns_rc}"
     }
 
     def woptions = ''
@@ -188,6 +208,13 @@ def call(Map config = [:]) {
       if (rc != 0) {
         error "One or more nodes failed to provision!"
       }
+      ns_rc = sh script: cleanup_logs,
+                 returnStatus: true
+      if (ns_rc != 0) {
+        // If a powercycle fails to clean things up fail the stage.
+        error("Failed to remove pre-existing /tmp/server.log file(s), etc.")
+      }
+
     }
 
     // Prepare the node for daos/cart testing
@@ -209,6 +236,7 @@ EOF'''
                       ''' ci_key* --dest=/tmp/
                           clush -B -S -l root -w ''' + nodeString +
                       ''' "set -ex
+                          env > /root/last_run-env.txt
                           my_uid=''' + env.UID + '''
                           if ! grep \\":\\$my_uid:\\" /etc/group; then
                             groupadd -g \\$my_uid jenkins
