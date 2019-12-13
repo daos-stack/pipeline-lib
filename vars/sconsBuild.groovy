@@ -189,13 +189,8 @@ def call(Map config = [:]) {
         Map cov_config = [:]
         cov_config['project'] = config['coverity']
         cov_config['tool_path'] = './cov_analysis'
-        try {
-            coverityToolDownloadSystem(cov_config)
-        } catch (java.lang.NoSuchMethodError e) {
-            println('Could not find a coverityToolDownloadSystem step in' +
-                    ' a shared groovy library')
+        if (coverityToolDownload(cov_config) < 0)
             return
-        }
         script += "PATH+=:${WORKSPACE}/cov_analysis/bin\n"
         scons_exe = "cov-build --dir cov-int " + scons_exe
     }
