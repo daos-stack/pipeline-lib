@@ -139,6 +139,56 @@ def call(Map pipeline_args) {
             } //stage('Lint')
             stage('Build') {
                 parallel {
+                    stage('Coverity') {
+                        when {
+                            beforeAgent true
+                            allOf {
+                                expression { pipeline_args.get('coverity','') != '' }
+                            }
+                        }
+                        agent {
+                            dockerfile {
+                                filename 'packaging/Dockerfile.coverity'
+                                label 'docker_runner'
+                                args '--privileged=true'
+                                additionalBuildArgs '--build-arg UID=$(id -u) '
+                            }
+                        }
+                        steps {
+                            coverityToolDownload tool_path: './cov_analysis',
+                                            project: pipeline_args['coverity']
+                            sh label: "Coverity",
+                               script: '''set -e
+                                          if [ ! -e ./cov_analysis/bin ]; then
+                                              exit
+                                          fi
+                                          PATH+=:${WORKSPACE}/cov_analysis/bin
+                                          make clean
+                                          cov-build -dir cov-int make'''
+                        }
+                        post {
+                            success {
+                                sh label: "Collect Coverity Success artifacts",
+                                   script: '''mkdir -p coverity
+                                              rm -f coverity/*
+                                              if [ -e cov-int ]; then
+                                                  tar czf coverity/coverity.tgz cov-int
+                                              fi'''
+                            }
+                            unsuccessful {
+                                sh label: "Collect Coverity Fail artifacts",
+                                   script: '''mkdir -p coverity
+                                              rm -f coverity/*
+                                              if [ -f cov-int/build-log.txt ]; then
+                                                mv cov-int/build-log.txt coverity/cov-build-log.txt
+                                              fi'''
+                            }
+                            cleanup {
+                                archiveArtifacts artifacts: 'coverity/*',
+                                allowEmptyArchive: true
+                            }
+                        }
+                    } //stage('Build on CentOS 7')
                     stage('Build on CentOS 7') {
                         when {
                             beforeAgent true
