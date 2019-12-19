@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-// Copyright (c) 2018 Intel Corporation
+// Copyright (c) 2018-2020 Intel Corporation
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
 // copy of this software and associated documentation files (the "Software"),
@@ -26,6 +26,7 @@
 // is landed, both PR branches can be deleted.
 
 // @Library(value="pipeline-lib@my_pr_branch") _
+@Library(value="pipeline-lib@corci-768") _
 
 pipeline {
     agent { label 'lightweight' }
@@ -90,6 +91,7 @@ pipeline {
                 steps {
                     provisionNodes NODELIST: env.NODELIST,
                                    distro: 'el7',
+                                   profile: 'ci',
                                    node_count: 1,
                                    snapshot: true,
                                    inst_rpms: "slurm slurm-example-configs" +
@@ -118,11 +120,10 @@ pipeline {
                     }
                 }
             } //stage('provisionNodes_with_slurm_el7')
-            stage('provisionNodes_with_slurm_sles12') {
+            stage('provisionNodes_with_slurm_leap15') {
                 when {
                     beforeAgent true
                     allOf {
-                        expression { false }
                         expression { env.NO_CI_TESTING != "true" }
                     }
                 }
@@ -131,7 +132,8 @@ pipeline {
                 }
                 steps {
                     provisionNodes NODELIST: env.NODELIST,
-                                   distro: 'sles12sp3',
+                                   distro: 'opensuse15',
+                                   profile: 'ci',
                                    node_count: 1,
                                    snapshot: true,
                                    inst_rpms: "slurm ipmctl"
@@ -157,7 +159,7 @@ pipeline {
                             status: 'SUCCESS')
                     }
                 }
-            } //stage('provisionNodes_with_slurm_sles12')
+            } //stage('provisionNodes_with_slurm_leap15')
           } // parallel
         } // stage('Test')
     }
