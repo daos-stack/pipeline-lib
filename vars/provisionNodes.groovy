@@ -100,7 +100,8 @@ def call(Map config = [:]) {
   def repository_g = ''
   def repository_l = ''
   def distro_type = 'el'
-  if (distro.startsWith("sles") || distro.startsWith("leap")) {
+  if (distro.startsWith("sles") || distro.startsWith("leap") ||
+      distro.startsWith("opensuse")) {
       distro_type = 'suse'
   }
   def gpg_key_urls = []
@@ -143,7 +144,8 @@ def call(Map config = [:]) {
             repository_g = env.REPOSITORY_URL +
                 env.DAOS_STACK_SLES_15_LOCAL_REPO
         }
-    }  else if (distro.startsWith("leap15")) {
+    }  else if (distro.startsWith("leap15") ||
+                distro.startsWith("opensuse15")) {
         if (env.DAOS_STACK_LEAP_15_GROUP_REPO != null) {
             repository_g = env.REPOSITORY_URL +
                 env.DAOS_STACK_LEAP_15_GROUP_REPO
@@ -241,6 +243,7 @@ EOF'''
                           if ! grep \\":\\$my_uid:\\" /etc/group; then
                             groupadd -g \\$my_uid jenkins
                           fi
+                          mkdir -p /localhome
                           if ! grep \\":\\$my_uid:\\$my_uid:\\" /etc/passwd; then
                             useradd -b /localhome -g \\$my_uid -u \\$my_uid jenkins
                           fi
@@ -275,7 +278,7 @@ EOF'''
                             ' openpa pmix protobuf-c spdk libfabric libpmem' +
                             ' libpmemblk munge-libs munge slurm' +
                             ' slurm-example-configs slurmctld slurm-slurmmd'
-      provision_script +=   '\nyum -y install yum-utils'
+      provision_script +=   '\nyum -y install yum-utils ed nfs-utils'
       if (repository_g != '') {
         def repo_file = repository_g.substring(
                             repository_g.lastIndexOf('/') + 1,
@@ -328,7 +331,7 @@ EOF'''
                                                    libcmocka python-pathlib     \
                                                    python2-numpy git            \
                                                    python2-clustershell         \
-                                                   golang-bin'''
+                                                   golang-bin ipmctl'''
       if (inst_rpms) {
          provision_script += ' ' + inst_rpms
       }
@@ -349,10 +352,6 @@ EOF'''
                               ln -s python3.6 /usr/bin/python3
                           fi'''
     } else if (distro_type == "suse") {
-      // Needed for sles-12.3/leap-42.3 only
-      provision_script += '\nrpm --import https://download.opensuse.org/' +
-                                 'repositories/science:/HPC/' +
-                                 'openSUSE_Leap_42.3/repodata/repomd.xml.key'
       provision_script += '\nrpm --import https://download.opensuse.org/' +
                                  'repositories/home:/jhli/SLE_15/' +
                                  'repodata/repomd.xml.key'
@@ -372,13 +371,14 @@ EOF'''
       }
       if (inst_repos) {
         provision_script +=   '\n' + iterate_repos +
-                            '''\n    zypper --non-interactive ar --gpgcheck-allow-unsigned -f ''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/sles12.3/ \\\$repo
+                            '''\n    zypper --non-interactive ar --gpgcheck-allow-unsigned -f ''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/leap15/ \\\$repo
                                  done'''
       }
       provision_script += '\nzypper --non-interactive' +
                           ' --gpg-auto-import-keys --no-gpg-checks ref'
+      provision_script += '\nzypper --non-interactive in ed nfs-client ipmctl '
       if (inst_rpms) {
-        provision_script += '\nzypper --non-interactive in ' + inst_rpms
+        provision_script += inst_rpms
       }
     } else {
         error("Don't know how to handle repos for distro: \"" + distro + "\"")
