@@ -39,9 +39,10 @@ def call(Map config= [:]) {
             def jsonSlurperClassic = new JsonSlurperClassic()
 
             def h = new com.intel.doGetHttpRequest()
-            resp = h.doGetHttpRequest(env.JOB_URL - ~/job\/[^\/]*\/$/ +
-                "/view/change-requests/job/${env.BRANCH_NAME}/" +
-                "${env.BUILD_ID}/wfapi/describe");
+            resp = h.doGetHttpRequest(env.JOB_URL - ~/\/job\/[^\/]*\/$/ +
+                "/view/change-requests/job/" +
+                env.BRANCH_NAME.replaceAll('/', '%252F') +
+                "/${env.BUILD_ID}/wfapi/describe");
 
             def job = jsonSlurperClassic.parseText(resp)
             assert job instanceof Map
