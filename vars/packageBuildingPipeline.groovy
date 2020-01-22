@@ -168,7 +168,7 @@ def call(Map pipeline_args) {
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/epel-7-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/centos7/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '') +
+                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "centos7") +
                                              '\ncreaterepo artifacts/centos7/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
@@ -241,7 +241,7 @@ def call(Map pipeline_args) {
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/epel-8-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/centos8/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '') +
+                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "centos8") +
                                              '\ncreaterepo artifacts/centos8/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
@@ -316,7 +316,7 @@ def call(Map pipeline_args) {
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/sles-12.3-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/sles12.3/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '') +
+                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "sles12.3") +
                                              '\ncreaterepo artifacts/sles12.3/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
@@ -390,7 +390,7 @@ def call(Map pipeline_args) {
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/opensuse-leap-42.3-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/leap42.3/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '') +
+                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "leap42.3") +
                                              '\ncreaterepo artifacts/leap42.3/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
@@ -464,7 +464,7 @@ def call(Map pipeline_args) {
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/opensuse-leap-15.1-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/leap15/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '') +
+                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "leap15") +
                                              '\ncreaterepo artifacts/leap15/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
