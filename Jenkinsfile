@@ -91,7 +91,7 @@ pipeline {
                 steps {
                     provisionNodes NODELIST: env.NODELIST,
                                    distro: 'el7',
-                                   profile: 'ci',
+                                   profile: 'daos_ci',
                                    node_count: 1,
                                    snapshot: true,
                                    inst_rpms: "slurm slurm-example-configs" +
@@ -133,7 +133,7 @@ pipeline {
                 steps {
                     provisionNodes NODELIST: env.NODELIST,
                                    distro: 'opensuse15',
-                                   profile: 'ci',
+                                   profile: 'daos_ci',
                                    node_count: 1,
                                    snapshot: true,
                                    inst_rpms: "slurm ipmctl"
