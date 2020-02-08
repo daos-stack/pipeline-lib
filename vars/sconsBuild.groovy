@@ -43,7 +43,6 @@ def call(Map config = [:]) {
    * config['TARGET_PREFIX'] Alternate prefix to use in building.
    * config['target_work'] Directory in workspace containing directories
    *  symlinked from the target prefix.
-   * config['update_prereq'] Setting for --update-prereq.  Default 'all'.
    * config['USE_INSTALLED'] setting for USE_INSTALLED.  Default 'all'.
    *  If false, a failure of the scons commands will cause this step to fail.
    * config['failure_artifacts'] Artifacts to link to when scons fails
@@ -102,11 +101,6 @@ def call(Map config = [:]) {
     if (config['sconstruct']) {
         sconstruct = " --sconstruct=${config['sconstruct']}"
         scons_args += sconstruct
-    }
-    if (config['update_prereq']) {
-        scons_args += " --update-prereq=${config['update_prereq']}"
-    } else {
-        scons_args += ' --update-prereq=all'
     }
     if (config['build_deps']) {
         scons_args += " --build-deps=${config['build_deps']}"
