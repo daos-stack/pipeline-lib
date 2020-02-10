@@ -108,8 +108,11 @@ def call(Map pipeline_args) {
                         }
                     }
                     stage('Check Packaging') {
-                        agent { label 'lightweight' }
+                        agent {
+                            label 'lightweight'
+                        }
                         steps {
+                            checkoutScm withSubmodules: true
                             checkoutScm url: 'https://github.com/daos-stack/packaging.git',
                                         checkoutDir: 'packaging-module',
                                         branch: env.PACKAGING_BRANCH
@@ -156,6 +159,7 @@ def call(Map pipeline_args) {
                             }
                         }
                         steps {
+                            checkoutScm withSubmodules: true
                             sh label: "Build package",
                                script: '''rm -rf artifacts/centos7/
                                           mkdir -p artifacts/centos7/
@@ -229,6 +233,7 @@ def call(Map pipeline_args) {
                             }
                         }
                         steps {
+                            checkoutScm withSubmodules: true
                             sh label: "Build package",
                                script: '''rm -rf artifacts/centos8/
                                           mkdir -p artifacts/centos8/
@@ -304,6 +309,7 @@ def call(Map pipeline_args) {
                             }
                         }
                         steps {
+                            checkoutScm withSubmodules: true
                             sh label: "Build package",
                                script: '''rm -rf artifacts/sles12.3/
                                           mkdir -p artifacts/sles12.3/
@@ -378,6 +384,7 @@ def call(Map pipeline_args) {
                             }
                         }
                         steps {
+                            checkoutScm withSubmodules: true
                             sh label: "Build package",
                                script: '''rm -rf artifacts/leap42.3/
                                           mkdir -p artifacts/leap42.3/
@@ -452,6 +459,7 @@ def call(Map pipeline_args) {
                             }
                         }
                         steps {
+                            checkoutScm withSubmodules: true
                             sh label: "Build package",
                                script: '''rm -rf artifacts/leap15/
                                           mkdir -p artifacts/leap15/
@@ -525,6 +533,7 @@ def call(Map pipeline_args) {
                             }
                         }
                         steps {
+                            checkoutScm withSubmodules: true
                             sh label: "Build package",
                                script: '''rm -rf artifacts/ubuntu18.04/
                                           mkdir -p artifacts/ubuntu18.04/
@@ -582,6 +591,7 @@ def call(Map pipeline_args) {
                             }
                         }
                         steps {
+                            checkoutScm withSubmodules: true
                             sh label: "Build package",
                                script: '''rm -rf artifacts/ubuntu_rolling/
                                           mkdir -p artifacts/ubuntu_rolling/
