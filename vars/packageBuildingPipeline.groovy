@@ -100,6 +100,7 @@ def call(Map pipeline_args) {
                             }
                         }
                         steps {
+                            checkoutScm withSubmodules: true
                             sh script: 'make ' +
                                        pipeline_args.get('make args', '') +
                                        ' rpmlint',
