@@ -149,33 +149,47 @@ def call(Map config = [:]) {
   }
 
   def cleanup_logs = 'clush -l root -w ' + nodeString +
-                     ' --connect_timeout 30 -S' +
-                     ' "ls -lh /tmp/*.log;' +
-                     ' rm -f /tmp/daos.log /tmp/server.log /localhome/jenkins/.spdk*;' +
-                     ' rm -rf /tmp/Functional_*"'
+                   '''      --connect_timeout 30 -S
+                      if ls -lh /tmp/*.log 2>/dev/null; then
+                          rm -f /tmp/daos.log /tmp/server.log
+                      fi
+                      if ls -lh /localhome/jenkins/.spdk* 2>/dev/null; then
+                          rm -f /localhome/jenkins/.spdk*
+                      fi
+                      if [ -d /var/tmp/daos_testing/ ]; then
+                          ls -lh /var/tmp/daos_testing/
+                          rm -rf /var/tmp/daos_testing/
+                      fi
+                      if [ -d /tmp/Functional_*/ ]; then
+                          rm -rf /tmp/Functional_*
+                      fi'''
 
   sshagent (credentials: ['daos-provisioner']) {
     // Prefer to attempt delete these logs before the reboot / re-image attempt
     // so that we have some record.
     def ns_rc = 0
     ns_rc = sh script: cleanup_logs,
+               label: "Clean up previous run's logs",
                returnStatus: true
     if (ns_rc != 0) {
-      println("Failed to remove pre-existing /tmp/server.log file(s), etc.")
+      println("Failed to remove previous runs log file(s), etc.")
     }
-    println "Cleanup result = ${ns_rc}"
+    println "Previous run's log cleanup result = ${ns_rc}"
     if (config['power_only']) {
       sh script:'clush -l root -w ' + nodeString +
                 ' --connect_timeout 30 --command_timeout 120 -S' +
                 ' "sync;sync"',
-               returnStatus: true
+         label: "Syncing disks",
+         returnStatus: true
       ns_rc = sh script: """./jenkins/node_powercycle.py \
                             --node=${nodeString}""",
+                 label: "Power-cycling ${nodeString}",
                  returnStatus: true
       println "Powercycle result = ${ns_rc}"
     } else {
       ns_rc = sh script: """./jenkins/node_provision_start.py \
                             --nodes=${nodeString} ${options}""",
+                 label: "Provisioning nodes ${nodeString}",
                  returnStatus: true
       println "Snapshot restore result = ${ns_rc}"
     }
@@ -197,11 +211,13 @@ def call(Map config = [:]) {
       def rc = 0
       rc = sh script: """./jenkins/wait_for_node_ready.py \
                        --nodes=${nodeString} ${woptions}""",
+                 label: "Waiting for nodes ${nodeString} to be ready",
               returnStatus: true
       if (rc != 0) {
         error "One or more nodes failed to provision!"
       }
       ns_rc = sh script: cleanup_logs,
+                 label: "Clean up previous run's logs",
                  returnStatus: true
       if (ns_rc != 0) {
         // If a powercycle fails to clean things up fail the stage.
