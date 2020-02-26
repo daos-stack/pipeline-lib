@@ -55,47 +55,10 @@ def call(Map config = [:]) {
       println "Jenkins not configured for CI provisioning."
       return node_cnt
   }
-
-  // corci-792 assist code.
-  // corci-792 will convert the VM in a physical CI allocation to be
-  // a physical node, so we want to skip the snapshot restore when
-  // the only node is not a VM.
-  if (config['snapshot'] && (config['NODELIST'].indexOf('vm') < 0)) {
-    println "Skipping re-provisioning snapshot for physical nodes."
-    return 0
-  }
-
-  checkoutScm url: 'git@gitlab.hpdd.intel.com:lab/ci-node-mgmt.git',
-                                  checkoutDir: 'jenkins',
-                                  credentialsId: 'daos-special-read'
-  def options = ''
-  def snapshot = ''
-  def distro = 'el7'
-  def wait_for_it = true
-  def inst_rpms = ''
-  def inst_repos = ''
-  if (config['snapshot']) {
-    options += ' --snapshot'
-    wait_for_it = false
-  }
-  if (config['arch']) {
-    options += " --arch=${config['arch']}"
-  }
-  if (config['distro']) {
-    options += " --distro=${config['distro']}"
-    distro = config['distro']
-  }
-  if (config['profile']) {
-    options += " --profile=${config['profile']}"
-  }
-
-  if (config['inst_rpms']) {
-      inst_rpms = config['inst_rpms']
-  }
-
-  if (config['inst_repos']) {
-      inst_repos = config['inst_repos']
-  }
+  Map new_config = config
+  def distro = config.get('distro', 'el7')
+  def inst_rpms = config.get('inst_rpms', '')
+  def inst_repos = config.get('inst_repos','')
 
   def repository_g = ''
   def repository_l = ''
@@ -149,7 +112,7 @@ def call(Map config = [:]) {
   }
 
   def cleanup_logs = 'clush -l root -w ' + nodeString +
-                   '''      --connect_timeout 30 -S
+                     '''      --connect_timeout 30 -S
                       if ls -lh /tmp/*.log 2>/dev/null; then
                           rm -f /tmp/daos.log /tmp/server.log
                       fi
@@ -163,236 +126,177 @@ def call(Map config = [:]) {
                       if [ -d /tmp/Functional_*/ ]; then
                           rm -rf /tmp/Functional_*
                       fi'''
+  new_config['pre_reboot'] = cleanup_logs
+  new_config['post_reboot'] = cleanup_logs
 
-  sshagent (credentials: ['daos-provisioner']) {
-    // Prefer to attempt delete these logs before the reboot / re-image attempt
-    // so that we have some record.
-    def ns_rc = 0
-    ns_rc = sh script: cleanup_logs,
-               label: "Clean up previous run's logs",
-               returnStatus: true
-    if (ns_rc != 0) {
-      println("Failed to remove previous runs log file(s), etc.")
-    }
-    println "Previous run's log cleanup result = ${ns_rc}"
-    if (config['power_only']) {
-      sh script:'clush -l root -w ' + nodeString +
-                ' --connect_timeout 30 --command_timeout 120 -S' +
-                ' "sync;sync"',
-         label: "Syncing disks",
-         returnStatus: true
-      ns_rc = sh script: """./jenkins/node_powercycle.py \
-                            --node=${nodeString}""",
-                 label: "Power-cycling ${nodeString}",
-                 returnStatus: true
-      println "Powercycle result = ${ns_rc}"
-    } else {
-      ns_rc = sh script: """./jenkins/node_provision_start.py \
-                            --nodes=${nodeString} ${options}""",
-                 label: "Provisioning nodes ${nodeString}",
-                 returnStatus: true
-      println "Snapshot restore result = ${ns_rc}"
-    }
-
-    def woptions = ''
-    if (wait_for_it) {
-      if (config['timeout']) {
-        if (config['timeout'] <= 0) {
-          wait_for_it = false
-        } else {
-          woptions = " --timeout=${config['timeout']}"
-        }
-      }
-      if (config['poll']) {
-        woptions = " --poll=${config['poll']}"
-      }
-    }
-    if (wait_for_it) {
-      def rc = 0
-      rc = sh script: """./jenkins/wait_for_node_ready.py \
-                       --nodes=${nodeString} ${woptions}""",
-                 label: "Waiting for nodes ${nodeString} to be ready",
-              returnStatus: true
-      if (rc != 0) {
-        error "One or more nodes failed to provision!"
-      }
-      ns_rc = sh script: cleanup_logs,
-                 label: "Clean up previous run's logs",
-                 returnStatus: true
-      if (ns_rc != 0) {
-        // If a powercycle fails to clean things up fail the stage.
-        error("Failed to remove pre-existing /tmp/server.log file(s), etc.")
-      }
-
-    }
-
-    // Prepare the node for daos/cart testing
-    def provision_script = '''set -ex
-                              rm -f ci_key*
-                              ssh-keygen -N "" -f ci_key
-                              cat << "EOF" > ci_key_ssh_config
+  // Prepare the node for daos/cart testing
+  def provision_script = '''set -ex
+                            rm -f ci_key*
+                            ssh-keygen -N "" -f ci_key
+                            cat << "EOF" > ci_key_ssh_config
 host wolf-*
     CheckHostIp no
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
     LogLevel error
 EOF'''
-    if (distro_type == "suse") {
-        provision_script += '\nclush -B -S -l root -w ' + nodeString +
-                            ' "zypper --non-interactive install sudo"'
-    }
-    provision_script += '\nclush -l root -w ' + nodeString + ' -c' +
-                      ''' ci_key* --dest=/tmp/
-                          clush -B -S -l root -w ''' + nodeString +
-                      ''' "set -ex
-                          env > /root/last_run-env.txt
-                          my_uid=''' + env.UID + '''
-                          if ! grep \\":\\$my_uid:\\" /etc/group; then
-                            groupadd -g \\$my_uid jenkins
-                          fi
-                          mkdir -p /localhome
-                          if ! grep \\":\\$my_uid:\\$my_uid:\\" /etc/passwd; then
-                            useradd -b /localhome -g \\$my_uid -u \\$my_uid jenkins
-                          fi
-                          mkdir -p /localhome/jenkins/.ssh
-                          cat /tmp/ci_key.pub >> /localhome/jenkins/.ssh/authorized_keys
-                          cat /tmp/ci_key.pub >> /root/.ssh/authorized_keys
-                          mv /tmp/ci_key.pub /localhome/jenkins/.ssh/id_rsa.pub
-                          mv /tmp/ci_key /localhome/jenkins/.ssh/id_rsa
-                          mv /tmp/ci_key_ssh_config /localhome/jenkins/.ssh/config
-                          chmod 700 /localhome/jenkins/.ssh
-                          chmod 600 /localhome/jenkins/.ssh/{authorized_keys,id_rsa*,config}
-                          chown -R jenkins.jenkins /localhome/jenkins/.ssh
-                          echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins'''
-    def iterate_repos = '''for repo in ''' + inst_repos + '''; do
-                               branch=\\"master\\"
-                               build_number=\\"lastSuccessfulBuild\\"
-                               if [[ \\\$repo = *@* ]]; then
-                                   branch=\\"\\\${repo#*@}\\"
-                                   repo=\\"\\\${repo%@*}\\"
-                                   if [[ \\\$branch = *:* ]]; then
-                                       build_number=\\"\\\${branch#*:}\\"
-                                       branch=\\"\\\${branch%:*}\\"
-                                   fi
-                               fi'''
-    if (distro.startsWith("el7")) {
-       // Since we don't have CORCI-711 yet, erase things we know could have
-       // been put on the node previously
+  if (distro_type == "suse") {
+    provision_script += '\nclush -B -S -l root -w ' + nodeString +
+                        ' "zypper --non-interactive install sudo"'
+  }
+  provision_script += '\nclush -l root -w ' + nodeString + ' -c' +
+                    ''' ci_key* --dest=/tmp/
+                        clush -B -S -l root -w ''' + nodeString +
+                    ''' "set -ex
+                         env > /root/last_run-env.txt
+                         my_uid=''' + env.UID + '''
+                         if ! grep \\":\\$my_uid:\\" /etc/group; then
+                           groupadd -g \\$my_uid jenkins
+                         fi
+                         mkdir -p /localhome
+                         if ! grep \\":\\$my_uid:\\$my_uid:\\" /etc/passwd; then
+                           useradd -b /localhome -g \\$my_uid -u \\$my_uid jenkins
+                         fi
+                         mkdir -p /localhome/jenkins/.ssh
+                         cat /tmp/ci_key.pub >> /localhome/jenkins/.ssh/authorized_keys
+                         cat /tmp/ci_key.pub >> /root/.ssh/authorized_keys
+                         mv /tmp/ci_key.pub /localhome/jenkins/.ssh/id_rsa.pub
+                         mv /tmp/ci_key /localhome/jenkins/.ssh/id_rsa
+                         mv /tmp/ci_key_ssh_config /localhome/jenkins/.ssh/config
+                         chmod 700 /localhome/jenkins/.ssh
+                         chmod 600 /localhome/jenkins/.ssh/{authorized_keys,id_rsa*,config}
+                         chown -R jenkins.jenkins /localhome/jenkins/.ssh
+                         echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins'''
+  def iterate_repos = '''for repo in ''' + inst_repos + '''; do
+                           branch=\\"master\\"
+                           build_number=\\"lastSuccessfulBuild\\"
+                           if [[ \\\$repo = *@* ]]; then
+                             branch=\\"\\\${repo#*@}\\"
+                             repo=\\"\\\${repo%@*}\\"
+                             if [[ \\\$branch = *:* ]]; then
+                               build_number=\\"\\\${branch#*:}\\"
+                               branch=\\"\\\${branch%:*}\\"
+                             fi
+                           fi'''
+  if (distro.startsWith("el7")) {
+    if (config['power_only']) {
+      // Since we don't have CORCI-711 yet, erase things we know could have
+      // been put on the node previously
       provision_script += '''\nrm -f /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_*_job_*.repo
-                             yum -y erase fio fuse ior-hpc mpich-autoload''' +
+                            yum -y erase fio fuse ior-hpc mpich-autoload''' +
                             ' ompi argobots cart daos daos-client dpdk ' +
                             ' fuse-libs libisa-l libpmemobj mercury mpich' +
                             ' openpa pmix protobuf-c spdk libfabric libpmem' +
                             ' libpmemblk munge-libs munge slurm' +
                             ' slurm-example-configs slurmctld slurm-slurmmd'
-      provision_script +=   '\nyum -y install yum-utils ed nfs-utils'
-      if (repository_g != '') {
-        def repo_file = repository_g.substring(
-                            repository_g.lastIndexOf('/') + 1,
-                            repository_g.length())
-        if (repo_file == '') {
-            error "Could not extract a repo file from ${repository_g}"
-        }
-        provision_script += '\nrm -f /etc/yum.repos.d/*' + repo_file + '.repo'
-        provision_script += '\nyum-config-manager --add-repo=' + repository_g
+    }
+    provision_script += '\nyum -y install yum-utils ed nfs-utils'
+    if (repository_g != '') {
+      def repo_file = repository_g.substring(
+                          repository_g.lastIndexOf('/') + 1,
+                          repository_g.length())
+      if (repo_file == '') {
+        error "Could not extract a repo file from ${repository_g}"
       }
-      if (repository_l != '') {
-        def repo_file = repository_l.substring(
-                            repository_l.lastIndexOf('/') + 1,
-                            repository_l.length())
-        if (repo_file == '') {
-            error "Could not extract a repo file from ${repository_l}"
-        }
-        provision_script += '\nrm -f /etc/yum.repos.d/*' + repo_file + '.repo'
-        provision_script += '\nyum-config-manager --add-repo=' + repository_l
-        provision_script += '\necho \\"gpgcheck = False\\" >> ' +
-                              '/etc/yum.repos.d/*' + repo_file + '.repo'
+      provision_script += '\nrm -f /etc/yum.repos.d/*' + repo_file + '.repo'
+      provision_script += '\nyum-config-manager --add-repo=' + repository_g
+    }
+    if (repository_l != '') {
+      def repo_file = repository_l.substring(
+                          repository_l.lastIndexOf('/') + 1,
+                          repository_l.length())
+      if (repo_file == '') {
+          error "Could not extract a repo file from ${repository_l}"
       }
+      provision_script += '\nrm -f /etc/yum.repos.d/*' + repo_file + '.repo'
+      provision_script += '\nyum-config-manager --add-repo=' + repository_l
+      provision_script += '\necho \\"gpgcheck = False\\" >> ' +
+                            '/etc/yum.repos.d/*' + repo_file + '.repo'
+    }
 
-      if (inst_repos) {
-        provision_script += '\n' + iterate_repos +
-                            '''\nyum-config-manager --add-repo=''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/centos7/
-                               echo \\"gpgcheck = False\\" >> /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_\\\${branch}_\\\${build_number}_artifact_artifacts_centos7_.repo
-                           done'''
-      }
-      if (inst_rpms) {
-         provision_script += '''\nyum -y erase ''' + inst_rpms
-      }
-      gpg_key_urls.each { gpg_url ->
-        provision_script += '\nrpm --import ' + gpg_url
-      }
-      provision_script += '''\nrm -f /etc/profile.d/openmpi.sh
-                               rm -f /tmp/daos_control.log
-                               yum -y erase metabench mdtest simul IOR compat-openmpi16
-                               yum -y install epel-release
-                               if ! yum -y install CUnit fuse python36-PyYAML   \
-                                                   python36-nose                \
-                                                   python36-pip valgrind        \
-                                                   python36-paramiko            \
-                                                   python2-avocado              \
-                                                   python2-avocado-plugins-output-html \
-                                                   python2-avocado-plugins-varianter-yaml-to-mux \
-                                                   libcmocka python-pathlib     \
-                                                   python2-numpy git            \
-                                                   python2-clustershell         \
-                                                   golang-bin ipmctl'''
-      if (inst_rpms) {
-         provision_script += ' ' + inst_rpms
-      }
-      provision_script += '''; then
-                              rc=\\${PIPESTATUS[0]}
-                              for file in /etc/yum.repos.d/*.repo; do
-                                  echo \\"---- \\$file ----\\"
-                                  cat \\$file
-                              done
-                              exit \\$rc
-                          fi
-                          if [ ! -e /usr/bin/pip3 ] &&
-                             [ -e /usr/bin/pip3.6 ]; then
-                              ln -s pip3.6 /usr/bin/pip3
-                          fi
-                          if [ ! -e /usr/bin/python3 ] &&
-                             [ -e /usr/bin/python3.6 ]; then
-                              ln -s python3.6 /usr/bin/python3
-                          fi'''
-    } else if (distro_type == "suse") {
-      if (repository_g != '') {
-        provision_script += '\nzypper --non-interactive ar -f ' +
-                            repository_g + ' daos-stack-group-repo'
-        provision_script += '\nzypper --non-interactive mr ' +
-                            '--gpgcheck-allow-unsigned-repo ' +
-                            'daos-stack-group-repo'
-      }
-      if (repository_l != '') {
-        provision_script += '\nzypper --non-interactive ar' +
-                            ' --gpgcheck-allow-unsigned -f ' +
-                            repository_l + ' daos-stack-local-repo'
-        provision_script += '\nzypper --non-interactive mr' +
+    if (inst_repos) {
+      provision_script += '\n' + iterate_repos +
+                          '''\nyum-config-manager --add-repo=''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/centos7/
+                             echo \\"gpgcheck = False\\" >> /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_\\\${branch//\\//_}_\\\${build_number}_artifact_artifacts_centos7_.repo
+                         done'''
+    }
+    if (inst_rpms) {
+      provision_script += '''\nyum -y erase ''' + inst_rpms
+    }
+    gpg_key_urls.each { gpg_url ->
+      provision_script += '\nrpm --import ' + gpg_url
+    }
+    provision_script += '''\nrm -f /etc/profile.d/openmpi.sh
+                             rm -f /tmp/daos_control.log
+                             yum -y erase metabench mdtest simul IOR compat-openmpi16
+                             yum -y install epel-release
+                             if ! yum -y install CUnit fuse python36-PyYAML   \
+                                                 python36-nose                \
+                                                 python36-pip valgrind        \
+                                                 python36-paramiko            \
+                                                 python2-avocado              \
+                                                 python2-avocado-plugins-output-html \
+                                                 python2-avocado-plugins-varianter-yaml-to-mux \
+                                                 libcmocka python-pathlib     \
+                                                 python2-numpy git            \
+                                                 python2-clustershell         \
+                                                 golang-bin ipmctl ndctl'''
+    if (inst_rpms) {
+      provision_script += ' ' + inst_rpms
+    }
+    provision_script += '''; then
+                            rc=\\${PIPESTATUS[0]}
+                            for file in /etc/yum.repos.d/*.repo; do
+                              echo \\"---- \\$file ----\\"
+                              cat \\$file
+                            done
+                            exit \\$rc
+                        fi
+                        if [ ! -e /usr/bin/pip3 ] &&
+                           [ -e /usr/bin/pip3.6 ]; then
+                            ln -s pip3.6 /usr/bin/pip3
+                        fi
+                        if [ ! -e /usr/bin/python3 ] &&
+                           [ -e /usr/bin/python3.6 ]; then
+                            ln -s python3.6 /usr/bin/python3
+                        fi'''
+  } else if (distro_type == "suse") {
+    if (repository_g != '') {
+      provision_script += '\nzypper --non-interactive ar -f ' +
+                           repository_g + ' daos-stack-group-repo'
+      provision_script += '\nzypper --non-interactive mr ' +
+                          '--gpgcheck-allow-unsigned-repo ' +
+                          'daos-stack-group-repo'
+    }
+    if (repository_l != '') {
+      provision_script += '\nzypper --non-interactive ar' +
+                          ' --gpgcheck-allow-unsigned -f ' +
+                          repository_l + ' daos-stack-local-repo'
+      provision_script += '\nzypper --non-interactive mr' +
                             ' --no-gpgcheck daos-stack-local-repo'
-      }
-      if (inst_repos) {
-        provision_script +=   '\n' + iterate_repos +
-                            '''\n    zypper --non-interactive ar --gpgcheck-allow-unsigned -f ''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/leap15/ \\\$repo
-                                 done'''
-      }
-      provision_script += '\nzypper --non-interactive' +
-                          ' --gpg-auto-import-keys --no-gpg-checks ref'
-      provision_script += '\nzypper --non-interactive in ed nfs-client ipmctl '
-      if (inst_rpms) {
-        provision_script += inst_rpms
-      }
-    } else {
-        error("Don't know how to handle repos for distro: \"" + distro + "\"")
     }
-    provision_script += '''\nsync; sync"
-                           exit ${PIPESTATUS[0]}'''
-    def rc = 0
-    rc = sh(script: provision_script,
-            label: "Post provision configuration",
-            returnStatus: true)
-    if (rc != 0) {
-      stepResult name: env.STAGE_NAME, context: "test", result: "FAILURE"
-      error "One or more nodes failed post-provision configuration!"
+    if (inst_repos) {
+      provision_script +=   '\n' + iterate_repos +
+                          '''\n    zypper --non-interactive ar --gpgcheck-allow-unsigned -f ''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/leap15/ \\\$repo
+                               done'''
     }
-  } //sshagent
+    provision_script += '\nzypper --non-interactive' +
+                        ' --gpg-auto-import-keys --no-gpg-checks ref'
+    provision_script += '\nzypper --non-interactive in ed nfs-client ipmctl ndctl'
+    if (inst_rpms) {
+      provision_script += ' ' + inst_rpms
+    }
+  } else {
+    error("Don't know how to handle repos for distro: \"" + distro + "\"")
+  }
+  provision_script += '''\nsync; sync"
+                         exit ${PIPESTATUS[0]}'''
+  new_config['post_restore'] = provision_script
+
+  try {
+    def rc = provisionNodesSystem(new_config)
+  } catch (java.lang.NoSuchMethodError e) {
+    error('Could not find a provisionNodesSystem step in' +
+                ' a shared groovy library')
+  }
 }
