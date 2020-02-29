@@ -311,7 +311,7 @@ EOF'''
 
       if (inst_repos) {
         provision_script += '\n' + iterate_repos +
-                            '''\nyum-config-manager --add-repo=''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/centos7/
+                            '''\nyum-config-manager --add-repo=''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch//\\//%252}/\\\${build_number}/artifact/artifacts/centos7/
                                echo \\"gpgcheck = False\\" >> /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_\\\${branch//\\//_}_\\\${build_number}_artifact_artifacts_centos7_.repo
                            done'''
       }
@@ -372,7 +372,7 @@ EOF'''
       }
       if (inst_repos) {
         provision_script +=   '\n' + iterate_repos +
-                            '''\n    zypper --non-interactive ar --gpgcheck-allow-unsigned -f ''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/leap15/ \\\$repo
+                            '''\n    zypper --non-interactive ar --gpgcheck-allow-unsigned -f ''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch//\\//%252}/\\\${build_number}/artifact/artifacts/leap15/ \\\$repo
                                  done'''
       }
       provision_script += '\nzypper --non-interactive' +
