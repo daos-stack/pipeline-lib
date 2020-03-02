@@ -111,7 +111,7 @@ def call(Map config = [:]) {
     }
   }
 
-  def cleanup_logs = 'clush -l root -w ' + nodeString +
+  def cleanup_logs = 'clush -B -l root -w ' + nodeString +
                      '''      --connect_timeout 30 -S
                       if ls -lh /tmp/*.log 2>/dev/null; then
                           rm -f /tmp/daos.log /tmp/server.log
@@ -144,7 +144,7 @@ EOF'''
     provision_script += '\nclush -B -S -l root -w ' + nodeString +
                         ' "zypper --non-interactive install sudo"'
   }
-  provision_script += '\nclush -l root -w ' + nodeString + ' -c' +
+  provision_script += '\nclush -B -l root -w ' + nodeString + ' -c' +
                     ''' ci_key* --dest=/tmp/
                         clush -B -S -l root -w ''' + nodeString +
                     ''' "set -ex
@@ -216,8 +216,8 @@ EOF'''
 
     if (inst_repos) {
       provision_script += '\n' + iterate_repos +
-                          '''\nyum-config-manager --add-repo=''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/centos7/
-                             echo \\"gpgcheck = False\\" >> /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_\\\${branch//\\//_}_\\\${build_number}_artifact_artifacts_centos7_.repo
+                          '''\nyum-config-manager --add-repo=''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch//\\//%252}/\\\${build_number//\\//%252}/artifact/artifacts/centos7/
+                             echo \\"gpgcheck = False\\" >> /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_\\\${branch//\\//%252}_\\\${build_number}_artifact_artifacts_centos7_.repo
                          done'''
     }
     if (inst_rpms) {
@@ -277,7 +277,7 @@ EOF'''
     }
     if (inst_repos) {
       provision_script +=   '\n' + iterate_repos +
-                          '''\n    zypper --non-interactive ar --gpgcheck-allow-unsigned -f ''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch}/\\\${build_number}/artifact/artifacts/leap15/ \\\$repo
+                          '''\n    zypper --non-interactive ar --gpgcheck-allow-unsigned -f ''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch//\\//%252}/\\\${build_number}/artifact/artifacts/leap15/ \\\$repo
                                done'''
     }
     provision_script += '\nzypper --non-interactive' +
