@@ -77,22 +77,48 @@ def call(Map config = [:]) {
     // https://issues.jenkins-ci.org/browse/JENKINS-39203
     // Once that is fixed all of the below should be pushed up into the
     // Jenkinsfile post { stable/unstable/failure/etc. }
-    def status = ''
+    def status = "SUCCESS"
     if (rc != 0) {
         status = "FAILURE"
     } else if (rc == 0) {
-        if (config['junit_files'] != null) {
-            if (sh(script: "grep \"<error \" ${config.junit_files}",
-                   returnStatus: true) == 0) {
-                status = "FAILURE"
-            } else if (sh(script: "grep \"<failure \" ${config.junit_files}",
-                          returnStatus: true) == 0) {
-                status = "UNSTABLE"
-            } else {
-                status = "SUCCESS"
+        def test_failure = false
+        def test_error = false
+        if (config['junit_files']) {
+            def filesList = []
+            config['junit_files'].split().each {
+                filesList.addAll(findFiles(glob: it))
             }
-        } else {
-            status = "SUCCESS"
+            if (filesList) {
+                if (sh(script: 'grep "<error " ' + filesList.join(' '),
+                       returnStatus: true) == 0) {
+                    status = "FAILURE"
+                } else if (sh(script: 'grep "<failure " ' + filesList.join(' '),
+                              returnStatus: true) == 0) {
+                    status = "UNSTABLE"
+                }
+                if (filesList.join(" ").indexOf("pipeline-test-failure.xml") > -1) {
+                    test_failure = true
+                } else if (filesList.join(" ").indexOf("pipeline-test-error.xml") > -1) {
+                    test_error = true
+                }
+            }
+        }
+        // If we are testing this library, make sure the result is as expected
+        if (test_failure || test_error) {
+            def expected_status
+            if (test_failure) {
+                expected_status = "UNSTABLE"
+            } else if (test_error) {
+                expected_status = "FAILURE"
+            }
+            if (status == expected_status) {
+                echo "Expected status ${status} found"
+                status = "SUCCESS"
+            } else {
+                // and fail the step if it's not
+                echo "Expected status ${expected_status} not found.  status == ${status}"
+                status = "UNSTABLE"
+            }
         }
     }
 

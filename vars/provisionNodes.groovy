@@ -237,10 +237,6 @@ host wolf-*
     UserKnownHostsFile /dev/null
     LogLevel error
 EOF'''
-    if (distro_type == "suse") {
-        provision_script += '\nclush -B -S -l root -w ' + nodeString +
-                            ' "zypper --non-interactive install sudo"'
-    }
     provision_script += '\nclush -l root -w ' + nodeString + ' -c' +
                       ''' ci_key* --dest=/tmp/
                           clush -B -S -l root -w ''' + nodeString +
@@ -383,7 +379,8 @@ EOF'''
       }
       provision_script += '\nzypper --non-interactive' +
                           ' --gpg-auto-import-keys --no-gpg-checks ref'
-      provision_script += '\nzypper --non-interactive in ed nfs-client ipmctl '
+      provision_script += '\nzypper --non-interactive in ed nfs-client '
+      provision_script += 'ipmctl sudo '
       if (inst_rpms) {
         provision_script += inst_rpms
       }
