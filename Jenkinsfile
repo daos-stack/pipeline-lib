@@ -40,8 +40,74 @@ pipeline {
     }
 
     stages {
+        stage('Cancel Previous Builds') {
+            when { changeRequest() }
+            steps {
+                cancelPreviousBuilds()
+            }
+        }
         stage('Test') {
           parallel {
+            stage('grep JUnit results tests failure case') {
+                agent {
+                    dockerfile {
+                        filename 'docker/Dockerfile.centos.7'
+                        label 'docker_runner'
+                        additionalBuildArgs  '--build-arg UID=$(id -u)'
+                    }
+                }
+                steps {
+                    runTest script: '''set -ex
+                                       rm -f *.xml
+                                       echo "<failure bla bla bla/>" > pipeline-test-failure.xml''',
+                        junit_files: "*.xml non-exist*.xml",
+                        failure_artifacts: env.STAGE_NAME
+                }
+                post {
+                    unsuccessful {
+                        daosStackNotifyStatus(
+                            description: env.STAGE_NAME,
+                            context: 'test/' + env.STAGE_NAME,
+                            status: 'FAILURE')
+                    }
+                    success {
+                        daosStackNotifyStatus(
+                            description: env.STAGE_NAME,
+                            context: 'test/' + env.STAGE_NAME,
+                            status: 'SUCCESS')
+                    }
+                }
+            } // stage('grep JUnit results tests failure case')
+            stage('grep JUnit results tests error case') {
+                agent {
+                    dockerfile {
+                        filename 'docker/Dockerfile.centos.7'
+                        label 'docker_runner'
+                        additionalBuildArgs  '--build-arg UID=$(id -u)'
+                    }
+                }
+                steps {
+                    runTest script: '''set -ex
+                                       rm -f *.xml
+                                       echo "<error bla bla bla/>" > pipeline-test-error.xml''',
+                        junit_files: "*.xml non-exist*.xml",
+                        failure_artifacts: env.STAGE_NAME
+                }
+                post {
+                    unsuccessful {
+                        daosStackNotifyStatus(
+                            description: env.STAGE_NAME,
+                            context: 'test/' + env.STAGE_NAME,
+                            status: 'FAILURE')
+                    }
+                    success {
+                        daosStackNotifyStatus(
+                            description: env.STAGE_NAME,
+                            context: 'test/' + env.STAGE_NAME,
+                            status: 'SUCCESS')
+                    }
+                }
+            } // stage('grep JUnit results tests error case')
             stage('publishToRepository tests') {
                 agent {
                     dockerfile {

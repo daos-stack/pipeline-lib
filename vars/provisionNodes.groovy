@@ -140,6 +140,7 @@ host wolf-*
     UserKnownHostsFile /dev/null
     LogLevel error
 EOF'''
+<<<<<<< HEAD
   provision_script += '\nclush -B -l root -w ' + nodeString + ' -c' +
                     ''' ci_key* --dest=/tmp/
                         clush -B -S -l root -w ''' + nodeString +
@@ -178,6 +179,45 @@ EOF'''
     if (config['power_only']) {
       // Since we don't have CORCI-711 yet, erase things we know could have
       // been put on the node previously
+=======
+    provision_script += '\nclush -l root -w ' + nodeString + ' -c' +
+                      ''' ci_key* --dest=/tmp/
+                          clush -B -S -l root -w ''' + nodeString +
+                      ''' "set -ex
+                          env > /root/last_run-env.txt
+                          my_uid=''' + env.UID + '''
+                          if ! grep \\":\\$my_uid:\\" /etc/group; then
+                            groupadd -g \\$my_uid jenkins
+                          fi
+                          mkdir -p /localhome
+                          if ! grep \\":\\$my_uid:\\$my_uid:\\" /etc/passwd; then
+                            useradd -b /localhome -g \\$my_uid -u \\$my_uid jenkins
+                          fi
+                          mkdir -p /localhome/jenkins/.ssh
+                          cat /tmp/ci_key.pub >> /localhome/jenkins/.ssh/authorized_keys
+                          cat /tmp/ci_key.pub >> /root/.ssh/authorized_keys
+                          mv /tmp/ci_key.pub /localhome/jenkins/.ssh/id_rsa.pub
+                          mv /tmp/ci_key /localhome/jenkins/.ssh/id_rsa
+                          mv /tmp/ci_key_ssh_config /localhome/jenkins/.ssh/config
+                          chmod 700 /localhome/jenkins/.ssh
+                          chmod 600 /localhome/jenkins/.ssh/{authorized_keys,id_rsa*,config}
+                          chown -R jenkins.jenkins /localhome/jenkins/.ssh
+                          echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins'''
+    def iterate_repos = '''for repo in ''' + inst_repos + '''; do
+                               branch=\\"master\\"
+                               build_number=\\"lastSuccessfulBuild\\"
+                               if [[ \\\$repo = *@* ]]; then
+                                   branch=\\"\\\${repo#*@}\\"
+                                   repo=\\"\\\${repo%@*}\\"
+                                   if [[ \\\$branch = *:* ]]; then
+                                       build_number=\\"\\\${branch#*:}\\"
+                                       branch=\\"\\\${branch%:*}\\"
+                                   fi
+                               fi'''
+    if (distro.startsWith("el7")) {
+       // Since we don't have CORCI-711 yet, erase things we know could have
+       // been put on the node previously
+>>>>>>> master
       provision_script += '''\nrm -f /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_*_job_*.repo
                             yum -y erase fio fuse ior-hpc mpich-autoload''' +
                             ' ompi argobots cart daos daos-client dpdk ' +
@@ -212,8 +252,14 @@ EOF'''
 
     if (inst_repos) {
       provision_script += '\n' + iterate_repos +
-                          '''\nyum-config-manager --add-repo=''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch//\\//%252}/\\\${build_number//\\//%252}/artifact/artifacts/centos7/
-                             echo \\"gpgcheck = False\\" >> /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_\\\${branch//\\//%252}_\\\${build_number}_artifact_artifacts_centos7_.repo
+                          '''\nyum-config-manager --add-repo=''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch//\\//%252F}/\\\${build_number}/artifact/artifacts/centos7/
+                             pname=\\\$(ls /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_\\\${branch//\\//%252F}_\\\${build_number}_artifact_artifacts_centos7_.repo)
+                             if [ "\\\$pname" != "\\\${pname//%252F/_}" ]; then
+                                 mv "\\\$pname" "\\\${pname//%252F/_}"
+                             fi
+                             pname="\\\${pname//%252F/_}"
+                             sed -i -e '/^\\[/s/%252F/_/g' -e '\\\$s/^\\\$/gpgcheck = False/' "\\\$pname"
+                             cat "\\\$pname"
                          done'''
     }
     if (inst_rpms) {
@@ -279,7 +325,7 @@ EOF'''
     provision_script += '\nzypper --non-interactive' +
                         ' --gpg-auto-import-keys --no-gpg-checks ref'
     provision_script += '\nzypper --non-interactive in' +
-                        ' sudo ed nfs-client ipmctl ndctl'
+                        ' ed nfs-client ipmctl ndctl sudo '
     if (inst_rpms) {
       provision_script += ' ' + inst_rpms
     }
