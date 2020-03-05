@@ -279,7 +279,7 @@ EOF'''
     }
     if (inst_repos) {
       provision_script +=   '\n' + iterate_repos +
-                          '''\n    zypper --non-interactive ar --gpgcheck-allow-unsigned -f ''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch//\\//%252}/\\\${build_number}/artifact/artifacts/leap15/ \\\$repo
+                          '''\n    zypper --non-interactive ar --gpgcheck-allow-unsigned -f ''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch//\\//%252F}/\\\${build_number}/artifact/artifacts/leap15/ \\\$repo
                                done'''
     }
     provision_script += '\nzypper --non-interactive' +
@@ -287,7 +287,7 @@ EOF'''
     provision_script += '\nzypper --non-interactive in' +
                         ' ed nfs-client ipmctl ndctl sudo '
     if (inst_rpms) {
-      provision_script += ' ' + inst_rpms
+      provision_script += inst_rpms
     }
   } else {
     error("Don't know how to handle repos for distro: \"" + distro + "\"")
