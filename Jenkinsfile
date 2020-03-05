@@ -146,7 +146,79 @@ pipeline {
                     }
                 }
             } //stage('publishToRepository tests')
-            stage('provisionNodes_with_slurm_el7') {
+            stage('provisionNodes withl release/0.9 Repo') {
+                when {
+                    beforeAgent true
+                    expression { env.NO_CI_TESTING != "true" }
+                }
+                agent {
+                    label 'ci_vm1'
+                }
+                steps {
+                    provisionNodes NODELIST: env.NODELIST,
+                                   distro: 'el7',
+                                   profile: 'daos_ci',
+                                   node_count: 1,
+                                   snapshot: true,
+                                   inst_repos: "daos@release/0.9"
+                    runTest script: '''NODE=${NODELIST%%,*}
+                                       ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
+                                       yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
+                            junit_files: null,
+                            failure_artifacts: env.STAGE_NAME
+                }
+                post {
+                    unsuccessful {
+                        daosStackNotifyStatus(
+                            description: env.STAGE_NAME,
+                            context: 'test/' + env.STAGE_NAME,
+                            status: 'FAILURE')
+                    }
+                    success {
+                        daosStackNotifyStatus(
+                            description: env.STAGE_NAME,
+                            context: 'test/' + env.STAGE_NAME,
+                            status: 'SUCCESS')
+                    }
+                }
+            } //stage('provisionNodes with slurm EL7')
+            stage('provisionNodes with master Repo') {
+                when {
+                    beforeAgent true
+                    expression { env.NO_CI_TESTING != "true" }
+                }
+                agent {
+                    label 'ci_vm1'
+                }
+                steps {
+                    provisionNodes NODELIST: env.NODELIST,
+                                   distro: 'el7',
+                                   profile: 'daos_ci',
+                                   node_count: 1,
+                                   snapshot: true,
+                                   inst_repos: "daos@master"
+                    runTest script: '''NODE=${NODELIST%%,*}
+                                       ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
+                                       yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
+                            junit_files: null,
+                            failure_artifacts: env.STAGE_NAME
+                }
+                post {
+                    unsuccessful {
+                        daosStackNotifyStatus(
+                            description: env.STAGE_NAME,
+                            context: 'test/' + env.STAGE_NAME,
+                            status: 'FAILURE')
+                    }
+                    success {
+                        daosStackNotifyStatus(
+                            description: env.STAGE_NAME,
+                            context: 'test/' + env.STAGE_NAME,
+                            status: 'SUCCESS')
+                    }
+                }
+            } //stage('provisionNodes with slurm EL7')
+            stage('provisionNodes with slurm EL7') {
                 when {
                     beforeAgent true
                     expression { env.NO_CI_TESTING != "true" }
@@ -163,13 +235,11 @@ pipeline {
                                    inst_rpms: "slurm slurm-example-configs" +
                                               " slurm-slurmctld slurm-slurmd" +
                                               " ipmctl"
-                            runTest(
-                        script: '''NODE=${NODELIST%%,*}
-                                   ssh $SSH_KEY_ARGS jenkins@$NODE "set -x
-                                     set -e
-                                     which scontrol"''',
-                        junit_files: null,
-                        failure_artifacts: env.STAGE_NAME)
+                    runTest script: '''NODE=${NODELIST%%,*}
+                                       ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
+                                       which scontrol"''',
+                            junit_files: null,
+                            failure_artifacts: env.STAGE_NAME
                 }
                 post {
                     unsuccessful {
@@ -185,8 +255,8 @@ pipeline {
                             status: 'SUCCESS')
                     }
                 }
-            } //stage('provisionNodes_with_slurm_el7')
-            stage('provisionNodes_with_slurm_leap15') {
+            } //stage('provisionNodes with slurm EL7')
+            stage('provisionNodes with slurm Leap15') {
                 when {
                     beforeAgent true
                     allOf {
@@ -203,13 +273,11 @@ pipeline {
                                    node_count: 1,
                                    snapshot: true,
                                    inst_rpms: "slurm ipmctl"
-                            runTest(
-                        script: '''NODE=${NODELIST%%,*}
-                                   ssh $SSH_KEY_ARGS jenkins@$NODE "set -x
-                                     set -e
-                                     which scontrol"''',
-                        junit_files: null,
-                        failure_artifacts: env.STAGE_NAME)
+                    runTest script: '''NODE=${NODELIST%%,*}
+                                       ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
+                                       which scontrol"''',
+                            junit_files: null,
+                            failure_artifacts: env.STAGE_NAME
                 }
                 post {
                     unsuccessful {
