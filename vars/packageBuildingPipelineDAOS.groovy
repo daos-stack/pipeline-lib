@@ -304,14 +304,14 @@ def call(Map pipeline_args) {
                             success {
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/epel-7-x86_64/result/ &&
-                                              cp -r . $OLDPWD/artifacts/centos7/)\n''' +
+                                              cp -r . $OLDPWD/artifacts/centos7-mlnx/)\n''' +
                                               pipeline_args.get('add_archiving_cmds', '') +
-                                             '\ncreaterepo artifacts/centos7/'
+                                             '\ncreaterepo artifacts/centos7-mlnx/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
                                                     maturity: 'stable',
                                                     tech: 'el-7',
-                                                    repo_dir: 'artifacts/centos7/',
+                                                    repo_dir: 'artifacts/centos7-mlnx/',
                                                     publish_branch: publish_branch
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
@@ -322,7 +322,7 @@ def call(Map pipeline_args) {
                                    script: '''mockroot=/var/lib/mock/epel-7-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
-                                              artdir=$PWD/artifacts/centos7
+                                              artdir=$PWD/artifacts/centos7-mlnx
                                               cp -af _topdir/SRPMS $artdir
                                               (cd $mockroot/result/ &&
                                                cp -r . $artdir)'''
@@ -335,14 +335,14 @@ def call(Map pipeline_args) {
                                                        if [ ! -f $dir/config.log ]; then
                                                            continue
                                                        fi
-                                                       tdir="$OLDPWD/artifacts/centos7/autoconf-logs/$dir"
+                                                       tdir="$OLDPWD/artifacts/centos7-mlnx/autoconf-logs/$dir"
                                                        mkdir -p $tdir
                                                        cp -a $dir/config.log $tdir/
                                                    done
                                                fi)'''
                             }
                             cleanup {
-                                archiveArtifacts artifacts: 'artifacts/centos7/**'
+                                archiveArtifacts artifacts: 'artifacts/centos7-mlnx/**'
                             }
                         }
                     } // stage('Build on CentOS 7 with Mellanox OFED')
