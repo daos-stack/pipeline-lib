@@ -64,6 +64,9 @@ def call(Map pipeline_args) {
         publish_branch = 'master'
     }
 
+    def = mlnx_ofed_filename = 'MLNX_OFED_LINUX-4.7-1.0.0.1-rhel7.7-x86_64.tgz'
+    def = mlnx_ofed_url = 'http://content.mellanox.com/ofed/MLNX_OFED-4.7-1.0.0.1/' + mlnx_ofed_filename 
+
     pipeline {
         agent { label 'lightweight' }
 
@@ -262,6 +265,87 @@ def call(Map pipeline_args) {
                             }
                         }
                     } //stage('Build on CentOS 7')
+                    stage('Build on CentOS 7 with Mellanox OFED') {
+                        when {
+                            beforeAgent true
+                            allOf {
+                                expression { distros.contains('centos7-mlnx') }
+                            }
+                        }
+                        agent {
+                            dockerfile {
+                                filename 'packaging/Dockerfile.mockbuild'
+                                label 'docker_runner'
+                                args  '--group-add mock' +
+                                      ' --cap-add=SYS_ADMIN' +
+                                      ' --privileged=true'
+                                additionalBuildArgs '--build-arg UID=$(id -u)' +
+                                                    ' --build-arg JENKINS_URL=' +
+                                                    env.JENKINS_URL
+                            }
+                        }
+                        steps {
+                            sh label: "Build package",
+                               script: '''rm -rf artifacts/centos7/
+                                          mkdir -p artifacts/centos7/
+                                          mkdir -p mlnx
+                                          pushd mlnx
+                                          if [ ! -f ''' mlnx_ofed_filename ''' ]; then
+                                              curl -f -O ''' mlnx_ofed_url '''
+                                              tar xzvf ''' mlnx_ofed_filename '''
+                                          fi
+                                          CHROOT_NAME="epel-7-x86_64"
+                                          JOB_REPOS="file://\$PWD/mlnx/MLNX_OFED_LINUX-4.7-1.0.0.1-rhel7.7-x86_64/RPMS/UPSTREAM_LIBS"
+                                          make JOB_REPOS="$JOB_REPOS" CHROOT_NAME="CHROOT_NAME" ''' +
+                                       pipeline_args.get('make args', '') + ' chrootbuild ' +
+                                       pipeline_args.get('add_make_targets', '')
+                        }
+                        post {
+                            success {
+                                sh label: "Collect artifacts",
+                                   script: '''(cd /var/lib/mock/epel-7-x86_64/result/ &&
+                                              cp -r . $OLDPWD/artifacts/centos7/)\n''' +
+                                              pipeline_args.get('add_archiving_cmds', '') +
+                                             '\ncreaterepo artifacts/centos7/'
+                                publishToRepository product: package_name,
+                                                    format: 'yum',
+                                                    maturity: 'stable',
+                                                    tech: 'el-7',
+                                                    repo_dir: 'artifacts/centos7/',
+                                                    publish_branch: publish_branch
+                                archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
+                                                                              'no-optional-artifacts-to-archive'),
+                                                            allowEmptyArchive: true
+                            }
+                            unsuccessful {
+                                sh label: "Collect artifacts",
+                                   script: '''mockroot=/var/lib/mock/epel-7-x86_64
+                                              ls -l $mockroot/result/
+                                              cat $mockroot/result/{root,build}.log
+                                              artdir=$PWD/artifacts/centos7
+                                              cp -af _topdir/SRPMS $artdir
+                                              (cd $mockroot/result/ &&
+                                               cp -r . $artdir)'''
+                            }
+                            always {
+                                sh label: "Collect config.log(s)",
+                                   script: '''(if cd /var/lib/mock/epel-7-x86_64/root/builddir/build/BUILD/*/; then
+                                                   find . -name configure -printf %h\\\\n | \
+                                                   while read dir; do
+                                                       if [ ! -f $dir/config.log ]; then
+                                                           continue
+                                                       fi
+                                                       tdir="$OLDPWD/artifacts/centos7/autoconf-logs/$dir"
+                                                       mkdir -p $tdir
+                                                       cp -a $dir/config.log $tdir/
+                                                   done
+                                               fi)'''
+                            }
+                            cleanup {
+                                archiveArtifacts artifacts: 'artifacts/centos7/**'
+                            }
+                        }
+                    } // stage('Build on CentOS 7 with Mellanox OFED')
                     stage('Build on CentOS 8') {
                         when {
                             beforeAgent true
