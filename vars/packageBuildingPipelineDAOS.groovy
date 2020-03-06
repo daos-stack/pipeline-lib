@@ -64,8 +64,8 @@ def call(Map pipeline_args) {
         publish_branch = 'master'
     }
 
-    def = mlnx_ofed_filename = 'MLNX_OFED_LINUX-4.7-1.0.0.1-rhel7.7-x86_64.tgz'
-    def = mlnx_ofed_url = 'http://content.mellanox.com/ofed/MLNX_OFED-4.7-1.0.0.1/' + mlnx_ofed_filename 
+    mlnx_ofed_filename = 'MLNX_OFED_LINUX-4.7-1.0.0.1-rhel7.7-x86_64.tgz'
+    mlnx_ofed_url = 'http://content.mellanox.com/ofed/MLNX_OFED-4.7-1.0.0.1/' + mlnx_ofed_filename 
 
     pipeline {
         agent { label 'lightweight' }
