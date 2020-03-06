@@ -290,9 +290,9 @@ def call(Map pipeline_args) {
                                           mkdir -p artifacts/centos7/
                                           mkdir -p mlnx
                                           pushd mlnx
-                                          if [ ! -f ''' mlnx_ofed_filename ''' ]; then
-                                              curl -f -O ''' mlnx_ofed_url '''
-                                              tar xzvf ''' mlnx_ofed_filename '''
+                                          if [ ! -f ''' + mlnx_ofed_filename + ''' ]; then
+                                              curl -f -O ''' + mlnx_ofed_url + '''
+                                              tar xzvf ''' + mlnx_ofed_filename + '''
                                           fi
                                           CHROOT_NAME="epel-7-x86_64"
                                           JOB_REPOS="file://\$PWD/mlnx/MLNX_OFED_LINUX-4.7-1.0.0.1-rhel7.7-x86_64/RPMS/UPSTREAM_LIBS"
