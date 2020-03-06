@@ -295,7 +295,7 @@ def call(Map pipeline_args) {
                                               tar xzvf ''' + mlnx_ofed_filename + '''
                                           fi
                                           popd
-                                          JOB_REPOS="file://\${PWD//@/\\\@}/mlnx/MLNX_OFED_LINUX-4.7-1.0.0.1-rhel7.7-x86_64/RPMS/UPSTREAM_LIBS"
+                                          JOB_REPOS="file://\${PWD//@/\\@}/mlnx/MLNX_OFED_LINUX-4.7-1.0.0.1-rhel7.7-x86_64/RPMS/UPSTREAM_LIBS"
                                           make JOB_REPOS="$JOB_REPOS" CHROOT_NAME="epel-7-x86_64"''' +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
