@@ -95,7 +95,7 @@ def call(Map config = [:]) {
                 env.DAOS_STACK_SLES_15_GROUP_REPO
         }
         if (env.DAOS_STACK_SLES_15_LOCAL_REPO != null) {
-            repository_g = env.REPOSITORY_URL +
+            repository_l = env.REPOSITORY_URL +
                 env.DAOS_STACK_SLES_15_LOCAL_REPO
         }
     }  else if (distro.startsWith("leap15") ||
@@ -105,7 +105,7 @@ def call(Map config = [:]) {
                 env.DAOS_STACK_LEAP_15_GROUP_REPO
         }
         if (env.DAOS_STACK_LEAP_15_LOCAL_REPO != null) {
-            repository_g = env.REPOSITORY_URL +
+            repository_l = env.REPOSITORY_URL +
                 env.DAOS_STACK_LEAP_15_LOCAL_REPO
         }
     }
@@ -161,7 +161,7 @@ EOF'''
                          mv /tmp/ci_key_ssh_config /localhome/jenkins/.ssh/config
                          chmod 700 /localhome/jenkins/.ssh
                          chmod 600 /localhome/jenkins/.ssh/{authorized_keys,id_rsa*,config}
-                         chown -R jenkins.jenkins /localhome/jenkins/.ssh
+                         chown -R jenkins.jenkins /localhome/jenkins/
                          echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins'''
   def iterate_repos = '''for repo in ''' + inst_repos + '''; do
                            branch=\\"master\\"
