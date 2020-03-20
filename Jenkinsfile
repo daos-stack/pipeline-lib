@@ -157,7 +157,7 @@ pipeline {
                     provisionNodes NODELIST: env.NODELIST,
                                    distro: 'el7',
                                    profile: 'daos_ci',
-                                   node_count: 1,
+                                   node_count: '1',
                                    snapshot: true,
                                    inst_repos: "daos@release/0.9"
                     runTest script: '''NODE=${NODELIST%%,*}
@@ -180,7 +180,7 @@ pipeline {
                             status: 'SUCCESS')
                     }
                 }
-            } //stage('provisionNodes with slurm EL7')
+            } //stage('provisionNodes withl release/0.9 Repo')
             stage('provisionNodes with master Repo') {
                 when {
                     beforeAgent true
@@ -216,7 +216,7 @@ pipeline {
                             status: 'SUCCESS')
                     }
                 }
-            } //stage('provisionNodes with slurm EL7')
+            } // stage('provisionNodes with master Repo')
             stage('provisionNodes with slurm EL7') {
                 when {
                     beforeAgent true
