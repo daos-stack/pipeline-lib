@@ -145,7 +145,7 @@ pipeline {
                     }
                 }
             } //stage('publishToRepository tests')
-            stage('provisionNodes withl release/0.9 Repo') {
+            stage('provisionNodes with release/0.9 Repo') {
                 when {
                     beforeAgent true
                     expression { env.NO_CI_TESTING != "true" }
@@ -180,7 +180,7 @@ pipeline {
                             status: 'SUCCESS')
                     }
                 }
-            } //stage('provisionNodes withl release/0.9 Repo')
+            } //stage('provisionNodes with release/0.9 Repo')
             stage('provisionNodes with master Repo') {
                 when {
                     beforeAgent true
