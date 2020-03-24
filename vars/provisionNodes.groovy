@@ -34,19 +34,23 @@ def call(Map config = [:]) {
   def node_list = config['NODELIST'].split(',')
   def node_max_cnt = node_list.size()
   def node_cnt = node_max_cnt
+  Map new_config = config
   if (config['node_count']) {
-    if (config['node_count'] < node_cnt) {
+    // Matrix builds pass requested node count as a string
+    def rq_count = config['node_count'] as int
+    new_config['node_count'] = rq_count
+    if (rq_count < node_cnt) {
       // take is blacklisted by Jenkins.
       //new_list = node_list.take(config['clients'])
       def new_list = []
       int ii
-      for (ii = 0; ii < config['node_count']; ii++) {
+      for (ii = 0; ii < rq_count; ii++) {
         new_list.add(node_list[ii])
       }
       nodeString = new_list.join(',')
-      node_cnt = config['node_count']
-    } else if (config['node_count'] > node_cnt) {
-      echo "${config['node_count']} clients requested."
+      node_cnt = rq_count
+    } else if (rq_count > node_cnt) {
+      echo "${rq_count} clients requested."
       error "Only ${node_cnt} clients available!"
     }
   }
@@ -55,7 +59,7 @@ def call(Map config = [:]) {
       println "Jenkins not configured for CI provisioning."
       return node_cnt
   }
-  Map new_config = config
+
   def distro = config.get('distro', 'el7')
   def inst_rpms = config.get('inst_rpms', '')
   def inst_repos = config.get('inst_repos','')
@@ -269,6 +273,10 @@ EOF'''
       provision_script += '\nzypper --non-interactive mr ' +
                           '--gpgcheck-allow-unsigned-repo ' +
                           'daos-stack-group-repo'
+      // Group repo currently needs this key.
+      provision_script += '\nrpm --import "https://download.opensuse.org/' +
+                          'repositories/science:/HPC/openSUSE_Leap_15.1/' +
+                          'repodata/repomd.xml.key"'
     }
     if (repository_l != '') {
       provision_script += '\nzypper --non-interactive ar' +
