@@ -306,6 +306,10 @@ EOF'''
 
   try {
     def rc = provisionNodesSystem(new_config)
+    if (rc != 0) {
+      stepResult name: env.STAGE_NAME, context: "test", result: "FAILURE"
+      error "One or more nodes failed post-provision configuration!"
+    }
   } catch (java.lang.NoSuchMethodError e) {
     error('Could not find a provisionNodesSystem step in' +
                 ' a shared groovy library')
