@@ -236,16 +236,16 @@ EOF'''
                              rm -f /tmp/daos_control.log
                              yum -y erase metabench mdtest simul IOR compat-openmpi16
                              yum -y install epel-release
-                             if ! yum -y install CUnit fuse python36-PyYAML   \
-                                                 python36-nose                \
-                                                 python36-pip valgrind        \
-                                                 python36-paramiko            \
-                                                 python2-avocado              \
-                                                 python2-avocado-plugins-output-html \
+                             if ! yum -y install CUnit python36-PyYAML                         \
+                                                 python36-nose                                 \
+                                                 python36-pip valgrind                         \
+                                                 python36-paramiko                             \
+                                                 python2-avocado                               \
+                                                 python2-avocado-plugins-output-html           \
                                                  python2-avocado-plugins-varianter-yaml-to-mux \
-                                                 libcmocka python-pathlib     \
-                                                 python2-numpy git            \
-                                                 python2-clustershell         \
+                                                 libcmocka python-pathlib                      \
+                                                 python2-numpy git                             \
+                                                 python2-clustershell                          \
                                                  golang-bin ipmctl ndctl'''
     if (inst_rpms) {
       provision_script += ' ' + inst_rpms
