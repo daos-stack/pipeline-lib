@@ -28,8 +28,7 @@
  *                        The publishToRepositorySystem step should dowload
  *                        the artifacts back to this directory and fail the
  *                        step if the contents differ.
- * config['publish_branch'] The branch to publish from.  Default 'master'.
- */
+*/
 
 def call(Map config = [:]) {
     if (env.REPOSITORY_URL == null) {
@@ -37,13 +36,10 @@ def call(Map config = [:]) {
         return
     }
 
-    def publish_branch = 'master'
-    if (config['publish_branch']) {
-        publish_branch = config['publish_branch']
-    }
-
-    // Don't publish from PRs (unless testing)
-    if (env.BRANCH_NAME != publish_branch && !config['test']) {
+    // Only publish on known landing (i.e. release) branches (unless testing)
+    if (!env.BRANCH_NAME.startsWith("release/") &&
+        env.BRANCH_NAME != 'master') &&
+        !config['test']) {
         return
     }
 
