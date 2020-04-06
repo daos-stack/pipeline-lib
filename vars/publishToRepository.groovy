@@ -38,7 +38,7 @@ def call(Map config = [:]) {
 
     // Only publish on known landing (i.e. release) branches (unless testing)
     if (!env.BRANCH_NAME.startsWith("release/") &&
-        env.BRANCH_NAME != 'master') &&
+        env.BRANCH_NAME != 'master' &&
         !config['test']) {
         return
     }
