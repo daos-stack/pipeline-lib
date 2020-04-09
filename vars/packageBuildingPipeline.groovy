@@ -67,6 +67,13 @@ def call(Map pipeline_args) {
     pipeline {
         agent { label 'lightweight' }
 
+        /* DO NOT enable this without going and selecting builds in
+         * all RPM build projects that should be marked Keep-forever
+         * as we have builds in Jenkins which are not in Nexus, that
+         * want to keep.
+         * options { buildDiscarder(logRotator(numToKeepStr: '10')) }
+         */
+
         environment {
             QUICKBUILD = sh(script: "git show -s --format=%B | grep \"^Quick-build: true\"",
                             returnStatus: true)
