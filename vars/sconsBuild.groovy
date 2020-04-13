@@ -172,10 +172,7 @@ def call(Map config = [:]) {
         scons_args += ' ' + config['scons_args']
     }
 
-    def script = '''if git show -s --format=%B | grep "^Skip-build: true"; then
-                        exit 0
-                    fi\n'''
-    script += clean_cmd
+    def script = clean_cmd
     script += 'SCONS_ARGS="' + scons_args + '"\n'
 
     if (config['coverity']) {

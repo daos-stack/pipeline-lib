@@ -24,8 +24,10 @@ def call(Map config = [:]) {
     dir('install') {
         deleteDir()
     }
-    config['stashes'].each {
-        unstash it
+    if (config['stashes']) {
+        config['stashes'].each {
+            unstash it
+        }
     }
 
     def ignore_failure = false
