@@ -347,7 +347,7 @@ def call(Map pipeline_args) {
                             }
                             always {
                                 sh label: "Collect config.log(s)",
-                                   script: '''(if /var/lib/mock/sles-12.3-x86_64/root/builddir/build/BUILD/*/; then
+                                   script: '''(if cd /var/lib/mock/sles-12.3-x86_64/root/builddir/build/BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
@@ -421,7 +421,7 @@ def call(Map pipeline_args) {
                             }
                             always {
                                 sh label: "Collect config.log(s)",
-                                   script: '''(if /var/lib/mock/opensuse-leap-42.3-x86_64/root/builddir/build/BUILD/*/; then
+                                   script: '''(if cd /var/lib/mock/opensuse-leap-42.3-x86_64/root/builddir/build/BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
@@ -495,7 +495,7 @@ def call(Map pipeline_args) {
                             }
                             always {
                                 sh label: "Collect config.log(s)",
-                                   script: '''(if /var/lib/mock/opensuse-leap-15.1-x86_64/root/builddir/build/BUILD/*/; then
+                                   script: '''(if cd /var/lib/mock/opensuse-leap-15.1-x86_64/root/builddir/build/BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
