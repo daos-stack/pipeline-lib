@@ -30,6 +30,6 @@ def call(Map config = [:]) {
                                   echo "''' + def_value + '''"
                               fi''',
                 returnStdout: true)
-    return value
+    return value.trim()
 
 }
