@@ -34,6 +34,7 @@ def call(Map config= [:]) {
   } else {
     param['context'] = config['context'] + "/" + config['name']
   }
+
   def flow_name = config.get('flow_name', env.STAGE_NAME)
 
   def log_url = null
@@ -107,10 +108,31 @@ def call(Map config= [:]) {
         comment_url = log_url
       }
 
-      pullRequest.comment("Test stage ${config.name}" +
-                          " completed with status " +
-                          "${config.result}" +
-                          ".  " + comment_url)
+      def msg = "Test stage ${config.name}" +
+                " completed with status " +
+                "${config.result}" +
+                 ".  " + comment_url
+
+      if (commitPragma(pragma: "Skip-PR-comments") == "true") {
+          emailext subject: "${config.name} status: ${config.result}",
+                   recipientProviders: [[$class: 'RequesterRecipientProvider'],
+                                        [$class: 'DevelopersRecipientProvider']],
+                   body: msg +
+                         '\n\nIf you are receiving this e-mail, about a PR that is not yours, it is\n' +
+                         'in error.\n\n' +
+                         'Please accept my appologies and kindly forward this message to\n' +
+                         'brian.murrell@intel.com for investigation.\n\n' +
+                         'Thank-you.\n\n\n' +
+                         'BUILD_NUMBER=${BUILD_NUMBER}\n' +
+                         'BUILD_TAG=${BUILD_TAG}\n' +
+                         'BUILD_URL=${BUILD_URL}\n' +
+                         'CHANGE_AUTHOR=${CHANGE_AUTHOR}\n' +
+                         'CHANGE_BRANCH=${CHANGE_BRANCH}\n' +
+                         'CHANGE_ID=${CHANGE_ID}\n' +
+                         'CHANGE_TARGET=${CHANGE_TARGET}'
+      } else {
+          pullRequest.comment(msg)
+      }
     }
   }
 
