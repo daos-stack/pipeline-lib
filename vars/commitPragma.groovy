@@ -29,6 +29,7 @@ def call(Map config = [:]) {
                               else
                                   echo "''' + def_value + '''"
                               fi''',
+                label: "Get value for commit pragma: " + config['pragma'],
                 returnStdout: true)
     return value.trim()
 
