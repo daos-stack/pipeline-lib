@@ -144,7 +144,7 @@ def call(Map config = [:]) {
     }
     //scons -c is not perfect so get out the big hammer
     clean_cmd = ""
-    if (config['skip_clean'] != "1") {
+    if (!config.containsKey('skip_clean')) {
         def clean_files = "_build.external{,-Linux}"
         if (config['clean']) {
             clean_files = config['clean']
