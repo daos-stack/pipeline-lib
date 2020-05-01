@@ -44,6 +44,10 @@ def call(Map config = [:]) {
    * config['target_work'] Directory in workspace containing directories
    *  symlinked from the target prefix.
    * config['USE_INSTALLED'] setting for USE_INSTALLED.  Default 'all'.
+   * config['BUILD_ROOT'] setting for BUILD_ROOT.  Default 'build'.
+   * config['BUILD_TYPE'] setting for BUILD_TYPE.  Default 'dev'.
+   * config['COMPILER'] setting for COMPILER.  Default 'gcc'.
+   * config['WARNING_LEVEL'] setting for WARNING_LEVEL.  Default 'error'.
    *  If false, a failure of the scons commands will cause this step to fail.
    * config['failure_artifacts'] Artifacts to link to when scons fails
    * config['log_to_file'] Copy build output to a file
@@ -125,8 +129,17 @@ def call(Map config = [:]) {
     } else if (config['target']) {
         scons_args += " REQUIRES=${config['target']}"
     }
+    if (config['BUILD_ROOT']) {
+        scons_args += " BUILD_ROOT=${config['BUILD_ROOT']}"
+    }
+    if (config['BUILD_TYPE']) {
+        scons_args += " BUILD_TYPE=${config['BUILD_TYPE']}"
+    }
     if (config['COMPILER']) {
         scons_args += " COMPILER=${config['COMPILER']}"
+    }
+    if (config['WARNING_LEVEL']) {
+        scons_args += " WARNING_LEVEL=${config['WARNING_LEVEL']}"
     }
     //scons -c is not perfect so get out the big hammer
     def clean_files = "_build.external{,-Linux}"
