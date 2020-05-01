@@ -58,6 +58,10 @@ def call(Map config = [:]) {
                                        if ! grep /mnt/share /proc/mounts; then
                                            mkdir -p /mnt/share
                                            mount $first_node:/export/share /mnt/share
+                                       fi
+                                       if ''' + test_rpms + '''; then
+                                           # remove the install/ dir to be sure we're testing from RPMs
+                                           rm -rf install/
                                        fi"
                                     # set DAOS_TARGET_OVERSUBSCRIBE env here
                                     export DAOS_TARGET_OVERSUBSCRIBE=1
