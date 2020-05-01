@@ -17,6 +17,7 @@ def call(Map config = [:]) {
    *
    * config['build_deps'] Setting for --build-deps.  Default 'yes'.
    * config['scons_exe'] Name of scons executable.  Default 'scons'.
+   * config['skip_clean'] Skip cleaning the build
    * config['clean'] Space separated filenames to be removed after
    *  the prebuild option.
    *  Defaults _build.external* install build'.
@@ -142,16 +143,19 @@ def call(Map config = [:]) {
         scons_args += " WARNING_LEVEL=${config['WARNING_LEVEL']}"
     }
     //scons -c is not perfect so get out the big hammer
-    def clean_files = "_build.external{,-Linux}"
-    if (config['clean']) {
-        clean_files = config['clean']
-    }
-    clean_files += ' install build {daos_m,daos,iof,cart-Linux}.conf'
-    def clean_cmd = scons_exe + " -c ${sconstruct}\n"
-    if (clean_files) {
-        clean_cmd += "rm -rf ${clean_files}\n"
-        if (config['target']) {
-            clean_cmd += "rm -rf ${config['target']}/${clean_files}\n"
+    clean_cmd = ""
+    if (!config['skip_clean']) {
+        def clean_files = "_build.external{,-Linux}"
+        if (config['clean']) {
+            clean_files = config['clean']
+        }
+        clean_files += ' install build {daos_m,daos,iof,cart-Linux}.conf'
+        def clean_cmd = scons_exe + " -c ${sconstruct}\n"
+        if (clean_files) {
+            clean_cmd += "rm -rf ${clean_files}\n"
+            if (config['target']) {
+                clean_cmd += "rm -rf ${config['target']}/${clean_files}\n"
+            }
         }
     }
 
