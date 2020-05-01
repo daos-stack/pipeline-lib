@@ -143,16 +143,16 @@ def call(Map config = [:]) {
         scons_args += " WARNING_LEVEL=${config['WARNING_LEVEL']}"
     }
     //scons -c is not perfect so get out the big hammer
-    clean_cmd = ""
+    def clean_cmd = ""
     if (config['skip_clean']) {
-        clean_cmd = "echo 'skipping scons -c'\n"
+        clean_cmd += "echo 'skipping scons -c'\n"
     } else {
         def clean_files = "_build.external{,-Linux}"
         if (config['clean']) {
             clean_files = config['clean']
         }
         clean_files += ' install build {daos_m,daos,iof,cart-Linux}.conf'
-        def clean_cmd = scons_exe + " -c ${sconstruct}\n"
+        clean_cmd += scons_exe + " -c ${sconstruct}\n"
         if (clean_files) {
             clean_cmd += "rm -rf ${clean_files}\n"
             if (config['target']) {
