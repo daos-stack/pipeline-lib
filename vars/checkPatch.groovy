@@ -28,18 +28,15 @@ def call(Map config = [:]) {
       return
     }
 
+    // Get the project being checked's submodules
     checkoutScm withSubmodules: true
+
+    // Now checkout the code-review repo
     def branch = 'master'
     if (config['branch']) {
         branch = config['branch']
     }
 
-    def ignored_files="code_review/checkpatch.pl"
-    if (config['ignored_files']) {
-        ignored_files += ":" + config['ignored_files']
-    }
-
-    // Need the jenkins module to do linting
     checkoutScm url: 'https://github.com/daos-stack/code_review.git',
                 checkoutDir: 'code_review',
                 branch: branch
@@ -48,6 +45,11 @@ def call(Map config = [:]) {
                  description: env.STAGE_NAME,
                  context: "pre-build" + "/" + env.STAGE_NAME,
                  status: "PENDING"
+
+    def ignored_files="code_review/checkpatch.pl"
+    if (config['ignored_files']) {
+        ignored_files += ":" + config['ignored_files']
+    }
 
     int rc = 1
     def script = 'CHECKPATCH_IGNORED_FILES="' + ignored_files + '"' + \
