@@ -27,18 +27,25 @@ def checkoutScmInternal(Map config = [:]) {
    * config['credentialsId'] Optional credentials ID.
    */
 
-  scm_name = 'GitSCM'
-  if (config['scm']) {
-    scm_name = config['scm']
-  }
-  branches = scm.branches
+  scm_name = config['scm'] ?:'GitSCM'
+  // scm.branches contains a branch name, not a commit.  That means that
+  // on Replay, where you want to re-build an older build, scm will build
+  // the branch tip, not the commit being Replayed.
+  // Also in the case quick successive commits to a branch, again since
+  // scm.branches contains the branch name, by the time the first of some
+  // successive commits gets to the point of doing the checkout, the branch
+  // tip might be a newer commit than that being built, in which case the
+  // build ends up bulding a subsequent commit, not the one it should be.
+  // Use $GIT_COMMIT to resolve this issue, as it should always point at
+  // the specific commmit, no the branch tip.
+  branches = env.GIT_COMMIT ? [[name: env.GIT_COMMIT ]]: scm.branches
+
   if (config['url']) {
     userRemoteConfig = [url: config['url']]
-    if (config['branch']) {
-      branches = [[name: config['branch']]]
-    } else {
-      branches = [[name: '*/master']]
-    }
+
+    branches = config['branch'] ? [[name: config['branch']]] :
+                                  [[name: '*/master']]
+
     if (config['credentialsId']) {
       userRemoteConfig << [credentialsId: config['credentialsId']]
     }
@@ -48,7 +55,7 @@ def checkoutScmInternal(Map config = [:]) {
   }
   params = [$class: scm_name,
             branches: branches,
-            extensions: [],
+            extensions: [[$class: 'CloneOption', noTags: true, reference: '', shallow: false]],
             submoduleCfg: [],
             userRemoteConfigs: userRemoteConfigs]
   if (config['CleanAfterCheckout']) {
