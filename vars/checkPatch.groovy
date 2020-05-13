@@ -58,8 +58,8 @@ def call(Map config = [:]) {
     }
 
     int rc = 1
-    def script = 'CHECKPATCH_IGNORED_FILES="' + ignored_files + '";' + \
-                 'CHECKPATCH_ARGS="' + checkpatch_args + '";' + \
+    def script = 'CHECKPATCH_IGNORED_FILES="' + ignored_files + '"' + \
+                 ' CHECKPATCH_ARGS="' + checkpatch_args + '"' + \
                  ' code_review/jenkins_github_checkwarn.sh'
 
     if (config['review_creds']) {
