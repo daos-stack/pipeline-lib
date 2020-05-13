@@ -188,7 +188,7 @@ def call(Map pipeline_args) {
                                                             allowEmptyArchive: true
                             }
                             unsuccessful {
-                                sh label: "Collect artifacts",
+                                sh label: "Build Log",
                                    script: '''mockroot=/var/lib/mock/epel-7-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
@@ -261,7 +261,7 @@ def call(Map pipeline_args) {
                                                             allowEmptyArchive: true
                             }
                             unsuccessful {
-                                sh label: "Collect artifacts",
+                                sh label: "Build Log",
                                    script: '''mockroot=/var/lib/mock/epel-8-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
@@ -336,7 +336,7 @@ def call(Map pipeline_args) {
                                                             allowEmptyArchive: true
                             }
                             unsuccessful {
-                                sh label: "Collect artifacts",
+                                sh label: "Build Log",
                                    script: '''mockroot=/var/lib/mock/sles-12.3-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
@@ -410,7 +410,7 @@ def call(Map pipeline_args) {
                                                             allowEmptyArchive: true
                             }
                             unsuccessful {
-                                sh label: "Collect artifacts",
+                                sh label: "Build Log",
                                    script: '''mockroot=/var/lib/mock/opensuse-leap-42.3-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
@@ -484,7 +484,7 @@ def call(Map pipeline_args) {
                                                             allowEmptyArchive: true
                             }
                             unsuccessful {
-                                sh label: "Collect artifacts",
+                                sh label: "Build Log",
                                    script: '''mockroot=/var/lib/mock/opensuse-leap-15.1-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
