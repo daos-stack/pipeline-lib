@@ -52,14 +52,14 @@ def call(Map config = [:]) {
         ignored_files += ":" + config['ignored_files']
     }
 
-    def checkpatch_args="--show-types -"
+    def checkpatch_args="--notree --show-types -"
     if (config['codespell_file']) {
-       checkpatch_args += " --codespell --codespell-file=" + config['codespell_file']
+       checkpatch_args="--notree --show-types --codespell --codespell-file=" + config['codespell_file'] + " -"
     }
 
     int rc = 1
-    def script = 'CHECKPATCH_IGNORED_FILES="' + ignored_files + '"' + \
-                 'CHECKPATCH_ARGS="' + checkpatch_args + '"' + \
+    def script = 'CHECKPATCH_IGNORED_FILES="' + ignored_files + '";' + \
+                 'CHECKPATCH_ARGS="' + checkpatch_args + '";' + \
                  ' code_review/jenkins_github_checkwarn.sh'
 
     if (config['review_creds']) {
