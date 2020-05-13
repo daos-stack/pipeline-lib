@@ -14,6 +14,7 @@
  * config['ignored_files'] is colon delimited string of files not to check.
  * config['review_creds'] is the credentials needed for a code review.
  * config['branch'] is the code_review repo branch to use.
+ * config['codespell_file'] is the name of a codespell dictionary to use
  *
  */
 def call(Map config = [:]) {
@@ -51,8 +52,14 @@ def call(Map config = [:]) {
         ignored_files += ":" + config['ignored_files']
     }
 
+    def checkpatch_args="--show-types -"
+    if (config['codespell_file']) {
+       checkpatch_args += " --codespell --codespell-file=" + config['codespell_file']
+    }
+
     int rc = 1
     def script = 'CHECKPATCH_IGNORED_FILES="' + ignored_files + '"' + \
+                 'CHECKPATCH_ARGS="' + checkpatch_args + '"' + \
                  ' code_review/jenkins_github_checkwarn.sh'
 
     if (config['review_creds']) {
