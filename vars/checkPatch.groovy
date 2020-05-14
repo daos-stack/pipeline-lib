@@ -54,7 +54,7 @@ def call(Map config = [:]) {
 
     def checkpatch_args="--notree --show-types -"
     if (config['codespell_file']) {
-       checkpatch_args="--notree --show-types --codespell --codespell-file=" + config['codespell_file'] + " -"
+       checkpatch_args="--notree --show-types --codespell --codespellfile=" + config['codespell_file'] + " -"
     }
 
     int rc = 1
