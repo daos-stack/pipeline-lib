@@ -41,10 +41,9 @@ def call(Map config = [:]) {
                 checkoutDir: 'code_review',
                 branch: branch
 
-    githubNotify credentialsId: 'daos-jenkins-commit-status',
-                 description: env.STAGE_NAME,
-                 context: "pre-build" + "/" + env.STAGE_NAME,
-                 status: "PENDING"
+    scmNotify description: env.STAGE_NAME,
+              context: "pre-build" + "/" + env.STAGE_NAME,
+              status: "PENDING"
 
     def ignored_files="code_review/checkpatch.pl"
     if (config['ignored_files']) {

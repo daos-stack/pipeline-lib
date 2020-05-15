@@ -1,4 +1,4 @@
-// vars/commitPgragma.groovy
+// vars/commitPragma.groovy
 
 /**
  * commitPgragma.groovy

@@ -1,23 +1,14 @@
 #!/usr/bin/env groovy
-// Copyright (c) 2018-2020 Intel Corporation
-//
-// Permission is hereby granted, free of charge, to any person obtaining a
-// copy of this software and associated documentation files (the "Software"),
-// to deal in the Software without restriction, including without limitation
-// the rights to use, copy, modify, merge, publish, distribute, sublicense,
-// and/or sell copies of the Software, and to permit persons to whom the
-// Software is furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-// THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-// DEALINGS IN THE SOFTWARE.
+/* Copyright (C) 2019-2020 Intel Corporation
+ * All rights reserved.
+ *
+ * This file is part of the DAOS Project. It is subject to the license terms
+ * in the LICENSE file found in the top-level directory of this distribution
+ * and at https://img.shields.io/badge/License-Apache%202.0-blue.svg.
+ * No part of the DAOS Project, including this file, may be copied, modified,
+ * propagated, or distributed except according to the terms contained in the
+ * LICENSE file.
+ */
 
 // The @library line needs to be edited in a PR for adding a test.
 // Adding a test requires two PRs.  One to add the test.
@@ -26,16 +17,72 @@
 // is landed, both PR branches can be deleted.
 
 // @Library(value="pipeline-lib@my_pr_branch") _
+@Library(value=["pipeline-lib@corci-918","system-pipeline-lib@corci-918"]) _
+
+// The docker agent setup may need to know the
+// UID that the build agent is running under.
+cached_uid = 0
+def getuid() {
+    if (cached_uid == 0)
+        cached_uid = sh label: 'getuid()',
+                        script: "id -u",
+                        returnStdout: true
+    return cached_uid
+}
+
+// This sets up the additinal build arguments for setting up a docker
+// build agent from a dockerfile.
+// The result of this function need to be stored in an environment
+// variable.  Calling this function to create a docker build agent
+// fails.  The log shows a truncated command string.
+def docker_build_args(Map config = [:]) {
+    ret_str = " --build-arg NOBUILD=1 --build-arg UID=" + getuid()
+              // add a + to end of previous line to enable either of these.
+              //" --build-arg JENKINS_URL=$env.JENKINS_URL" +
+              //" --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
+
+    //if (env.REPOSITORY_URL) {
+    //  ret_str += ' --build-arg REPO_URL=' + env.REPOSITORY_URL
+    //}
+    //if (env.DAOS_STACK_EL_7_LOCAL_REPO) {
+    //  ret_str += ' --build-arg REPO_EL7=' + env.DAOS_STACK_EL_7_LOCAL_REPO
+    //}
+    //if (env.DAOS_STACK_EL_8_LOCAL_REPO) {
+    //  ret_str += ' --build-arg REPO_EL8=' + env.DAOS_STACK_EL_8_LOCAL_REPO
+    //}
+    //if (env.DAOS_STACK_LEAP_15_LOCAL_REPO) {
+    //  ret_str += ' --build-arg REPO_LEAP15=' +
+    //             env.DAOS_STACK_LEAP_15_LOCAL_REPO
+    //}
+    if (env.HTTP_PROXY) {
+      ret_str += ' --build-arg HTTP_PROXY="' + env.HTTP_PROXY + '"'
+                 ' --build-arg http_proxy="' + env.HTTP_PROXY + '"'
+    }
+    if (env.HTTPS_PROXY) {
+      ret_str += ' --build-arg HTTPS_PROXY="' + env.HTTPS_PROXY + '"'
+                 ' --build-arg https_proxy="' + env.HTTPS_PROXY + '"'
+    }
+    //if (config['qb']) {
+    //  ret_str += ' --build-arg QUICKBUILD=' + config['qb']
+    //  ret_str += ' --build-arg REPOS="' + component_repos() + '"'
+    //}
+    ret_str += ' '
+    println ret_str
+    return ret_str
+}
+
 
 pipeline {
     agent { label 'lightweight' }
     environment {
-        BAHTTPS_PROXY = "${env.HTTP_PROXY ? '--build-arg HTTP_PROXY="' + env.HTTP_PROXY + '" --build-arg http_proxy="' + env.HTTP_PROXY + '"' : ''}"
-        BAHTTP_PROXY = "${env.HTTP_PROXY ? '--build-arg HTTPS_PROXY="' + env.HTTPS_PROXY + '" --build-arg https_proxy="' + env.HTTPS_PROXY + '"' : ''}"
-        UID = sh(script: "id -u", returnStdout: true)
         SSH_KEY_FILE='ci_key'
         SSH_KEY_ARGS="-i$SSH_KEY_FILE"
         CLUSH_ARGS="-o$SSH_KEY_ARGS"
+        BUILDARGS = docker_build_args()
+    }
+
+    options {
+        ansiColor('xterm')
     }
 
     stages {
@@ -58,22 +105,21 @@ pipeline {
                 steps {
                     runTest script: '''set -ex
                                        rm -f *.xml
-                                       echo "<failure bla bla bla/>" > pipeline-test-failure.xml''',
+                                       echo "<failure bla bla bla/>" > \
+                                         pipeline-test-failure.xml''',
                         junit_files: "*.xml non-exist*.xml",
                         failure_artifacts: env.STAGE_NAME
                 }
                 post {
                     unsuccessful {
-                        daosStackNotifyStatus(
-                            description: env.STAGE_NAME,
-                            context: 'test/' + env.STAGE_NAME,
-                            status: 'FAILURE')
+                        scmNotify description: env.STAGE_NAME,
+                                  context: 'test/' + env.STAGE_NAME,
+                                  status: 'FAILURE'
                     }
                     success {
-                        daosStackNotifyStatus(
-                            description: env.STAGE_NAME,
-                            context: 'test/' + env.STAGE_NAME,
-                            status: 'SUCCESS')
+                        scmNotify description: env.STAGE_NAME,
+                                  context: 'test/' + env.STAGE_NAME,
+                                  status: 'SUCCESS'
                     }
                 }
             } // stage('grep JUnit results tests failure case')
@@ -88,22 +134,21 @@ pipeline {
                 steps {
                     runTest script: '''set -ex
                                        rm -f *.xml
-                                       echo "<error bla bla bla/>" > pipeline-test-error.xml''',
+                                       echo "<error bla bla bla/>" > \
+                                         pipeline-test-error.xml''',
                         junit_files: "*.xml non-exist*.xml",
                         failure_artifacts: env.STAGE_NAME
                 }
                 post {
                     unsuccessful {
-                        daosStackNotifyStatus(
-                            description: env.STAGE_NAME,
-                            context: 'test/' + env.STAGE_NAME,
-                            status: 'FAILURE')
+                        scmNotify description: env.STAGE_NAME,
+                                  context: 'test/' + env.STAGE_NAME,
+                                  status: 'FAILURE'
                     }
                     success {
-                        daosStackNotifyStatus(
-                            description: env.STAGE_NAME,
-                            context: 'test/' + env.STAGE_NAME,
-                            status: 'SUCCESS')
+                        scmNotify description: env.STAGE_NAME,
+                                  context: 'test/' + env.STAGE_NAME,
+                                  status: 'SUCCESS'
                     }
                 }
             } // stage('grep JUnit results tests error case')
@@ -112,7 +157,7 @@ pipeline {
                     dockerfile {
                         filename 'docker/Dockerfile.centos.7'
                         label 'docker_runner'
-                        additionalBuildArgs  '--build-arg UID=$(id -u)'
+                        additionalBuildArgs  '$BUILDARGS'
                     }
                 }
                 steps {
@@ -132,16 +177,14 @@ pipeline {
                 }
                 post {
                     unsuccessful {
-                        daosStackNotifyStatus(
-                            description: env.STAGE_NAME,
-                            context: 'test/' + env.STAGE_NAME,
-                            status: 'FAILURE')
+                        scmNotify description: env.STAGE_NAME,
+                                  context: 'test/' + env.STAGE_NAME,
+                                  status: 'FAILURE'
                     }
                     success {
-                        daosStackNotifyStatus(
-                            description: env.STAGE_NAME,
-                            context: 'test/' + env.STAGE_NAME,
-                            status: 'SUCCESS')
+                        scmNotify description: env.STAGE_NAME,
+                                  context: 'test/' + env.STAGE_NAME,
+                                  status: 'SUCCESS'
                     }
                 }
             } //stage('publishToRepository tests')
@@ -168,16 +211,14 @@ pipeline {
                 }
                 post {
                     unsuccessful {
-                        daosStackNotifyStatus(
-                            description: env.STAGE_NAME,
-                            context: 'test/' + env.STAGE_NAME,
-                            status: 'FAILURE')
+                        scmNotify description: env.STAGE_NAME,
+                                  context: 'test/' + env.STAGE_NAME,
+                                  status: 'FAILURE'
                     }
                     success {
-                        daosStackNotifyStatus(
-                            description: env.STAGE_NAME,
-                            context: 'test/' + env.STAGE_NAME,
-                            status: 'SUCCESS')
+                        scmNotify description: env.STAGE_NAME,
+                                  context: 'test/' + env.STAGE_NAME,
+                                  status: 'SUCCESS'
                     }
                 }
             } //stage('provisionNodes with release/0.9 Repo')
@@ -198,22 +239,21 @@ pipeline {
                                    inst_repos: "daos@master"
                     runTest script: '''NODE=${NODELIST%%,*}
                                        ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
-                                       yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
+                                       yum --disablerepo=\\* \
+                                         --enablerepo=build\\* makecache"''',
                             junit_files: null,
                             failure_artifacts: env.STAGE_NAME
                 }
                 post {
                     unsuccessful {
-                        daosStackNotifyStatus(
-                            description: env.STAGE_NAME,
-                            context: 'test/' + env.STAGE_NAME,
-                            status: 'FAILURE')
+                        scmNotify description: env.STAGE_NAME,
+                                  context: 'test/' + env.STAGE_NAME,
+                                  status: 'FAILURE'
                     }
                     success {
-                        daosStackNotifyStatus(
-                            description: env.STAGE_NAME,
-                            context: 'test/' + env.STAGE_NAME,
-                            status: 'SUCCESS')
+                        scmNotify description: env.STAGE_NAME,
+                                  context: 'test/' + env.STAGE_NAME,
+                                  status: 'SUCCESS'
                     }
                 }
             } // stage('provisionNodes with master Repo')
@@ -242,16 +282,14 @@ pipeline {
                 }
                 post {
                     unsuccessful {
-                        daosStackNotifyStatus(
-                            description: env.STAGE_NAME,
-                            context: 'test/' + env.STAGE_NAME,
-                            status: 'FAILURE')
+                        scmNotify description: env.STAGE_NAME,
+                                  context: 'test/' + env.STAGE_NAME,
+                                  status: 'FAILURE'
                     }
                     success {
-                        daosStackNotifyStatus(
-                            description: env.STAGE_NAME,
-                            context: 'test/' + env.STAGE_NAME,
-                            status: 'SUCCESS')
+                        scmNotify description: env.STAGE_NAME,
+                                  context: 'test/' + env.STAGE_NAME,
+                                  status: 'SUCCESS'
                     }
                 }
             } //stage('provisionNodes with slurm EL7')
@@ -280,16 +318,14 @@ pipeline {
                 }
                 post {
                     unsuccessful {
-                        daosStackNotifyStatus(
-                            description: env.STAGE_NAME,
-                            context: 'test/' + env.STAGE_NAME,
-                            status: 'FAILURE')
+                        scmNotify description: env.STAGE_NAME,
+                                  context: 'test/' + env.STAGE_NAME,
+                                  status: 'FAILURE'
                     }
                     success {
-                        daosStackNotifyStatus(
-                            description: env.STAGE_NAME,
-                            context: 'test/' + env.STAGE_NAME,
-                            status: 'SUCCESS')
+                        scmNotify description: env.STAGE_NAME,
+                                  context: 'test/' + env.STAGE_NAME,
+                                  status: 'SUCCESS'
                     }
                 }
             } //stage('provisionNodes_with_slurm_leap15')

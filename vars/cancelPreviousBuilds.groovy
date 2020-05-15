@@ -17,6 +17,16 @@ def call(Map config = [:]) {
    * @param config Map of parameters passed (none currently)
    * @return Nothing
    */
-  def c = new com.intel.cancelPreviousBuildsInternal()
-  return c.cancelPreviousBuildsInternal(config)
+  try {
+    rc = cancelPreviousBuildsSystem()
+  } catch (java.lang.NoSuchMethodError e) {
+
+    // Rely on Jenkins whitelisting a groovy method.
+    try {
+      def c = new com.intel.cancelPreviousBuildsInternal()
+      return c.cancelPreviousBuildsInternal(config)
+    } catch (err) {
+      println ('Unable to cancel previous builds.')
+    }
+  }
 }

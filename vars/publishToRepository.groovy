@@ -25,7 +25,7 @@
  * config['type']         Type of repository.  Default 'hosted'.
  * config['download_dir'] If present, download the artifacts after the upload
  *                        to validate.
- *                        The publishToRepositorySystem step should dowload
+ *                        The publishToRepositorySystem step should download
  *                        the artifacts back to this directory and fail the
  *                        step if the contents differ.
 */
