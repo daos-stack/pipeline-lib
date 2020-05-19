@@ -32,6 +32,9 @@ for buiding the daos-stack projects.
 
 The use of this locally maintained library is also intended to be optional.
 
+We will try to keep the interface to these routines stable, but may need
+to change them to optimize the CI system.
+
 ### cancelPreviousBuildsSystem
 
 This is a method that can be implemented to cancel builds when there is
@@ -91,6 +94,8 @@ members.
 This is a method for for saving aritfacts to a local repository such as
 Nexus-oss edition.
 
+As we improve our CI system, this may change a bit.
+
 Your routine can map these values as needed for your repository.
 
 This takes a Map variable containing the following members.
@@ -120,3 +125,7 @@ It should take the same parameters as the githubNotify pipeline step.
 
 You will need to provide your routine with the credentials needed to
 notify your SCM system.
+
+If this routine is not present, you can use the environment variable
+"DAOS_JENKINS_NOTIFY_STATUS" to specify a GitHub credential id to update
+the status of your GitHub SCM system.

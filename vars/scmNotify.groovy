@@ -19,13 +19,21 @@
 
 def call(Map config = [:]) {
 
+  def errtxt = 'Jenkins not configured to notify SCM repository of builds.'
   if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
-    println "Jenkins not configured to notify SCM repository of builds."
+    println errtxt
     return
   }
   try {
     scmNotifySystem(config)
   } catch (java.lang.NoSuchMethodError e) {
-    println 'Could not find a scmNotifySystem step in a shared groovy library.'
+    // Did not find a shared scmNotify library.
+    // Assume DAOS_JENKINS_NOTIFY_STATUS contains a credential id.
+    config['credentialsId'] = env.DAOS_JENKINS_NOTIFY_STATUS
+    try {
+       steps.githubNotify config
+    } catch (err) {
+      println errtxt
+    }
   }
 }
