@@ -43,13 +43,9 @@ def call(Map config = [:]) {
         ignore_failure = true
     }
 
-    if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
-        println "Jenkins not configured to notify github of builds."
-    } else {
-        scmNotify description: env.STAGE_NAME,
-                  context: "test" + "/" + env.STAGE_NAME,
-                  status: "PENDING"
-    }
+    scmNotify description: env.STAGE_NAME,
+             context: "test" + "/" + env.STAGE_NAME,
+             status: "PENDING"
 
     def script = '''skipped=0
                     if [ "${NO_CI_TESTING}" == 'true' ]; then

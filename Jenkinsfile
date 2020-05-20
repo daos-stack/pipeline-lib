@@ -240,7 +240,7 @@ pipeline {
                     runTest script: '''NODE=${NODELIST%%,*}
                                        ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
                                        yum --disablerepo=\\* \
-                                         --enablerepo=build\\* makecache"''',
+                                           --enablerepo=build\\* makecache"''',
                             junit_files: null,
                             failure_artifacts: env.STAGE_NAME
                 }
