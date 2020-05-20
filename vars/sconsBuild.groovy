@@ -152,6 +152,7 @@ def call(Map config = [:]) {
             clean_files = config['clean']
         }
         clean_files += ' install build {daos_m,daos,iof,cart-Linux}.conf'
+        clean_files += ' .sconsign{,-Linux}.dblite .sconf-temp{,-Linux}'
         clean_cmd += scons_exe + " -c ${sconstruct}\n"
         if (clean_files) {
             clean_cmd += "rm -rf ${clean_files}\n"
