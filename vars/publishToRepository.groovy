@@ -49,7 +49,6 @@ def call(Map config = [:]) {
             env.BRANCH_NAME != 'master' &&
             !config['test']) {
                 return
-            }
         }
     }
 
