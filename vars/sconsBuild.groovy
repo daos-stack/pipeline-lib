@@ -105,8 +105,9 @@ def call(Map config = [:]) {
     }
 
     def scons_exe = 'scons'
+    def scons_args = ''
     if (config['parallel_build'] && config['parallel_build'] == true) {
-        def scons_args = '-j ' + num_proc()
+        scons_args += '-j ' + num_proc()
     }
     def sconstruct = ''
     if (config['scons_exe']) {
