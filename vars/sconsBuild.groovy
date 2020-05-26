@@ -7,6 +7,12 @@
  *
  */
 
+def num_proc() {
+    return sh(label: "Get number of processors online",
+              script: "/usr/bin/getconf _NPROCESSORS_ONLN",
+              returnStdout: true)
+          
+}
 
 def call(Map config = [:]) {
   /**
@@ -52,6 +58,7 @@ def call(Map config = [:]) {
    *  If false, a failure of the scons commands will cause this step to fail.
    * config['failure_artifacts'] Artifacts to link to when scons fails
    * config['log_to_file'] Copy build output to a file
+   * config['parallel_build'] Build using maximum CPUs
    */
 
     def tee_file = '| cat'
@@ -98,6 +105,9 @@ def call(Map config = [:]) {
 
     def scons_exe = 'scons'
     def scons_args = ''
+    if (config['parallel_build'] && config['parallel_build'] == true) {
+        scons_args += '-j ' + num_proc()
+    }
     def sconstruct = ''
     if (config['scons_exe']) {
         scons_exe = "${config['scons_exe']}"
@@ -151,6 +161,7 @@ def call(Map config = [:]) {
             clean_files = config['clean']
         }
         clean_files += ' install build {daos_m,daos,iof,cart-Linux}.conf'
+        clean_files += ' .sconsign{,-Linux}.dblite .sconf-temp{,-Linux}'
         clean_cmd += scons_exe + " -c ${sconstruct}\n"
         if (clean_files) {
             clean_cmd += "rm -rf ${clean_files}\n"
