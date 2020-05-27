@@ -20,6 +20,22 @@ def call(Map config = [:]) {
    * config['test_tag'] The test tags to run
    * config['ftest_arg'] An argument to ftest.sh
    * config['test_rpms'] Testing using RPMs, true/false
+   *
+   * config['context'] Context name for SCM to identify the specific stage to
+   *                   update status for.
+   *                   Default is 'test/' + env.STAGE_NAME.
+   *
+   *  Important:
+   *     The SCM status checking for passing may expect a specific name.
+   *
+   *     Matrix stages must override this setting to include matrix axes
+   *     names to ensure a unique name is generated.
+   *
+   *     Or the default name has to be changed in a way that is compatible
+   *     with a future Matrix implementation.
+   *
+   * config['description']  Description to report for SCM status.
+   *                        Default env.STAGE_NAME.
    */
 
     def test_rpms = 'false'
