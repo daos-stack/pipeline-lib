@@ -15,7 +15,7 @@
  * config['pragma']     Pragma to get the value of
  * config['def_val']    Value to return if not found
  */
-def call(Map config = [:]) {
+String call(Map config = [:]) {
 
     def def_value = ''
     if (config['def_val']) {
