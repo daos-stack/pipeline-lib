@@ -265,6 +265,9 @@ EOF'''
                             ln -s python3.6 /usr/bin/python3
                         fi'''
   } else if (distro_type == "suse") {
+    // Temp fix for broken mirror until snapshot is rebuilt
+    provision_script += '\nzypper mr -d openSUSE-Leap-15.1-Update || true '
+
     if (repository_g != '') {
       provision_script += '\nzypper --non-interactive ar -f ' +
                            repository_g + ' daos-stack-group-repo'
