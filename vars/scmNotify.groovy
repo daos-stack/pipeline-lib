@@ -25,15 +25,15 @@ def call(Map config = [:]) {
     return
   }
   try {
-    scmNotifySystem(config)
+    if (! config['credentialsId']) {
+      config['credentialsId'] = scmStatusIdSystem()
+    }
   } catch (java.lang.NoSuchMethodError e) {
-    // Did not find a shared scmNotify library.
+    // Did not find a shared scmStatusIdSystem routine.
     // Assume DAOS_JENKINS_NOTIFY_STATUS contains a credential id.
-    config['credentialsId'] = env.DAOS_JENKINS_NOTIFY_STATUS
-    try {
-       steps.githubNotify config
-    } catch (err) {
-      println errtxt
+    if (env.DAOS_JENKINS_NOTIFY_STATUS) {
+        config['credentialsId'] = env.DAOS_JENKINS_NOTIFY_STATUS
     }
   }
+  scmNotifyTrusted(config)
 }

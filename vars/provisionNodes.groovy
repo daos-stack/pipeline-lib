@@ -22,7 +22,7 @@
  * config['inst_repos']  DAOS stack repos that should be configured.
  * config['inst_rpms']  DAOS stack RPMs that should be installed.
  *  if timeout is <= 0, then will not wait for provisioning.
- *  if reboot_only is specified, the nodes will be rebooted and the
+ *  if power_only is specified, the nodes will be rebooted and the
  *  provisioning information ignored.
  */
 def call(Map config = [:]) {

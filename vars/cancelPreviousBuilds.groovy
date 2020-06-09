@@ -18,7 +18,7 @@ def call(Map config = [:]) {
    * @return Nothing
    */
   try {
-    rc = cancelPreviousBuildsSystem()
+    rc = cancelPreviousBuildsTrusted()
   } catch (java.lang.NoSuchMethodError e) {
 
     // Rely on Jenkins whitelisting a groovy method.
