@@ -31,9 +31,7 @@ def call(Map config = [:]) {
   } catch (java.lang.NoSuchMethodError e) {
     // Did not find a shared scmStatusIdSystem routine.
     // Assume DAOS_JENKINS_NOTIFY_STATUS contains a credential id.
-    if (env.DAOS_JENKINS_NOTIFY_STATUS) {
-        config['credentialsId'] = env.DAOS_JENKINS_NOTIFY_STATUS
-    }
+    config['credentialsId'] = env.DAOS_JENKINS_NOTIFY_STATUS
   }
   scmNotifyTrusted(config)
 }

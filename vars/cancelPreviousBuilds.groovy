@@ -20,13 +20,6 @@ def call(Map config = [:]) {
   try {
     rc = cancelPreviousBuildsTrusted()
   } catch (java.lang.NoSuchMethodError e) {
-
-    // Rely on Jenkins whitelisting a groovy method.
-    try {
-      def c = new com.intel.cancelPreviousBuildsInternal()
-      return c.cancelPreviousBuildsInternal(config)
-    } catch (err) {
-      println ('Unable to cancel previous builds.')
-    }
+    println ('Unable to cancel previous builds.')
   }
 }

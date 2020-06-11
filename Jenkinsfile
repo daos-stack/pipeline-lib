@@ -17,9 +17,7 @@
 // is landed, both PR branches can be deleted.
 
 // @Library(value="pipeline-lib@my_pr_branch") _
-@Library(value=["pipeline-lib@corci-918",
-                "system-pipeline-lib@corci-918",
-                "trusted-pipeline-lib@corci-918"]) _
+@Library(value=["pipeline-lib@corci-918"]) _
 
 // The docker agent setup may need to know the
 // UID that the build agent is running under.
@@ -68,8 +66,6 @@ def docker_build_args(Map config = [:]) {
     //  ret_str += ' --build-arg QUICKBUILD=' + config['qb']
     //  ret_str += ' --build-arg REPOS="' + component_repos() + '"'
     //}
-    ret_str += ' '
-    println ret_str
     return ret_str
 }
 
