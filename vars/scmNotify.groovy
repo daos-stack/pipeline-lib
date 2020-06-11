@@ -18,6 +18,7 @@
    */
 
 def call(Map config = [:]) {
+  println "scmNotify ${config}"
 
   def errtxt = 'Jenkins not configured to notify SCM repository of builds.'
   if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
@@ -27,11 +28,15 @@ def call(Map config = [:]) {
   try {
     if (! config['credentialsId']) {
       config['credentialsId'] = scmStatusIdSystem()
+      println 'Got scm credential'
     }
   } catch (java.lang.NoSuchMethodError e) {
     // Did not find a shared scmStatusIdSystem routine.
     // Assume DAOS_JENKINS_NOTIFY_STATUS contains a credential id.
     config['credentialsId'] = env.DAOS_JENKINS_NOTIFY_STATUS
+    println 'fall back to ENV credential'
   }
+  println 'Calling scmNotifyTrusted'
   scmNotifyTrusted(config)
+  println 'Returned from scmNotifyTrusted'
 }
