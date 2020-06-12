@@ -1,7 +1,7 @@
 // vars/junit.groovy
 
 /**
- * run.groovy
+ * junit.groovy
  *
  * Wrapper for junit step to allow for skipped tests.
  *
@@ -10,14 +10,12 @@
 
 
 def call(String testResults) {
-    println "Entering junit(String) override."
     Map config = [:]
     config['testResults'] = testResults
     call(config)
 }
 
 def call(Map config = [:]) {
-    println "Entering junit(Map) override."
     def script = '''if [ "${NO_CI_TESTING}" == 'true' ]; then
                         exit 1
                     fi

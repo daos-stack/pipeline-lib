@@ -13,7 +13,7 @@
  * @param config Map of parameters passed.
  *
  * config['arch']       Architecture to use.  Default 'x86_64'
- * config['distro']     Distribution to use.  Default 'el7'
+ * config['distro']     Distribution to use.  Default 'centos7'
  * config['NODELIST']   Comma separated list of nodes available.
  * config['node_count'] Optional lower number of nodes to provision.
  * config['profile']    Profile to use.  Default 'daos_ci'.
@@ -57,14 +57,16 @@ def call(Map config = [:]) {
       return node_cnt
   }
 
-  def distro = config.get('distro', 'el7')
+  def distro = config.get('distro', 'centos7')
   def inst_rpms = config.get('inst_rpms', '')
   def inst_repos = config.get('inst_repos','')
 
   def repository_g = ''
   def repository_l = ''
   def distro_type = 'el'
-  if (distro.startsWith("sles") || distro.startsWith("leap") ||
+  if (distro == 'el7') {
+    distro = 'centos7'  //Backwards compatibility
+  } else if (distro.startsWith("sles") || distro.startsWith("leap") ||
       distro.startsWith("opensuse")) {
       distro_type = 'suse'
   }
@@ -83,7 +85,7 @@ def call(Map config = [:]) {
      }
   }
   if (env.REPOSITORY_URL != null) {
-    if (distro.startsWith("el7")) {
+    if (distro.startsWith("centos7")) {
         if (env.DAOS_STACK_EL_7_GROUP_REPO != null) {
             repository_g = env.REPOSITORY_URL + env.DAOS_STACK_EL_7_GROUP_REPO
         }
@@ -176,7 +178,7 @@ EOF'''
                                branch=\\"\\\${branch%:*}\\"
                              fi
                            fi'''
-  if (distro.startsWith("el7")) {
+  if (distro.startsWith("centos7")) {
     if (config['power_only']) {
       // Since we don't have CORCI-711 yet, erase things we know could have
       // been put on the node previously

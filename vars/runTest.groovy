@@ -19,6 +19,22 @@ def call(Map config = [:]) {
    * config['stashes'] Stashes from the build to unstash
    * config['failure_artifacts'] Artifacts to link to when test fails, if any
    * config['ignore_failure'] Whether a FAILURE result should post a failed step
+   *
+   * config['context'] Context name for SCM to identify the specific stage to
+   *                   update status for.
+   *                   Default is 'test/' + env.STAGE_NAME.
+   *
+   *  Important:
+   *     The SCM status checking for passing may expect a specific name.
+   *
+   *     Matrix stages must override this setting to include matrix axes
+   *     names to ensure a unique name is generated.
+   *
+   *     Or the default name has to be changed in a way that is compatible
+   *     with a future Matrix implementation.
+   *
+   * config['description']  Description to report for SCM status.
+   *                        Default env.STAGE_NAME.
    */
 
     // Todo
@@ -28,6 +44,9 @@ def call(Map config = [:]) {
     // This has to be change here and in the
     // github expectations at the same time to also include any Matrix
     // environment variables.
+
+    def context = config.get('context', 'test/' + env.STAGE_NAME)
+    def description = config.get('description', env.STAGE_NAME)
 
     dir('install') {
         deleteDir()
@@ -43,9 +62,9 @@ def call(Map config = [:]) {
         ignore_failure = true
     }
 
-    scmNotify description: env.STAGE_NAME,
-             context: "test" + "/" + env.STAGE_NAME,
-             status: "PENDING"
+    scmNotify description: description,
+              context: context,
+              status: "PENDING"
 
     def script = '''skipped=0
                     if [ "${NO_CI_TESTING}" == 'true' ]; then
@@ -126,13 +145,19 @@ def call(Map config = [:]) {
             }
         }
     }
-
-    stepResult name: env.STAGE_NAME, context: "test", result: status,
+    stepResult name: description,
+               context: context,
+               result: status,
                junit_files: config['junit_files'],
                ignore_failure: ignore_failure
 
     if (status == 'FAILURE') {
-        error(env.STAGE_NAME + " failed: " + rc)
+        if (ignore_failure) {
+            catchError(stageResult: 'UNSTABLE',
+                       buildResult: 'SUCCESS') {
+                error(env.STAGE_NAME + " failed: " + rc)
+            }
+        }
     }
 
 }

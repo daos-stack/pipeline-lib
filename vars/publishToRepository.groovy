@@ -19,9 +19,10 @@
  *                          Default 'test'.
  * config['product']        Name of product.
  * config['repo_dir']       Directory to post artifacts from.
- * config['tech']           Distro/version code for reposiory eg: 'el7'
- * config['test']           Test by creating a temporary repo and then deleting it.
- *                          default false.  Used to unit test this step.
+ * config['tech']           Distro/version code for reposiory eg: 'centos7'
+ * config['test']           Test by creating a temporary repo and then
+ *                          deleting it.
+ *                          Default false.  Used to unit test this step.
  * config['type']           Type of repository.  Default 'hosted'.
  * config['download_dir']   If present, download the artifacts after the upload
  *                          to validate.
@@ -29,7 +30,7 @@
  *                          the artifacts back to this directory and fail the
  *                          step if the contents differ.
  * config['publish_branch'] The branch to publish from.  Defaults to release/*
-                            and master.
+ *                          and master.
  */
 
 def call(Map config = [:]) {

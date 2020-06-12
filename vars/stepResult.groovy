@@ -1,7 +1,6 @@
 // vars/stepResult.groovy
 
 import com.intel.doGetHttpRequest
-import groovy.json.JsonSlurperClassic
 
 /**
  * stepResult.groovy
@@ -9,6 +8,7 @@ import groovy.json.JsonSlurperClassic
  * stepResult pipeline step
  *
  */
+
 def call(Map config= [:]) {
   /**
    * step reporting method.
@@ -22,112 +22,108 @@ def call(Map config= [:]) {
    * config['context'] The context to post in the GitHub commit status.
    * config['junit_files'] The names of any available junit files.
    */
+  Map param =[:]
+  param['description'] = config['name']
+  if (config['context'].contains('/')) {
+    // Allow migration to common context value for scmNotify and
+    // stepResult
+    param['context'] = config['context']
+  } else {
+    param['context'] = config['context'] + "/" + config['name']
+  }
 
-    // node block runs this on different build agent
-    node {
-        def log_url = null
+  def log_url = null
 
-        if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
-          println "Jenkins not configured to notify github of builds."
-          return
-        }
+  if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
+    println "Jenkins not configured to notify github of builds."
+    return
+  }
 
-        if (config['junit_files'] && config['result'] != 'FAILURE') {
-            log_url = env.JOB_URL - ~/job\/[^\/]*\/$/ +
-                      "/view/change-requests/job/${env.BRANCH_NAME}/" +
-                      "${env.BUILD_ID}/testReport/(root)/"
-        } else {
-            def jsonSlurperClassic = new JsonSlurperClassic()
+  if (config['junit_files'] && config['result'] != 'FAILURE') {
+    log_url = env.JOB_URL - ~/job\/[^\/]*\/$/ +
+              "/view/change-requests/job/${env.BRANCH_NAME}/" +
+              "${env.BUILD_ID}/testReport/(root)/"
+  } else {
 
-            def h = new com.intel.doGetHttpRequest()
-            resp = h.doGetHttpRequest(env.JOB_URL - ~/\/job\/[^\/]*\/$/ +
-                "/view/change-requests/job/" +
-                env.BRANCH_NAME.replaceAll('/', '%252F') +
-                "/${env.BUILD_ID}/wfapi/describe");
+    def h = new com.intel.doGetHttpRequest()
+    resp = h.doGetHttpRequest(env.JOB_URL - ~/\/job\/[^\/]*\/$/ +
+           "/view/change-requests/job/" +
+    env.BRANCH_NAME.replaceAll('/', '%252F') +
+      "/${env.BUILD_ID}/wfapi/describe");
 
-            def job = jsonSlurperClassic.parseText(resp)
-            assert job instanceof Map
+    // def job = parseResponse(resp)
+    def job = readJSON text: resp
+    assert job instanceof Map
 
-            def stage
-            for (s in job['stages']) {
-                if (s['name'] == env.STAGE_NAME) {
-                    stage = s
-                    break
-                }
-            }
-
-            resp = h.doGetHttpRequest("${env.JENKINS_URL}" + stage['_links']['self']['href'])
-
-            stage = jsonSlurperClassic.parseText(resp)
-            assert stage instanceof Map
-
-            def stageFlowNode = null
-
-            for (s in stage['stageFlowNodes']) {
-                if (s['name'] == env.STAGE_NAME) {
-                    stageFlowNode = s
-                    break
-                }
-            }
-            if (!stageFlowNode) {
-                echo("No step named \"" + env.STAGE_NAME + "\" could be found for this stage.")
-                config['result'] = "FAILURE"
-                config['ignore_failure'] = false
-            } else {
-                resp = h.doGetHttpRequest("${env.JENKINS_URL}" + stageFlowNode['_links']['log']['href'])
-
-                log = jsonSlurperClassic.parseText(resp)
-                assert log instanceof Map
-
-                log_url = "${env.JENKINS_URL}${log.consoleUrl}"
-            }
-            jsonSlurperClassic = null
-        }
-
-        if (!config['ignore_failure']) {
-            currentBuild.result = config.get('result')
-        }
-
-        if (config['result'] == "ABORTED" ||
-            config['result'] == "UNSTABLE" ||
-            config['result'] == "FAILURE") {
-             def comment_url = env.BUILD_URL + "display/redirect"
-
-            if (env.CHANGE_ID) {
-                if (log_url) {
-                    comment_url = log_url
-                }
-
-                pullRequest.comment("Test stage ${config.name}" +
-                                    " completed with status " +
-                                    "${config.result}" +
-                                    ".  " + comment_url)
-            }
-        }
-
-        def result = config['result']
-        switch(config['result']) {
-            case "UNSTABLE":
-                result = "FAILURE"
-                break
-            case "FAILURE":
-                result = "ERROR"
-                break
-        }
-        Map param =[:]
-        param['description'] = config['name']
-        if (config['context'].contains('/')) {
-            // Allow migration to common context value for scmNotify and
-            // stepResult
-           param['context'] = config['context']
-        } else {
-           param['context'] = config['context'] + "/" + config['name']
-        }
-        if (log_url) {
-           param['targetURL'] = log_url
-        }
-        param['status'] = result
-
-        scmNotify param
+    def stage
+    for (s in job['stages']) {
+      if (s['name'] == env.STAGE_NAME) {
+        stage = s
+        break
+      }
     }
+    resp = h.doGetHttpRequest("${env.JENKINS_URL}" +
+           stage['_links']['self']['href'])
+
+    stage = readJSON text: resp
+    assert stage instanceof Map
+
+    def stageFlowNode = null
+    for (s in stage['stageFlowNodes']) {
+      if (s['name'].contains(env.STAGE_NAME)) {
+        stageFlowNode = s
+        break
+      }
+    }
+    if (!stageFlowNode) {
+      echo "No step named \"" + env.STAGE_NAME +
+           "\" could be found for this stage."
+      config['result'] = "FAILURE"
+      config['ignore_failure'] = false
+    } else {
+      resp = h.doGetHttpRequest("${env.JENKINS_URL}" +
+             stageFlowNode['_links']['log']['href'])
+      log = readJSON text: resp
+      assert log instanceof Map
+
+      log_url = "${env.JENKINS_URL}${log.consoleUrl}"
+    }
+  }
+
+  if (!config['ignore_failure']) {
+    currentBuild.result = config.get('result')
+  }
+
+  if (config['result'] == "ABORTED" ||
+      config['result'] == "UNSTABLE" ||
+      config['result'] == "FAILURE") {
+    def comment_url = env.BUILD_URL + "display/redirect"
+
+    if (env.CHANGE_ID) {
+      if (log_url) {
+        comment_url = log_url
+      }
+
+      pullRequest.comment("Test stage ${config.name}" +
+                          " completed with status " +
+                          "${config.result}" +
+                          ".  " + comment_url)
+    }
+  }
+
+  def result = config['result']
+  switch(config['result']) {
+    case "UNSTABLE":
+      result = "FAILURE"
+      break
+    case "FAILURE":
+      result = "ERROR"
+      break
+  }
+  if (log_url) {
+    param['targetURL'] = log_url
+  }
+  param['status'] = result
+
+  scmNotify param
 }
