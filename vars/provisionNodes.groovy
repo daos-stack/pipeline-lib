@@ -265,8 +265,12 @@ EOF'''
                             ln -s python3.6 /usr/bin/python3
                         fi'''
   } else if (distro_type == "suse") {
-    // Temp fix for broken mirror until snapshot is rebuilt
+    // Temp fix for broken mirror until snapshot is rebuilt to not use it.
+    provision_script += '\nzypper mr -d openSUSE-Leap-15.1-1 || true '
+    provision_script += '\nzypper mr -d openSUSE-Leap-15.1-Non-Oss || true '
+    provision_script += '\nzypper mr -d openSUSE-Leap-15.1-Oss || true '
     provision_script += '\nzypper mr -d openSUSE-Leap-15.1-Update || true '
+    provision_script += '\nzypper mr -d openSUSE-Leap-15.1-Update-Non-Oss || true '
 
     if (repository_g != '') {
       provision_script += '\nzypper --non-interactive ar -f ' +
