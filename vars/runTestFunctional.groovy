@@ -63,6 +63,8 @@ def call(Map config = [:]) {
                                            # remove the install/ dir to be sure we're testing from RPMs
                                            rm -rf install/
                                        fi"
+                                    trap 'clush -B -S -o "-i ci_key" -l root -w "${tnodes}" \
+                                          "set -x; umount /mnt/share"' EXIT
                                     # set DAOS_TARGET_OVERSUBSCRIBE env here
                                     export DAOS_TARGET_OVERSUBSCRIBE=1
                                     rm -rf install/lib/daos/TESTING/ftest/avocado ./*_results.xml
