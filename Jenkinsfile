@@ -17,7 +17,6 @@
 // is landed, both PR branches can be deleted.
 
 // @Library(value="pipeline-lib@my_pr_branch") _
-@Library(value=["pipeline-lib@corci-918"]) _
 
 // The docker agent setup may need to know the
 // UID that the build agent is running under.
