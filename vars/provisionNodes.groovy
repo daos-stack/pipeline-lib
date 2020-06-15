@@ -16,16 +16,13 @@
  * config['distro']     Distribution to use.  Default 'el7'
  * config['NODELIST']   Comma separated list of nodes available.
  * config['node_count'] Optional lower number of nodes to provision.
- * config['profile']    Profile to use.  Default 'test'.
- * config['poll']       Poll time in minutes.  Default 1.
- * config['power_only'] Only power cycle the nodes, do not provision.
- * config['snapshot']   Use snapshots for VMs.  Default false.
+ * config['profile']    Profile to use.  Default 'daos_ci'.
+  * config['power_only'] Only power cycle the nodes, do not provision.
  * config['timeout']    Timeout in minutes.  Default 30.
  * config['inst_repos']  DAOS stack repos that should be configured.
  * config['inst_rpms']  DAOS stack RPMs that should be installed.
- *  The timeout and poll parameters not used if snapshot is specified.
  *  if timeout is <= 0, then will not wait for provisioning.
- *  if reboot_only is specified, the nodes will be rebooted and the
+ *  if power_only is specified, the nodes will be rebooted and the
  *  provisioning information ignored.
  */
 def call(Map config = [:]) {
@@ -135,6 +132,7 @@ def call(Map config = [:]) {
 
   // Prepare the node for daos/cart testing
   def provision_script = '''set -ex
+                            jenkins_uid=$(id -u)
                             rm -f ci_key*
                             ssh-keygen -N "" -f ci_key
                             cat << "EOF" > ci_key_ssh_config
@@ -149,7 +147,7 @@ EOF'''
                         clush -B -S -l root -w ''' + nodeString +
                     ''' "set -ex
                          env > /root/last_run-env.txt
-                         my_uid=''' + env.UID + '''
+                         my_uid=$jenkins_uid
                          if ! grep \\":\\$my_uid:\\" /etc/group; then
                            groupadd -g \\$my_uid jenkins
                          fi
@@ -267,6 +265,13 @@ EOF'''
                             ln -s python3.6 /usr/bin/python3
                         fi'''
   } else if (distro_type == "suse") {
+    // Temp fix for broken mirror until snapshot is rebuilt to not use it.
+    provision_script += '\nzypper mr -d openSUSE-Leap-15.1-1 || true '
+    provision_script += '\nzypper mr -d openSUSE-Leap-15.1-Non-Oss || true '
+    provision_script += '\nzypper mr -d openSUSE-Leap-15.1-Oss || true '
+    provision_script += '\nzypper mr -d openSUSE-Leap-15.1-Update || true '
+    provision_script += '\nzypper mr -d openSUSE-Leap-15.1-Update-Non-Oss || true '
+
     if (repository_g != '') {
       provision_script += '\nzypper --non-interactive ar -f ' +
                            repository_g + ' daos-stack-group-repo'

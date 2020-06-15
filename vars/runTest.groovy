@@ -21,6 +21,14 @@ def call(Map config = [:]) {
    * config['ignore_failure'] Whether a FAILURE result should post a failed step
    */
 
+    // Todo
+    // This routine is not "MATRIX" safe as it has an scmNOTIFY context
+    // that only has env.STAGE_NAME.
+    // The stepResult step is also using context differently than scmNotify
+    // This has to be change here and in the
+    // github expectations at the same time to also include any Matrix
+    // environment variables.
+
     dir('install') {
         deleteDir()
     }
@@ -35,14 +43,9 @@ def call(Map config = [:]) {
         ignore_failure = true
     }
 
-    if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
-        println "Jenkins not configured to notify github of builds."
-    } else {
-        githubNotify credentialsId: 'daos-jenkins-commit-status',
-                     description: env.STAGE_NAME,
-                     context: "test" + "/" + env.STAGE_NAME,
-                     status: "PENDING"
-    }
+    scmNotify description: env.STAGE_NAME,
+             context: "test" + "/" + env.STAGE_NAME,
+             status: "PENDING"
 
     def script = '''skipped=0
                     if [ "${NO_CI_TESTING}" == 'true' ]; then

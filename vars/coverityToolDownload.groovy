@@ -2,9 +2,14 @@
 
 /**
  * coverityToolDownload.groovy
+ *
+ * This is a routine to download the Coverity tool kit.
  * 
- * The coverityToolDownloadSystem is provided as a shared
- * groovy library local to the running Jenkins for doing Coverity tests.
+ * As the Coverity tool kit requires authentication it is actually
+ * downloaded by an optional additional system library.
+ *
+ * The coverityToolDownloadSystem needs to provided as a shared groovy
+ * library local to the running Jenkins for doing Coverity tests.
  *
  * @param config Map of parameters passed
  * @return 0 if successful, -1 if could not find the system step.

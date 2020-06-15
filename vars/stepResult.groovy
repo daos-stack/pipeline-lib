@@ -23,6 +23,7 @@ def call(Map config= [:]) {
    * config['junit_files'] The names of any available junit files.
    */
 
+    // node block runs this on different build agent
     node {
         def log_url = null
 
@@ -113,17 +114,20 @@ def call(Map config= [:]) {
                 result = "ERROR"
                 break
         }
-        if (log_url) {
-            githubNotify credentialsId: 'daos-jenkins-commit-status',
-                         description: config['name'],
-                         context: config['context'] + "/" + config['name'],
-                         targetUrl: log_url,
-                         status: result
+        Map param =[:]
+        param['description'] = config['name']
+        if (config['context'].contains('/')) {
+            // Allow migration to common context value for scmNotify and
+            // stepResult
+           param['context'] = config['context']
         } else {
-            githubNotify credentialsId: 'daos-jenkins-commit-status',
-                         description: config['name'],
-                         context: config['context'] + "/" + config['name'],
-                         status: result
+           param['context'] = config['context'] + "/" + config['name']
         }
+        if (log_url) {
+           param['targetURL'] = log_url
+        }
+        param['status'] = result
+
+        scmNotify param
     }
 }

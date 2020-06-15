@@ -9,7 +9,6 @@
  */
 
 def call(Map config = [:]) {
-    println "Entering emailext override."
 
     if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
         println "Jenkins not configured to notify users of failed builds."

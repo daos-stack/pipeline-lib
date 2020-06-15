@@ -17,6 +17,9 @@ def call(Map config = [:]) {
    * @param config Map of parameters passed (none currently)
    * @return Nothing
    */
-  def c = new com.intel.cancelPreviousBuildsInternal()
-  return c.cancelPreviousBuildsInternal(config)
+  try {
+    rc = cancelPreviousBuildsTrusted()
+  } catch (java.lang.NoSuchMethodError e) {
+    println ('Unable to cancel previous builds.')
+  }
 }

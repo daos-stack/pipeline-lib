@@ -82,10 +82,9 @@ def call(Map config = [:]) {
     }
     checkoutScm(scm_config)
     if (env.DAOS_JENKINS_NOTIFY_STATUS != null) {
-        githubNotify credentialsId: 'daos-jenkins-commit-status',
-                     description: env.STAGE_NAME,
-                     context: "build" + "/" + env.STAGE_NAME,
-                     status: "PENDING"
+        scmNotify description: env.STAGE_NAME,
+                  context: "build" + "/" + env.STAGE_NAME,
+                  status: "PENDING"
     }
 
     if (config['scons_local_replace'] && config['target']) {

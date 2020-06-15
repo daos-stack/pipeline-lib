@@ -1,4 +1,4 @@
-// vars/commitPgragma.groovy
+// vars/commitPragma.groovy
 
 /**
  * commitPgragma.groovy
@@ -17,19 +17,5 @@
  */
 def call(Map config = [:]) {
 
-    def def_value = ''
-    if (config['def_val']) {
-        def_value = config['def_val']
-    }
-    def value = sh(script: '''b=$(git show -s --format=%B |
-                                  sed -ne 's/^''' + config['pragma'] +
-                           ''': *\\(.*\\)/\\1/p')
-                              if [ -n "$b" ]; then
-                                  echo "$b"
-                              else
-                                  echo "''' + def_value + '''"
-                              fi''',
-                returnStdout: true)
-    return value.trim()
-
+    return commitPragmaTrusted(config)
 }
