@@ -1,4 +1,4 @@
-// vars/parseStageName.groovy
+// vars/parseStageInfo.groovy
 
 /**
  * Method to get a MAP of values based on environment variables that

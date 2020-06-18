@@ -17,7 +17,7 @@
  * config['NODELIST']   Comma separated list of nodes available.
  * config['node_count'] Optional lower number of nodes to provision.
  * config['profile']    Profile to use.  Default 'daos_ci'.
-  * config['power_only'] Only power cycle the nodes, do not provision.
+ * config['power_only'] Only power cycle the nodes, do not provision.
  * config['timeout']    Timeout in minutes.  Default 30.
  * config['inst_repos']  DAOS stack repos that should be configured.
  * config['inst_rpms']  DAOS stack RPMs that should be installed.

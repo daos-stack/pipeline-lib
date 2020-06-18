@@ -5,7 +5,7 @@
    *
    * @param config Map of parameters passed
    *
-   * config['cript']        Script to run bandit'.
+   * config['script']        Script to run bandit'.
    *                        Default 'ci/python_bandit_check.sh'.
    *
    * config['context']      Context name for SCM to identify the specific
@@ -38,10 +38,6 @@ def call(Map config = [:]) {
   def bandit_script = config.get('script', 'ci/python_bandit_check.sh')
 
   Map stage_info = parseStageInfo(config)
-
-  scmNotify description: description,
-            context: context,
-            status: 'PENDING'
 
   checkoutScm withSubmodules: true
 

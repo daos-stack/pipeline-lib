@@ -51,7 +51,6 @@ def call(Map config= [:]) {
     env.BRANCH_NAME.replaceAll('/', '%252F') +
       "/${env.BUILD_ID}/wfapi/describe");
 
-    // def job = parseResponse(resp)
     def job = readJSON text: resp
     assert job instanceof Map
 
