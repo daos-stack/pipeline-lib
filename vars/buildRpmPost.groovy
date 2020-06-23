@@ -25,6 +25,11 @@
    * config['description']         Description to report for SCM status.
    *                               Default env.STAGE_NAME.
    *
+   * config['flow_name']           Flow name to use for looking up the log URL
+   *                               for reporting to the SCM.
+   *                               Default is to use config['context'] or its
+   *                               default value.
+   *
    * config['ignore_failure']      Whether a FAILURE result should post a
    *                               failed step.  Default false.
    *
@@ -79,6 +84,7 @@ def call(Map config = [:]) {
       (config['condition'] == 'failure')) {
     stepResult name: description,
                context: context,
+               flow_name: config.get('flow_name', context)
                result: config['condition'].toUpperCase(),
                ignore_failure: ignore_failure
     return

@@ -13,7 +13,7 @@
  * @param config Map of parameters passed.
  *
  * config['arch']       Architecture to use.  Default 'x86_64'
- * config['distro']     Distribution to use.  Default 'centos7'
+ * config['distro']     Distribution to use.  Default 'el7'
  * config['NODELIST']   Comma separated list of nodes available.
  * config['node_count'] Optional lower number of nodes to provision.
  * config['profile']    Profile to use.  Default 'daos_ci'.
@@ -25,6 +25,24 @@
  *  if power_only is specified, the nodes will be rebooted and the
  *  provisioning information ignored.
  */
+/* Distro glossary:  Not case sensitive.
+   Prefix "el":      Anything that is compatible with "RedHat Enterprise Linux"
+                     as far as this environment cares.
+   Prefix "rhel":    Specifically the Red Hat build of Enterprise Linux.
+                     Not planned to be used as RHEL free development licenses
+                     do not currently allow them to be used for CI automation.
+   Prefix "centos":  Specifically the CentOS build of Enterprise Linux.
+                     This is the only el compatible distro we are using.
+
+   Prefix "suse":    Anything that is compatible with "Suse Linux Enterprise"
+                     as far as this environment cares.
+   Prefix "sles":    Specifically the SUSE Linux Enterprise Server.
+                     May be used in the future as SUSE free development
+                     licenses do currently allow them to be used for
+                     CI automation, and SUSE also has offered site licenses.
+   Prefix "leap":    Specifically OpenSUSE leap oprating system builds of
+                     Suse Linux Enterprise Server.
+*/
 def call(Map config = [:]) {
 
   def nodeString = config['NODELIST']
@@ -57,19 +75,24 @@ def call(Map config = [:]) {
       return node_cnt
   }
 
-  def distro = config.get('distro', 'centos7')
+  def distro = config.get('distro', 'el7')
+  if (distro == 'centos7') {
+    distro = 'el7'
+  }  else if (distro.startsWith("sles") || distro.startsWith("leap") ||
+      distro.startsWith("opensuse")) {
+      // sles and opensuse leap can use each others binaries.
+      // Currently we are only building opensuse leap binaries.
+      distro_type = 'suse'
+  }
+
+
   def inst_rpms = config.get('inst_rpms', '')
   def inst_repos = config.get('inst_repos','')
 
   def repository_g = ''
   def repository_l = ''
   def distro_type = 'el'
-  if (distro == 'el7') {
-    distro = 'centos7'  //Backwards compatibility
-  } else if (distro.startsWith("sles") || distro.startsWith("leap") ||
-      distro.startsWith("opensuse")) {
-      distro_type = 'suse'
-  }
+
   def gpg_key_urls = []
   if (env.DAOS_STACK_REPO_SUPPORT != null) {
      gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT + 'RPM-GPG-KEY-CentOS-7')
@@ -85,7 +108,7 @@ def call(Map config = [:]) {
      }
   }
   if (env.REPOSITORY_URL != null) {
-    if (distro.startsWith("centos7")) {
+    if (distro.startsWith("el7")) {
         if (env.DAOS_STACK_EL_7_GROUP_REPO != null) {
             repository_g = env.REPOSITORY_URL + env.DAOS_STACK_EL_7_GROUP_REPO
         }
@@ -178,7 +201,7 @@ EOF'''
                                branch=\\"\\\${branch%:*}\\"
                              fi
                            fi'''
-  if (distro.startsWith("centos7")) {
+  if (distro.startsWith("el7")) {
     if (config['power_only']) {
       // Since we don't have CORCI-711 yet, erase things we know could have
       // been put on the node previously

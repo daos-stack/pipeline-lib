@@ -20,6 +20,9 @@ def call(Map config= [:]) {
    * config['ignore_failure'] Whether a FAILURE result should post a failed step.
    * config['name'] The description to post in the GitHub commit status.
    * config['context'] The context to post in the GitHub commit status.
+   * config['flow_name'] Stage Flow name to match.  Default is env.STAGE_NAME.
+   *                     For sh steps, the stage flow name is the label
+   *                     assigned to the shell script.
    * config['junit_files'] The names of any available junit files.
    */
   Map param =[:]
@@ -31,6 +34,7 @@ def call(Map config= [:]) {
   } else {
     param['context'] = config['context'] + "/" + config['name']
   }
+  def flow_name = config.get('flow_name', env.STAGE_NAME)
 
   def log_url = null
 
@@ -48,8 +52,8 @@ def call(Map config= [:]) {
     def h = new com.intel.doGetHttpRequest()
     resp = h.doGetHttpRequest(env.JOB_URL - ~/\/job\/[^\/]*\/$/ +
            "/view/change-requests/job/" +
-    env.BRANCH_NAME.replaceAll('/', '%252F') +
-      "/${env.BUILD_ID}/wfapi/describe");
+           env.BRANCH_NAME.replaceAll('/', '%252F') +
+           "/${env.BUILD_ID}/wfapi/describe");
 
     def job = readJSON text: resp
     assert job instanceof Map
@@ -69,7 +73,7 @@ def call(Map config= [:]) {
 
     def stageFlowNode = null
     for (s in stage['stageFlowNodes']) {
-      if (s['name'].contains(env.STAGE_NAME)) {
+      if (s['name'] == flow_name) {
         stageFlowNode = s
         break
       }
