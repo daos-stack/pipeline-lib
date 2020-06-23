@@ -84,7 +84,7 @@ def call(Map config = [:]) {
       (config['condition'] == 'failure')) {
     stepResult name: description,
                context: context,
-               flow_name: config.get('flow_name', context)
+               flow_name: config.get('flow_name', context),
                result: config['condition'].toUpperCase(),
                ignore_failure: ignore_failure
     return
