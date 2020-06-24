@@ -62,7 +62,7 @@ def call(Map config = [:]) {
 
   provisionNodes NODELIST: nodelist,
                  node_count: 1,
-                 profile: config.get('profile', 'daos_ci')
+                 profile: config.get('profile', 'daos_ci'),
                  distro: stage_info['target'],
                  inst_repos: config['inst_repos'],
                  inst_rpms: config['inst_rpms']
