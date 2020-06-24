@@ -28,8 +28,7 @@
    *
    * config['flow_name']    Flow name to use for looking up the log URL
    *                        for reporting to the SCM.
-   *                        Default is to use config['context'] or its
-   *                        default value.
+   *                        Default is to use env.STAGE_NAME.
    *
    * config['target']       Target distribution, such as 'centos7', 'leap15'.
    *                        Default based on parsing environment variables.
@@ -67,7 +66,7 @@ def call(Map config = [:]) {
   catchError(stageResult: error_stage_result,
              buildResult: error_build_result) {
     // flow_name used as the label for this step to allow log lookup.
-    def rc = sh label: config.get('flow_name', context),
+    def rc = sh label: config.get('flow_name', env.STAGE_NAME),
                 script: "${env_vars} " + build_script
   }
 }
