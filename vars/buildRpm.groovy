@@ -1,0 +1,72 @@
+// vars/buildRpm.groovy
+
+  /**
+   * buildRpm step method
+   *
+   * @param config Map of parameters passed
+   *
+   * config['build_script'] Script to build RPMs.  Default 'ci/rpm/build.sh'.
+   *
+   * config['chroot_name']  Name of chroot, such as 'epel-7-x86_64'.
+   *                        Default based on parsing env.STAGE_NAME.
+   *
+   * config['context']      Context name for SCM to identify the specific
+   *                        stage to update status for.
+   *                        Default is 'build/' + env.STAGE_NAME.
+   *
+   *  Important:
+   *     The SCM status checking for passing may expect a specific name.
+   *
+   *     Matrix stages must override this setting to include matrix axes
+   *     names to ensure a unique name is generated.
+   *
+   *     Or the default name has to be changed in a way that is compatible
+   *     with a future Matrix implementation.
+   *
+   * config['description']  Description to report for SCM status.
+   *                        Default env.STAGE_NAME.
+   *
+   * config['flow_name']    Flow name to use for looking up the log URL
+   *                        for reporting to the SCM.
+   *                        Default is to use env.STAGE_NAME.
+   *
+   * config['target']       Target distribution, such as 'centos7', 'leap15'.
+   *                        Default based on parsing environment variables.
+   *
+   * config['Unstable']     Convert build error to unstable.
+   *                        default false.
+   */
+
+def call(Map config = [:]) {
+
+  def context = config.get('context', 'build/' + env.STAGE_NAME)
+  def description = config.get('description', env.STAGE_NAME)
+  def build_script = config.get('build_script', 'ci/rpm/build.sh')
+
+  Map stage_info = parseStageInfo(config)
+
+  scmNotify description: description,
+            context: context,
+            status: 'PENDING'
+
+  checkoutScm withSubmodules: true
+
+  def env_vars = ''
+  env_vars = ' TARGET=' + stage_info['target']
+  if (config['chroot_name']) {
+    env_vars = ' CHROOT_NAME=' + config_info['chroot_name']
+  }
+
+  def error_stage_result = 'FAILURE'
+  def error_build_result = 'FAILURE'
+  if (config['unstable']) {
+    error_stage_result = 'UNSTABLE'
+    error_build_result = 'SUCCESS'
+  }
+  catchError(stageResult: error_stage_result,
+             buildResult: error_build_result) {
+    // flow_name used as the label for this step to allow log lookup.
+    def rc = sh label: config.get('flow_name', env.STAGE_NAME),
+                script: "${env_vars} " + build_script
+  }
+}
