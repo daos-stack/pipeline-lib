@@ -95,6 +95,9 @@ def call(Map config = [:]) {
 
     sh label: 'Build Log',
        script: "${env_vars} " + unsuccessful_script
+    archiveArtifacts artifacts: 'config.log-' + stage_info['target'] + '-rpm',
+                     allowEmptyArchive: true
+
     return
   }
 

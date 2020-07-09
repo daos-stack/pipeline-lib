@@ -75,6 +75,7 @@ def call(Map config = [:]) {
       return node_cnt
   }
 
+  def distro_type = 'el'
   def distro = config.get('distro', 'el7')
   if (distro == 'centos7') {
     distro = 'el7'
@@ -85,13 +86,11 @@ def call(Map config = [:]) {
       distro_type = 'suse'
   }
 
-
   def inst_rpms = config.get('inst_rpms', '')
   def inst_repos = config.get('inst_repos','')
 
   def repository_g = ''
   def repository_l = ''
-  def distro_type = 'el'
 
   def gpg_key_urls = []
   if (env.DAOS_STACK_REPO_SUPPORT != null) {
@@ -213,7 +212,11 @@ EOF'''
                             ' libpmemblk munge-libs munge slurm' +
                             ' slurm-example-configs slurmctld slurm-slurmmd'
     }
-    provision_script += '\nyum -y install yum-utils ed nfs-utils'
+    // YUM database on snapshots can be quite old, refresh it before
+    // doing anything more
+    provision_script += '''\nyum-config-manager --disable epel
+                           yum -y makecache
+                           yum -y install yum-utils ed nfs-utils'''
     if (repository_g != '') {
       def repo_file = repository_g.substring(
                           repository_g.lastIndexOf('/') + 1,
@@ -258,7 +261,6 @@ EOF'''
     provision_script += '''\nrm -f /etc/profile.d/openmpi.sh
                              rm -f /tmp/daos_control.log
                              yum -y erase metabench mdtest simul IOR compat-openmpi16
-                             yum -y install epel-release
                              if ! yum -y install CUnit python36-PyYAML                         \
                                                  python36-nose                                 \
                                                  python36-pip valgrind                         \

@@ -33,6 +33,11 @@ def call(Map config = [:]) {
    *     Or the default name has to be changed in a way that is compatible
    *     with a future Matrix implementation.
    *
+   * config['flow_name'] Stage Flow name for logging.
+   *                     Default is env.STAGE_NAME.
+   *                     For sh steps, the stage flow name is the label
+   *                     assigned to the shell script.
+   *
    * config['description']  Description to report for SCM status.
    *                        Default env.STAGE_NAME.
    */
@@ -47,6 +52,7 @@ def call(Map config = [:]) {
 
     def context = config.get('context', 'test/' + env.STAGE_NAME)
     def description = config.get('description', env.STAGE_NAME)
+    def flow_name = config.get('flow_name', env.STAGE_NAME)
 
     dir('install') {
         deleteDir()
@@ -94,7 +100,7 @@ def call(Map config = [:]) {
     }
 
     int rc = 0
-    rc = sh(script: script, label: env.STAGE_NAME, returnStatus: true)
+    rc = sh(script: script, label: flow_name, returnStatus: true)
 
     // All of this really should be done in the post section of the main
     // Jenkinsfile but it cannot due to
@@ -147,6 +153,7 @@ def call(Map config = [:]) {
     }
     stepResult name: description,
                context: context,
+               flow_name: flow_name,
                result: status,
                junit_files: config['junit_files'],
                ignore_failure: ignore_failure
@@ -159,5 +166,4 @@ def call(Map config = [:]) {
             }
         }
     }
-
 }
