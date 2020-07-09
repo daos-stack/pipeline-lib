@@ -4,7 +4,7 @@
  * Method to get a MAP of values based on environment variables that
  * are known to the stage.
  *
- * The map will have following members:
+ * The map may have following members if there is a default value for them.
  *
  * result['compiler']      Known compilers are 'gcc', 'icc', clang, and 'covc'.
  *                         Default is 'gcc'
@@ -16,7 +16,7 @@
  *                         Default is not present unless the word
  *                         TARGET_PREFIX is present in env.STAGE_NAME,
  *                         and then it will default to 'install/opt'
- *
+ * 
  * This is to simplify the addition of stages to the Jenkinsfile so
  * that in many cases, only the Stage Name text needs to be updated.
  *
@@ -37,7 +37,7 @@ def call(Map config = [:]) {
     if (config['target']) {
       result['target'] = config['target']
     } else if (env.TARGET) {
-      result['target'] = config['target']
+      result['target'] = env.TARGET
     } else {
       if (env.STAGE_NAME.contains('CentOS 7')) {
         result['target'] = 'centos7'
@@ -69,5 +69,44 @@ def call(Map config = [:]) {
       result['target_prefix'] = 'install/opt'
     }
 
+    if (env.STAGE_NAME.contains('Coverity')) {
+      result['test'] = 'coverity'
+    }
+    if (env.STAGE_NAME.contains('Functional')) {
+      result['test'] = 'Functional'
+      result['node_count'] = 9
+      result['test_tag'] = 'pr,-hw'
+      result['pragma_suffix'] = ''
+      result['ftest_arg'] = ''
+      if (env.STAGE_NAME.contains('Hardware')) {
+        result['test_tag'] = 'pr,hw,large'
+        result['pragma_suffix'] = '-hw-large'
+        result['ftest_arg'] = 'auto:Optane'
+        if (env.STAGE_NAME.contains('Small')) {
+          result['node_count'] = 3
+          result['test_tag'] = 'pr,hw,small'
+          result['pragma_suffix'] = '-hw-small'
+        } else if (env.STAGE_NAME.contains('Medium')) {
+          result['node_count'] = 5
+          result['test_tag'] = 'pr,hw,medium,ib2'
+          result['pragma_suffix'] = '-hw-medium'
+        }
+      }
+    }
+    if (config['test']) {
+      result['test'] = config['test']
+    }
+    if (config['node_count']) {
+      result['node_count'] = config['node_count']
+    }
+    if (config['test_tag']) {
+      result['test_tag'] = config['test_tag']
+    }
+    if (config['pragma_suffix']) {
+      result['pragma_suffix'] = ''
+    }
+    if (config['ftest_arg']) {
+      result['ftest_arg'] = config['ftest_arg']
+    }
     return result
 }

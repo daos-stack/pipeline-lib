@@ -163,11 +163,9 @@ def call(Map config = [:]) {
         clean_files += ' install build {daos_m,daos,iof,cart-Linux}.conf'
         clean_files += ' .sconsign{,-Linux}.dblite .sconf-temp{,-Linux}'
         clean_cmd += scons_exe + " -c ${sconstruct}\n"
-        if (clean_files) {
-            clean_cmd += "rm -rf ${clean_files}\n"
-            if (config['target']) {
-                clean_cmd += "rm -rf ${config['target']}/${clean_files}\n"
-            }
+        clean_cmd += "rm -rf ${clean_files}\n"
+        if (config['target']) {
+            clean_cmd += "rm -rf ${config['target']}/${clean_files}\n"
         }
     }
 
@@ -205,7 +203,7 @@ def call(Map config = [:]) {
     script += 'SCONS_ARGS="' + scons_args + '"\n'
 
     if (config['coverity']) {
-        sh 'rm -rf ./cov_analysis ./cov-int'
+        sh 'rm -rf ./cov_analysis ./cov-int ./coverity/*.tgz'
         Map cov_config = [:]
         cov_config['project'] = config['coverity']
         cov_config['tool_path'] = './cov_analysis'
