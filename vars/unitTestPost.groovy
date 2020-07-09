@@ -11,6 +11,9 @@
    * config['artifacts']           Artifacts to archive.
    *                               Default ['run_test.sh/*', 'vm_test/**']
    *
+   * config['referenceJobName']    Reference job name.
+   *                               Defaults to 'daos-stack/daos/master'
+   *
    * config['testResults']         Junit test result files.
    *                               Default 'test_results/*.xml'
    */
@@ -64,7 +67,8 @@ def call(Map config = [:]) {
 
   recordIssues enabledForFailure: true,
                failOnError: true,
-               referenceJobName: 'daos-stack/daos/master',
+               referenceJobName: config.get('referenceJobName',
+                                            'daos-stack/daos/master'),
                ignoreFailedBuilds: false,
                ignoreQualityGate: true,
                // Set qualitygate to 1 new "NORMAL" priority message
