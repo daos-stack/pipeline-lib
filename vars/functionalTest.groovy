@@ -66,7 +66,7 @@ def call(Map config = [:]) {
   Map stage_info = parseStageInfo(config)
 
   provisionNodes NODELIST: nodelist,
-                 node_count: stage_info['node_cnt'],
+                 node_count: stage_info['node_count'],
                  distro: stage_info['target'],
                  inst_repos: config['inst_repos'],
                  inst_rpms: config['inst_rpms']
