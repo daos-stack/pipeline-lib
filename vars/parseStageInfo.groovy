@@ -103,7 +103,7 @@ def call(Map config = [:]) {
       result['test_tag'] = config['test_tag']
     }
     if (config['pragma_suffix']) {
-      result['pragma_suffix'] = ''
+      result['pragma_suffix'] = config['pragma_suffix']
     }
     if (config['ftest_arg']) {
       result['ftest_arg'] = config['ftest_arg']
