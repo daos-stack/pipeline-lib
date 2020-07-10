@@ -16,6 +16,12 @@
    *
    * config['testResults']         Junit test result files.
    *                               Default 'test_results/*.xml'
+   *
+   * config['valgrind']            Unit test run with valgrind: 'memcheck'.
+   *                               Default ''.
+   *
+   * config['valgrind_pattern']    publishValgrind pattern.
+   *                               Default 'dnt.*.memcheck.xml'
    */
 
 def call(Map config = [:]) {
@@ -25,7 +31,8 @@ def call(Map config = [:]) {
 
   def always_script = config.get('always_script',
                                  'ci/unit/test_post_always.sh')
-  sh script: always_script,
+  def valgrind = config.get('valgrind', '')
+  sh script: always_script + ' ' + valgrind ,
      label: "Job Cleanup"
 
   Map stage_info = parseStageInfo(config)
@@ -51,39 +58,42 @@ def call(Map config = [:]) {
   artifact_list.each {
     archiveArtifacts artifacts: it
   }
-
+  
+  def valgrind_pattern = config.get('valgrind_pattern', 'dnt.*.memcheck.xml')
   publishValgrind failBuildOnInvalidReports: true,
                   failBuildOnMissingReports: true,
                   failThresholdDefinitelyLost: '0',
                   failThresholdInvalidReadWrite: '0',
                   failThresholdTotal: '0',
-                  pattern: 'dnt.*.memcheck.xml',
+                  pattern: valgrind_pattern,
                   publishResultsForAbortedBuilds: false,
                   publishResultsForFailedBuilds: true,
                   sourceSubstitutionPaths: '',
                   unstableThresholdDefinitelyLost: '0',
                   unstableThresholdInvalidReadWrite: '0',
                   unstableThresholdTotal: '0'
-
-  recordIssues enabledForFailure: true,
-               failOnError: true,
-               referenceJobName: config.get('referenceJobName',
-                                            'daos-stack/daos/master'),
-               ignoreFailedBuilds: false,
-               ignoreQualityGate: true,
-               // Set qualitygate to 1 new "NORMAL" priority message
-               // Supporting messages to help identify causes of
-               // problems are set to "LOW", and there are a
-               // number of intermittent issues during server
-               // shutdown that would normally be NORMAL but in
-               // order to have stable results are set to LOW.
-
-               qualityGates: [
-                 [threshold: 1, type: 'TOTAL_HIGH', unstable: true],
-                 [threshold: 1, type: 'TOTAL_ERROR', unstable: true],
-                 [threshold: 1, type: 'NEW_NORMAL', unstable: true]],
-                name: "Node local testing",
-                tool: issues(pattern: 'vm_test/nlt-errors.json',
-                             name: 'NLT results',
-                             id: 'VM_test')
+  if (valgrind == '') {
+    recordIssues enabledForFailure: true,
+                 failOnError: true,
+                 referenceJobName: config.get('referenceJobName',
+                                              'daos-stack/daos/master'),
+                 ignoreFailedBuilds: false,
+                 ignoreQualityGate: true,
+                 // Set qualitygate to 1 new "NORMAL" priority message
+                 // Supporting messages to help identify causes of
+                 // problems are set to "LOW", and there are a
+                 // number of intermittent issues during server
+                 // shutdown that would normally be NORMAL but in
+                 // order to have stable results are set to LOW.
+  
+                 qualityGates: [
+                   [threshold: 1, type: 'TOTAL_HIGH', unstable: true],
+                   [threshold: 1, type: 'TOTAL_ERROR', unstable: true],
+                   [threshold: 1, type: 'NEW_NORMAL', unstable: true]],
+                  name: "Node local testing",
+                  tool: issues(pattern: 'vm_test/nlt-errors.json',
+                               name: 'NLT results',
+                               id: 'VM_test')
+  
+  }
 }
