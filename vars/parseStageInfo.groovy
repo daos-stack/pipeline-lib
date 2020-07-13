@@ -72,6 +72,10 @@ def call(Map config = [:]) {
     if (env.STAGE_NAME.contains('Coverity')) {
       result['test'] = 'coverity'
     }
+
+    // Unless otherwise specified, all tests will only use one node.
+    result['node_count'] = 1
+
     if (env.STAGE_NAME.contains('Functional')) {
       result['test'] = 'Functional'
       result['node_count'] = 9
