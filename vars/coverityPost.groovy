@@ -25,7 +25,7 @@ def call(Map config = [:]) {
 
   def arch = 'arch='
   if (config['arch']) {
-    arch='arch=' + config['arch'] + ' '
+    arch += config['arch']
   }
 
   if (config['condition'] == 'success') {
@@ -33,7 +33,7 @@ def call(Map config = [:]) {
     def success_script = config.get('success_script',
                                     'ci/coverity_success.sh')
     sh label: 'Coverity success',
-       script: arch + success_script
+       script: arch + ' ' + success_script
 
     // Coverity actually being built is controlled by the Jenkins
     // configuration, so there may not be artifacts.

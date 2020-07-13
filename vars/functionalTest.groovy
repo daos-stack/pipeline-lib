@@ -18,8 +18,6 @@
    *     Or the default name has to be changed in a way that is compatible
    *     with a future Matrix implementation.
    *
-   * config['daos_pkg_version']  Version of DAOS package.  Required.
-   *
    * config['description']       Description to report for SCM status.
    *                             Default env.STAGE_NAME.
    *
@@ -54,10 +52,6 @@
    */
 
 def call(Map config = [:]) {
-
-  if (!config['daos_pkg_version']) {
-    error 'daos_pkg_version is required.'
-  }
 
   def nodelist = config.get('NODELIST', env.NODELIST)
   def context = config.get('context', 'test/' + env.STAGE_NAME)
