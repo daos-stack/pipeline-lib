@@ -32,7 +32,7 @@ def call(Map config = [:]) {
   def always_script = config.get('always_script',
                                  'ci/unit/test_post_always.sh')
   def valgrind = config.get('valgrind', '')
-  sh script: always_script + ' ' + valgrind ,
+  sh script: always_script + ' ' + valgrind,
      label: "Job Cleanup"
 
   Map stage_info = parseStageInfo(config)
@@ -52,7 +52,10 @@ def call(Map config = [:]) {
     return
   }
 
-  junit testResults: config.get('testResults', 'test_results/*.xml')
+  def test_results = config.get('testResults', 'test_results/*.xml')
+  if (test_results != "") {
+    junit testResults: test_results
+  }
 
   def artifact_list = config.get('artifacts', ['run_test.sh/*', 'vm_test/**'])
   artifact_list.each {
