@@ -18,8 +18,6 @@
    *     Or the default name has to be changed in a way that is compatible
    *     with a future Matrix implementation.
    *
-   * config['daos_pkg_version']  Version of DAOS package.  Required.
-   *
    * config['description']       Description to report for SCM status.
    *                             Default env.STAGE_NAME.
    *
@@ -69,17 +67,13 @@
 
 def call(Map config = [:]) {
 
-  if (!config['daos_pkg_version']) {
-    error 'daos_pkg_version is required.'
-  }
-
   def nodelist = config.get('NODELIST', env.NODELIST)
   def test_script = config.get('test_script', 'ci/unit/test_main.sh')
 
   Map stage_info = parseStageInfo(config)
 
   provisionNodes NODELIST: nodelist,
-                 node_count: stage_info['node_cnt'],
+                 node_count: stage_info['node_count'],
                  distro: stage_info['target'],
                  inst_repos: config['inst_repos'],
                  inst_rpms: config['inst_rpms']
@@ -101,9 +95,7 @@ def call(Map config = [:]) {
   params['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
                      "NODELIST=${nodelist} " +
                      test_script + " " + valgrind
-  params['test_results'] = config.get('junit_files', 'test_results/*.xml')
-  params['test_rpms'] = config.get('test_rpms', env.TEST_RPMS)
-  params['node_count'] = stage_info['node_count']
+  params['junit_files'] = config.get('junit_files', 'test_results/*.xml')
   params['context'] = config.get('context', 'test/' + env.STAGE_NAME)
   params['description'] = config.get('description', env.STAGE_NAME)
 
