@@ -100,7 +100,7 @@ def call(Map config = [:]) {
   params['stashes'] = stashes
   params['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
                      "NODELIST=${nodelist} " +
-                     test_script + valgrind
+                     test_script + " " + valgrind
   params['test_results'] = config.get('junit_files', 'test_results/*.xml')
   params['test_rpms'] = config.get('test_rpms', env.TEST_RPMS)
   params['node_count'] = stage_info['node_count']
