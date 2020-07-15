@@ -42,9 +42,9 @@ void call(Map config = [:]) {
         return runTestFunctionalV1(config)
     }
 
-    Boolean test_rpms = 'false'
+    Boolean test_rpms = false
     if (config['test_rpms'] == "true") {
-        test_rpms = 'true'
+        test_rpms = true
     }
     config['script'] = "TEST_TAG=" + config['test_tag'] + ' ' +
                        "FTEST_ARG=" + config['ftest_arg'] + ' ' +
@@ -55,7 +55,7 @@ void call(Map config = [:]) {
     config['junit_files'] = "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/*.xml install/lib/daos/TESTING/ftest/*_results.xml"
     config['failure_artifacts'] = 'Functional'
 
-    if (test_rpms == 'true' && config['stashes']){
+    if (test_rpms && config['stashes']){
         // we don't need (and might not even have) stashes if testing
         // from RPMs
         config.remove('stashes')
