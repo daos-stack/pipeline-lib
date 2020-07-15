@@ -50,6 +50,7 @@ void call(Map config = [:]) {
                        "FTEST_ARG=" + config['ftest_arg'] + ' ' +
                        "PRAGMA_SUFFIX=" + config['pragma_suffix'] + ' ' +
                        "NODE_COUNT=" + config['node_count'] + ' ' +
+                       "OPERATIONS_EMAIL=" env.OPERATIONS_EMAIL + ' ' +
                        "ci/functional/test_main.sh"
                                      
     config['junit_files'] = "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/*.xml install/lib/daos/TESTING/ftest/*_results.xml"
