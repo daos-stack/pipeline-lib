@@ -53,7 +53,9 @@ def call(Map config = [:]) {
     }
 
     result['compiler'] = 'gcc'
-    if (env.COMPILER) {
+    if (config['COMPILER']) {
+      result['compiler'] = config['COMPILER']
+    } else if (env.COMPILER) {
       result['compiler'] = env.COMPILER
     } else if (env.STAGE_NAME.contains('Clang')) {
       result['compiler'] = 'clang'
@@ -61,6 +63,16 @@ def call(Map config = [:]) {
       result['compiler'] = 'icc'
     } else if (env.STAGE_NAME.contains('Bullseye')) {
       result['compiler'] = 'covc'
+    }
+
+    if (config['build_type']) {
+      result['build_type'] = config['build_type']
+    } else if (config['BUILD_TYPE']) {
+      result['build_type'] = config['BUILD_TYPE']
+    } else if (env.STAGE_NAME.contains('release')) {
+      result['build_type'] = 'release'
+    } else if (env.STAGE_NAME.contains('debug')) {
+      result['build_type'] = 'debug'
     }
 
     if (config['target_prefix']) {
@@ -71,6 +83,17 @@ def call(Map config = [:]) {
 
     if (env.STAGE_NAME.contains('Coverity')) {
       result['test'] = 'coverity'
+    }
+
+    if (config['log_to_file']) {
+      result['log_to_file'] = config['log_to_file']
+    } else {
+       result['log_to_file'] = result['target'] + '-' +
+                               result['compiler']
+      if (result['build_type']) {
+        result['log_to_file'] += '-' + result['build_type']
+      }
+      result['log_to_file'] += '-build.log'
     }
 
     // Unless otherwise specified, all tests will only use one node.
