@@ -64,8 +64,8 @@ def call(Map config = [:]) {
                  node_count: 1,
                  profile: config.get('profile', 'daos_ci'),
                  distro: stage_info['target'],
-                 inst_repos: config['inst_repos'],
-                 inst_rpms: config['inst_rpms']
+                 inst_repos: config.get('inst_repos', ''),
+                 inst_rpms: config.get('inst_rpms', '')
 
   def full_test_script = 'export DAOS_PKG_VERSION=' +
                          config['daos_pkg_version'] + '\n' +
