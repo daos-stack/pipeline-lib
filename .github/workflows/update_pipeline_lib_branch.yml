@@ -1,0 +1,21 @@
+name: Set Pipeline Library Branch
+# This workflow is triggered on pushes to the master branch of the repository.
+on:
+  push:
+
+jobs:
+  update_pipeline_lib_branch:
+    name: Update Pipeline Library Branch
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        ref: ${{ github.head_ref }}
+    - uses: daos-stack/update-pipeline-lib-action@v1
+    - uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        commit_message: Update Pipeline library branch
+        commit_options: '--signoff'
+      id: update_pipeline_lib_branch
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
