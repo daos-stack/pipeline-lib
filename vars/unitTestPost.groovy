@@ -20,8 +20,6 @@
    * config['valgrind']            Unit test run with valgrind: 'memcheck'.
    *                               Default ''.
    *
-   * config['valgrind_pattern']    publishValgrind pattern.
-   *                               Default 'dnt.*.memcheck.xml'
    */
 
 def call(Map config = [:]) {
@@ -31,11 +29,13 @@ def call(Map config = [:]) {
 
   def always_script = config.get('always_script',
                                  'ci/unit/test_post_always.sh')
-  def valgrind = config.get('valgrind', '')
-  sh script: always_script + ' ' + valgrind,
+  Map stage_info = parseStageInfo(config)
+  if (stage_info['valgrind']) {
+    always_script = always_script.trim() + " " + stage_info['valgrind']
+  }
+  sh script: always_script,
      label: "Job Cleanup"
 
-  Map stage_info = parseStageInfo(config)
   if (stage_info['compiler'] == 'covc' ) {
     // Special Bullseye handling
     // Only produce Bullseye/clover artifacts
@@ -62,20 +62,19 @@ def call(Map config = [:]) {
     archiveArtifacts artifacts: it
   }
   
-  def valgrind_pattern = config.get('valgrind_pattern', 'dnt.*.memcheck.xml')
   publishValgrind failBuildOnInvalidReports: true,
                   failBuildOnMissingReports: true,
                   failThresholdDefinitelyLost: '0',
                   failThresholdInvalidReadWrite: '0',
                   failThresholdTotal: '0',
-                  pattern: valgrind_pattern,
+                  pattern: stage_info['valgrind_pattern'],
                   publishResultsForAbortedBuilds: false,
                   publishResultsForFailedBuilds: true,
                   sourceSubstitutionPaths: '',
                   unstableThresholdDefinitelyLost: '0',
                   unstableThresholdInvalidReadWrite: '0',
                   unstableThresholdTotal: '0'
-  if (valgrind == '') {
+  if (!stage_info['valgrind']) {
     recordIssues enabledForFailure: true,
                  failOnError: true,
                  referenceJobName: config.get('referenceJobName',

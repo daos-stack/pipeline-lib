@@ -112,5 +112,21 @@ def call(Map config = [:]) {
     if (config['ftest_arg']) {
       result['ftest_arg'] = config['ftest_arg']
     }
+
+    result['valgrind'] = ''
+    if (config['valgrind']) {
+      result['valgrind'] = config['valgrind']
+    } else if (env.VALGRIND) {
+      result['valgrind'] = env.VALGRIND
+    } else {
+      if (env.STAGE_NAME.contains('memcheck')) {
+        result['valgrind'] = 'memcheck'
+      }
+    }
+
+    result['valgrind_pattern'] = 'dnt.*.memcheck.xml'
+    if (result['valgrind'] == 'memcheck') {
+        result['valgrind_pattern'] = 'run_test_memcheck.sh/*memcheck.xml'
+    }
     return result
 }

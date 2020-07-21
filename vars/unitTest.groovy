@@ -88,13 +88,15 @@ def call(Map config = [:]) {
     stashes.add("${target_compiler}-build-vars")
   }
   
-  def valgrind = config.get('valgrind', '')
+  if (stage_info['valgrind']) {
+    test_script = test_script.trim() + " " + stage_info['valgrind']
+  }
 
   Map params = [:]
   params['stashes'] = stashes
   params['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
                      "NODELIST=${nodelist} " +
-                     test_script + " " + valgrind
+                     test_script
   params['junit_files'] = config.get('junit_files', 'test_results/*.xml')
   params['context'] = config.get('context', 'test/' + env.STAGE_NAME)
   params['description'] = config.get('description', env.STAGE_NAME)
