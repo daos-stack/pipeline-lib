@@ -16,6 +16,7 @@ jobs:
       with:
         commit_message: Update Pipeline library branch
         commit_options: '--signoff'
+        push_options: --force
       id: update_pipeline_lib_branch
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
