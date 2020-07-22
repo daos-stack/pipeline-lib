@@ -16,7 +16,7 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 
-@Library(value="pipeline-lib@bmurrell/pipeline-lib-branch-action") _
+@Library(value="pipeline-lib@bmurrell/fix-pipeline-lib-branch-action") _
 
 // The docker agent setup may need to know the
 // UID that the build agent is running under.
