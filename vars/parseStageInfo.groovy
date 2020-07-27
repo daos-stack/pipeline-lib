@@ -113,15 +113,11 @@ def call(Map config = [:]) {
       result['ftest_arg'] = config['ftest_arg']
     }
 
-    result['valgrind'] = ''
+    result['valgrind'] = 'disabled'
     if (config['valgrind']) {
       result['valgrind'] = config['valgrind']
-    } else if (env.VALGRIND) {
-      result['valgrind'] = env.VALGRIND
-    } else {
-      if (env.STAGE_NAME.contains('memcheck')) {
-        result['valgrind'] = 'memcheck'
-      }
+    } else if(env.STAGE_NAME.contains('memcheck')) {
+      result['valgrind'] = 'memcheck'
     }
 
     result['valgrind_pattern'] = 'dnt.*.memcheck.xml'

@@ -88,9 +88,7 @@ def call(Map config = [:]) {
     stashes.add("${target_compiler}-build-vars")
   }
   
-  if (stage_info['valgrind']) {
-    test_script = test_script.trim() + " " + stage_info['valgrind']
-  }
+  env['WITH_VALGRIND'] = stage_info['valgrind']
 
   Map params = [:]
   params['stashes'] = stashes

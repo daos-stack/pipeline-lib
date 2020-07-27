@@ -30,9 +30,8 @@ def call(Map config = [:]) {
   def always_script = config.get('always_script',
                                  'ci/unit/test_post_always.sh')
   Map stage_info = parseStageInfo(config)
-  if (stage_info['valgrind']) {
-    always_script = always_script.trim() + " " + stage_info['valgrind']
-  }
+
+  env['WITH_VALGRIND'] = stage_info['valgrind']
   sh script: always_script,
      label: "Job Cleanup"
 
