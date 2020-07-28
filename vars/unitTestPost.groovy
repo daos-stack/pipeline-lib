@@ -60,19 +60,21 @@ def call(Map config = [:]) {
   artifact_list.each {
     archiveArtifacts artifacts: it
   }
-  
-  publishValgrind failBuildOnInvalidReports: true,
-                  failBuildOnMissingReports: true,
-                  failThresholdDefinitelyLost: '0',
-                  failThresholdInvalidReadWrite: '0',
-                  failThresholdTotal: '0',
-                  pattern: stage_info['valgrind_pattern'],
-                  publishResultsForAbortedBuilds: false,
-                  publishResultsForFailedBuilds: true,
-                  sourceSubstitutionPaths: '',
-                  unstableThresholdDefinitelyLost: '0',
-                  unstableThresholdInvalidReadWrite: '0',
-                  unstableThresholdTotal: '0'
+
+  if (stage_info['valgrind'] == 'memcheck') {
+    publishValgrind failBuildOnInvalidReports: true,
+                    failBuildOnMissingReports: true,
+                    failThresholdDefinitelyLost: '0',
+                    failThresholdInvalidReadWrite: '0',
+                    failThresholdTotal: '0',
+                    pattern: stage_info['valgrind_pattern'],
+                    publishResultsForAbortedBuilds: false,
+                    publishResultsForFailedBuilds: true,
+                    sourceSubstitutionPaths: '',
+                    unstableThresholdDefinitelyLost: '0',
+                    unstableThresholdInvalidReadWrite: '0',
+                    unstableThresholdTotal: '0'
+  }
   if (!stage_info['valgrind']) {
     recordIssues enabledForFailure: true,
                  failOnError: true,

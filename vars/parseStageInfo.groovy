@@ -116,7 +116,8 @@ def call(Map config = [:]) {
     result['valgrind'] = 'disabled'
     if (config['valgrind']) {
       result['valgrind'] = config['valgrind']
-    } else if(env.STAGE_NAME.contains('memcheck')) {
+    }
+    if(env.STAGE_NAME.contains('memcheck')) {
       result['valgrind'] = 'memcheck'
     }
 
