@@ -114,12 +114,20 @@ def call(Map config = [:]) {
     }
 
     result['valgrind'] = 'disabled'
+
+    echo "marj> config['valgrind'] = ${config['valgrind']}"
+    echo "marj> env.STAGE_NAME = ${env.STAGE_NAME}"
+    echo "marj> env.STAGE_NAME.contains('memcheck') = ${env.STAGE_NAME.contains('memcheck')}"
+
+    echo "marj> result['valgrind'] = ${result['valgrind']}"
     if (config['valgrind']) {
       result['valgrind'] = config['valgrind']
     }
+    echo "marj> result['valgrind'] = ${result['valgrind']}"
     if(env.STAGE_NAME.contains('memcheck')) {
       result['valgrind'] = 'memcheck'
     }
+    echo "marj> result['valgrind'] = ${result['valgrind']}"
 
     result['valgrind_pattern'] = 'dnt.*.memcheck.xml'
     if (result['valgrind'] == 'memcheck') {
