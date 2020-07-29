@@ -67,17 +67,17 @@ def call(Map config = [:]) {
                  inst_repos: config['inst_repos']
                  inst_rpmms: inst_rpms
 
-  def full_test_script = 'export DAOS_PCKAGE_VERSION=' +
+  def full_test_script = 'export DAOS_PKG_VERSION=' +
                          config['daos_pkg_version'] + '\n' +
                          test_script
 
   def junit_files = config.get('junit_files', null)
   def failure_artifacts = config.get('failure_artifacts', env.STAGE_NAME)
   def ignore_failure = config.get('ignore_failure', false)
-  runTest script: full_test_script
-        junit_files: junit_files,
-        failure_artifacts: env.STAGE_NAME,
-        ignore_failure: ignore_failure,
-        description: description,
-        context: context
+  runTest script: full_test_script,
+          junit_files: junit_files,
+          failure_artifacts: env.STAGE_NAME,
+          ignore_failure: ignore_failure,
+          description: description,
+          context: context
 }
