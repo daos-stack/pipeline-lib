@@ -74,19 +74,11 @@ def call(Map config = [:]) {
 
   Map stage_info = parseStageInfo(config)
 
-  String inst_rpms = config['inst_rpms']
+  String inst_rpms = config.get('inst_rpms','')
 
   if (stage_info['compiler'] == 'covc') {
-    if (!inst_rpms) {
-      inst_rpms = ''
-    }
-    if (stage_info['target'].startsWith("centos")) {
-      inst_rpms += ' java-1.8.0-openjdk'
-    } else if (stage_info['target'].startsWith('ubuntu')) {
-      inst_rpms += ' openjdk-8-jdk'
-    } else {
-      // Assume a Suse distro
-      inst_rpms += ' java-1_8_0-openjdk'
+    if (stage_info['java_pkg']) {
+      inst_rpms += " ${stage_info['java_pkg']}"
     }
   }
 

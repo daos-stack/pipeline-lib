@@ -62,7 +62,7 @@ def call(Map config = [:]) {
    * config['log_to_file'] Copy build output to a file.
    *  Default filename is based on parsing environment variables.
    * config['parallel_build'] Build using maximum CPUs
-   * config['test_files']  List of test files to stash.
+   * config['stash_files']  List of test files to stash.
    *   If present, those files will be placed in a stash name
    *   of based on parsing the evironment variables of the
    *   <target-compiler[-build_type]-test>.  Additional stashes
@@ -255,9 +255,9 @@ def call(Map config = [:]) {
         scons_exe = "cov-build --dir cov-int " + scons_exe
     }
 
-    script += '''# the config cache is unreliable so always force a reconfig
-                 # with "--config=force"
-                 pwd
+    // the config cache is unreliable so always force a reconfig
+    // with "--config=force"
+    script += '''pwd
                  if ! ''' + scons_exe + ''' --config=force $SCONS_ARGS''' +
                  tee_file + '''; then
                      rc=\${PIPESTATUS[1]}
@@ -295,7 +295,7 @@ def call(Map config = [:]) {
     if (!config['returnStatus'] && (rc != 0)) {
       error "sconsBuild failed for ${full_script}"
     }
-    if (config['test_files']) {
+    if (config['stash_files']) {
         String target_stash = stage_info['target'] + '-' +
                               stage_info['compiler']
         if (stage_info['build_type']) {
@@ -303,11 +303,8 @@ def call(Map config = [:]) {
         }
         String install_includes = 'install/**'
         if (stage_info['compiler'] == 'covc') {
-            println "sconsBuild stashing test.cov"
             install_includes += ', test.cov'
         }
-        println "sconsBuild install_includes=${install_includes}"
-        sh "ls -l test.cov || true"
         stash name: target_stash + '-install',
               includes: install_includes
         stash name: target_stash + '-build-vars',

@@ -52,6 +52,14 @@ def call(Map config = [:]) {
       }
     }
 
+    if (result['target'].startsWith('centos')) {
+      result['java_pkg'] = 'java-1.8.0-openjdk'
+    } else if (result['target'].startsWith('ubuntu')) {
+      result['target'] = 'openjdk-8-jdk'
+    } else if (result['target'].startsWith('leap')) {
+      result['target'] = 'java-1_8_0-openjdk'
+    }
+
     result['compiler'] = 'gcc'
     if (config['COMPILER']) {
       result['compiler'] = config['COMPILER']

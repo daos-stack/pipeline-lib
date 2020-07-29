@@ -7,7 +7,6 @@
    *
    * @param config Map of parameters passed
    *
-   *
    * config['coverage_healthy']    Map of a coverage healthy target.
    *                               Default is:
    *                                 [method:70, conditional:80, statement:80]
@@ -24,7 +23,6 @@
    *                               build.  Defaults to 'coverage_website.zip'
    *
    * config['ignore_failure']      Ignore test failures.  Default false.
-   *
    *
    * config['inst_rpms']           Additional rpms to install.  Optional
    *
@@ -44,13 +42,8 @@ def call(Map config = [:]) {
 
   String inst_rpms = config.get('inst_rpms','')
 
-  if (stage_info['target'].startsWith("centos")) {
-    inst_rpms += ' java-1.8.0-openjdk'
-  } else if (stage_info['target'].startsWith('ubuntu')) {
-    inst_rpms += ' openjdk-8-jdk'
-  } else {
-    // Assume a Suse distro
-    inst_rpms += ' java-1_8_0-openjdk'
+  if (stage_info['java_pkg']) {
+    inst_rpms += " ${stage_info['java_pkg']}"
   }
 
   provisionNodes NODELIST: nodelist,
