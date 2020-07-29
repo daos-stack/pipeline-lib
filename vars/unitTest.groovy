@@ -90,21 +90,10 @@ def call(Map config = [:]) {
 
   Map params = [:]
   params['stashes'] = stashes
-  
-
-  echo "marj> env['WITH_VALGRIND'] = ${env['WITH_VALGRIND']}"
-  lock(label: 'WITH_VALGRIND resource', variable: 'WITH_VALGRIND') {
-
-    env['WITH_VALGRIND'] = stage_info['valgrind']
-    echo "marj> env['WITH_VALGRIND'] = ${env['WITH_VALGRIND']}"
-    params['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
-                       "NODELIST=${nodelist} " +
-                       test_script
-
-  }
-  echo "marj> env['WITH_VALGRIND'] = ${env['WITH_VALGRIND']}"
-  
-  
+  params['with_valgrind'] = stage_info['valgrind']
+  params['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
+                     "NODELIST=${nodelist} " +
+                     test_script
   params['junit_files'] = config.get('junit_files', 'test_results/*.xml')
   params['context'] = config.get('context', 'test/' + env.STAGE_NAME)
   params['description'] = config.get('description', env.STAGE_NAME)

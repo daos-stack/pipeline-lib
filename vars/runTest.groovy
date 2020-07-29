@@ -62,6 +62,12 @@ def call(Map config = [:]) {
             unstash it
         }
     }
+    
+    echo "marj> in runTest env.WITH_VALGRIND = ${env.WITH_VALGRIND}"
+    if(config['with_valgrind']) {
+        env.WITH_VALGRIND = config['with_valgrind']
+    }
+    echo "marj> in runTest env.WITH_VALGRIND = ${env.WITH_VALGRIND}"
 
     def ignore_failure = false
     if (config['ignore_failure']) {
