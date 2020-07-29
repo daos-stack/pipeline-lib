@@ -87,16 +87,24 @@ def call(Map config = [:]) {
     stashes.add("${target_compiler}-install")
     stashes.add("${target_compiler}-build-vars")
   }
-  
-  echo "marj> env['WITH_VALGRIND'] = ${env['WITH_VALGRIND']}"
-  env['WITH_VALGRIND'] = stage_info['valgrind']
-  echo "marj> env['WITH_VALGRIND'] = ${env['WITH_VALGRIND']}"
+
   Map params = [:]
   params['stashes'] = stashes
-  params['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
-                     "NODELIST=${nodelist} " +
-                     test_script
+  
+
   echo "marj> env['WITH_VALGRIND'] = ${env['WITH_VALGRIND']}"
+  lock(label: 'WITH_VALGRIND resource', variable: 'WITH_VALGRIND') {
+
+    env['WITH_VALGRIND'] = stage_info['valgrind']
+    echo "marj> env['WITH_VALGRIND'] = ${env['WITH_VALGRIND']}"
+    params['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
+                       "NODELIST=${nodelist} " +
+                       test_script
+
+  }
+  echo "marj> env['WITH_VALGRIND'] = ${env['WITH_VALGRIND']}"
+  
+  
   params['junit_files'] = config.get('junit_files', 'test_results/*.xml')
   params['context'] = config.get('context', 'test/' + env.STAGE_NAME)
   params['description'] = config.get('description', env.STAGE_NAME)
