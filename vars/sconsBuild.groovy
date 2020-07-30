@@ -309,7 +309,7 @@ def call(Map config = [:]) {
               includes: install_includes
         stash name: target_stash + '-build-vars',
               includes: '.build_vars.*'
-        String test_files = readFile "${env.WORKSPACE}/${config['test_files']}"
+        String test_files = readFile "${env.WORKSPACE}/${config['stash_files']}"
         stash name: target_stash + '-tests',
               includes: test_files
     }
