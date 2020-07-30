@@ -52,9 +52,7 @@ def call(Map config = [:]) {
   }
 
   def test_results = config.get('testResults', 'test_results/*.xml')
-  if (test_results != "") {
-    junit testResults: test_results
-  }
+  junit testResults: test_results
 
   def artifact_list = config.get('artifacts', ['run_test.sh/*', 'vm_test/**'])
   artifact_list.each {
