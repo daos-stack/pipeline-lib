@@ -62,12 +62,6 @@ def call(Map config = [:]) {
             unstash it
         }
     }
-    
-    echo "marj> in runTest env.WITH_VALGRIND = ${env.WITH_VALGRIND}"
-    if(config['with_valgrind']) {
-        env.WITH_VALGRIND = config['with_valgrind']
-    }
-    echo "marj> in runTest env.WITH_VALGRIND = ${env.WITH_VALGRIND}"
 
     def ignore_failure = false
     if (config['ignore_failure']) {
@@ -104,6 +98,12 @@ def call(Map config = [:]) {
                      echo "${JOB_URL%/job/*}/view/change-requests/job/$BRANCH_NAME/$BUILD_ID/artifact/''' +
                           config['failure_artifacts'] + '"'
     }
+
+    echo "marj> in runTest env.WITH_VALGRIND = ${env.WITH_VALGRIND}"
+    if(config['with_valgrind']) {
+        env.WITH_VALGRIND = config['with_valgrind']
+    }
+    echo "marj> in runTest env.WITH_VALGRIND = ${env.WITH_VALGRIND}"
 
     int rc = 0
     rc = sh(script: script, label: flow_name, returnStatus: true)
