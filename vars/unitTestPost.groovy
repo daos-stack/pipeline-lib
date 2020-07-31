@@ -51,8 +51,10 @@ def call(Map config = [:]) {
     return
   }
 
-  def test_results = config.get('testResults', 'test_results/*.xml')
-  junit testResults: test_results
+  if (stage_info['valgrind'] == 'disabled') {
+    def test_results = config.get('testResults', 'test_results/*.xml')
+    junit testResults: test_results
+  }
 
   def artifact_list = config.get('artifacts', ['run_test.sh/*', 'vm_test/**'])
   artifact_list.each {
