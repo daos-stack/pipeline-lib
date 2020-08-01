@@ -16,7 +16,7 @@
  *                         Default is not present unless the word
  *                         TARGET_PREFIX is present in env.STAGE_NAME,
  *                         and then it will default to 'install/opt'
- * 
+ *
  * This is to simplify the addition of stages to the Jenkinsfile so
  * that in many cases, only the Stage Name text needs to be updated.
  *

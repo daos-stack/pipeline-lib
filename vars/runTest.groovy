@@ -99,11 +99,9 @@ def call(Map config = [:]) {
                           config['failure_artifacts'] + '"'
     }
 
-    echo "marj> in runTest env.WITH_VALGRIND = ${env.WITH_VALGRIND}"
     if(config['with_valgrind']) {
         env.WITH_VALGRIND = config['with_valgrind']
     }
-    echo "marj> in runTest env.WITH_VALGRIND = ${env.WITH_VALGRIND}"
 
     int rc = 0
     rc = sh(script: script, label: flow_name, returnStatus: true)

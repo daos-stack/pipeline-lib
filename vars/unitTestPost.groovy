@@ -53,6 +53,7 @@ def call(Map config = [:]) {
 
   if (stage_info['valgrind'] == 'disabled') {
     def test_results = config.get('testResults', 'test_results/*.xml')
+    echo "marj> test results for valgrind=${stage_info['valgrind']} is ${test_results}"
     junit testResults: test_results
   }
 
@@ -75,7 +76,7 @@ def call(Map config = [:]) {
                     unstableThresholdInvalidReadWrite: '0',
                     unstableThresholdTotal: '0'
   }
-  if (!stage_info['valgrind']) {
+  if (stage_info['valgrind'] == 'disabled') {
     recordIssues enabledForFailure: true,
                  failOnError: true,
                  referenceJobName: config.get('referenceJobName',
@@ -88,7 +89,7 @@ def call(Map config = [:]) {
                  // number of intermittent issues during server
                  // shutdown that would normally be NORMAL but in
                  // order to have stable results are set to LOW.
-  
+
                  qualityGates: [
                    [threshold: 1, type: 'TOTAL_HIGH', unstable: true],
                    [threshold: 1, type: 'TOTAL_ERROR', unstable: true],
@@ -97,6 +98,6 @@ def call(Map config = [:]) {
                   tool: issues(pattern: 'vm_test/nlt-errors.json',
                                name: 'NLT results',
                                id: 'VM_test')
-  
+
   }
 }
