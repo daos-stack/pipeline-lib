@@ -58,6 +58,8 @@ def call(Map config = [:]) {
       result['target'] = 'openjdk-8-jdk'
     } else if (result['target'].startsWith('leap')) {
       result['target'] = 'java-1_8_0-openjdk'
+    } else {
+      error 'Java package not known for ' + result['target']
     }
 
     result['compiler'] = 'gcc'

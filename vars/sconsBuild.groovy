@@ -133,10 +133,8 @@ def call(Map config = [:]) {
     if (config['directory']) {
         set_cwd = "cd ${config['directory']}\n"
     } else if (config_target) {
-        println "sconsLocal config_target = ${config_target}"
         set_cwd = "cd ${config_target}\n"
     }
-    println "sconsLocal set_cwd=${set_cwd}"
 
     def scons_exe = 'scons'
     def scons_args = ''
@@ -257,8 +255,7 @@ def call(Map config = [:]) {
 
     // the config cache is unreliable so always force a reconfig
     // with "--config=force"
-    script += '''pwd
-                 if ! ''' + scons_exe + ''' --config=force $SCONS_ARGS''' +
+    script += '''if ! ''' + scons_exe + ''' --config=force $SCONS_ARGS''' +
                  tee_file + '''; then
                      rc=\${PIPESTATUS[1]}
                      echo "Trying to write to log file failed: \$rc"

@@ -38,6 +38,11 @@
 
 def call(Map config = [:]) {
 
+  // If we don't have a BULLSEYE environment variable set
+  // there are no Bullsye reports to process.
+  if (!env.BULLSEYE) {
+    return
+  }
   Map stage_info = parseStageInfo(config)
 
   String inst_rpms = config.get('inst_rpms','')
