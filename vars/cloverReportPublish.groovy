@@ -24,15 +24,6 @@
    *
    * config['ignore_failure']      Ignore test failures.  Default false.
    *
-   * config['inst_rpms']           Additional rpms to install.  Optional
-   *
-   * config['NODELIST']            NODELIST of nodes to run tests on.
-   *                               Default env.NODELIST
-   *
-   * config['node_count']          Count of nodes that will actually be used
-   *                               the test.  Default will be based on the
-   *                               enviroment variables for the stage.
-   *
    * config['stash']               Stash name for the ".build-vars.*" files.
    */
 
@@ -45,28 +36,12 @@ def call(Map config = [:]) {
   }
   Map stage_info = parseStageInfo(config)
 
-  String inst_rpms = config.get('inst_rpms','')
-
-  if (stage_info['java_pkg']) {
-    inst_rpms += " ${stage_info['java_pkg']}"
-  }
-
-  provisionNodes NODELIST: nodelist,
-                 node_count: stage_info['node_count'],
-                 distro: stage_info['target'],
-                 inst_repos: config.get('inst_repos',''),
-                 inst_rpms: inst_rpms
-
   String coverage_website = config.get('coverage_website',
                                        'coverage_website.zip')
 
   String url_base = env.JENKINS_URL +
                     'job/daos-stack/job/tools/job/master' +
                     '/lastSuccessfulBuild/artifact/'
-
-  httpRequest url:  url_base + 'bullseyecoverage-linux.tar',
-              httpMode: 'GET',
-              outputFile: 'bullseye.tar'
 
   httpRequest url: url_base + 'bullshtml.jar',
               httpMode: 'GET',
@@ -91,11 +66,10 @@ def call(Map config = [:]) {
     unstash it
     stash_cnt++
     String new_name = "test.cov_${stash_cnt}"
-    // Need plugin Upgrade
-    //fileOperations([fileRenameOperation(source: 'test.cov',
-    //                                    destination: new_name)])
-    sh label: 'Rename file',
-       script: "mv test.cov ${new_name}"
+    fileOperations([fileRenameOperation(source: 'test.cov',
+                                        destination: new_name)])
+    //sh label: 'Rename file',
+    //   script: "mv test.cov ${new_name}"
   }
 
   sh label: 'Create Coverage Report',
