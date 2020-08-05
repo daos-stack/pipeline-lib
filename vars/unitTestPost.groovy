@@ -50,14 +50,15 @@ def call(Map config = [:]) {
                      allowEmptyArchive: true
     return
   }
-
+  
+  echo "marj> stage_info['valgrind'] = ${stage_info['valgrind']}"
   if (stage_info['valgrind'] == 'disabled') {
     def test_results = config.get('testResults', 'test_results/*.xml')
     echo "marj> test results for valgrind=${stage_info['valgrind']} is ${test_results}"
     junit testResults: test_results
   }
 
-  def artifact_list = config.get('artifacts', ['run_test.sh/*', 'vm_test/**'])
+  def artifact_list = stage_info['artifacts']
   artifact_list.each {
     archiveArtifacts artifacts: it
   }

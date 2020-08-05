@@ -113,6 +113,16 @@ def call(Map config = [:]) {
       result['ftest_arg'] = config['ftest_arg']
     }
 
+    result['junit_files'] = 'test_results/*.xml'
+    if (config['junit_files']) {
+      result['junit_files'] = config['junit_files']
+    }
+
+    result['artifacts'] = ['run_test.sh/*', 'vm_test/**']
+    if (config['artifacts']) {
+      result['artifacts'] = config['artifacts']
+    }
+
     result['valgrind'] = 'disabled'
     if (config['valgrind']) {
       result['valgrind'] = config['valgrind']
@@ -122,7 +132,9 @@ def call(Map config = [:]) {
 
     result['valgrind_pattern'] = 'dnt.*.memcheck.xml'
     if (result['valgrind'] == 'memcheck') {
-        result['valgrind_pattern'] = 'run_test_memcheck.sh/*memcheck.xml'
+      result['valgrind_pattern'] = 'run_test_memcheck.sh/*memcheck.xml'
+      result['junit_files'] = ''
+      result['artifacts'] = ['run_test_memcheck.sh/*']
     }
     return result
 }
