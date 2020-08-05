@@ -66,10 +66,11 @@ def call(Map config = [:]) {
     unstash it
     stash_cnt++
     String new_name = "test.cov_${stash_cnt}"
-    fileOperations([fileRenameOperation(source: 'test.cov',
-                                        destination: new_name)])
-    //sh label: 'Rename file',
-    //   script: "mv test.cov ${new_name}"
+    // Need a new plugin installed
+    //fileOperations([fileRenameOperation(source: 'test.cov',
+    //                                    destination: new_name)])
+    sh label: 'Rename file',
+       script: "mv test.cov ${new_name}"
   }
 
   sh label: 'Create Coverage Report',
