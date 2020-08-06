@@ -61,7 +61,7 @@
    *
    * config['timeout_units']     Timelimit units.  Default is minutes.
    *
-   * config['valgrind']          Run unit tests with Valgrind: 'memcheck'.
+   * config['with_valgrind']     Run unit tests with Valgrind: 'memcheck'.
    *                             Optional.
    */
 
@@ -90,7 +90,7 @@ def call(Map config = [:]) {
 
   Map params = [:]
   params['stashes'] = stashes
-  params['with_valgrind'] = stage_info['valgrind']
+  params['with_valgrind'] = stage_info['with_valgrind']
   params['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
                      "NODELIST=${nodelist} " +
                      test_script

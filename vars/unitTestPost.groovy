@@ -17,7 +17,7 @@
    * config['testResults']         Junit test result files.
    *                               Default 'test_results/*.xml'
    *
-   * config['valgrind']            Unit test run with valgrind: 'memcheck'.
+   * config['with_valgrind']       Unit test run with valgrind: 'memcheck'.
    *                               Default ''.
    *
    */
@@ -31,7 +31,7 @@ def call(Map config = [:]) {
                                  'ci/unit/test_post_always.sh')
   Map stage_info = parseStageInfo(config)
 
-  env['WITH_VALGRIND'] = stage_info['valgrind']
+  env['WITH_VALGRIND'] = stage_info['with_valgrind']
   sh script: always_script,
      label: "Job Cleanup"
 
@@ -51,10 +51,8 @@ def call(Map config = [:]) {
     return
   }
   
-  echo "marj> stage_info['valgrind'] = ${stage_info['valgrind']}"
-  if (stage_info['valgrind'] == 'disabled') {
+  if (stage_info['with_valgrind'] == 'disabled') {
     def test_results = config.get('testResults', 'test_results/*.xml')
-    echo "marj> test results for valgrind=${stage_info['valgrind']} is ${test_results}"
     junit testResults: test_results
   }
 
@@ -63,7 +61,7 @@ def call(Map config = [:]) {
     archiveArtifacts artifacts: it
   }
 
-  if (stage_info['valgrind'] == 'memcheck') {
+  if (stage_info['with_valgrind'] == 'memcheck') {
     publishValgrind failBuildOnInvalidReports: true,
                     failBuildOnMissingReports: true,
                     failThresholdDefinitelyLost: '0',
@@ -77,7 +75,7 @@ def call(Map config = [:]) {
                     unstableThresholdInvalidReadWrite: '0',
                     unstableThresholdTotal: '0'
   }
-  if (stage_info['valgrind'] == 'disabled') {
+  if (stage_info['with_valgrind'] == 'disabled') {
     recordIssues enabledForFailure: true,
                  failOnError: true,
                  referenceJobName: config.get('referenceJobName',

@@ -113,28 +113,31 @@ def call(Map config = [:]) {
       result['ftest_arg'] = config['ftest_arg']
     }
 
-    result['junit_files'] = 'test_results/*.xml'
-    if (config['junit_files']) {
-      result['junit_files'] = config['junit_files']
+    if (env.STAGE_NAME.contains('run_test.sh')) {
+      result['junit_files'] = 'test_results/*.xml'
+      result['artifacts'] = ['run_test.sh/*', 'vm_test/**']
+      result['with_valgrind'] = 'disabled'
+      result['valgrind_pattern'] = 'dnt.*.memcheck.xml'
+
+      if (config['junit_files']) {
+        result['junit_files'] = config['junit_files']
+      }
+      if (config['artifacts']) {
+        result['artifacts'] = config['artifacts']
+      }
+
+      if (config['with_valgrind']) {
+        result['with_valgrind'] = config['with_valgrind']
+      } else if(env.STAGE_NAME.contains('memcheck')) {
+        result['with_valgrind'] = 'memcheck'
+      }
+
+      if (result['with_valgrind'] == 'memcheck') {
+        result['valgrind_pattern'] = 'run_test_memcheck.sh/*memcheck.xml'
+        result['junit_files'] = ''
+        result['artifacts'] = ['run_test_memcheck.sh/*']
+      }
     }
 
-    result['artifacts'] = ['run_test.sh/*', 'vm_test/**']
-    if (config['artifacts']) {
-      result['artifacts'] = config['artifacts']
-    }
-
-    result['valgrind'] = 'disabled'
-    if (config['valgrind']) {
-      result['valgrind'] = config['valgrind']
-    } else if(env.STAGE_NAME.contains('memcheck')) {
-      result['valgrind'] = 'memcheck'
-    }
-
-    result['valgrind_pattern'] = 'dnt.*.memcheck.xml'
-    if (result['valgrind'] == 'memcheck') {
-      result['valgrind_pattern'] = 'run_test_memcheck.sh/*memcheck.xml'
-      result['junit_files'] = ''
-      result['artifacts'] = ['run_test_memcheck.sh/*']
-    }
     return result
 }
