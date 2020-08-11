@@ -116,7 +116,7 @@ def call(Map config = [:]) {
     if (env.STAGE_NAME.contains('run_test.sh')) {
       result['junit_files'] = 'test_results/*.xml'
       result['artifacts'] = ['run_test.sh/*', 'vm_test/**']
-      result['with_valgrind'] = 'disabled'
+      result['with_valgrind'] = ''
       result['valgrind_pattern'] = 'dnt.*.memcheck.xml'
 
       if (config['junit_files']) {

@@ -51,7 +51,7 @@ def call(Map config = [:]) {
     return
   }
   
-  if (stage_info['with_valgrind'] == 'disabled') {
+  if (!stage_info['with_valgrind']) {
     def test_results = config.get('testResults', 'test_results/*.xml')
     junit testResults: test_results
   }
@@ -74,8 +74,7 @@ def call(Map config = [:]) {
                     unstableThresholdDefinitelyLost: '0',
                     unstableThresholdInvalidReadWrite: '0',
                     unstableThresholdTotal: '0'
-  }
-  if (stage_info['with_valgrind'] == 'disabled') {
+  } else if (!stage_info['with_valgrind']) {
     recordIssues enabledForFailure: true,
                  failOnError: true,
                  referenceJobName: config.get('referenceJobName',
