@@ -26,7 +26,7 @@ def call(Map config = [:]) {
    * config['skip_clean'] Skip cleaning the build
    * config['clean'] Space separated filenames to be removed after
    *  the prebuild option.
-   *  Defaults _build.external'.
+   *  Defaults _build.external* install build'.
    * config['directory'] is the directory to use for the build.
    *  Defaults to config['target'] if config['target'] is specified.
    * config['no_install'] Set to true to skip install step.
@@ -53,55 +53,31 @@ def call(Map config = [:]) {
    * config['USE_INSTALLED'] setting for USE_INSTALLED.  Default 'all'.
    * config['BUILD_ROOT'] setting for BUILD_ROOT.  Default 'build'.
    * config['BUILD_TYPE'] setting for BUILD_TYPE.  Default 'dev'.
-   * config['COMPILER'] setting for COMPILER.
-   *  Default is from parsing environment variables.
+   * config['COMPILER'] setting for COMPILER.  Default 'gcc'.
    * config['WARNING_LEVEL'] setting for WARNING_LEVEL.  Default 'error'.
    *  If false, a failure of the scons commands will cause this step to fail.
-   * config['failure_artifacts'] Artifacts to link to when scons fails.
-   *  Default is from parsing environment variables.
-   * config['log_to_file'] Copy build output to a file.
-   *  Default filename is based on parsing environment variables.
+   * config['failure_artifacts'] Artifacts to link to when scons fails
+   * config['log_to_file'] Copy build output to a file
    * config['parallel_build'] Build using maximum CPUs
-   * config['stash_files']  List of test files to stash.
-   *   If present, those files will be placed in a stash name
-   *   of based on parsing the evironment variables of the
-   *   <target-compiler[-build_type]-test>.  Additional stashes
-   *   will be created for "install" and "build_vars" with similar
-   *   prefixes.
    */
 
-    String config_target
-    if (config['target']) {
-      config_target = config['target']
-      config.remove('target')
-    }
-    Map stage_info = parseStageInfo(config)
-
-    String tee_file = '| tee $WORKSPACE/' + stage_info['log_to_file']
-
-    String failure_artifacts=''
-    if (config['failure_artifacts']) {
-        failure_artifacts = config['failure_artifacts']
-    } else {
-        failure_artifacts = 'config.log-' +  stage_info['target'] +
-                            '-' + stage_info['compiler']
-        if (stage_info['build_type']) {
-            failure_artifacts += '-' + stage_info['build_type']
-        }
+    def tee_file = '| cat'
+    if (config['log_to_file']) {
+        tee_file = "| tee ${WORKSPACE}/" + config['log_to_file']
     }
 
     /* If we have to tamper with the checkout, we also need to remove
      * the potential tampering before the scm operation.
      */
-    if (config['scons_local_replace'] && config_target) {
-       sh "rm -rf \"\${WORKSPACE}/${config_target}/scons_local\""
+    if (config['scons_local_replace'] && config['target']) {
+       sh "rm -rf \"\${WORKSPACE}/${config['target']}/scons_local\""
     }
 
     def scm_config = [withSubmodules: true]
     if (config['scm']) {
         scm_config = config['scm']
-        if (config_target && !scm_config['checkoutDir']) {
-            scm_config['checkoutDir'] = config_target
+        if (config['target'] && !scm_config['checkoutDir']) {
+            scm_config['checkoutDir'] = config['target']
         }
     }
     checkoutScm(scm_config)
@@ -111,29 +87,20 @@ def call(Map config = [:]) {
                   status: "PENDING"
     }
 
-    if (config['scons_local_replace'] && config_target) {
-       // replace the scons_local directory in config_target
+    if (config['scons_local_replace'] && config['target']) {
+       // replace the scons_local directory in config['target']
        // with a link to the scons_local directory.
-       sh """rm -rf "\${WORKSPACE}/${config_target}/scons_local"
+       sh """rm -rf "\${WORKSPACE}/${config['target']}/scons_local"
              ln -s "${WORKSPACE}/scons_local" \
-               "\${WORKSPACE}/${config_target}/scons_local"
+               "\${WORKSPACE}/${config['target']}/scons_local"
              """
-    }
-
-    if (stage_info['compiler'] == 'covc') {
-      httpRequest url: env.JENKINS_URL +
-                       'job/daos-stack/job/tools/job/master' +
-                       '/lastSuccessfulBuild/artifact/' +
-                       'bullseyecoverage-linux.tar',
-                  httpMode: 'GET',
-                  outputFile: 'bullseye.tar'
     }
 
     def set_cwd = ''
     if (config['directory']) {
         set_cwd = "cd ${config['directory']}\n"
-    } else if (config_target) {
-        set_cwd = "cd ${config_target}\n"
+    } else if (config['target']) {
+        set_cwd = "cd ${config['target']}\n"
     }
 
     def scons_exe = 'scons'
@@ -164,22 +131,22 @@ def call(Map config = [:]) {
     }
     if (config['SRC_PREFIX']) {
         scons_args += " SRC_PREFIX=${config['SRC_PREFIX']}"
-    } else if (config_target) {
+    } else if (config['target']) {
         scons_args += " SRC_PREFIX=\${WORKSPACE}}"
     }
     if (config['REQUIRES']) {
         scons_args += " REQUIRES=${config['REQUIRES']}"
-    } else if (config_target) {
-        scons_args += " REQUIRES=${config_target}"
+    } else if (config['target']) {
+        scons_args += " REQUIRES=${config['target']}"
     }
     if (config['BUILD_ROOT']) {
         scons_args += " BUILD_ROOT=${config['BUILD_ROOT']}"
     }
-    if (stage_info['build_type']) {
-        scons_args += " BUILD_TYPE=${stage_info['build_type']}"
+    if (config['BUILD_TYPE']) {
+        scons_args += " BUILD_TYPE=${config['BUILD_TYPE']}"
     }
-    if (stage_info['compiler']) {
-        scons_args += " COMPILER=${stage_info['compiler']}"
+    if (config['COMPILER']) {
+        scons_args += " COMPILER=${config['COMPILER']}"
     }
     if (config['WARNING_LEVEL']) {
         scons_args += " WARNING_LEVEL=${config['WARNING_LEVEL']}"
@@ -189,7 +156,7 @@ def call(Map config = [:]) {
     if (config['skip_clean']) {
         clean_cmd += "echo 'skipping scons -c'\n"
     } else {
-        def clean_files = "_build.external"
+        def clean_files = "_build.external{,-Linux}"
         if (config['clean']) {
             clean_files = config['clean']
         }
@@ -197,17 +164,10 @@ def call(Map config = [:]) {
         clean_files += ' .sconsign{,-Linux}.dblite .sconf-temp{,-Linux}'
         clean_cmd += scons_exe + " -c ${sconstruct}\n"
         clean_cmd += "rm -rf ${clean_files}\n"
-        if (config_target) {
-            clean_cmd += "rm -rf ${config_target}/${clean_files}\n"
+        if (config['target']) {
+            clean_cmd += "rm -rf ${config['target']}/${clean_files}\n"
         }
     }
-
-    // Builds of Raft may fail if this directory is present in the workspace
-    // from a previous run.
-    // Builds may fail if bandit.xml files present in the workspace.
-    sh label: 'Remove some old build files if present.',
-       script:'rm -rf src/rdb/raft/CLinkedListQueue bandit.xml test.cov',
-       returnStatus: true
 
     def prebuild = ''
     if (config['prebuild']) {
@@ -221,8 +181,8 @@ def call(Map config = [:]) {
         def target_dirs = ''
         if (config['target_dirs']) {
           target_dirs = config['target_dirs']
-        } else if (config_target) {
-          target_dirs = config_target
+        } else if (config['target']) {
+          target_dirs = config['target']
         }
         def target_work = config['target_work']
         prefix_1 =
@@ -252,10 +212,9 @@ def call(Map config = [:]) {
         script += "PATH+=:${WORKSPACE}/cov_analysis/bin\n"
         scons_exe = "cov-build --dir cov-int " + scons_exe
     }
-
-    // the config cache is unreliable so always force a reconfig
-    // with "--config=force"
-    script += '''if ! ''' + scons_exe + ''' --config=force $SCONS_ARGS''' +
+    script += '''# the config cache is unreliable so always force a reconfig
+                 # with "--config=force"
+                 if ! ''' + scons_exe + ''' --config=force $SCONS_ARGS''' +
                  tee_file + '''; then
                      rc=\${PIPESTATUS[1]}
                      echo "Trying to write to log file failed: \$rc"
@@ -267,7 +226,7 @@ def call(Map config = [:]) {
                      set +x
                      echo -n "If the error is not in the output above, it might be in the config.log: "
                      echo "${JOB_URL%/job/*}/view/change-requests/job/$BRANCH_NAME/$BUILD_ID/artifact/''' +
-                          failure_artifacts + '"' + '''
+                          config['failure_artifacts'] + '"' + '''
                      exit \$rc
                  fi'''
     def full_script = "#!/bin/bash\nset -ex\n" +
@@ -291,24 +250,6 @@ def call(Map config = [:]) {
     }
     if (!config['returnStatus'] && (rc != 0)) {
       error "sconsBuild failed for ${full_script}"
-    }
-    if (config['stash_files']) {
-        String target_stash = stage_info['target'] + '-' +
-                              stage_info['compiler']
-        if (stage_info['build_type']) {
-            target_stash += '-' + stage_info['build_type']
-        }
-        String install_includes = 'install/**'
-        if (stage_info['compiler'] == 'covc') {
-            install_includes += ', test.cov'
-        }
-        stash name: target_stash + '-install',
-              includes: install_includes
-        stash name: target_stash + '-build-vars',
-              includes: '.build_vars.*'
-        String test_files = readFile "${env.WORKSPACE}/${config['stash_files']}"
-        stash name: target_stash + '-tests',
-              includes: test_files
     }
     return rc
 }

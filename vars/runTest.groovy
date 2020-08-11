@@ -99,15 +99,8 @@ def call(Map config = [:]) {
                           config['failure_artifacts'] + '"'
     }
 
-    def cb_result = currentBuild.result
-
     int rc = 0
     rc = sh(script: script, label: flow_name, returnStatus: true)
-
-    if (cb_result != currentBuild.result) {
-      println "The runTest script changed build result to " +
-              "${currentBuild.result}."
-    }
 
     // All of this really should be done in the post section of the main
     // Jenkinsfile but it cannot due to
@@ -129,11 +122,9 @@ def call(Map config = [:]) {
                 if (sh(script: 'grep "<error " ' + filesList.join(' '),
                        returnStatus: true) == 0) {
                     status = "FAILURE"
-                    println "Found at least one error in the Junit files."
                 } else if (sh(script: 'grep "<failure " ' + filesList.join(' '),
                               returnStatus: true) == 0) {
                     status = "UNSTABLE"
-                    println "Found at least one failure in the junit files."
                 }
                 if (filesList.join(" ").indexOf("pipeline-test-failure.xml") > -1) {
                     test_failure = true
@@ -160,7 +151,6 @@ def call(Map config = [:]) {
             }
         }
     }
-
     stepResult name: description,
                context: context,
                flow_name: flow_name,
@@ -176,5 +166,4 @@ def call(Map config = [:]) {
             }
         }
     }
-
 }
