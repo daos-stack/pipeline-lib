@@ -134,7 +134,6 @@ def call(Map config = [:]) {
 
       if (result['with_valgrind'] == 'memcheck') {
         result['valgrind_pattern'] = 'run_test_memcheck.sh/*memcheck.xml'
-        result['junit_files'] = ''
         result['artifacts'] = ['run_test_memcheck.sh/*']
       }
     }

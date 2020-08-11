@@ -51,10 +51,8 @@ def call(Map config = [:]) {
     return
   }
   
-  if (!stage_info['with_valgrind']) {
-    def test_results = config.get('testResults', 'test_results/*.xml')
-    junit testResults: test_results
-  }
+  def test_results = stage_info['junit_files']
+  junit testResults: test_results
 
   def artifact_list = stage_info['artifacts']
   artifact_list.each {
