@@ -53,7 +53,9 @@ void call(Map config = [:]) {
                        "OPERATIONS_EMAIL=" + env.OPERATIONS_EMAIL + ' ' +
                        "ci/functional/test_main.sh"
                                      
-    config['junit_files'] = "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/*.xml install/lib/daos/TESTING/ftest/*_results.xml"
+    config['junit_files'] = "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/*.xml " +
+                            "install/lib/daos/TESTING/ftest/*_results.xml " +
+                            "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/test-results/*/data/*_results.xml"
     config['failure_artifacts'] = 'Functional'
 
     if (test_rpms && config['stashes']){
