@@ -99,8 +99,15 @@ def call(Map config = [:]) {
                           config['failure_artifacts'] + '"'
     }
 
+    def cb_result = currentBuild.result
+
     int rc = 0
     rc = sh(script: script, label: flow_name, returnStatus: true)
+
+    if (cb_result != currentBuild.result) {
+      println "The runTest script changed build result to " +
+              "${currentBuild.result}."
+    }
 
     // All of this really should be done in the post section of the main
     // Jenkinsfile but it cannot due to
@@ -119,16 +126,21 @@ def call(Map config = [:]) {
                 filesList.addAll(findFiles(glob: it))
             }
             if (filesList) {
-                if (sh(script: 'grep "<error " ' + filesList.join(' '),
+                String junit_xml = filesList.collect{"'" + it + "'"}.join(' ')
+                if (sh(label: 'Check junit xml files for errors',
+                       script: 'grep "<error " ' + junit_xml,
                        returnStatus: true) == 0) {
                     status = "FAILURE"
-                } else if (sh(script: 'grep "<failure " ' + filesList.join(' '),
+                    println "Found at least one error in the Junit files."
+                } else if (sh(label: 'Check junit xml files for failures',
+                              script: 'grep "<failure " ' + junit_xml,
                               returnStatus: true) == 0) {
                     status = "UNSTABLE"
+                    println "Found at least one failure in the junit files."
                 }
-                if (filesList.join(" ").indexOf("pipeline-test-failure.xml") > -1) {
+                if (junit_xml.indexOf("pipeline-test-failure.xml") > -1) {
                     test_failure = true
-                } else if (filesList.join(" ").indexOf("pipeline-test-error.xml") > -1) {
+                } else if (junit_xml.indexOf("pipeline-test-error.xml") > -1) {
                     test_error = true
                 }
             }
@@ -151,6 +163,7 @@ def call(Map config = [:]) {
             }
         }
     }
+
     stepResult name: description,
                context: context,
                flow_name: flow_name,
@@ -166,4 +179,5 @@ def call(Map config = [:]) {
             }
         }
     }
+
 }
