@@ -30,6 +30,7 @@ def call(Map config = [:]) {
 
   def junit_results = config.get('testResults',
                                  'Functional/*/results.xml, ' +
+                                 'Functional/*/test-results/*/data/*_results.xml, ' +
                                  'install/lib/daos/TESTING/ftest/*_results.xml')
   junit testResults: junit_results
 }
