@@ -72,7 +72,7 @@ def call(Map config = [:]) {
                     unstableThresholdDefinitelyLost: '0',
                     unstableThresholdInvalidReadWrite: '0',
                     unstableThresholdTotal: '0'
-  } else if (stage_info['with_valgrind'] == 'disabled') {
+  } else if (!stage_info['with_valgrind']) {
     recordIssues enabledForFailure: true,
                  failOnError: true,
                  referenceJobName: config.get('referenceJobName',
