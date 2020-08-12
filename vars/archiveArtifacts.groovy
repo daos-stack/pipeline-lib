@@ -8,7 +8,6 @@
  */
 
 def call(Map config = [:]) {
-    println "Entering archiveArtifacts override."
     def script = '''if [ "${NO_CI_TESTING}" == 'true' ]; then
                         exit 1
                     fi
