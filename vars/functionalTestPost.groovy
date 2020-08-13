@@ -13,8 +13,8 @@
    *
    * config['testResults']         Junit test result files.
    *                               Default 'Functional/*' + '/results.xml, ' +
-   *                                       'install/lib/daos/TESTING/ftest/' +
-   *                                       '_results.xml'
+   *                                       'Functional/*' + '/test-results/*' +
+   *                                       '/data/*_results.xml'
    */
 
 def call(Map config = [:]) {
@@ -30,6 +30,6 @@ def call(Map config = [:]) {
 
   def junit_results = config.get('testResults',
                                  'Functional/*/results.xml, ' +
-                                 'install/lib/daos/TESTING/ftest/*_results.xml')
+                                 'Functional/*/test-results/*/data/*_results.xml')
   junit testResults: junit_results
 }
