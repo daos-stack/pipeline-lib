@@ -146,28 +146,11 @@ def call(Map config = [:]) {
       result['ftest_arg'] = config['ftest_arg']
     }
 
-    if (env.STAGE_NAME.contains('run_test.sh')) {
-      result['junit_files'] = 'test_results/*.xml'
-      result['artifacts'] = ['run_test.sh/*', 'vm_test/**']
+    if (env.STAGE_NAME.contains('Unit Test')) {
       result['with_valgrind'] = ''
-      result['valgrind_pattern'] = 'dnt.*.memcheck.xml'
 
-      if (config['junit_files']) {
-        result['junit_files'] = config['junit_files']
-      }
-      if (config['artifacts']) {
-        result['artifacts'] = config['artifacts']
-      }
-
-      if (config['with_valgrind']) {
-        result['with_valgrind'] = config['with_valgrind']
-      } else if(env.STAGE_NAME.contains('memcheck')) {
+      if(env.STAGE_NAME.contains('memcheck')) {
         result['with_valgrind'] = 'memcheck'
-      }
-
-      if (result['with_valgrind'] == 'memcheck') {
-        result['valgrind_pattern'] = 'run_test_memcheck.sh/*memcheck.xml'
-        result['artifacts'] = ['run_test_memcheck.sh/*']
       }
     }
 

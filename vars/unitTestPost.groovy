@@ -50,6 +50,14 @@ def call(Map config = [:]) {
     println "The junit plugin changed result to ${currentBuild.result}."
   }
 
+  if(stage_info['with_valgrind']) {
+    println "ls".execute().text
+    def run_test_dir = new File('run_test.sh')
+    assert run_test_dir.exists()
+    run_test_dir.renameTo('run_test_memcheck.sh')
+    assert run_test_dir.exists()
+  }
+
   def artifact_list = config.get('artifacts', ['run_test.sh/*', 'vm_test/**'])
   def ignore_failure = config.get('ignore_failure', false)
   artifact_list.each {

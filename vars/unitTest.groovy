@@ -65,9 +65,6 @@
    *                             Default is 120 Minutes.
    *
    * config['timeout_units']     Timelimit units.  Default is minutes.
-   *
-   * config['with_valgrind']     Run unit tests with Valgrind: 'memcheck'.
-   *                             Optional.
    */
 
 def call(Map config = [:]) {
@@ -121,7 +118,7 @@ def call(Map config = [:]) {
   params['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
                      "NODELIST=${nodelist} " +
                      test_script
-  params['junit_files'] = stage_info['junit_files']
+  params['junit_files'] = config.get('junit_files', 'test_results/*.xml')
   params['context'] = config.get('context', 'test/' + env.STAGE_NAME)
   params['description'] = config.get('description', env.STAGE_NAME)
   params['ignore_failure'] = config.get('ignore_failure', false)
