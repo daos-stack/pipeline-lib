@@ -99,18 +99,24 @@ def call(Map config = [:]) {
                           config['failure_artifacts'] + '"'
     }
 
-    println config['with_valgrind']
+    def cb_result = currentBuild.result
+    
+    echo config['with_valgrind']
     environment {
         WITH_VALGRIND = config['with_valgrind']
     }
+    echo env.WITH_VALGRIND
     if(config['with_valgrind']) {
         env.WITH_VALGRIND = config['with_valgrind']
     }
+    echo env.WITH_VALGRIND
 
-    def cb_result = currentBuild.result
-
-    int rc = 0
-    rc = sh(script: script, label: flow_name, returnStatus: true)
+    withEnv(['WITH_VALGRIND=${config[with_valgrind]}']) {
+      echo env.WITH_VALGRIND
+      int rc = 0
+      rc = sh(script: script, label: flow_name, returnStatus: true)
+    }
+    echo env.WITH_VALGRIND
 
     if (cb_result != currentBuild.result) {
       println "The runTest script changed build result to " +
