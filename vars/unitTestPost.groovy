@@ -51,11 +51,9 @@ def call(Map config = [:]) {
   }
 
   if(stage_info['with_valgrind']) {
-    println "ls".execute().text
-    def run_test_dir = new File('run_test.sh')
-    assert run_test_dir.exists()
-    run_test_dir.renameTo('run_test_memcheck.sh')
-    assert run_test_dir.exists()
+    String new_name = "run_test_memcheck.sh"
+    fileOperations([fileRenameOperation(source: 'run_test.sh',
+                                        destination: new_name)])
   }
 
   def artifact_list = config.get('artifacts', ['run_test.sh/*', 'vm_test/**'])

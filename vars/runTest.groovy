@@ -99,6 +99,10 @@ def call(Map config = [:]) {
                           config['failure_artifacts'] + '"'
     }
 
+    println config['with_valgrind']
+    environment {
+        WITH_VALGRIND = config['with_valgrind']
+    }
     if(config['with_valgrind']) {
         env.WITH_VALGRIND = config['with_valgrind']
     }
