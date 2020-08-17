@@ -49,7 +49,8 @@ def call(Map config = [:]) {
   if (cb_result != currentBuild.result) {
     println "The junit plugin changed result to ${currentBuild.result}."
   }
-
+  script: '''ls
+             ls -lah'''
   if(stage_info['with_valgrind']) {
     String new_name = "run_test_memcheck.sh"
     fileOperations([fileRenameOperation(source: 'run_test.sh',
