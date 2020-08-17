@@ -59,10 +59,6 @@ def call(Map config = [:]) {
     fileOperations([fileRenameOperation(source: 'test_results',
                                         destination: new_name)])
   }
-  sh label: 'debug ls 2',
-     script: '''ls
-             ls -lah
-             ls run_test_memcheck.sh'''
 
   def artifact_list = config.get('artifacts', ['run_test.sh/*', 'vm_test/**'])
   def ignore_failure = config.get('ignore_failure', false)
