@@ -147,8 +147,6 @@ def call(Map config = [:]) {
     }
 
     if (env.STAGE_NAME.contains('Unit Test')) {
-      result['with_valgrind'] = ''
-
       if(env.STAGE_NAME.contains('memcheck')) {
         result['with_valgrind'] = 'memcheck'
       }
