@@ -41,7 +41,7 @@ def call(Map config = [:]) {
   if (config['ignore_failure']) {
     health_scale = 0.0
   }
- 
+
   def cb_result = currentBuild.result
   junit testResults: config.get('testResults', 'test_results/*.xml'),
         healthScaleFactor: health_scale
@@ -49,10 +49,6 @@ def call(Map config = [:]) {
   if (cb_result != currentBuild.result) {
     println "The junit plugin changed result to ${currentBuild.result}."
   }
-  sh label: 'debug ls',
-     script: '''ls
-             ls -lah
-             ls test_results'''
 
   if(stage_info['with_valgrind']) {
     String new_name = "run_test_memcheck.sh"
