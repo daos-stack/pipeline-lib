@@ -15,7 +15,7 @@
 // That PR should be landed with out deleting the PR branch.
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
-@Library(value="pipeline-lib@bmurrell/build-leap-on-15.2") _
+//@Library(value="pipeline-lib@my_branch_name") _
 
 // The docker agent setup may need to know the
 // UID that the build agent is running under.
