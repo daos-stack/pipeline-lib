@@ -228,7 +228,7 @@ def call(Map pipeline_args) {
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/epel-7-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/centos7/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '') +
+                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "centos7") +
                                              '\ncreaterepo artifacts/centos7/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
@@ -301,7 +301,7 @@ def call(Map pipeline_args) {
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/epel-8-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/centos8/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '') +
+                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "centos8") +
                                              '\ncreaterepo artifacts/centos8/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
@@ -377,7 +377,7 @@ def call(Map pipeline_args) {
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/sles-12.3-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/sles12.3/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '') +
+                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "sles12.3") +
                                              '\ncreaterepo artifacts/sles12.3/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
@@ -401,7 +401,7 @@ def call(Map pipeline_args) {
                             }
                             always {
                                 sh label: "Collect config.log(s)",
-                                   script: '''(if /var/lib/mock/sles-12.3-x86_64/root/builddir/build/BUILD/*/; then
+                                   script: '''(if cd /var/lib/mock/sles-12.3-x86_64/root/builddir/build/BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
@@ -452,7 +452,7 @@ def call(Map pipeline_args) {
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/opensuse-leap-42.3-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/leap42.3/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '') +
+                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "leap42.3") +
                                              '\ncreaterepo artifacts/leap42.3/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
@@ -476,7 +476,7 @@ def call(Map pipeline_args) {
                             }
                             always {
                                 sh label: "Collect config.log(s)",
-                                   script: '''(if /var/lib/mock/opensuse-leap-42.3-x86_64/root/builddir/build/BUILD/*/; then
+                                   script: '''(if cd /var/lib/mock/opensuse-leap-42.3-x86_64/root/builddir/build/BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
@@ -517,16 +517,16 @@ def call(Map pipeline_args) {
                             sh label: "Build package",
                                script: '''rm -rf artifacts/leap15/
                                           mkdir -p artifacts/leap15/
-                                          make CHROOT_NAME="opensuse-leap-15.1-x86_64" ''' +
+                                          make CHROOT_NAME="opensuse-leap-15.2-x86_64" ''' +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
                         }
                         post {
                             success {
                                 sh label: "Collect artifacts",
-                                   script: '''(cd /var/lib/mock/opensuse-leap-15.1-x86_64/result/ &&
+                                   script: '''(cd /var/lib/mock/opensuse-leap-15.2-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/leap15/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '') +
+                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "leap15") +
                                              '\ncreaterepo artifacts/leap15/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
@@ -540,7 +540,7 @@ def call(Map pipeline_args) {
                             }
                             unsuccessful {
                                 sh label: "Build Log",
-                                   script: '''mockroot=/var/lib/mock/opensuse-leap-15.1-x86_64
+                                   script: '''mockroot=/var/lib/mock/opensuse-leap-15.2-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
                                               artdir=$PWD/artifacts/leap15
@@ -550,7 +550,7 @@ def call(Map pipeline_args) {
                             }
                             always {
                                 sh label: "Collect config.log(s)",
-                                   script: '''(if /var/lib/mock/opensuse-leap-15.1-x86_64/root/builddir/build/BUILD/*/; then
+                                   script: '''(if cd /var/lib/mock/opensuse-leap-15.2-x86_64/root/builddir/build/BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
@@ -770,10 +770,10 @@ def call(Map pipeline_args) {
                                           if ! make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
                                                '@' + env.BRANCH_NAME + ':' + env.BUILD_NUMBER +
                                                ' ' + pipeline_args.get('test_repos', '') + '''" \
-                                               CHROOT_NAME=opensuse-leap-15.1-x86_64            \
+                                               CHROOT_NAME=opensuse-leap-15.2-x86_64            \
                                                -C utils/rpms chrootbuild; then
                                             grep 'No matching package to install'               \
-                                                 /var/lib/mock/opensuse-leap-15.1-x86_64/result/root.log
+                                                 /var/lib/mock/opensuse-leap-15.2-x86_64/result/root.log
                                             # We need to allow failures from missing other packages
                                             # we build for creating an initial set of packages
                                           fi'''
@@ -781,7 +781,7 @@ def call(Map pipeline_args) {
                         post {
                             always {
                                 sh label: "Build Log",
-                                   script: 'cat /var/lib/mock/opensuse-leap-15.1-x86_64/result/{root,build}.log'
+                                   script: 'cat /var/lib/mock/opensuse-leap-15.2-x86_64/result/{root,build}.log'
                             }
                             cleanup {
                                 archiveArtifacts artifacts: 'test_artifacts/**',
