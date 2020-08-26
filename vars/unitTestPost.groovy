@@ -51,7 +51,7 @@ def call(Map config = [:]) {
   }
 
   if(stage_info['with_valgrind']) {
-    String new_name = "run_test_memcheck.sh"
+    String new_name = "unit_test_memcheck_logs"
     fileOperations([fileRenameOperation(source: 'test_results',
                                         destination: new_name)])
   }
