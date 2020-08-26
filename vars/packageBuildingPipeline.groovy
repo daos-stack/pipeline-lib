@@ -51,7 +51,7 @@ def call(Map pipeline_args) {
     } else {
         distros = ['centos7', 'leap15', 'ubuntu_rolling']
     }
-    
+
     if (pipeline_args['name']) {
         package_name = pipeline_args['name']
     } else {
@@ -294,6 +294,7 @@ def call(Map pipeline_args) {
                             beforeAgent true
                             allOf {
                                 environment name: 'SLES12_3_DOCKER', value: 'true'
+                                expression { false }
                                 expression { distros.contains('sles12.3') }
                                 expression { return env.QUICKBUILD == '1' }
                             }
@@ -368,6 +369,7 @@ def call(Map pipeline_args) {
                         when {
                             beforeAgent true
                             allOf {
+                                expression { false }
                                 expression { distros.contains('leap42.3') }
                                 expression { return env.QUICKBUILD == '1' }
                             }
@@ -462,14 +464,14 @@ def call(Map pipeline_args) {
                             sh label: "Build package",
                                script: '''rm -rf artifacts/leap15/
                                           mkdir -p artifacts/leap15/
-                                          make CHROOT_NAME="opensuse-leap-15.1-x86_64" ''' +
+                                          make CHROOT_NAME="opensuse-leap-15.2-x86_64" ''' +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
                         }
                         post {
                             success {
                                 sh label: "Collect artifacts",
-                                   script: '''(cd /var/lib/mock/opensuse-leap-15.1-x86_64/result/ &&
+                                   script: '''(cd /var/lib/mock/opensuse-leap-15.2-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/leap15/)\n''' +
                                               pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "leap15") +
                                              '\ncreaterepo artifacts/leap15/'
@@ -485,7 +487,7 @@ def call(Map pipeline_args) {
                             }
                             unsuccessful {
                                 sh label: "Build Log",
-                                   script: '''mockroot=/var/lib/mock/opensuse-leap-15.1-x86_64
+                                   script: '''mockroot=/var/lib/mock/opensuse-leap-15.2-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
                                               artdir=$PWD/artifacts/leap15
@@ -495,7 +497,7 @@ def call(Map pipeline_args) {
                             }
                             always {
                                 sh label: "Collect config.log(s)",
-                                   script: '''(if cd /var/lib/mock/opensuse-leap-15.1-x86_64/root/builddir/build/BUILD/*/; then
+                                   script: '''(if cd /var/lib/mock/opensuse-leap-15.2-x86_64/root/builddir/build/BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
