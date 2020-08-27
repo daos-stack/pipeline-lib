@@ -50,7 +50,7 @@ def call(Map config = [:]) {
     println "The junit plugin changed result to ${currentBuild.result}."
   }
 
-  sh label: 'debug',
+  sh label: 'debug 1',
   script: '''
           ls
           ls test_results || true
@@ -58,10 +58,9 @@ def call(Map config = [:]) {
           '''
   if(stage_info['with_valgrind']) {
     String target_dir = "unit_test_memcheck_logs"
-    fileOperations([fileCopyOperation(includes: 'test_results',
-                                      excludes: '',
-                                      targetLocation: target_dir,
-                                      flattenFiles: false,)])
+    fileOperations([folderCopyOperation(sourceFolderPath: 'test_results',
+                                        destinationFolderPath: target_dir)])
+    sh label: 'debug 2',
     script: '''
             ls
             ls unit_test_memcheck_logs || true
