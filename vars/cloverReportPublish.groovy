@@ -1,4 +1,4 @@
-  // vars/cloverReportPublish.groovy
+// vars/cloverReportPublish.groovy
 
   /**
    * clover Report Publish step method
