@@ -60,7 +60,7 @@ def call(Map config = [:]) {
     String target_dir = "unit_test_memcheck_logs"
     fileOperations([fileCopyOperation(includes: 'test_results',
                                       excludes: '',
-                                      target_location: target_dir,
+                                      targetLocation: target_dir,
                                       flattenFiles: false,)])
     script: '''
             ls
