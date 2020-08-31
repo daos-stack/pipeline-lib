@@ -77,8 +77,7 @@ def call(Map pipeline_args) {
         environment {
             QUICKBUILD = sh(script: "git show -s --format=%B | grep \"^Quick-build: true\"",
                             returnStatus: true)
-            PACKAGING_BRANCH = commitPragma pragma: 'Packaging-branch',
-                                            def_val: 'master'
+            PACKAGING_BRANCH = commitPragma('Packaging-branch', 'master')
         }
         stages {
             stage('Cancel Previous Builds') {

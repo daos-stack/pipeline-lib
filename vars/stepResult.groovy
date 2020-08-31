@@ -113,7 +113,7 @@ def call(Map config= [:]) {
                 "${config.result}" +
                  ".  " + comment_url
 
-      if (commitPragma(pragma: "Skip-PR-comments") == "true") {
+      if (commitPragma("Skip-PR-comments").toLowerCase() == "true") {
           emailext subject: "${JOB_NAME} ${config.name} stage ${config.result}",
                    recipientProviders: [[$class: 'RequesterRecipientProvider'],
                                         [$class: 'DevelopersRecipientProvider']],

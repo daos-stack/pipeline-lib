@@ -67,6 +67,12 @@ def call(Map config = [:]) {
     sh label: 'Build Log',
        script: "${env_vars} " + success_script
 
+    // TODO: Have Ubuntu support this
+    if (stage_info['target'] != 'ubuntu20.04') {
+        stash name: stage_info['target'] + '-required-mercury-rpm-version',
+              includes: stage_info['target'] + '-required-mercury-rpm-version'
+    }
+
     stash name: stage_info['target'] + '-rpm-version',
           includes: stage_info['target'] + '-rpm-version'
 
@@ -86,6 +92,7 @@ def call(Map config = [:]) {
                flow_name: config.get('flow_name', env.STAGE_NAME),
                result: config['condition'].toUpperCase(),
                ignore_failure: ignore_failure
+
     return
   }
 

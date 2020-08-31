@@ -48,7 +48,9 @@ def call(Map config = [:]) {
   } else if (env.TARGET) {
     result['target'] = env.TARGET
   } else {
-    if (stage_name.contains('CentOS 7')) {
+    if (env.STAGE_NAME.contains('Hardware')) {
+      result['target'] = hwDistroTarget()
+    } else if (stage_name.contains('CentOS 7')) {
       result['target'] = 'centos7'
     } else if (stage_name.contains('CentOS 8')) {
       result['target'] = 'centos8'
@@ -59,8 +61,7 @@ def call(Map config = [:]) {
     } else if (stage_name.contains('Ubuntu 20')) {
       result['target'] = 'ubuntu20.04'
     } else {
-      echo (
-        "Could not determine target in ${stage_name}, defaulting to EL7")
+      echo "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7"
     }
   }
 
@@ -148,18 +149,17 @@ def call(Map config = [:]) {
     // Higest priority is TestTag parameter but only if ForceRun
     // parameter was given (to support "Run with Parameters" for doing
     // weekly run maintenance)
-    if (startedByUser() && params.TestTag) {
+    if (startedByUser() && params.TestTag && params.TestTag != "") {
       tag = params.TestTag
     } else {
       // Next higest priority is a stage specific Test-tag-*
-      tag = commitPragma(pragma: "Test-tag" + result['pragma_suffix'],
-                         def_val: null)
+      tag = commitPragma("Test-tag" + result['pragma_suffix'], null)
       if (!tag) {
         // Followed by the more general Test-tag:
-        tag = commitPragma(pragma: "Test-tag", def_val: null)
+        tag = commitPragma("Test-tag", null)
         if (!tag) {
           // Next is Features:
-          tag = commitPragma(pragma: "Features", def_val: null)
+          tag = commitPragma("Features", null)
           if (!tag) {
             // Next is the caller's override
             if (!(tag = config['test_tag'])) {
