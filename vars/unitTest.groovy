@@ -112,12 +112,11 @@ def call(Map config = [:]) {
                 outputFile: 'bullseye.tar'
   }
 
-  echo "debug ${stage_info['with_valgrind']}"
   Map params = [:]
   params['stashes'] = stashes
   params['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
                      "NODELIST=${nodelist} " +
-                     "WITH_VALGRIND=${stage_info['with_valgrind']} " +
+                     "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
                      test_script
   params['junit_files'] = config.get('junit_files', 'test_results/*.xml')
   params['context'] = config.get('context', 'test/' + env.STAGE_NAME)
