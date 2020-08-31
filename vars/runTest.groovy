@@ -101,8 +101,6 @@ def call(Map config = [:]) {
 
     def cb_result = currentBuild.result
     
-    env.WITH_VALGRIND = config['with_valgrind']
-
     int rc = 0
     rc = sh(script: script, label: flow_name, returnStatus: true)
 
