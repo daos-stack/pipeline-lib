@@ -112,7 +112,7 @@ def call(Map config = [:]) {
                 outputFile: 'bullseye.tar'
   }
 
-  echo "debug ${stage_info['with_valgrind']}
+  echo "debug ${stage_info['with_valgrind']}"
   Map params = [:]
   params['stashes'] = stashes
   params['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
