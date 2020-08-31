@@ -100,7 +100,7 @@ def call(Map config = [:]) {
     }
 
     def cb_result = currentBuild.result
-    
+ 
     int rc = 0
     rc = sh(script: script, label: flow_name, returnStatus: true)
 
