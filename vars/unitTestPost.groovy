@@ -52,8 +52,8 @@ def call(Map config = [:]) {
 
   sh label: 'debug',
      script: '''ls
-                ls test_results ||
-                ls unit_test_memcheck_logs ||'''
+                ls test_results || true
+                ls unit_test_memcheck_logs || true'''
   if(stage_info['with_valgrind']) {
     String target_dir = "unit_test_memcheck_logs"
     fileOperations([folderCopyOperation(sourceFolderPath: 'test_results',
@@ -61,8 +61,8 @@ def call(Map config = [:]) {
   }
   sh label: 'debug',
      script: '''ls
-                ls test_results ||
-                ls unit_test_memcheck_logs ||'''
+                ls test_results || true
+                ls unit_test_memcheck_logs || true'''
 
   def artifact_list = config.get('artifacts', ['run_test.sh/*', 'vm_test/**'])
   def ignore_failure = config.get('ignore_failure', false)
