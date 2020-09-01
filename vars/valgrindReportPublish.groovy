@@ -30,11 +30,17 @@ def call(Map config = [:]) {
     // Need to have only one Valgrind publish stage
     println "No valgrind_stashes passed!   Running older code!"
   }
+  
+  sh label: 'debug',
+     script: '''ls'''
 
   int stash_cnt=0
   stashes.each {
     unstash it
   }
+
+  sh label: 'debug',
+     script: '''ls'''
 
   def ignore_failure = config.get('ignore_failure', false)
 

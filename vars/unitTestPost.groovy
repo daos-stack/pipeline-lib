@@ -50,11 +50,19 @@ def call(Map config = [:]) {
     println "The junit plugin changed result to ${currentBuild.result}."
   }
 
+  sh label: 'debug',
+     script: '''ls
+                ls test_results ||
+                ls unit_test_memcheck_logs ||'''
   if(stage_info['with_valgrind']) {
     String target_dir = "unit_test_memcheck_logs"
     fileOperations([folderCopyOperation(sourceFolderPath: 'test_results',
                                         destinationFolderPath: target_dir)])
   }
+  sh label: 'debug',
+     script: '''ls
+                ls test_results ||
+                ls unit_test_memcheck_logs ||'''
 
   def artifact_list = config.get('artifacts', ['run_test.sh/*', 'vm_test/**'])
   def ignore_failure = config.get('ignore_failure', false)
