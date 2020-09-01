@@ -1,4 +1,8 @@
 #!/usr/bin/env groovy
+
+@Library(value=["pipeline-lib@corci-887b-bug",
+                "trusted-pipeline-lib@corci-887b"]) _
+
 pipeline {
     agent none
     stages {
@@ -18,7 +22,7 @@ pipeline {
                     exclude {
                         axis {
                             name 'SHAPE'
-                            values 'rpm'
+                            values 'triangle'
                         }
                         axis {
                             name 'COLOR'
@@ -28,7 +32,7 @@ pipeline {
                 } // excludes
                 stages {
                     stage('Build_1') {
-                        when {
+/*                        when {
                             beforeAgent true
                             allOf {
                                 environment name: 'SHAPE',
@@ -41,13 +45,16 @@ pipeline {
                                 } // anyOF
                             } // allOf
                         } // when
+*/
                         agent any
-                        steps {
-                            sh label: env.STAGE_NAME,
-                               script: '''sleep 30
-                                          if [ "${COLOR}" == 'red' ]; then
-                                            exit 1
-                                          fi'''
+                          steps {
+                            hack_step skip_shapes: ['none'],
+                                      do_colors: ['red', 'green'],
+                                      label: env.STAGE_NAME,
+                                      script: '''sleep 30
+                                                 if [ "${COLOR}" == 'red' ]; then
+                                                   exit 1
+                                                 fi'''
                         } // steps
                     } // stage('Build_1')
                 } // stages
