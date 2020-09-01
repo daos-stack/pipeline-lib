@@ -11,7 +11,7 @@
    * config['ignore_failure']      Ignore test failures.  Default false.
    *
    * config['valgrind_pattern']    Pattern for Valgind files.
-   *                               Default: 'dnt.*.memcheck.xml'
+   *                               Default: '*.memcheck.xml'
    *
    * config['valgrind_stashes']    list of stashes for valgrind results.
    *
@@ -32,7 +32,8 @@ def call(Map config = [:]) {
   }
   
   sh label: 'debug',
-     script: '''ls'''
+     script: '''ls
+                ls unit_test_memcheck_logs || true '''
 
   int stash_cnt=0
   stashes.each {
@@ -40,10 +41,12 @@ def call(Map config = [:]) {
   }
 
   sh label: 'debug',
-     script: '''ls'''
+     script: '''ls
+                ls unit_test_memcheck_logs || true '''
 
   def ignore_failure = config.get('ignore_failure', false)
-
+  
+  echo "${config.get('valgrind_pattern', '')}"
   def cb_result = currentBuild.result
   publishValgrind failBuildOnInvalidReports: true,
                   failBuildOnMissingReports: !ignore_failure,

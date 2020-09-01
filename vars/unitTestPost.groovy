@@ -20,7 +20,7 @@
    *                               Default 'test_results/*.xml'
    *
    * config['valgrind_pattern']    Pattern for Valgind files.
-   *                               Default: 'dnt.*.memcheck.xml'
+   *                               Default: '*.memcheck.xml'
    *
    * config['valgrind_stash']      Name to stash valgrind artifacts
    *                               Required if more than one stage is
@@ -84,7 +84,7 @@ def call(Map config = [:]) {
   if (config['valgrind_stash']) {
 
     stash name: config['valgrind_stash'],
-          includes: config.get('valgrind_pattern', 'dnt.*.memcheck.xml')
+          includes: config.get('valgrind_pattern', '*.memcheck.xml')
   } else {
 
     // Need to leave this logic in here for backwards compatibility.
