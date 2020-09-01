@@ -44,7 +44,7 @@ def call(Map config = [:]) {
                   failThresholdDefinitelyLost: '0',
                   failThresholdInvalidReadWrite: '0',
                   failThresholdTotal: '0',
-                  pattern: config.get('valgrind_pattern', 'dnt.*.memcheck.xml'),
+                  pattern: config.get('valgrind_pattern', '*.memcheck.xml'),
                   publishResultsForAbortedBuilds: false,
                   publishResultsForFailedBuilds: true,
                   sourceSubstitutionPaths: '',
