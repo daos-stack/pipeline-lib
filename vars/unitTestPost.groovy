@@ -54,15 +54,13 @@ def call(Map config = [:]) {
      script: '''ls
                 ls test_results || true
                 ls unit_test_memcheck_logs || true'''
+
+  def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
   if(stage_info['with_valgrind']) {
     String target_dir = "unit_test_memcheck_logs"
     fileOperations([folderCopyOperation(sourceFolderPath: 'test_results',
                                         destinationFolderPath: target_dir)])
-    fileOperations([fileCopyOperation(excludes: '',
-                                      flattenFiles: false,
-                                      includes: 'test_results/*.memcheck.xml',
-                                      targetLocation: "${WORKSPACE}")])
-
+    valgrind_pattern = "${target_dir}/*.memcheck.xml"
   }
   sh label: 'debug: after fileOperation',
      script: '''ls
@@ -91,10 +89,10 @@ def call(Map config = [:]) {
                 ls test_results || true
                 ls unit_test_memcheck_logs || true'''
   if (config['valgrind_stash']) {
-
+    echo valgrind_pattern
     stash name: config['valgrind_stash'],
-          includes: config.get('valgrind_pattern', '*.memcheck.xml')
-  } else {
+          includes: valgrind_pattern
+    } else {
 
     // Need to leave this logic in here for backwards compatibility.
     // Valgrind results need to stashed and reported in a common stage
