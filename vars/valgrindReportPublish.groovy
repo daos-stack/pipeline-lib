@@ -31,7 +31,7 @@ def call(Map config = [:]) {
     println "No valgrind_stashes passed!   Running older code!"
   }
   
-  sh label: 'debug',
+  sh label: 'debug: before unstash',
      script: '''ls
                 ls unit_test_memcheck_logs || true '''
 
@@ -40,7 +40,7 @@ def call(Map config = [:]) {
     unstash it
   }
 
-  sh label: 'debug',
+  sh label: 'debug: after unstash',
      script: '''ls
                 ls unit_test_memcheck_logs || true '''
 

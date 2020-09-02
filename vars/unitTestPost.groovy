@@ -50,7 +50,7 @@ def call(Map config = [:]) {
     println "The junit plugin changed result to ${currentBuild.result}."
   }
 
-  sh label: 'debug',
+  sh label: 'debug: before fileOperation',
      script: '''ls
                 ls test_results || true
                 ls unit_test_memcheck_logs || true'''
@@ -58,8 +58,13 @@ def call(Map config = [:]) {
     String target_dir = "unit_test_memcheck_logs"
     fileOperations([folderCopyOperation(sourceFolderPath: 'test_results',
                                         destinationFolderPath: target_dir)])
+    fileOperations([fileCopyOperation(excludes: '',
+                                      flattenFiles: false,
+                                      includes: 'test_results/*.memcheck.xml',
+                                      targetLocation: '.')])
+
   }
-  sh label: 'debug',
+  sh label: 'debug: after fileOperation',
      script: '''ls
                 ls test_results || true
                 ls unit_test_memcheck_logs || true'''
@@ -81,6 +86,10 @@ def call(Map config = [:]) {
     return
   }
 
+  sh label: 'debug: before stash',
+     script: '''ls
+                ls test_results || true
+                ls unit_test_memcheck_logs || true'''
   if (config['valgrind_stash']) {
 
     stash name: config['valgrind_stash'],
