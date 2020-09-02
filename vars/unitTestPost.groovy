@@ -61,7 +61,7 @@ def call(Map config = [:]) {
     fileOperations([fileCopyOperation(excludes: '',
                                       flattenFiles: false,
                                       includes: 'test_results/*.memcheck.xml',
-                                      targetLocation: '.')])
+                                      targetLocation: "${WORKSPACE}")])
 
   }
   sh label: 'debug: after fileOperation',
