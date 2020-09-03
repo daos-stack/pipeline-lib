@@ -46,7 +46,7 @@ def call(Map config = [:]) {
 
   def ignore_failure = config.get('ignore_failure', false)
   
-  echo "${config.get('valgrind_pattern', '')}"
+  echo "debug: ${config.get('valgrind_pattern', '')}"
   def cb_result = currentBuild.result
   publishValgrind failBuildOnInvalidReports: true,
                   failBuildOnMissingReports: !ignore_failure,

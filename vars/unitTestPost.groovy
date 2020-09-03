@@ -62,6 +62,8 @@ def call(Map config = [:]) {
                                         destinationFolderPath: target_dir)])
     valgrind_pattern = "${target_dir}/*.memcheck.xml"
   }
+
+  echo "debug: valgrind_pattern: ${valgrind_pattern}"
   sh label: 'debug: after fileOperation',
      script: '''ls
                 ls test_results || true
@@ -88,8 +90,11 @@ def call(Map config = [:]) {
      script: '''ls
                 ls test_results || true
                 ls unit_test_memcheck_logs || true'''
+
   if (config['valgrind_stash']) {
-    echo valgrind_pattern
+    echo "debug valgrind_pattern before stash: ${valgrind_pattern}"
+    // clean up stash?
+    stash name: config['valgrind_stash'], excludes: "**", allowEmpty: true
     stash name: config['valgrind_stash'],
           includes: valgrind_pattern
     } else {
