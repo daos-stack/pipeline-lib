@@ -33,7 +33,12 @@ def call(Map config = [:]) {
   
   sh label: 'debug: before unstash',
      script: '''ls
-                ls unit_test_memcheck_logs || true '''
+                ls unit_test_memcheck_logs || true 
+                rm *.memcheck.xml || true
+                rm unit_test_memcheck_logs/results-memcheck*.xml  || true
+                rm unit_test_memcheck_logs/unit-test-*.memcheck.xml
+                ls -lah
+                ls -lah unit_test_memcheck_logs'''
 
   int stash_cnt=0
   stashes.each {
@@ -64,4 +69,7 @@ def call(Map config = [:]) {
   if (cb_result != currentBuild.result) {
     println "The publishValgrind step changed result to ${currentBuild.result}."
   }
+  
+  sh label: 'debug: remove unit_test_memcheck_logs after results',
+     script: '''rm -rf unit_test_memcheck_logs || true '''
 }
