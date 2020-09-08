@@ -60,7 +60,9 @@ def call(Map config = [:]) {
     String target_dir = "unit_test_memcheck_logs"
     fileOperations([folderCopyOperation(sourceFolderPath: 'test_results',
                                         destinationFolderPath: target_dir)])
-    valgrind_pattern = "${target_dir}/*.memcheck.xml"
+
+    sh label: 'debug: experiment, copy xmls to current dir',
+       script: '''cp unit_test_memcheck_logs/*.memcheck.xml .'''
   }
 
   echo "debug: valgrind_pattern: ${valgrind_pattern}"
