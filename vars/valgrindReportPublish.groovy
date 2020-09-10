@@ -31,9 +31,11 @@ def call(Map config = [:]) {
     println "No valgrind_stashes passed!   Running older code!"
   }
   
-  sh label: 'debug: before unstash',
+  sh label: 'cleanup: before unstash there should not be any *.memcheck.xml in this workspace',
      script: '''ls
-                ls -lah '''
+                ls -lah
+                rm -rf *.memcheck.xml
+                ls -lah'''
 
   int stash_cnt=0
   stashes.each {
@@ -41,8 +43,8 @@ def call(Map config = [:]) {
   }
 
   sh label: 'debug: after unstash',
-     script: '''ls
-                ls unit_test_memcheck_logs || true '''
+     script: '''ls -lah
+                ls -lah unit_test_memcheck_logs || true '''
 
   def ignore_failure = config.get('ignore_failure', false)
   
