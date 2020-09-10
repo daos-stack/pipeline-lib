@@ -46,14 +46,15 @@ def call(Map config = [:]) {
 
   def ignore_failure = config.get('ignore_failure', false)
   
-  echo "debug: ${config.get('valgrind_pattern', '')}"
+  def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
+  echo "debug: ${valgrind_pattern}"
   def cb_result = currentBuild.result
   publishValgrind failBuildOnInvalidReports: true,
                   failBuildOnMissingReports: !ignore_failure,
                   failThresholdDefinitelyLost: '0',
                   failThresholdInvalidReadWrite: '0',
                   failThresholdTotal: '0',
-                  pattern: config.get('valgrind_pattern', '*.memcheck.xml'),
+                  pattern: valgrind_pattern,
                   publishResultsForAbortedBuilds: false,
                   publishResultsForFailedBuilds: true,
                   sourceSubstitutionPaths: '',
