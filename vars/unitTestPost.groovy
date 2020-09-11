@@ -32,10 +32,12 @@ def call(Map config = [:]) {
 
   String always_script = config.get('always_script',
                                     'ci/unit/test_post_always.sh')
-  sh label: 'Job Cleanup',
-     script: always_script
-
+ 
   Map stage_info = parseStageInfo(config)
+  
+  sh label: 'Job Cleanup',
+     script: "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
+             always_script
 
   double health_scale = 1.0
   if (config['ignore_failure']) {
