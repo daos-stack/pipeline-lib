@@ -36,7 +36,8 @@ def call(Map config = [:]) {
   Map stage_info = parseStageInfo(config)
   
   sh label: 'Job Cleanup',
-     script: always_script
+     script: "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
+             always_script
 
   double health_scale = 1.0
   if (config['ignore_failure']) {
