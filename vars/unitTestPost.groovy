@@ -36,8 +36,7 @@ def call(Map config = [:]) {
   Map stage_info = parseStageInfo(config)
   
   sh label: 'Job Cleanup',
-     script: "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
-             always_script
+     script: always_script
 
   double health_scale = 1.0
   if (config['ignore_failure']) {
@@ -63,8 +62,6 @@ def call(Map config = [:]) {
     fileOperations([folderCopyOperation(sourceFolderPath: 'test_results',
                                         destinationFolderPath: target_dir)])
 
-    sh label: 'debug: experiment, copy xmls to current dir',
-       script: '''cp unit_test_memcheck_logs/*.memcheck.xml .'''
   }
 
   echo "debug: valgrind_pattern: ${valgrind_pattern}"
