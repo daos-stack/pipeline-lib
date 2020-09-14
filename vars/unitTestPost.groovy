@@ -32,12 +32,11 @@ def call(Map config = [:]) {
 
   String always_script = config.get('always_script',
                                     'ci/unit/test_post_always.sh')
+  sh label: 'Job Cleanup',
+     script: always_script
  
   Map stage_info = parseStageInfo(config)
   
-  sh label: 'Job Cleanup',
-     script: always_script
-
   double health_scale = 1.0
   if (config['ignore_failure']) {
     health_scale = 0.0
@@ -51,11 +50,6 @@ def call(Map config = [:]) {
     println "The junit plugin changed result to ${currentBuild.result}."
   }
 
-  sh label: 'debug: before fileOperation',
-     script: '''ls
-                ls test_results || true
-                ls unit_test_memcheck_logs || true'''
-
   def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
   if(stage_info['with_valgrind']) {
     String target_dir = "unit_test_memcheck_logs"
@@ -63,12 +57,6 @@ def call(Map config = [:]) {
                                         destinationFolderPath: target_dir)])
 
   }
-
-  echo "debug: valgrind_pattern: ${valgrind_pattern}"
-  sh label: 'debug: after fileOperation',
-     script: '''ls
-                ls test_results || true
-                ls unit_test_memcheck_logs || true'''
 
   def artifact_list = config.get('artifacts', ['run_test.sh/*', 'vm_test/**'])
   def ignore_failure = config.get('ignore_failure', false)
@@ -87,18 +75,12 @@ def call(Map config = [:]) {
     return
   }
 
-  sh label: 'debug: before stash',
-     script: '''ls
-                ls test_results || true
-                ls unit_test_memcheck_logs || true'''
-
   if (config['valgrind_stash']) {
     echo "debug valgrind_pattern before stash: ${valgrind_pattern}"
     // clean up stash?
     stash name: config['valgrind_stash'], excludes: "**", allowEmpty: true
-    stash name: config['valgrind_stash'],
-          includes: valgrind_pattern
-    } else {
+    stash name: config['valgrind_stash'], includes: valgrind_pattern
+  } else {
 
     // Need to leave this logic in here for backwards compatibility.
     // Valgrind results need to stashed and reported in a common stage

@@ -126,26 +126,9 @@ def call(Map config = [:]) {
   def time = config.get('timeout_time', 120) as int
   def unit = config.get('timeout_unit', 'MINUTES')
 
-  sh label: 'debug: rm files?',
-     script: '''ls -lah
-                ls test_results || true
-                ls unit_test_memcheck_logs || true
-                rm -rf test_results || true
-                rm *memcheck.xml || true
-                '''
-
-  sh label: 'debug: before runTest',
-     script: '''ls
-                ls test_results || true
-                ls unit_test_memcheck_logs || true'''
-
   timeout(time: time, unit: unit) {
     runTest params
   }
-  sh label: 'debug: after runTest',
-     script: '''ls
-                ls test_results || true
-                ls unit_test_memcheck_logs || true'''
   if (stage_info['compiler'] == 'covc') {
       stash name: config.get('coverage_stash', "${target_stash}-unit-cov"),
             includes: 'test.cov'

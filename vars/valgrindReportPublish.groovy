@@ -31,25 +31,17 @@ def call(Map config = [:]) {
     println "No valgrind_stashes passed!   Running older code!"
   }
   
-  sh label: 'cleanup: before unstash there should not be any *.memcheck.xml in this workspace',
-     script: '''ls
-                ls -lah
-                rm -rf *.memcheck.xml
-                ls -lah'''
+  sh label: 'Remove *.memcheck.xml files in this workspace',
+     script: '''rm -rf *.memcheck.xml'''
 
   int stash_cnt=0
   stashes.each {
     unstash it
   }
 
-  sh label: 'debug: after unstash',
-     script: '''ls -lah
-                ls -lah unit_test_memcheck_logs || true '''
-
   def ignore_failure = config.get('ignore_failure', false)
   
   def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
-  echo "debug: ${valgrind_pattern}"
   def cb_result = currentBuild.result
   publishValgrind failBuildOnInvalidReports: true,
                   failBuildOnMissingReports: !ignore_failure,
@@ -67,5 +59,4 @@ def call(Map config = [:]) {
   if (cb_result != currentBuild.result) {
     println "The publishValgrind step changed result to ${currentBuild.result}."
   }
-
 }
