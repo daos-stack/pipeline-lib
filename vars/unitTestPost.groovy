@@ -34,9 +34,9 @@ def call(Map config = [:]) {
                                     'ci/unit/test_post_always.sh')
   sh label: 'Job Cleanup',
      script: always_script
- 
+
   Map stage_info = parseStageInfo(config)
-  
+
   double health_scale = 1.0
   if (config['ignore_failure']) {
     health_scale = 0.0
