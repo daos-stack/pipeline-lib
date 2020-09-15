@@ -54,7 +54,6 @@ def call(Map config = [:]) {
     String target_dir = "unit_test_memcheck_logs"
     fileOperations([folderCopyOperation(sourceFolderPath: 'test_results',
                                         destinationFolderPath: target_dir)])
-
   }
 
   def artifact_list = config.get('artifacts', ['run_test.sh/*', 'vm_test/**'])
