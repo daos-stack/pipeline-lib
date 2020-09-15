@@ -52,8 +52,11 @@ def call(Map config = [:]) {
 
   if(stage_info['with_valgrind']) {
     String target_dir = "unit_test_memcheck_logs"
-    fileOperations([folderCopyOperation(sourceFolderPath: 'test_results',
-                                        destinationFolderPath: target_dir)])
+    String src_files = "unit-test-*.memcheck.xml"
+    fileOperations([fileCopyOperation(excludes: '',
+                                      flattenFiles: false,
+                                      includes: src_files,
+                                      targetLocation: target_dir)])
   }
 
   def artifact_list = config.get('artifacts', ['run_test.sh/*', 'vm_test/**'])
