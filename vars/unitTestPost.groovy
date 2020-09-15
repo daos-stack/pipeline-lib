@@ -50,7 +50,6 @@ def call(Map config = [:]) {
     println "The junit plugin changed result to ${currentBuild.result}."
   }
 
-  def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
   if(stage_info['with_valgrind']) {
     String target_dir = "unit_test_memcheck_logs"
     fileOperations([folderCopyOperation(sourceFolderPath: 'test_results',
@@ -76,9 +75,7 @@ def call(Map config = [:]) {
   }
 
   if (config['valgrind_stash']) {
-    echo "debug valgrind_pattern before stash: ${valgrind_pattern}"
-    // clean up stash?
-    stash name: config['valgrind_stash'], excludes: "**", allowEmpty: true
+    def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
     stash name: config['valgrind_stash'], includes: valgrind_pattern
   } else {
 
