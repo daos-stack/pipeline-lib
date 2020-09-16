@@ -49,6 +49,8 @@
    * config['test_rpms']         Set to true to test RPMs being built.
    *                             Default env.TEST_RPMS.
    *
+   * config['compiler']          Compiler used 'gcc', 'icc', clang, and 'covc'.
+   *                             Default is 'gcc
    */
 
 def call(Map config = [:]) {

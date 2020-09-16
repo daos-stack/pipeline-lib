@@ -71,6 +71,11 @@ void call(Map config = [:]) {
 
     runTest(config)
 
+    def target_stash = config['target'] + '-' + config['compiler']
+    if (config['build_type']) {
+      target_stash += '-' + config['build_type']
+    }
+
     if (config['compiler'] == 'covc') {
         stash name: config.get('coverage_stash', "${target_stash}-fnvm-cov"),
               includes: 'test.cov'
