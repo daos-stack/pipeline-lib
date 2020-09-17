@@ -56,7 +56,8 @@ def call(Map config = [:]) {
     fileOperations([fileCopyOperation(excludes: '',
                                       flattenFiles: false,
                                       includes: src_files,
-                                      targetLocation: target_dir)])
+                                      targetLocation: target_dir),
+                   fileZipOperation(target_dir)])
   }
 
   def artifact_list = config.get('artifacts', ['run_test.sh/*', 'vm_test/**'])
