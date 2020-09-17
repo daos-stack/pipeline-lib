@@ -102,6 +102,7 @@ def call(Map config = [:]) {
   params['node_count'] = stage_info['node_count']
   params['ftest_arg'] = stage_info['ftest_arg']
   params['compiler'] = stage_info['compiler']
+  params['target'] = stage_info['target']
   params['context'] = context
   params['description'] = description
 
