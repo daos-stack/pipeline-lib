@@ -31,19 +31,16 @@ def call(Map config = [:]) {
     println "No valgrind_stashes passed!   Running older code!"
   }
 
-  sh "ls -lah"
   fileOperations([fileDeleteOperation(includes: '*.memcheck.xml',
                                       excludes: '')])
-  sh "ls -lah"
 
   int stash_cnt=0
   stashes.each {
     unstash it
   }
-  sh "ls -lah"
 
   def ignore_failure = config.get('ignore_failure', false)
-  
+
   def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
   def cb_result = currentBuild.result
   publishValgrind failBuildOnInvalidReports: true,
