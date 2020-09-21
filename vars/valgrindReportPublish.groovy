@@ -31,8 +31,10 @@ def call(Map config = [:]) {
     println "No valgrind_stashes passed!   Running older code!"
   }
   
-  sh label: 'Remove *.memcheck.xml files in this workspace',
-     script: '''rm -rf *.memcheck.xml'''
+  fileOperations([fileDeleteOperation(includes: '*.memcheck.xml',
+                                      excludes: '')])
+  fileOperations([fileDeleteOperation(includes: '*.does-not-exists.xml',
+                                      excludes: '')])
 
   int stash_cnt=0
   stashes.each {
