@@ -31,8 +31,7 @@ def call(Map config = [:]) {
     println "No valgrind_stashes passed!   Running older code!"
   }
 
-  fileOperations([fileDeleteOperation(includes: '*.memcheck.xml',
-                                      excludes: '')])
+  fileOperations([fileDeleteOperation(includes: '*.memcheck.xml')])
 
   int stash_cnt=0
   stashes.each {
