@@ -11,7 +11,7 @@
    * config['ignore_failure']      Ignore test failures.  Default false.
    *
    * config['valgrind_pattern']    Pattern for Valgind files.
-   *                               Default: 'dnt.*.memcheck.xml'
+   *                               Default: '*.memcheck.xml'
    *
    * config['valgrind_stashes']    list of stashes for valgrind results.
    *
@@ -31,6 +31,8 @@ def call(Map config = [:]) {
     println "No valgrind_stashes passed!   Running older code!"
   }
 
+  fileOperations([fileDeleteOperation(includes: '*.memcheck.xml')])
+
   int stash_cnt=0
   stashes.each {
     unstash it
@@ -38,13 +40,14 @@ def call(Map config = [:]) {
 
   def ignore_failure = config.get('ignore_failure', false)
 
+  def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
   def cb_result = currentBuild.result
   publishValgrind failBuildOnInvalidReports: true,
                   failBuildOnMissingReports: !ignore_failure,
                   failThresholdDefinitelyLost: '0',
                   failThresholdInvalidReadWrite: '0',
                   failThresholdTotal: '0',
-                  pattern: config.get('valgrind_pattern', 'dnt.*.memcheck.xml'),
+                  pattern: valgrind_pattern,
                   publishResultsForAbortedBuilds: false,
                   publishResultsForFailedBuilds: true,
                   sourceSubstitutionPaths: '',

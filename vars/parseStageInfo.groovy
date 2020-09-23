@@ -16,7 +16,7 @@
  *                         Default is not present unless the word
  *                         TARGET_PREFIX is present in env.STAGE_NAME,
  *                         and then it will default to 'install/opt'
- * 
+ *
  * This is to simplify the addition of stages to the Jenkinsfile so
  * that in many cases, only the Stage Name text needs to be updated.
  *
@@ -145,5 +145,11 @@ def call(Map config = [:]) {
     if (config['ftest_arg']) {
       result['ftest_arg'] = config['ftest_arg']
     }
+
+    if (env.STAGE_NAME.contains('Unit Test') &&
+        env.STAGE_NAME.contains('memcheck')) {
+        result['with_valgrind'] = 'memcheck'
+    }
+
     return result
 }
