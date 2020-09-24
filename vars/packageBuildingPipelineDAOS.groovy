@@ -106,7 +106,7 @@ def call(Map pipeline_args) {
                                 args  '--group-add mock' +
                                       ' --cap-add=SYS_ADMIN' +
                                       ' --privileged=true'
-                                additionalBuildArgs  '--build-arg UID=$(id -u)'
+                                additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
@@ -158,7 +158,7 @@ def call(Map pipeline_args) {
                                 filename 'packaging/Dockerfile.coverity'
                                 label 'docker_runner'
                                 args '--privileged=true'
-                                additionalBuildArgs '--build-arg UID=$(id -u) '
+                                additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
@@ -210,9 +210,7 @@ def call(Map pipeline_args) {
                                 args  '--group-add mock' +
                                       ' --cap-add=SYS_ADMIN' +
                                       ' --privileged=true'
-                                additionalBuildArgs '--build-arg UID=$(id -u)' +
-                                                    ' --build-arg JENKINS_URL=' +
-                                                    env.JENKINS_URL
+                                additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
@@ -283,9 +281,7 @@ def call(Map pipeline_args) {
                                 args  '--group-add mock' +
                                       ' --cap-add=SYS_ADMIN' +
                                       ' --privileged=true'
-                                additionalBuildArgs '--build-arg UID=$(id -u)' +
-                                                    ' --build-arg JENKINS_URL=' +
-                                                    env.JENKINS_URL
+                                additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
@@ -359,9 +355,7 @@ def call(Map pipeline_args) {
                                 args  '--group-add mock' +
                                       ' --cap-add=SYS_ADMIN' +
                                       ' --privileged=true'
-                                additionalBuildArgs '--build-arg UID=$(id -u)' +
-                                                    ' --build-arg JENKINS_URL=' +
-                                                    env.JENKINS_URL
+                                additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
@@ -434,9 +428,7 @@ def call(Map pipeline_args) {
                                 args  '--group-add mock' +
                                       ' --cap-add=SYS_ADMIN' +
                                       ' --privileged=true'
-                                additionalBuildArgs '--build-arg UID=$(id -u)' +
-                                                    ' --build-arg JENKINS_URL=' +
-                                                    env.JENKINS_URL
+                                additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
@@ -508,9 +500,7 @@ def call(Map pipeline_args) {
                                 args  '--group-add mock' +
                                       ' --cap-add=SYS_ADMIN' +
                                       ' --privileged=true'
-                                additionalBuildArgs '--build-arg UID=$(id -u)' +
-                                                    ' --build-arg JENKINS_URL=' +
-                                                    env.JENKINS_URL
+                                additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
@@ -567,29 +557,29 @@ def call(Map pipeline_args) {
                             }
                         }
                     } //stage('Build on Leap 15')
-                    stage('Build on Ubuntu 18.04') {
+                    stage('Build on Ubuntu 20.04') {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { distros.contains('ubuntu18.04') }
+                                expression { distros.contains('ubuntu20.04') }
                                 expression { return env.QUICKBUILD == '1' }
                                 expression { env.DAOS_STACK_REPO_PUB_KEY != null }
                                 expression { env.DAOS_STACK_REPO_SUPPORT != null }
-                                expression { env.DAOS_STACK_REPO_UBUNTU_18_04_LIST != null}
+                                expression { env.DAOS_STACK_REPO_UBUNTU_20_04_LIST != null}
                              }
                         }
                         agent {
                             dockerfile {
-                                filename 'packaging/Dockerfile.ubuntu.18.04'
+                                filename 'packaging/Dockerfile.ubuntu.20.04'
                                 label 'docker_runner'
                                 args '--privileged=true'
-                                additionalBuildArgs '--build-arg UID=$(id -u) '
+                                additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
                             sh label: "Build package",
-                               script: '''rm -rf artifacts/ubuntu18.04/
-                                          mkdir -p artifacts/ubuntu18.04/
+                               script: '''rm -rf artifacts/ubuntu20.04/
+                                          mkdir -p artifacts/ubuntu20.04/
                                           : "${DEBEMAIL:="$env.DAOS_EMAIL"}"
                                           : "${DEBFULLNAME:="$env.DAOS_FULLNAME"}"
                                           export DEBEMAIL
@@ -602,19 +592,19 @@ def call(Map pipeline_args) {
                                 sh label: "Collect artifacts",
                                    script: '''cp -v \
                                                 /var/cache/pbuilder/result/*{.buildinfo,.changes,.deb,.dsc,.xz} \
-                                                artifacts/ubuntu18.04/
+                                                artifacts/ubuntu20.04/
                                               cp -v \
                                                 _topdir/BUILD/*.orig.tar.* \
-                                                artifacts/ubuntu18.04
-                                              pushd artifacts/ubuntu18.04/
+                                                artifacts/ubuntu20.04
+                                              pushd artifacts/ubuntu20.04/
                                                 dpkg-scanpackages . /dev/null | \
                                                   gzip -9c > Packages.gz
                                               popd'''
                                 publishToRepository product: package_name,
                                                     format: 'apt',
                                                     maturity: 'stable',
-                                                    tech: 'ubuntu-18.04',
-                                                    repo_dir: 'artifacts/ubuntu18.04/',
+                                                    tech: 'ubuntu-20.04',
+                                                    repo_dir: 'artifacts/ubuntu20.04/',
                                                     publish_branch: publish_branch
                             }
                             unsuccessful {
@@ -623,10 +613,10 @@ def call(Map pipeline_args) {
                                    returnStatus: true
                             }
                             cleanup {
-                                archiveArtifacts artifacts: 'artifacts/ubuntu18.04/**'
+                                archiveArtifacts artifacts: 'artifacts/ubuntu20.04/**'
                             }
                         }
-                    } //stage('Build on Ubuntu 18.04')
+                    } //stage('Build on Ubuntu 20.04')
                     stage('Build on Ubuntu rolling') {
                         when {
                             beforeAgent true
@@ -640,7 +630,7 @@ def call(Map pipeline_args) {
                                 filename 'packaging/Dockerfile.ubuntu.rolling'
                                 label 'docker_runner'
                                 args '--privileged=true'
-                                additionalBuildArgs '--build-arg UID=$(id -u) '
+                                additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
@@ -703,14 +693,13 @@ def call(Map pipeline_args) {
                                 args  ' --cap-add=SYS_ADMIN' +
                                       ' --privileged=true' +
                                       ' -u 0'
-                                additionalBuildArgs '--build-arg UID=$(id -u)' +
-                                                    ' --build-arg JENKINS_URL=' +
-                                                    env.JENKINS_URL
+                                additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
                             sh label: env.STAGE_NAME,
-                               script: '''mkdir test_dir
+                               script: '''rm -rf test_dir
+                                          mkdir test_dir
                                           trap "popd; rm -rf test_dir" EXIT
                                           pushd test_dir
                                           git clone https://github.com/daos-stack/daos.git
@@ -753,14 +742,13 @@ def call(Map pipeline_args) {
                                 args  ' --cap-add=SYS_ADMIN' +
                                       ' --privileged=true' +
                                       ' -u 0'
-                                additionalBuildArgs '--build-arg UID=$(id -u)' +
-                                                    ' --build-arg JENKINS_URL=' +
-                                                    env.JENKINS_URL
+                                additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
                             sh label: env.STAGE_NAME,
-                               script: '''mkdir test_dir
+                               script: '''rm -rf test_dir
+                                          mkdir test_dir
                                           trap "popd; rm -rf test_dir" EXIT
                                           pushd test_dir
                                           git clone https://github.com/daos-stack/daos.git

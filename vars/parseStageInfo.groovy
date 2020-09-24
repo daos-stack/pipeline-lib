@@ -10,7 +10,7 @@
  *                         Default is 'gcc'
  *
  * result['target']        Known targets are 'centos7','centos8','leap15',
- *                         'ubuntu18', 'ubuntu20'.  Default is 'centos7'
+ *                         'ubuntu18.04', 'ubuntu20.04'.  Default is 'centos7'
  *
  * result['target_prefix'] Target prefix to use for the build if present.
  *                         Default is not present unless the word
@@ -46,9 +46,11 @@ def call(Map config = [:]) {
       } else if (env.STAGE_NAME.contains('Leap 15')) {
         result['target'] = 'leap15'
       } else if (env.STAGE_NAME.contains('Ubuntu 18')) {
-        result['target'] = 'ubuntu18'
+        result['target'] = 'ubuntu18.04'
       } else if (env.STAGE_NAME.contains('Ubuntu 20')) {
-        result['target'] = 'ubuntu20'
+        result['target'] = 'ubuntu20.04'
+      } else {
+        echo "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7"
       }
     }
 
