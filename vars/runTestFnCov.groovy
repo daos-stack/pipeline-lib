@@ -57,11 +57,11 @@ void call(Map config = [:]) {
                             "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/test-results/*/data/*_results.xml"
     config['failure_artifacts'] = 'Functional'
 
-    //if (test_rpms && config['stashes']){
+    if (test_rpms && config['stashes']){
         // we don't need (and might not even have) stashes if testing
         // from RPMs
-    //    config.remove('stashes')
-    //}
+        config.remove('stashes')
+    }
 
     config.remove('pragma_suffix')
     config.remove('test_tag')
