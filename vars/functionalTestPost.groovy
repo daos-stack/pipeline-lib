@@ -19,8 +19,10 @@
 
 def call(Map config = [:]) {
 
+  def myscript = "STAGE_NAME=" + env.STAGE_NAME + ' ' + "ci/functional/job_cleanup.sh"
+
   def always_script = config.get('always_script',
-                                 'ci/functional/job_cleanup.sh')
+                                 myscript)
   def rc = sh label: "Job Cleanup",
            script: always_script,
            returnStatus: true
