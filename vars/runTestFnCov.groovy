@@ -63,7 +63,7 @@ void call(Map config = [:]) {
         config.remove('stashes')
     }
 
-    config.remove('pragma_suffix')
+    #config.remove('pragma_suffix')
     config.remove('test_tag')
     config.remove('ftest_arg')
     config.remove('node_count')
@@ -77,7 +77,8 @@ void call(Map config = [:]) {
     }
 
     if (config['compiler'] == 'covc') {
-        stash name: config.get('coverage_stash', "${target_stash}-fnvm-cov"),
+        target_stash += config['pragma_suffix']
+        stash name: config.get('coverage_stash', "${target_stash}-cov"),
               includes: 'test.cov'
     }
 }
