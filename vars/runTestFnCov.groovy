@@ -63,7 +63,7 @@ void call(Map config = [:]) {
         config.remove('stashes')
     }
 
-    #config.remove('pragma_suffix')
+    //config.remove('pragma_suffix')
     config.remove('test_tag')
     config.remove('ftest_arg')
     config.remove('node_count')
