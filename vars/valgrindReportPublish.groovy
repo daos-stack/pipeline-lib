@@ -35,7 +35,11 @@ def call(Map config = [:]) {
 
   int stash_cnt=0
   stashes.each {
-    unstash it
+    try {
+      unstash it
+      } catch(Exception ex) {
+         println("Ignoring failure to unstash ${it}.  Perhaps the stage was skipped?")
+      }
   }
 
   def ignore_failure = config.get('ignore_failure', false)
