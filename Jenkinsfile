@@ -16,6 +16,7 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 //@Library(value="pipeline-lib@my_branch_name") _
+@Library(value="pipeline-lib@corci-1001") _
 
 // The docker agent setup may need to know the
 // UID that the build agent is running under.
@@ -106,7 +107,7 @@ pipeline {
                         junit_files: "*.xml non-exist*.xml",
                         failure_artifacts: env.STAGE_NAME
                 }
-                post {
+/*                post {
                     unsuccessful {
                         scmNotify description: env.STAGE_NAME,
                                   context: 'test/' + env.STAGE_NAME,
@@ -117,7 +118,7 @@ pipeline {
                                   context: 'test/' + env.STAGE_NAME,
                                   status: 'SUCCESS'
                     }
-                }
+                } */
             } // stage('grep JUnit results tests failure case')
             stage('grep JUnit results tests error case') {
                 agent {
@@ -131,11 +132,12 @@ pipeline {
                     runTest script: '''set -ex
                                        rm -f *.xml
                                        echo "<error bla bla bla/>" > \
-                                         pipeline-test-error.xml''',
+                                         pipeline-test-error.xml
+                                        exit 1''',
                         junit_files: "*.xml non-exist*.xml",
                         failure_artifacts: env.STAGE_NAME
                 }
-                post {
+/*                post {
                     unsuccessful {
                         scmNotify description: env.STAGE_NAME,
                                   context: 'test/' + env.STAGE_NAME,
@@ -146,7 +148,7 @@ pipeline {
                                   context: 'test/' + env.STAGE_NAME,
                                   status: 'SUCCESS'
                     }
-                }
+                } */
             } // stage('grep JUnit results tests error case')
             stage('publishToRepository tests') {
                 agent {
@@ -205,7 +207,7 @@ pipeline {
                             junit_files: null,
                             failure_artifacts: env.STAGE_NAME
                 }
-                post {
+/*                post {
                     unsuccessful {
                         scmNotify description: env.STAGE_NAME,
                                   context: 'test/' + env.STAGE_NAME,
@@ -216,7 +218,7 @@ pipeline {
                                   context: 'test/' + env.STAGE_NAME,
                                   status: 'SUCCESS'
                     }
-                }
+                } */
             } //stage('provisionNodes with release/0.9 Repo')
             stage('provisionNodes with master Repo') {
                 when {
@@ -240,7 +242,7 @@ pipeline {
                             junit_files: null,
                             failure_artifacts: env.STAGE_NAME
                 }
-                post {
+/*                post {
                     unsuccessful {
                         scmNotify description: env.STAGE_NAME,
                                   context: 'test/' + env.STAGE_NAME,
@@ -251,7 +253,7 @@ pipeline {
                                   context: 'test/' + env.STAGE_NAME,
                                   status: 'SUCCESS'
                     }
-                }
+                } */
             } // stage('provisionNodes with master Repo')
             stage('provisionNodes with slurm EL7') {
                 when {
@@ -276,7 +278,7 @@ pipeline {
                             junit_files: null,
                             failure_artifacts: env.STAGE_NAME
                 }
-                post {
+/*                post {
                     unsuccessful {
                         scmNotify description: env.STAGE_NAME,
                                   context: 'test/' + env.STAGE_NAME,
@@ -287,7 +289,7 @@ pipeline {
                                   context: 'test/' + env.STAGE_NAME,
                                   status: 'SUCCESS'
                     }
-                }
+                } */
             } //stage('provisionNodes with slurm EL7')
             stage('provisionNodes with slurm Leap15') {
                 when {
@@ -312,7 +314,7 @@ pipeline {
                             junit_files: null,
                             failure_artifacts: env.STAGE_NAME
                 }
-                post {
+/*                post {
                     unsuccessful {
                         scmNotify description: env.STAGE_NAME,
                                   context: 'test/' + env.STAGE_NAME,
@@ -323,7 +325,7 @@ pipeline {
                                   context: 'test/' + env.STAGE_NAME,
                                   status: 'SUCCESS'
                     }
-                }
+                } */
             } //stage('provisionNodes_with_slurm_leap15')
           } // parallel
         } // stage('Test')
