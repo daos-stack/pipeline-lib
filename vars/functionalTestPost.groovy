@@ -30,7 +30,7 @@ def call(Map config = [:]) {
 
   def junit_results = config.get('testResults',
                                  'Functional/*/results.xml, ' +
-                                 'Functional/*/log_size_check.xml, ' +
+                                 'Functional/*/framework_results.xml, ' +
                                  'Functional/*/test-results/*/data/*_results.xml')
   junit testResults: junit_results
 }
