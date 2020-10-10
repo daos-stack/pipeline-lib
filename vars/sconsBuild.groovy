@@ -160,7 +160,9 @@ def call(Map config = [:]) {
     if (config['USE_INSTALLED']) {
         scons_args += " USE_INSTALLED=${config['USE_INSTALLED']}"
     } else {
-        scons_args += ' USE_INSTALLED=all'
+        if (stage_info['compiler'] != 'covc') {
+            scons_args += ' USE_INSTALLED=all'
+        }
     }
     if (config['SRC_PREFIX']) {
         scons_args += " SRC_PREFIX=${config['SRC_PREFIX']}"
