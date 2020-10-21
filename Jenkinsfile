@@ -106,18 +106,7 @@ pipeline {
                         junit_files: "*.xml non-exist*.xml",
                         failure_artifacts: env.STAGE_NAME
                 }
-                post {
-                    unsuccessful {
-                        scmNotify description: env.STAGE_NAME,
-                                  context: 'test/' + env.STAGE_NAME,
-                                  status: 'FAILURE'
-                    }
-                    success {
-                        scmNotify description: env.STAGE_NAME,
-                                  context: 'test/' + env.STAGE_NAME,
-                                  status: 'SUCCESS'
-                    }
-                }
+                // runTest handles SCM notification via stepResult
             } // stage('grep JUnit results tests failure case')
             stage('grep JUnit results tests error case') {
                 agent {
@@ -135,18 +124,7 @@ pipeline {
                         junit_files: "*.xml non-exist*.xml",
                         failure_artifacts: env.STAGE_NAME
                 }
-                post {
-                    unsuccessful {
-                        scmNotify description: env.STAGE_NAME,
-                                  context: 'test/' + env.STAGE_NAME,
-                                  status: 'FAILURE'
-                    }
-                    success {
-                        scmNotify description: env.STAGE_NAME,
-                                  context: 'test/' + env.STAGE_NAME,
-                                  status: 'SUCCESS'
-                    }
-                }
+                // runTest handles SCM notification via stepResult
             } // stage('grep JUnit results tests error case')
             stage('publishToRepository tests') {
                 agent {
@@ -205,18 +183,7 @@ pipeline {
                             junit_files: null,
                             failure_artifacts: env.STAGE_NAME
                 }
-                post {
-                    unsuccessful {
-                        scmNotify description: env.STAGE_NAME,
-                                  context: 'test/' + env.STAGE_NAME,
-                                  status: 'FAILURE'
-                    }
-                    success {
-                        scmNotify description: env.STAGE_NAME,
-                                  context: 'test/' + env.STAGE_NAME,
-                                  status: 'SUCCESS'
-                    }
-                }
+                // runTest handles SCM notification via stepResult
             } //stage('provisionNodes with release/0.9 Repo')
             stage('provisionNodes with master Repo') {
                 when {
@@ -240,18 +207,7 @@ pipeline {
                             junit_files: null,
                             failure_artifacts: env.STAGE_NAME
                 }
-                post {
-                    unsuccessful {
-                        scmNotify description: env.STAGE_NAME,
-                                  context: 'test/' + env.STAGE_NAME,
-                                  status: 'FAILURE'
-                    }
-                    success {
-                        scmNotify description: env.STAGE_NAME,
-                                  context: 'test/' + env.STAGE_NAME,
-                                  status: 'SUCCESS'
-                    }
-                }
+                // runTest handles SCM notification via stepResult
             } // stage('provisionNodes with master Repo')
             stage('provisionNodes with slurm EL7') {
                 when {
@@ -276,18 +232,7 @@ pipeline {
                             junit_files: null,
                             failure_artifacts: env.STAGE_NAME
                 }
-                post {
-                    unsuccessful {
-                        scmNotify description: env.STAGE_NAME,
-                                  context: 'test/' + env.STAGE_NAME,
-                                  status: 'FAILURE'
-                    }
-                    success {
-                        scmNotify description: env.STAGE_NAME,
-                                  context: 'test/' + env.STAGE_NAME,
-                                  status: 'SUCCESS'
-                    }
-                }
+                // runTest handles SCM notification via stepResult
             } //stage('provisionNodes with slurm EL7')
             stage('provisionNodes with slurm Leap15') {
                 when {
@@ -312,18 +257,7 @@ pipeline {
                             junit_files: null,
                             failure_artifacts: env.STAGE_NAME
                 }
-                post {
-                    unsuccessful {
-                        scmNotify description: env.STAGE_NAME,
-                                  context: 'test/' + env.STAGE_NAME,
-                                  status: 'FAILURE'
-                    }
-                    success {
-                        scmNotify description: env.STAGE_NAME,
-                                  context: 'test/' + env.STAGE_NAME,
-                                  status: 'SUCCESS'
-                    }
-                }
+                // runTest handles SCM notification via stepResult
             } //stage('provisionNodes_with_slurm_leap15')
           } // parallel
         } // stage('Test')

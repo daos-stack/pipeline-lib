@@ -172,11 +172,13 @@ def call(Map config = [:]) {
                ignore_failure: ignore_failure
 
     if (status == 'FAILURE') {
+        def stage_status = 'FAILURE'
         if (ignore_failure) {
-            catchError(stageResult: 'UNSTABLE',
-                       buildResult: 'SUCCESS') {
-                error(env.STAGE_NAME + " failed: " + rc)
-            }
+            stage_status = 'UNSTABLE'
+        }
+        catchError(stageResult: stage_status,
+                   buildResult: 'SUCCESS') {
+            error(env.STAGE_NAME + " failed: " + rc)
         }
     }
 
