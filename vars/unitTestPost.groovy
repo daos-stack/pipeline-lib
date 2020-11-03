@@ -27,6 +27,9 @@
    *                               Required if more than one stage is
    *                               creating valgrind reports.
    *
+   * config['no_record_issues']    Do not record issues.  Legacy option
+   *                               for backwards compatability.
+   *
    */
 
 def call(Map config = [:]) {
@@ -91,11 +94,9 @@ def call(Map config = [:]) {
     valgrindReportPublish ignore_failure: ignore_failure,
                           valgrind_stashes: []
   }
-  if ((!stage_info['with_valgrind']) || (stage_info['NLT'] == 1)) {
+  def no_record_issues = config.get('no_record_issues', true)
+  if ((!stage_info['with_valgrind']) && no_record_issues) || (stage_info['NLT'] == 1) {
     cb_result = currentBuild.result
-    if (!stage_info['with_valgrind']) {
-        ignore_failure = true
-    }
     recordIssues enabledForFailure: true,
                  failOnError: !ignore_failure,
                  referenceJobName: config.get('referenceJobName',
