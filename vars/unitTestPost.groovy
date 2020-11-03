@@ -90,7 +90,7 @@ def call(Map config = [:]) {
     valgrindReportPublish ignore_failure: ignore_failure,
                           valgrind_stashes: []
   }
-  if ((!stage_info['with_valgrind']) || (stage_info['NLT] == 1)) {
+  if ((!stage_info['with_valgrind']) || (stage_info['NLT'] == 1)) {
     cb_result = currentBuild.result
     if (!stage_info['with_valgrind'] = true
     recordIssues enabledForFailure: true,
