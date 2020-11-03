@@ -86,13 +86,6 @@ def call(Map config = [:]) {
   if (config['valgrind_stash']) {
     def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
     stash name: config['valgrind_stash'], includes: valgrind_pattern
-  } else {
-
-    // Need to leave this logic in here for backwards compatibility.
-    // Valgrind results need to stashed and reported in a common stage
-    // After all Valgrind tests are run.
-    valgrindReportPublish ignore_failure: ignore_failure,
-                          valgrind_stashes: []
   }
   def no_record_issues = config.get('no_record_issues', true)
   if ((!stage_info['with_valgrind'] && no_record_issues) || (stage_info['NLT'] == 1)) {
