@@ -8,8 +8,9 @@
    * config['always_script']       Script to run after any test.
    *                               Default 'ci/unit/test_post_always.sh'.
    *
+   * TODO: Always provided, should make required
    * config['artifacts']           Artifacts to archive.
-   *                               Default ['run_test.sh/*', 'vm_test/**']
+   *                               Default ['run_test.sh/*']
    *
    * config['ignore_failure']      Ignore test failures.  Default false.
    *
@@ -62,7 +63,7 @@ def call(Map config = [:]) {
     sh "tar -czf ${target_dir}.tar.gz ${target_dir}"
   }
 
-  def artifact_list = config.get('artifacts', ['run_test.sh/*', 'vm_test/**'])
+  def artifact_list = config.get('artifacts', ['run_test.sh/*'])
   def ignore_failure = config.get('ignore_failure', false)
   artifact_list.each {
     archiveArtifacts artifacts: it,
