@@ -95,7 +95,7 @@ def call(Map config = [:]) {
                           valgrind_stashes: []
   }
   def no_record_issues = config.get('no_record_issues', true)
-  if ((!stage_info['with_valgrind']) && no_record_issues) || (stage_info['NLT'] == 1) {
+  if ((!stage_info['with_valgrind'] && no_record_issues) || (stage_info['NLT'] == 1)) {
     cb_result = currentBuild.result
     recordIssues enabledForFailure: true,
                  failOnError: !ignore_failure,
