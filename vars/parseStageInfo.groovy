@@ -148,7 +148,7 @@ def call(Map config = [:]) {
       result['ftest_arg'] = config['ftest_arg']
     }
 
-    if (env.STAGE_NAME.contains('NLT)) {
+    if (env.STAGE_NAME.contains('NLT')) {
       result['NLT'] = 1
     }
 
