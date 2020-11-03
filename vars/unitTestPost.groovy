@@ -37,17 +37,19 @@ def call(Map config = [:]) {
 
   Map stage_info = parseStageInfo(config)
 
-  double health_scale = 1.0
-  if (config['ignore_failure']) {
-    health_scale = 0.0
-  }
+  if (config['testResults'] != 'None' ) {
+    double health_scale = 1.0
+    if (config['ignore_failure']) {
+      health_scale = 0.0
+    }
 
-  def cb_result = currentBuild.result
-  junit testResults: config.get('testResults', 'test_results/*.xml'),
-        healthScaleFactor: health_scale
+    def cb_result = currentBuild.result
+    junit testResults: config.get('testResults', 'test_results/*.xml'),
+          healthScaleFactor: health_scale
 
-  if (cb_result != currentBuild.result) {
-    println "The junit plugin changed result to ${currentBuild.result}."
+    if (cb_result != currentBuild.result) {
+      println "The junit plugin changed result to ${currentBuild.result}."
+    }
   }
 
   if(stage_info['with_valgrind']) {
@@ -88,8 +90,9 @@ def call(Map config = [:]) {
     valgrindReportPublish ignore_failure: ignore_failure,
                           valgrind_stashes: []
   }
-  if (!stage_info['with_valgrind']) {
+  if (!stage_info['with_valgrind'] || stage_info['NLT] == 1) {
     cb_result = currentBuild.result
+    if (!stage_info['with_valgrind'] = true
     recordIssues enabledForFailure: true,
                  failOnError: !ignore_failure,
                  referenceJobName: config.get('referenceJobName',

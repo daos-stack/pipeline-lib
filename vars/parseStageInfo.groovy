@@ -148,6 +148,10 @@ def call(Map config = [:]) {
       result['ftest_arg'] = config['ftest_arg']
     }
 
+    if (env.STAGE_NAME.contains('NLT)) {
+      result['NLT'] = 1
+    }
+
     if (env.STAGE_NAME.contains('Unit Test') &&
         env.STAGE_NAME.contains('memcheck')) {
         result['with_valgrind'] = 'memcheck'
