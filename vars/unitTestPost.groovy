@@ -27,8 +27,8 @@
    *                               Required if more than one stage is
    *                               creating valgrind reports.
    *
-   * config['no_record_issues']    Do not record issues.  Legacy option
-   *                               for backwards compatability.
+   * config['record_issues']       Call recordIssues for Unit test,
+   *                               legacy option for backwards compatability.
    *
    */
 
@@ -87,8 +87,8 @@ def call(Map config = [:]) {
     def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
     stash name: config['valgrind_stash'], includes: valgrind_pattern
   }
-  def no_record_issues = config.get('no_record_issues', true)
-  if ((!stage_info['with_valgrind'] && no_record_issues) || (stage_info['NLT'] == 1)) {
+  def record_issues = config.get('record_issues', true)
+  if ((!stage_info['with_valgrind'] && record_issues) || stage_info['NLT']) {
     cb_result = currentBuild.result
     recordIssues enabledForFailure: true,
                  failOnError: !ignore_failure,

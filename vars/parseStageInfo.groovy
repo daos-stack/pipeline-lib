@@ -149,7 +149,9 @@ def call(Map config = [:]) {
     }
 
     if (env.STAGE_NAME.contains('NLT')) {
-      result['NLT'] = 1
+      result['NLT'] = True     
+    } else {
+      result['NLT'] = False
     }
 
     if (env.STAGE_NAME.contains('Unit Test') &&
