@@ -149,7 +149,7 @@ def call(Map config = [:]) {
     }
 
     if (env.STAGE_NAME.contains('NLT')) {
-      result['NLT'] = True     
+      result['NLT'] = True
     } else {
       result['NLT'] = False
     }
