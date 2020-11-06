@@ -89,7 +89,7 @@ def call(Map config = [:]) {
   }
   def record_issues = config.get('record_issues', true)
   if ((!stage_info['with_valgrind'] && record_issues) || stage_info['NLT']) {
-    cb_result = currentBuild.result
+    def cb_result = currentBuild.result
     recordIssues enabledForFailure: true,
                  failOnError: !ignore_failure,
                  referenceJobName: config.get('referenceJobName',
