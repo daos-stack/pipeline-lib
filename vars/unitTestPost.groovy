@@ -8,8 +8,9 @@
    * config['always_script']       Script to run after any test.
    *                               Default 'ci/unit/test_post_always.sh'.
    *
+   * TODO: Always provided, should make required
    * config['artifacts']           Artifacts to archive.
-   *                               Default ['run_test.sh/*', 'vm_test/**']
+   *                               Default ['run_test.sh/*']
    *
    * config['ignore_failure']      Ignore test failures.  Default false.
    *
@@ -26,6 +27,9 @@
    *                               Required if more than one stage is
    *                               creating valgrind reports.
    *
+   * config['record_issues']       Call recordIssues for Unit test,
+   *                               legacy option for backwards compatability.
+   *
    */
 
 def call(Map config = [:]) {
@@ -37,17 +41,19 @@ def call(Map config = [:]) {
 
   Map stage_info = parseStageInfo(config)
 
-  double health_scale = 1.0
-  if (config['ignore_failure']) {
-    health_scale = 0.0
-  }
+  if (config['testResults'] != 'None' ) {
+    double health_scale = 1.0
+    if (config['ignore_failure']) {
+      health_scale = 0.0
+    }
 
-  def cb_result = currentBuild.result
-  junit testResults: config.get('testResults', 'test_results/*.xml'),
-        healthScaleFactor: health_scale
+    def cb_result = currentBuild.result
+    junit testResults: config.get('testResults', 'test_results/*.xml'),
+          healthScaleFactor: health_scale
 
-  if (cb_result != currentBuild.result) {
-    println "The junit plugin changed result to ${currentBuild.result}."
+    if (cb_result != currentBuild.result) {
+      println "The junit plugin changed result to ${currentBuild.result}."
+    }
   }
 
   if(stage_info['with_valgrind']) {
@@ -60,7 +66,7 @@ def call(Map config = [:]) {
     sh "tar -czf ${target_dir}.tar.gz ${target_dir}"
   }
 
-  def artifact_list = config.get('artifacts', ['run_test.sh/*', 'vm_test/**'])
+  def artifact_list = config.get('artifacts', ['run_test.sh/*'])
   def ignore_failure = config.get('ignore_failure', false)
   artifact_list.each {
     archiveArtifacts artifacts: it,
@@ -80,16 +86,10 @@ def call(Map config = [:]) {
   if (config['valgrind_stash']) {
     def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
     stash name: config['valgrind_stash'], includes: valgrind_pattern
-  } else {
-
-    // Need to leave this logic in here for backwards compatibility.
-    // Valgrind results need to stashed and reported in a common stage
-    // After all Valgrind tests are run.
-    valgrindReportPublish ignore_failure: ignore_failure,
-                          valgrind_stashes: []
   }
-  if (!stage_info['with_valgrind']) {
-    cb_result = currentBuild.result
+  def record_issues = config.get('record_issues', true)
+  if ((!stage_info['with_valgrind'] && record_issues) || stage_info['NLT']) {
+    def cb_result = currentBuild.result
     recordIssues enabledForFailure: true,
                  failOnError: !ignore_failure,
                  referenceJobName: config.get('referenceJobName',
