@@ -20,6 +20,12 @@
 
 def call(Map config = [:]) {
 
+  Map stage_info = parseStageInfo(config)
+
+  if (stage_info['compiler'] == 'covc') {
+    return
+  }
+
   def stashes = []
   if (config['valgrind_stashes']) {
     stashes = config['valgrind_stashes']
