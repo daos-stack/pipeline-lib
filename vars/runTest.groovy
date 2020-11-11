@@ -171,15 +171,15 @@ def call(Map config = [:]) {
                junit_files: config['junit_files'],
                ignore_failure: ignore_failure
 
-    if (status == 'FAILURE') {
-        def stage_status = 'FAILURE'
+    if (status != 'SUCCESS') {
         if (ignore_failure) {
-            stage_status = 'UNSTABLE'
-        }
-        catchError(stageResult: stage_status,
-                   buildResult: 'SUCCESS') {
-            error(env.STAGE_NAME + " failed: " + rc)
-        }
+            catchError(stageResult: 'UNSTABLE',
+                       buildResult: 'SUCCESS') {
+                error(env.STAGE_NAME + " failed: " + rc)
+            }
+	} else {
+	       error(env.STAGE_NAME + " failed: " + rc)
+	}
     }
 
 }
