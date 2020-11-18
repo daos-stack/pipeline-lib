@@ -128,14 +128,20 @@ def call(Map pipeline_args) {
                         }
                         steps {
                             sh label: "SPEC file sanity check",
-                               script: '[ "$(make CHROOT_NAME="epel-7-x86_64" show_sources)" != "" ]'
+                               script: '[ "$(make ' +
+                                       pipeline_args.get('make args', '') +
+                                       ' CHROOT_NAME=epel-7-x86_64 show_sources)" != "" ]'
                         }
                         post {
                             unsuccessful {
                                 sh label: "Diagnose SPEC file sanity check failure",
                                    script: '''set +x
-                                              eval args=($(make show_common_rpm_args 2>/dev/null))
-                                              vars=$(CHROOT_NAME="epel-7-x86_64" spectool --debug "${args[@]}" $(make show_spec 2>/dev/null) 2>&1 | sed -e 's/: /=/' -e 's/ /_/g')
+                                              eval args=($(make ''' +
+                                              pipeline_args.get('make args', '') + ' ' +
+                                           '''show_common_rpm_args 2>/dev/null))
+                                              vars=$(CHROOT_NAME="epel-7-x86_64" spectool --debug "${args[@]}" $(make ''' +
+                                              pipeline_args.get('make args', '') + ' ' +
+                                           '''show_spec 2>/dev/null) 2>&1 | sed -e 's/: /=/' -e 's/ /_/g')
                                               eval $vars
                                               cat $stderr_filename
                                               echo "in:"
