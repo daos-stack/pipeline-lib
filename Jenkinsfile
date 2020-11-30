@@ -127,8 +127,12 @@ pipeline {
                 }
                 // runTest handles SCM notification via stepResult
             } // stage('grep JUnit results tests error case')
-            /* Currently broken
-                stage('publishToRepository tests') {
+            stage('publishToRepository tests') {
+                // currently broken.
+                when {
+                    beforeAgent true
+                    expression { false }
+                }
                 agent {
                     dockerfile {
                         filename 'docker/Dockerfile.centos.7'
@@ -164,7 +168,6 @@ pipeline {
                     }
                 }
             } //stage('publishToRepository tests')
-            */
             stage('provisionNodes with release/0.9 Repo') {
                 when {
                     beforeAgent true
