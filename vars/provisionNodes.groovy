@@ -75,11 +75,11 @@ def call(Map config = [:]) {
       return node_cnt
   }
 
-  def distro_type = 'el'
+  def distro_type = 'el7'
   def distro = config.get('distro', 'el7')
-  if (distro == 'centos7') {
-    distro = 'el7'
-  }  else if (distro.startsWith("sles") || distro.startsWith("leap") ||
+  if (distro.startsWith("centos8") || distro.startsWith("el8")) {
+    distro_type = 'el8'
+  } else if (distro.startsWith("sles") || distro.startsWith("leap") ||
       distro.startsWith("opensuse")) {
       // sles and opensuse leap can use each others binaries.
       // Currently we are only building opensuse leap binaries.
@@ -109,12 +109,19 @@ def call(Map config = [:]) {
      }
   }
   if (env.REPOSITORY_URL != null) {
-    if (distro.startsWith("el7")) {
+    if (distro_type == 'el7') {
         if (env.DAOS_STACK_EL_7_GROUP_REPO != null) {
             repository_g = env.REPOSITORY_URL + env.DAOS_STACK_EL_7_GROUP_REPO
         }
         if (env.DAOS_STACK_EL_7_LOCAL_REPO != null) {
             repository_l = env.REPOSITORY_URL + env.DAOS_STACK_EL_7_LOCAL_REPO
+        }
+    } else if (distro_type == 'el8') {
+        if (env.DAOS_STACK_EL_8_GROUP_REPO != null) {
+            repository_g = env.REPOSITORY_URL + env.DAOS_STACK_EL_8_GROUP_REPO
+        }
+        if (env.DAOS_STACK_EL_8_LOCAL_REPO != null) {
+            repository_l = env.REPOSITORY_URL + env.DAOS_STACK_EL_8_LOCAL_REPO
         }
     } else if (distro.startsWith("sles15")) {
         if (env.DAOS_STACK_SLES_15_GROUP_REPO != null) {
@@ -152,8 +159,10 @@ def call(Map config = [:]) {
   String provision_script = 'set -ex\n'
   String config_power_only = config['power_only'] ? 'true': 'false'
   provision_script += 'DISTRO='
-  if (distro_type == "el") {
+  if (distro_type == "el7") {
       provision_script += 'EL_7'
+  } else if (distro_type == "el8") {
+      provision_script += 'EL_8'
   } else if (distro_type == 'suse') {
       provision_script += 'LEAP_15'
   } else if (distro_type == 'ubuntu') {
