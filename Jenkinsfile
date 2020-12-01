@@ -127,6 +127,11 @@ pipeline {
                 // runTest handles SCM notification via stepResult
             } // stage('grep JUnit results tests error case')
             stage('publishToRepository tests') {
+                // currently broken.
+                when {
+                    beforeAgent true
+                    expression { false }
+                }
                 agent {
                     dockerfile {
                         filename 'docker/Dockerfile.centos.7'

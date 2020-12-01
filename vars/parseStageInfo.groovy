@@ -50,11 +50,13 @@ def call(Map config = [:]) {
       } else if (env.STAGE_NAME.contains('Ubuntu 20')) {
         result['target'] = 'ubuntu20.04'
       } else {
-        echo "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7"
+        echo (
+          "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7")
       }
     }
 
-    if (result['target'].startsWith('centos')) {
+    if (result['target'].startsWith('el') ||
+        result['target'].startsWith('centos')) {
       result['java_pkg'] = 'java-1.8.0-openjdk'
     } else if (result['target'].startsWith('ubuntu')) {
       result['java_pkg'] = 'openjdk-8-jdk'
