@@ -115,7 +115,7 @@ def call(Map config = [:]) {
 
     if (env.STAGE_NAME.contains('Functional')) {
       if (env.BRANCH_NAME == 'master') {
-          core_tag = 'pr'
+          core_tag = 'pr,pre'
       } else {
           core_tag = 'pre'
       }
