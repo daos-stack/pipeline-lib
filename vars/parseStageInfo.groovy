@@ -114,22 +114,27 @@ def call(Map config = [:]) {
     result['node_count'] = 1
 
     if (env.STAGE_NAME.contains('Functional')) {
+      if (env.BRANCH_NAME == 'master') {
+          core_tag = 'pr'
+      } else {
+          core_tag = 'pre'
+      }
       result['test'] = 'Functional'
       result['node_count'] = 9
-      result['test_tag'] = 'pr,-hw'
+      result['test_tag'] = core_tag + ',-hw'
       result['pragma_suffix'] = ''
       result['ftest_arg'] = ''
       if (env.STAGE_NAME.contains('Hardware')) {
-        result['test_tag'] = 'pr,hw,large'
+        result['test_tag'] = core_tag + ',hw,large'
         result['pragma_suffix'] = '-hw-large'
         result['ftest_arg'] = 'auto:Optane'
         if (env.STAGE_NAME.contains('Small')) {
           result['node_count'] = 3
-          result['test_tag'] = 'pr,hw,small'
+          result['test_tag'] = core_tag + ',hw,small'
           result['pragma_suffix'] = '-hw-small'
         } else if (env.STAGE_NAME.contains('Medium')) {
           result['node_count'] = 5
-          result['test_tag'] = 'pr,hw,medium,ib2'
+          result['test_tag'] = core_tag + ',hw,medium,ib2'
           result['pragma_suffix'] = '-hw-medium'
         }
       }
