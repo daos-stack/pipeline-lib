@@ -29,8 +29,8 @@ def call(Map config = [:]) {
   archiveArtifacts artifacts: artifacts
 
   def junit_results = config.get('testResults',
-                                 'Functional/*/results.xml, ' +
-                                 'Functional/*/framework_results.xml, ' +
-                                 'Functional/*/test-results/*/data/*_results.xml')
+                                 'Functional/*/*/results.xml, ' +
+                                 'Functional/*/*/framework_results.xml, ' +
+                                 'Functional/*/*/test-results/*/data/*_results.xml')
   junit testResults: junit_results
 }
