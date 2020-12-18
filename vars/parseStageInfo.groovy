@@ -113,6 +113,7 @@ def call(Map config = [:]) {
     // Unless otherwise specified, all tests will only use one node.
     result['node_count'] = 1
 
+    String cluster_size = ""
     if (env.STAGE_NAME.contains('Functional')) {
       String branch_tag = "pr"
       if (startedByTimer()) {
@@ -120,29 +121,28 @@ def call(Map config = [:]) {
       }
       result['test'] = 'Functional'
       result['node_count'] = 9
-      result['test_tag'] = branch_tag + ',-hw'
+      cluster_size = '-hw'
       result['pragma_suffix'] = ''
       result['ftest_arg'] = ''
       if (env.STAGE_NAME.contains('Hardware')) {
-        result['test_tag'] = branch_tag + ',hw,large'
+        cluster_size = 'hw,large'
         result['pragma_suffix'] = '-hw-large'
         result['ftest_arg'] = 'auto:Optane'
         if (env.STAGE_NAME.contains('Small')) {
           result['node_count'] = 3
-          result['test_tag'] = branch_tag + ',hw,small'
+          cluster_size = 'hw,small'
           result['pragma_suffix'] = '-hw-small'
         } else if (env.STAGE_NAME.contains('Medium')) {
           result['node_count'] = 5
-          result['test_tag'] = branch_tag + ',hw,medium,ib2'
+          cluster_size = 'hw,medium,ib2'
           result['pragma_suffix'] = '-hw-medium'
         }
       }
+      result['test_tag'] = branch_tag + ',' + cluster_size
 
-      String features = commitPragma(pragma: "Features")
-      if (features) {
-        result['test_tag'] += ' ' + features
+      for (feature in commitPragma(pragma: "Features").split(' ')) {
+        result['test_tag'] += ' ' + feature + ',' + cluster_size
       }
-
     }
     if (config['test']) {
       result['test'] = config['test']
