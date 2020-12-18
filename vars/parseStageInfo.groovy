@@ -137,6 +137,12 @@ def call(Map config = [:]) {
           result['pragma_suffix'] = '-hw-medium'
         }
       }
+
+      String features = commitPragma(pragma: "Features")
+      if (features) {
+        result['test_tag'] += ' ' + features
+      }
+
     }
     if (config['test']) {
       result['test'] = config['test']
