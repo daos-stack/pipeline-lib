@@ -17,64 +17,13 @@
 // is landed, both PR branches can be deleted.
 //@Library(value="pipeline-lib@my_branch_name") _
 
-// The docker agent setup may need to know the
-// UID that the build agent is running under.
-cached_uid = 0
-def getuid() {
-    if (cached_uid == 0)
-        cached_uid = sh label: 'getuid()',
-                        script: "id -u",
-                        returnStdout: true
-    return cached_uid
-}
-
-// This sets up the additinal build arguments for setting up a docker
-// build agent from a dockerfile.
-// The result of this function need to be stored in an environment
-// variable.  Calling this function to create a docker build agent
-// fails.  The log shows a truncated command string.
-def docker_build_args(Map config = [:]) {
-    ret_str = " --build-arg NOBUILD=1 --build-arg UID=" + getuid()
-              // add a + to end of previous line to enable either of these.
-              //" --build-arg JENKINS_URL=$env.JENKINS_URL" +
-              //" --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
-
-    //if (env.REPOSITORY_URL) {
-    //  ret_str += ' --build-arg REPO_URL=' + env.REPOSITORY_URL
-    //}
-    //if (env.DAOS_STACK_EL_7_LOCAL_REPO) {
-    //  ret_str += ' --build-arg REPO_EL7=' + env.DAOS_STACK_EL_7_LOCAL_REPO
-    //}
-    //if (env.DAOS_STACK_EL_8_LOCAL_REPO) {
-    //  ret_str += ' --build-arg REPO_EL8=' + env.DAOS_STACK_EL_8_LOCAL_REPO
-    //}
-    //if (env.DAOS_STACK_LEAP_15_LOCAL_REPO) {
-    //  ret_str += ' --build-arg REPO_LEAP15=' +
-    //             env.DAOS_STACK_LEAP_15_LOCAL_REPO
-    //}
-    if (env.HTTP_PROXY) {
-      ret_str += ' --build-arg HTTP_PROXY="' + env.HTTP_PROXY + '"'
-                 ' --build-arg http_proxy="' + env.HTTP_PROXY + '"'
-    }
-    if (env.HTTPS_PROXY) {
-      ret_str += ' --build-arg HTTPS_PROXY="' + env.HTTPS_PROXY + '"'
-                 ' --build-arg https_proxy="' + env.HTTPS_PROXY + '"'
-    }
-    //if (config['qb']) {
-    //  ret_str += ' --build-arg QUICKBUILD=' + config['qb']
-    //  ret_str += ' --build-arg REPOS="' + component_repos() + '"'
-    //}
-    return ret_str
-}
-
-
 pipeline {
     agent { label 'lightweight' }
     environment {
         SSH_KEY_FILE='ci_key'
         SSH_KEY_ARGS="-i$SSH_KEY_FILE"
         CLUSH_ARGS="-o$SSH_KEY_ARGS"
-        BUILDARGS = docker_build_args()
+        BUILDARGS = dockerBuildArgs(cachebust: False, add_repos: False)
     }
 
     options {
