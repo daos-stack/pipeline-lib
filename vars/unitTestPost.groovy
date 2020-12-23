@@ -27,9 +27,6 @@
    *                               Required if more than one stage is
    *                               creating valgrind reports.
    *
-   * config['record_issues']       Call recordIssues for Unit test,
-   *                               legacy option for backwards compatability.
-   *
    */
 
 def call(Map config = [:]) {
@@ -87,8 +84,8 @@ def call(Map config = [:]) {
     def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
     stash name: config['valgrind_stash'], includes: valgrind_pattern
   }
-  def record_issues = config.get('record_issues', true)
-  if ((!stage_info['with_valgrind'] && record_issues) || stage_info['NLT']) {
+
+  if (stage_info['NLT']) {
     def cb_result = currentBuild.result
     recordIssues enabledForFailure: true,
                  failOnError: !ignore_failure,
@@ -98,15 +95,12 @@ def call(Map config = [:]) {
                  ignoreQualityGate: true,
                  // Set qualitygate to 1 new "NORMAL" priority message
                  // Supporting messages to help identify causes of
-                 // problems are set to "LOW", and there are a
-                 // number of intermittent issues during server
-                 // shutdown that would normally be NORMAL but in
-                 // order to have stable results are set to LOW.
-
+                 // problems are set to "LOW".
                  qualityGates: [
                    [threshold: 1, type: 'TOTAL_HIGH', unstable: true],
                    [threshold: 1, type: 'TOTAL_ERROR', unstable: true],
-                   [threshold: 1, type: 'NEW_NORMAL', unstable: true]],
+                   [threshold: 1, type: 'NEW_NORMAL', unstable: true],
+                   [threshold: 1, type: 'NEW_LOW', unstable: true]],
                   name: "Node local testing",
                   tool: issues(pattern: 'vm_test/nlt-errors.json',
                                name: 'NLT results',
