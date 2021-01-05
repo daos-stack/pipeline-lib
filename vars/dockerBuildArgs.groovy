@@ -18,8 +18,8 @@ int getuid() {
 }
 
 String call(Map config = [:]) {
-    Boolean cachebust = True
-    Boolean add_repos = True
+    Boolean cachebust = true
+    Boolean add_repos = true
     if (config['cachebust']) {
       cachebust = config['cachebust']
     }
