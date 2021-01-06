@@ -131,7 +131,7 @@ def call(Map config = [:]) {
       result['test'] = 'Functional'
       result['node_count'] = 9
       cluster_size = '-hw'
-      result['pragma_suffix'] = ''
+      result['pragma_suffix'] = '-vm'
       result['ftest_arg'] = ''
       if (env.STAGE_NAME.contains('Hardware')) {
         cluster_size = 'hw,large'
@@ -147,6 +147,10 @@ def call(Map config = [:]) {
           result['pragma_suffix'] = '-hw-medium'
         }
       }
+      // override branch_tag with any Test-tag* commit pragma
+      branch_tag = commitPragma(pragma: "Test-tag" + result['pragma_suffix'],
+                                def_val: commitPragma(pragma: "Test-tag",
+                                                      def_val: branch_tag))
       result['test_tag'] = branch_tag + ',' + cluster_size
 
       for (feature in commitPragma(pragma: "Features").split(' ')) {
