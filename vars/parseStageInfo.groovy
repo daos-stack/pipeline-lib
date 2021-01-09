@@ -141,7 +141,11 @@ def call(Map config = [:]) {
       result['test_tag'] = branch_tag + ',' + cluster_size
 
       for (feature in commitPragma(pragma: "Features").split(' ')) {
-        result['test_tag'] += ' ' + feature + ',' + cluster_size
+        // Add tests from all testing buckets
+        // Duplication with branch_tag is not a problem
+        result['test_tag'] += ' pr,' + feature + ',' + cluster_size
+        result['test_tag'] += ' daily_regression,' + feature + ',' + cluster_size
+        result['test_tag'] += ' full_regression,' + feature + ',' + cluster_size
       }
     }
     if (config['test']) {
