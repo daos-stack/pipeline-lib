@@ -49,6 +49,9 @@
    * config['test_rpms']         Set to true to test RPMs being built.
    *                             Default env.TEST_RPMS.
    *
+   * config['test_tag']          Avocado tag to test.
+   *                             Default determined by parseStageInfo().
+   *
    */
 
 def call(Map config = [:]) {
