@@ -29,6 +29,11 @@
  * config['compiler']
  * config['target']
  * config['target_prefix']
+
+ * @param config Map of parameters passed
+ *
+ * config['test_tag']          Avocado tag to test.
+ *                             Default determined by this function below.
  */
 def call(Map config = [:]) {
 
@@ -116,7 +121,11 @@ def call(Map config = [:]) {
     String cluster_size = ""
     if (env.STAGE_NAME.contains('Functional')) {
       String branch_tag = "pr"
-      if (startedByTimer()) {
+      if (config['test_tag']) {
+        // Caller told us which bucket to test from
+        branch_tag = config['test_tag']
+      } else if (startedByTimer()) {
+        // Otherwise, if it was started by a timer, it must be the daily test
         branch_tag = "daily_regression"
       }
       result['test'] = 'Functional'
