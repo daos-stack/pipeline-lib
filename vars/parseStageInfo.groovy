@@ -145,7 +145,9 @@ def call(Map config = [:]) {
         // Duplication with branch_tag is not a problem
         result['test_tag'] += ' pr,' + feature + ',' + cluster_size
         result['test_tag'] += ' daily_regression,' + feature + ',' + cluster_size
+        /* DAOS-????
         result['test_tag'] += ' full_regression,' + feature + ',' + cluster_size
+        */
       }
     }
     if (config['test']) {
