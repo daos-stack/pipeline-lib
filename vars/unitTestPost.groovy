@@ -87,10 +87,10 @@ def call(Map config = [:]) {
 
   if (stage_info['NLT']) {
     def cb_result = currentBuild.result
+    discoverGitReferenceBuild referenceJob: config.get('referenceJobName',
+                                              'daos-stack/daos/master')
     recordIssues enabledForFailure: true,
                  failOnError: !ignore_failure,
-                 referenceJobName: config.get('referenceJobName',
-                                              'daos-stack/daos/master'),
                  ignoreFailedBuilds: false,
                  ignoreQualityGate: true,
                  // Set qualitygate to 1 new "NORMAL" priority message
