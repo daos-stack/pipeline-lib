@@ -167,9 +167,6 @@ def call(Map config = [:]) {
     if (config['node_count']) {
       result['node_count'] = config['node_count']
     }
-    if (config['test_tag']) {
-      result['test_tag'] = config['test_tag']
-    }
     if (config['pragma_suffix']) {
       result['pragma_suffix'] = config['pragma_suffix']
     }
