@@ -108,7 +108,7 @@ def call(Map config = [:]) {
                                      config['node_count'],
                                      config['ftest_arg'])
     config['junit_files'] = "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/*.xml install/lib/daos/TESTING/ftest/*_results.xml"
-    config['failure_artifacts'] = 'Functional'
+    config['failure_artifacts'] = env.STAGE_NAME
 
     if (test_rpms == 'true' && config['stashes']){
         // we don't need (and might not even have) stashes if testing
