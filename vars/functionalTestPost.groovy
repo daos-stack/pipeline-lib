@@ -12,9 +12,7 @@
    *                               Default env.STAGE_NAME + '/**'
    *
    * config['testResults']         Junit test result files.
-   *                               Default env.STAGE_NAME + '/*/*/results.xml, ' +
-   *                               env.STAGE_NAME + '/*/*/framework_results.xml, ' +
-   *                               env.STAGE_NAME + '/*/*/test-results/*/data/*_results.xml'
+   *                               Default env.STAGE_NAME subdirectories
    */
 
 def call(Map config = [:]) {
@@ -30,7 +28,7 @@ def call(Map config = [:]) {
 
   def junit_results = config.get('testResults',
                                  env.STAGE_NAME + '/*/*/results.xml, ' +
-                                 env.STAGE_NAME + '/*/*/framework_results.xml, ' +
+                                 env.STAGE_NAME + '/*/framework_results.xml, ' +
                                  env.STAGE_NAME + '/*/*/test-results/*/data/*_results.xml')
   junit testResults: junit_results
 }
