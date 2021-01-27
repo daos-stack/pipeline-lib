@@ -88,7 +88,8 @@ def call(Map config = [:]) {
   if (stage_info['NLT']) {
     def cb_result = currentBuild.result
     discoverGitReferenceBuild referenceJob: config.get('referenceJobName',
-                                              'daos-stack/daos/master')
+                                              'daos-stack/daos/master'),
+                              scm: 'daos-stack/daos'
     recordIssues enabledForFailure: true,
                  failOnError: !ignore_failure,
                  ignoreFailedBuilds: false,
