@@ -36,7 +36,7 @@ String call(Map config = [:]) {
       deps_build = config['deps_build']
     }
 
-    ret_str = " --build-arg NOBUILD=1 --build-arg DAOS_BUILD=no" +
+    ret_str = " --build-arg NOBUILD=1 --build-arg " +
               " --build-arg UID=" + getuid() +
               " --build-arg JENKINS_URL=$env.JENKINS_URL"
     if (cachebust) {
