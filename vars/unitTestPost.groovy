@@ -88,7 +88,8 @@ def call(Map config = [:]) {
   if (stage_info['NLT']) {
     def cb_result = currentBuild.result
     discoverGitReferenceBuild referenceJob: config.get('referenceJobName',
-                                              'daos-stack/daos/master')
+                                              'daos-stack/daos/master'),
+                              scm: 'daos-stack/daos'
     recordIssues enabledForFailure: true,
                  failOnError: !ignore_failure,
                  ignoreFailedBuilds: false,
@@ -97,8 +98,8 @@ def call(Map config = [:]) {
                  // Supporting messages to help identify causes of
                  // problems are set to "LOW".
                  qualityGates: [
-                   [threshold: 1, type: 'TOTAL_HIGH', unstable: true],
-                   [threshold: 1, type: 'TOTAL_ERROR', unstable: true],
+                   [threshold: 1, type: 'TOTAL_ERROR'],
+                   [threshold: 1, type: 'TOTAL_HIGH'],
                    [threshold: 1, type: 'NEW_NORMAL', unstable: true],
                    [threshold: 1, type: 'NEW_LOW', unstable: true]],
                   name: "Node local testing",

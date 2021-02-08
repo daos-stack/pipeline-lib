@@ -177,7 +177,7 @@ pipeline {
                                    profile: 'daos_ci',
                                    node_count: 1,
                                    snapshot: true,
-                                   inst_rpms: "slurm slurm-example-configs" +
+                                   inst_rpms: "slurm" +
                                               " slurm-slurmctld slurm-slurmd" +
                                               " ipmctl"
                     runTest script: '''NODE=${NODELIST%%,*}
