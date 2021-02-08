@@ -74,12 +74,13 @@ String call(Map config = [:]) {
                  ' --build-arg https_proxy="' + env.HTTPS_PROXY + '"'
     }
     if (config['qb']) {
-      ret_str += ' --build-arg QUICKBUILD=true'
-    }
-    if (deps_build) {
-      ret_str += ' --build-arg DAOS_DEPS_BUILD=yes --build-arg DAOS_BUILD=no'
+      ret_str += ' --build-arg QUICKBUILD=true --build-arg DAOS_DEPS_BUILD=no'
     } else {
-      ret_str += ' --build-arg DAOS_DEPS_BUILD=no'
+        if (deps_build) {
+            ret_str += ' --build-arg DAOS_DEPS_BUILD=yes --build-arg DAOS_BUILD=no'
+        } else {
+            ret_str += ' --build-arg DAOS_DEPS_BUILD=no'
+        }
     }
     ret_str += ' '
     return ret_str
