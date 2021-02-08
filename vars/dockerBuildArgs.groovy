@@ -77,7 +77,9 @@ String call(Map config = [:]) {
       ret_str += ' --build-arg QUICKBUILD=true'
     }
     if (deps_build) {
-      ret_str += ' --build-arg DAOS_DEPS_BUILD=yes'
+      ret_str += ' --build-arg DAOS_DEPS_BUILD=yes --build-arg DAOS_BUILD=no'
+    } else {
+      ret_str += ' --build-arg DAOS_DEPS_BUILD=no'
     }
     ret_str += ' '
     return ret_str
