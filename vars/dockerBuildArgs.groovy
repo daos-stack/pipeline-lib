@@ -7,6 +7,7 @@
    *
    * config['qb']      Whether to generate Quick-build args
    *
+   * config['add_repos'] Whether to add yum repos to image.
    */
 
 // The docker agent setup and the provisionNodes step need to know the
@@ -20,10 +21,10 @@ int getuid() {
 String call(Map config = [:]) {
     Boolean cachebust = true
     Boolean add_repos = true
-    if (config['cachebust']) {
+    if (config.containsKey('cachebust')) {
       cachebust = config['cachebust']
     }
-    if (config['add_repos']) {
+    if (config.containsKey('add_repos')) {
       add_repos = config['add_repos']
     }
     ret_str = " --build-arg NOBUILD=1 --build-arg UID=" + getuid() +
