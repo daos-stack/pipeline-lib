@@ -37,7 +37,7 @@ String call(Map config = [:]) {
     }
 
     ret_str = " --build-arg NOBUILD=1 --build-arg DAOS_BUILD=no" +
-              "--build-arg UID=" + getuid() +
+              " --build-arg UID=" + getuid() +
               " --build-arg JENKINS_URL=$env.JENKINS_URL"
     if (cachebust) {
       ret_str += " --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
