@@ -8,6 +8,10 @@
    * config['qb']      Whether to generate Quick-build args
    *
    * config['add_repos'] Whether to add yum repos to image.
+   *
+   * config['cachebust'] Whether to add unique id to refresh cache.
+   *
+   * config['deps_build'] Whether to build the daos dependencies.
    */
 
 // The docker agent setup and the provisionNodes step need to know the
@@ -21,13 +25,19 @@ int getuid() {
 String call(Map config = [:]) {
     Boolean cachebust = true
     Boolean add_repos = true
+    Boolean deps_build = false
     if (config.containsKey('cachebust')) {
       cachebust = config['cachebust']
     }
     if (config.containsKey('add_repos')) {
       add_repos = config['add_repos']
     }
-    ret_str = " --build-arg NOBUILD=1 --build-arg UID=" + getuid() +
+    if (config.containsKey('deps_build')) {
+      deps_build = config['deps_build']
+    }
+
+    ret_str = " --build-arg NOBUILD=1 --build-arg DAOS_BUILD=no" +
+              "--build-arg UID=" + getuid() +
               " --build-arg JENKINS_URL=$env.JENKINS_URL"
     if (cachebust) {
       ret_str += " --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
@@ -65,6 +75,9 @@ String call(Map config = [:]) {
     }
     if (config['qb']) {
       ret_str += ' --build-arg QUICKBUILD=true'
+    }
+    if (deps_build) {
+      ret_str += ' --build-arg DAOS_DEPS_BUILD=yes'
     }
     ret_str += ' '
     return ret_str
