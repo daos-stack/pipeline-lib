@@ -12,8 +12,6 @@
    * config['cachebust'] Whether to add unique id to refresh cache.
    *
    * config['deps_build'] Whether to build the daos dependencies.
-   *
-   * config['quick_build_deps'] Deps to use when quick building.
    */
 
 // The docker agent setup and the provisionNodes step need to know the
@@ -76,9 +74,7 @@ String call(Map config = [:]) {
                  ' --build-arg https_proxy="' + env.HTTPS_PROXY + '"'
     }
     if (config['qb']) {
-      ret_str += ' --build-arg QUICKBUILD=true' +
-                 ' --build-arg QUICKBUILD_DEPS="${config[quick_build_deps]}"' +
-		 ' --build-arg DAOS_DEPS_BUILD=no'
+      ret_str += ' --build-arg QUICKBUILD=true --build-arg DAOS_DEPS_BUILD=no'
     } else {
         if (deps_build) {
             ret_str += ' --build-arg DAOS_DEPS_BUILD=yes --build-arg DAOS_BUILD=no'
