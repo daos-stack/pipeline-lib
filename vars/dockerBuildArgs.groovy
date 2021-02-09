@@ -10,6 +10,7 @@
    * config['add_repos'] Whether to add yum repos to image.
    *
    * config['cachebust'] Whether to add unique id to refresh cache.
+   *                     Defaults to qb if not set.
    *
    * config['deps_build'] Whether to build the daos dependencies.
    */
@@ -28,6 +29,8 @@ String call(Map config = [:]) {
     Boolean deps_build = false
     if (config.containsKey('cachebust')) {
       cachebust = config['cachebust']
+    } else {
+      cachebust = config['qb']
     }
     if (config.containsKey('add_repos')) {
       add_repos = config['add_repos']
