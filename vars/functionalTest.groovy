@@ -87,6 +87,10 @@ def call(Map config = [:]) {
   params['context'] = context
   params['description'] = description
 
-  runTestFunctional params
-
+  if (config.get('test_function', "runTestFunctional") ==
+      "runTestFunctionalV2") {
+    runTestFunctionalV2 params
+  } else {
+    runTestFunctional params
+  }
 }
