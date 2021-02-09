@@ -9,12 +9,10 @@
    *                               Default 'ci/functional/job_cleanup.sh'.
    *
    * config['artifacts']           Artifacts to archive.
-   *                               Default 'Functional/**'
+   *                               Default env.STAGE_NAME + '/**'
    *
    * config['testResults']         Junit test result files.
-   *                               Default 'Functional/*' + '/results.xml, ' +
-   *                                       'Functional/*' + '/test-results/*' +
-   *                                       '/data/*_results.xml'
+   *                               Default env.STAGE_NAME subdirectories
    */
 
 def call(Map config = [:]) {
@@ -25,12 +23,12 @@ def call(Map config = [:]) {
            script: always_script,
            returnStatus: true
 
-  def artifacts = config.get('artifacts', 'Functional/**')
+  def artifacts = config.get('artifacts', env.STAGE_NAME + '/**')
   archiveArtifacts artifacts: artifacts
 
   def junit_results = config.get('testResults',
-                                 'Functional/*/results.xml, ' +
-                                 'Functional/*/framework_results.xml, ' +
-                                 'Functional/*/test-results/*/data/*_results.xml')
+                                 env.STAGE_NAME + '/*/*/results.xml, ' +
+                                 env.STAGE_NAME + '/*/framework_results.xml, ' +
+                                 env.STAGE_NAME + '/*/*/test-results/*/data/*_results.xml')
   junit testResults: junit_results
 }

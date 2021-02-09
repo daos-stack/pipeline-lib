@@ -55,7 +55,7 @@ void call(Map config = [:]) {
                                      
     config['junit_files'] = "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/*.xml " +
                             "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/test-results/*/data/*_results.xml"
-    config['failure_artifacts'] = 'Functional'
+    config['failure_artifacts'] = env.STAGE_NAME
 
     if (test_rpms && config['stashes']){
         // we don't need (and might not even have) stashes if testing
