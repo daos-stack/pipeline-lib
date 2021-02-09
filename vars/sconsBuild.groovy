@@ -26,6 +26,7 @@ def call(Map config = [:]) {
    * config['skip_clean'] Skip cleaning the build
    * config['clean'] Space separated filenames to be removed after
    *  the prebuild option.
+   *  Defaults _build.external'.
    * config['directory'] is the directory to use for the build.
    *  Defaults to config['target'] if config['target'] is specified.
    * config['no_install'] Set to true to skip install step.
@@ -188,12 +189,12 @@ def call(Map config = [:]) {
     if (config['skip_clean']) {
         clean_cmd += "echo 'skipping scons -c'\n"
     } else {
-        def clean_files = "install"
+        def clean_files = "_build.external"
         if (config['clean']) {
             clean_files = config['clean']
         }
-        clean_files += ' build daos.conf'
-        clean_files += ' .sconsign.dblite .sconf_temp'
+        clean_files += ' install build {daos_m,daos,iof,cart-Linux}.conf'
+        clean_files += ' .sconsign{,-Linux}.dblite .sconf-temp{,-Linux}'
         clean_cmd += scons_exe + " -c ${sconstruct}\n"
         clean_cmd += "rm -rf ${clean_files}\n"
         if (config_target) {
