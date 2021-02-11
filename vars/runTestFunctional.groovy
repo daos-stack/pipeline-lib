@@ -38,37 +38,8 @@ void call(Map config = [:]) {
    *                        Default env.STAGE_NAME.
    */
 
-    if (!fileExists('ci/functional/test_main.sh')) {
-        return runTestFunctionalV1(config)
-    }
+    config['failure_artifacts'] = 'Functional'
 
-    Boolean test_rpms = false
-    if (config['test_rpms'] == "true") {
-        test_rpms = true
-    }
-    config['script'] = 'TEST_TAG="' + config['test_tag'] + '" ' +
-                       'FTEST_ARG="' + config['ftest_arg'] + '" ' +
-                       'PRAGMA_SUFFIX="' + config['pragma_suffix'] + '" ' +
-                       'NODE_COUNT="' + config['node_count'] + '" ' +
-                       'OPERATIONS_EMAIL="' + env.OPERATIONS_EMAIL + '" ' +
-                       'ci/functional/test_main.sh'
-                                     
-    config['junit_files'] = "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/*.xml " +
-                            "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/test-results/*/data/*_results.xml"
-    config['failure_artifacts'] = env.STAGE_NAME
-
-    if (test_rpms && config['stashes']){
-        // we don't need (and might not even have) stashes if testing
-        // from RPMs
-        config.remove('stashes')
-    }
-
-    config.remove('pragma_suffix')
-    config.remove('test_tag')
-    config.remove('ftest_arg')
-    config.remove('node_count')
-    config.remove('test_rpms')
-
-    runTest(config)
+    runTestFunctionalV2(config)
 
 }
