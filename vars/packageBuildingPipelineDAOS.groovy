@@ -724,7 +724,6 @@ def call(Map pipeline_args) {
                         agent {
                             docker {
                                 image 'fedorapackaging/builder:fedora32'
-                                additionalBuildArgs dockerBuildArgs()
                                 args  ' --cap-add=SYS_ADMIN' +
                                       ' --privileged=true' //+
                                       //' -u 0'
