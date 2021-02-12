@@ -240,6 +240,7 @@ def call(Map pipeline_args) {
                         }
                         agent {
                             docker {
+                                label 'docker_runner'
                                 image 'fedorapackaging/builder:fedora32'
                                 args  '--group-add mock' +
                                       ' --privileged=true' +
@@ -528,11 +529,12 @@ def call(Map pipeline_args) {
                         }
                         agent {
                             dockerfile {
-                                filename 'packaging/Dockerfile.mockbuild'
                                 label 'docker_runner'
+                                filename 'packaging/Dockerfile.mockbuild-new'
                                 args  '--group-add mock' +
                                       ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true'
+                                      ' --privileged=true' +
+                                      ' -v $HOME:/home/build'
                                 additionalBuildArgs dockerBuildArgs()
                             }
                         }
