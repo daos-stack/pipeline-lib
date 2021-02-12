@@ -242,8 +242,8 @@ def call(Map pipeline_args) {
                             docker {
                                 image 'fedorapackaging/builder:fedora32'
                                 args  '--group-add mock' +
-                                      ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true'
+                                      ' --privileged=true' +
+                                      ' -v $HOME:/home/build'
                             }
                         }
                         steps {
