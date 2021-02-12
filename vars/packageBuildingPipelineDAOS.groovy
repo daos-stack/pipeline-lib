@@ -727,7 +727,6 @@ def call(Map pipeline_args) {
                                 args  ' --cap-add=SYS_ADMIN' +
                                       ' --privileged=true' //+
                                       //' -u 0'
-                                additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
