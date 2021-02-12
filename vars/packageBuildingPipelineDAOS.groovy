@@ -722,12 +722,12 @@ def call(Map pipeline_args) {
                             }
                         }
                         agent {
-                            dockerfile {
-                                filename 'packaging/Dockerfile.mockbuild'
-                                label 'docker_runner'
+                            docker {
+                                image 'fedorapackaging/builder:fedora32'
+                                additionalBuildArgs dockerBuildArgs()
                                 args  ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true' +
-                                      ' -u 0'
+                                      ' --privileged=true' //+
+                                      //' -u 0'
                                 additionalBuildArgs dockerBuildArgs()
                             }
                         }
