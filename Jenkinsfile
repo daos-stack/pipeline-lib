@@ -23,6 +23,7 @@ pipeline {
         SSH_KEY_FILE='ci_key'
         SSH_KEY_ARGS="-i$SSH_KEY_FILE"
         CLUSH_ARGS="-o$SSH_KEY_ARGS"
+        BUILDARGS = dockerBuildArgs(cachebust: False, add_repos: False)
     }
 
     options {
@@ -43,8 +44,7 @@ pipeline {
                     dockerfile {
                         filename 'docker/Dockerfile.centos.7'
                         label 'docker_runner'
-                        additionalBuildArgs dockerBuildArgs()
-
+                        additionalBuildArgs  '--build-arg UID=$(id -u)'
                     }
                 }
                 steps {
@@ -62,7 +62,7 @@ pipeline {
                     dockerfile {
                         filename 'docker/Dockerfile.centos.7'
                         label 'docker_runner'
-                        additionalBuildArgs dockerBuildArgs()
+                        additionalBuildArgs  '--build-arg UID=$(id -u)'
                     }
                 }
                 steps {
@@ -85,7 +85,7 @@ pipeline {
                     dockerfile {
                         filename 'docker/Dockerfile.centos.7'
                         label 'docker_runner'
-                        additionalBuildArgs dockerBuildArgs(cachebust: False, add_repos: False)
+                        additionalBuildArgs  '$BUILDARGS'
                     }
                 }
                 steps {
