@@ -9,9 +9,13 @@
    *
    * config['add_repos'] Whether to add yum repos to image.
    *
-   * config['cachebust'] Whether to add unique id to refresh cache.
+   * config['cachebust'] Whether to set CB0 and CACHEBUST args.
+   *                     CB0 will be set weekly and should force entire rebuild
+   *                     CACHEBUST should be unique and should force updates.
+   *                     Defaults to true.
    *
    * config['deps_build'] Whether to build the daos dependencies.
+   *
    */
 
 // The docker agent setup and the provisionNodes step need to know the
@@ -21,6 +25,8 @@ int getuid() {
               script: "id -u",
               returnStdout: true).trim()
 }
+
+Calendar current_time = Calendar.getInstance()
 
 String call(Map config = [:]) {
     Boolean cachebust = true
@@ -41,6 +47,7 @@ String call(Map config = [:]) {
               " --build-arg JENKINS_URL=$env.JENKINS_URL"
     if (cachebust) {
       ret_str += " --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
+      ret_str += " --build-arg CB0=" + current_time.get(Calendar.WEEK_OF_YEAR)
     }
 
     if (add_repos) {
