@@ -26,8 +26,6 @@ int getuid() {
               returnStdout: true).trim()
 }
 
-Calendar current_time = Calendar.getInstance()
-
 String call(Map config = [:]) {
     Boolean cachebust = true
     Boolean add_repos = true
@@ -46,6 +44,7 @@ String call(Map config = [:]) {
               " --build-arg UID=" + getuid() +
               " --build-arg JENKINS_URL=$env.JENKINS_URL"
     if (cachebust) {
+      Calendar current_time = Calendar.getInstance()
       ret_str += " --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
       ret_str += " --build-arg CB0=" + current_time.get(Calendar.WEEK_OF_YEAR)
     }
