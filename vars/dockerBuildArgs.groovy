@@ -9,8 +9,9 @@
    *
    * config['add_repos'] Whether to add yum repos to image.
    *
-   * config['cachebust'] Whether to set CB0 and CACHEBUST args.
-   *                     CB0 will be set weekly and should force entire rebuild
+   * config['cachebust'] Whether to set CB_WEEKLY and CACHEBUST args.
+   *                     CB_WEEKLY will be set weekly and should force entire
+   *                     rebuild
    *                     CACHEBUST should be unique and should force updates.
    *                     Defaults to true.
    *
@@ -46,7 +47,7 @@ String call(Map config = [:]) {
     if (cachebust) {
       Calendar current_time = Calendar.getInstance()
       ret_str += " --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
-      ret_str += " --build-arg CB0=" + current_time.get(Calendar.WEEK_OF_YEAR)
+      ret_str += " --build-arg CB_WEEKLY=" + current_time.get(Calendar.WEEK_OF_YEAR)
     }
 
     if (add_repos) {
