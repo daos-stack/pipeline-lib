@@ -171,7 +171,7 @@ def call(Map config = [:]) {
         }
       }
 
-      for (atag in branch_tag.split(' ')) {
+      for (atag in tag.split(' ')) {
         result['test_tag'] += atag + ',' + cluster_size + ' '
       }
       result['test_tag'] = result['test_tag'].trim()
