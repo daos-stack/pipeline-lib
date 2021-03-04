@@ -107,8 +107,8 @@ def call(Map config = [:]) {
     if (config['log_to_file']) {
       result['log_to_file'] = config['log_to_file']
     } else {
-       result['log_to_file'] = result['target'] + '-' +
-                               result['compiler']
+      result['log_to_file'] = result['target'] + '-' +
+                              result['compiler']
       if (result['build_type']) {
         result['log_to_file'] += '-' + result['build_type']
       }
@@ -120,14 +120,6 @@ def call(Map config = [:]) {
 
     String cluster_size = ""
     if (env.STAGE_NAME.contains('Functional')) {
-      String branch_tag = "pr"
-      if (config['test_tag']) {
-        // Caller told us which bucket to test from
-        branch_tag = config['test_tag']
-      } else if (startedByTimer()) {
-        // Otherwise, if it was started by a timer, it must be the daily test
-        branch_tag = "daily_regression"
-      }
       result['test'] = 'Functional'
       result['node_count'] = 9
       cluster_size = '-hw'
@@ -147,23 +139,42 @@ def call(Map config = [:]) {
           result['pragma_suffix'] = '-hw-medium'
         }
       }
-      // override branch_tag with any Test-tag* commit pragma
-      branch_tag = commitPragma(pragma: "Test-tag" + result['pragma_suffix'],
-                                def_val: commitPragma(pragma: "Test-tag",
-                                                      def_val: branch_tag))
-      result['test_tag'] = branch_tag + ',' + cluster_size
 
-      for (feature in commitPragma(pragma: "Features").split(' ')) {
-        // Add tests from all testing buckets
-        // Duplication with branch_tag is not a problem
-        if (feature) {
-            result['test_tag'] += ' pr,' + feature + ',' + cluster_size
-            result['test_tag'] += ' daily_regression,' + feature + ',' + cluster_size
-            /* DAOS-????
-            result['test_tag'] += ' full_regression,' + feature + ',' + cluster_size
+      String tag
+      // Higest priority is Test-tag*:
+      if (!(tag = commitPragma(pragma: "Test-tag" + result['pragma_suffix'],
+                                      def_val: commitPragma(pragma: "Test-tag",
+                                                            def_val: null)))) {
+        // Next is Features:
+        if (!(tag = commitPragma(pragma: "Features", def_val: null))) {
+          // Next is the caller's override
+          if (!(tag = config['test_tag'])) {
+            // Next is deciding if it's a timer run
+            if (startedByTimer()) {
+              tag = "daily_regression"
+            } else {
+              // Must be a PR run
+              tag = "pr"
+            }
+          }
+        } else {
+          String tmp = tag
+          tag = ""
+          for (feature in tmp.split(' ')) {
+            tag += 'pr,' + feature + ' '
+            tag += 'daily_regression,' + feature + ' '
+            /* DAOS-6468 many failures in full_regression set 
+            tag += 'full_regression,' + feature + ' '
             */
+          }
+          tag = tag.trim()
         }
       }
+
+      for (atag in branch_tag.split(' ')) {
+        result['test_tag'] += atag + ',' + cluster_size + ' '
+      }
+      result['test_tag'] = result['test_tag'].trim()
     }
     if (config['test']) {
       result['test'] = config['test']
