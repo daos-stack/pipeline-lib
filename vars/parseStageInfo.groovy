@@ -171,6 +171,7 @@ def call(Map config = [:]) {
         }
       }
 
+      result['test_tag'] = ""
       for (atag in tag.split(' ')) {
         result['test_tag'] += atag + ',' + cluster_size + ' '
       }
