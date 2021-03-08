@@ -37,169 +37,182 @@
  */
 def call(Map config = [:]) {
 
-    Map result = [:]
-    result['target'] = 'centos7'
-    if (config['target']) {
-      result['target'] = config['target']
-    } else if (env.TARGET) {
-      result['target'] = env.TARGET
+  Map result = [:]
+  result['target'] = 'centos7'
+  if (config['target']) {
+    result['target'] = config['target']
+  } else if (env.TARGET) {
+    result['target'] = env.TARGET
+  } else {
+    if (env.STAGE_NAME.contains('CentOS 7')) {
+      result['target'] = 'centos7'
+    } else if (env.STAGE_NAME.contains('CentOS 8')) {
+      result['target'] = 'centos8'
+    } else if (env.STAGE_NAME.contains('Leap 15')) {
+      result['target'] = 'leap15'
+    } else if (env.STAGE_NAME.contains('Ubuntu 18')) {
+      result['target'] = 'ubuntu18.04'
+    } else if (env.STAGE_NAME.contains('Ubuntu 20')) {
+      result['target'] = 'ubuntu20.04'
     } else {
-      if (env.STAGE_NAME.contains('CentOS 7')) {
-        result['target'] = 'centos7'
-      } else if (env.STAGE_NAME.contains('CentOS 8')) {
-        result['target'] = 'centos8'
-      } else if (env.STAGE_NAME.contains('Leap 15')) {
-        result['target'] = 'leap15'
-      } else if (env.STAGE_NAME.contains('Ubuntu 18')) {
-        result['target'] = 'ubuntu18.04'
-      } else if (env.STAGE_NAME.contains('Ubuntu 20')) {
-        result['target'] = 'ubuntu20.04'
-      } else {
-        echo (
-          "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7")
+      echo (
+        "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7")
+    }
+  }
+
+  if (result['target'].startsWith('el') ||
+      result['target'].startsWith('centos')) {
+    result['java_pkg'] = 'java-1.8.0-openjdk'
+  } else if (result['target'].startsWith('ubuntu')) {
+    result['java_pkg'] = 'openjdk-8-jdk'
+  } else if (result['target'].startsWith('leap')) {
+    result['java_pkg'] = 'java-1_8_0-openjdk'
+  } else {
+    error 'Java package not known for ' + result['target']
+  }
+
+  result['compiler'] = 'gcc'
+  if (config['COMPILER']) {
+    result['compiler'] = config['COMPILER']
+  } else if (env.COMPILER) {
+    result['compiler'] = env.COMPILER
+  } else if (env.STAGE_NAME.contains('Clang')) {
+    result['compiler'] = 'clang'
+  } else if (env.STAGE_NAME.contains('Intel-C')) {
+    result['compiler'] = 'icc'
+  } else if (env.STAGE_NAME.contains('Bullseye')) {
+    result['compiler'] = 'covc'
+  }
+
+  if (config['build_type']) {
+    result['build_type'] = config['build_type']
+  } else if (config['BUILD_TYPE']) {
+    result['build_type'] = config['BUILD_TYPE']
+  } else if (env.STAGE_NAME.contains('release')) {
+    result['build_type'] = 'release'
+  } else if (env.STAGE_NAME.contains('debug')) {
+    result['build_type'] = 'debug'
+  }
+
+  if (config['target_prefix']) {
+    result['target_prefix'] == config['target_prefix']
+  } else if (env.STAGE_NAME.contains('TARGET_PREFIX')) {
+    result['target_prefix'] = 'install/opt'
+  }
+
+  if (env.STAGE_NAME.contains('Coverity')) {
+    result['test'] = 'coverity'
+  }
+
+  if (config['log_to_file']) {
+    result['log_to_file'] = config['log_to_file']
+  } else {
+    result['log_to_file'] = result['target'] + '-' +
+                            result['compiler']
+    if (result['build_type']) {
+      result['log_to_file'] += '-' + result['build_type']
+    }
+    result['log_to_file'] += '-build.log'
+  }
+
+  // Unless otherwise specified, all tests will only use one node.
+  result['node_count'] = 1
+
+  String cluster_size = ""
+  if (env.STAGE_NAME.contains('Functional')) {
+    result['test'] = 'Functional'
+    result['node_count'] = 9
+    cluster_size = '-hw'
+    result['pragma_suffix'] = '-vm'
+    result['ftest_arg'] = ''
+    if (env.STAGE_NAME.contains('Hardware')) {
+      cluster_size = 'hw,large'
+      result['pragma_suffix'] = '-hw-large'
+      result['ftest_arg'] = 'auto:Optane'
+      if (env.STAGE_NAME.contains('Small')) {
+        result['node_count'] = 3
+        cluster_size = 'hw,small'
+        result['pragma_suffix'] = '-hw-small'
+      } else if (env.STAGE_NAME.contains('Medium')) {
+        result['node_count'] = 5
+        cluster_size = 'hw,medium,ib2'
+        result['pragma_suffix'] = '-hw-medium'
       }
     }
 
-    if (result['target'].startsWith('el') ||
-        result['target'].startsWith('centos')) {
-      result['java_pkg'] = 'java-1.8.0-openjdk'
-    } else if (result['target'].startsWith('ubuntu')) {
-      result['java_pkg'] = 'openjdk-8-jdk'
-    } else if (result['target'].startsWith('leap')) {
-      result['java_pkg'] = 'java-1_8_0-openjdk'
+    String tag
+    // Higest priority is TestTag parameter but only if ForceRun
+    // parameter was given (to support "Run with Parameters" for doing
+    // weekly run maintenance)
+    if (params.ForceRun) {
+      tag = params.TestTag
     } else {
-      error 'Java package not known for ' + result['target']
-    }
-
-    result['compiler'] = 'gcc'
-    if (config['COMPILER']) {
-      result['compiler'] = config['COMPILER']
-    } else if (env.COMPILER) {
-      result['compiler'] = env.COMPILER
-    } else if (env.STAGE_NAME.contains('Clang')) {
-      result['compiler'] = 'clang'
-    } else if (env.STAGE_NAME.contains('Intel-C')) {
-      result['compiler'] = 'icc'
-    } else if (env.STAGE_NAME.contains('Bullseye')) {
-      result['compiler'] = 'covc'
-    }
-
-    if (config['build_type']) {
-      result['build_type'] = config['build_type']
-    } else if (config['BUILD_TYPE']) {
-      result['build_type'] = config['BUILD_TYPE']
-    } else if (env.STAGE_NAME.contains('release')) {
-      result['build_type'] = 'release'
-    } else if (env.STAGE_NAME.contains('debug')) {
-      result['build_type'] = 'debug'
-    }
-
-    if (config['target_prefix']) {
-      result['target_prefix'] == config['target_prefix']
-    } else if (env.STAGE_NAME.contains('TARGET_PREFIX')) {
-      result['target_prefix'] = 'install/opt'
-    }
-
-    if (env.STAGE_NAME.contains('Coverity')) {
-      result['test'] = 'coverity'
-    }
-
-    if (config['log_to_file']) {
-      result['log_to_file'] = config['log_to_file']
-    } else {
-      result['log_to_file'] = result['target'] + '-' +
-                              result['compiler']
-      if (result['build_type']) {
-        result['log_to_file'] += '-' + result['build_type']
-      }
-      result['log_to_file'] += '-build.log'
-    }
-
-    // Unless otherwise specified, all tests will only use one node.
-    result['node_count'] = 1
-
-    String cluster_size = ""
-    if (env.STAGE_NAME.contains('Functional')) {
-      result['test'] = 'Functional'
-      result['node_count'] = 9
-      cluster_size = '-hw'
-      result['pragma_suffix'] = '-vm'
-      result['ftest_arg'] = ''
-      if (env.STAGE_NAME.contains('Hardware')) {
-        cluster_size = 'hw,large'
-        result['pragma_suffix'] = '-hw-large'
-        result['ftest_arg'] = 'auto:Optane'
-        if (env.STAGE_NAME.contains('Small')) {
-          result['node_count'] = 3
-          cluster_size = 'hw,small'
-          result['pragma_suffix'] = '-hw-small'
-        } else if (env.STAGE_NAME.contains('Medium')) {
-          result['node_count'] = 5
-          cluster_size = 'hw,medium,ib2'
-          result['pragma_suffix'] = '-hw-medium'
-        }
-      }
-
-      String tag
-      // Higest priority is Test-tag*:
-      if (!(tag = commitPragma(pragma: "Test-tag" + result['pragma_suffix'],
-                                      def_val: commitPragma(pragma: "Test-tag",
-                                                            def_val: null)))) {
-        // Next is Features:
-        if (!(tag = commitPragma(pragma: "Features", def_val: null))) {
-          // Next is the caller's override
-          if (!(tag = config['test_tag'])) {
-            // Next is deciding if it's a timer run
-            if (startedByTimer()) {
-              tag = "daily_regression"
-            } else {
-              // Must be a PR run
-              tag = "pr"
+      // Next higest priority is a stage specific Test-tag-*
+      tag = commitPragma(pragma: "Test-tag" + result['pragma_suffix'],
+                         def_val: null)
+      if (!tag) {
+        // Followed by the more general Test-tag:
+        tag = commitPragma(pragma: "Test-tag", def_val: null)
+        if (!tag) {
+          // Next is Features:
+          tag = commitPragma(pragma: "Features", def_val: null)
+          if (!tag) {
+            // Next is the caller's override
+            if (!(tag = config['test_tag'])) {
+              // Next is deciding if it's a timer run
+              if (startedByTimer()) {
+                tag = "daily_regression"
+              } else {
+                // Must be a PR run
+                tag = "pr"
+              }
             }
+          } else {
+            String tmp = tag
+            tag = ""
+            for (feature in tmp.split(' ')) {
+              tag += 'pr,' + feature + ' '
+              tag += 'daily_regression,' + feature + ' '
+              /* DAOS-6468 Ideally we'd like to add this but there are too
+                           many failures in the full_regression set 
+              tag += 'full_regression,' + feature + ' '
+              */
+            }
+            tag = tag.trim()
           }
-        } else {
-          String tmp = tag
-          tag = ""
-          for (feature in tmp.split(' ')) {
-            tag += 'pr,' + feature + ' '
-            tag += 'daily_regression,' + feature + ' '
-            /* DAOS-6468 many failures in full_regression set 
-            tag += 'full_regression,' + feature + ' '
-            */
-          }
-          tag = tag.trim()
         }
       }
-
-      result['test_tag'] = ""
-      for (atag in tag.split(' ')) {
-        result['test_tag'] += atag + ',' + cluster_size + ' '
-      }
-      result['test_tag'] = result['test_tag'].trim()
-    }
-    if (config['test']) {
-      result['test'] = config['test']
-    }
-    if (config['node_count']) {
-      result['node_count'] = config['node_count']
-    }
-    if (config['pragma_suffix']) {
-      result['pragma_suffix'] = config['pragma_suffix']
-    }
-    if (config['ftest_arg']) {
-      result['ftest_arg'] = config['ftest_arg']
     }
 
-    if (env.STAGE_NAME.contains('NLT')) {
-      result['NLT'] = true
-    } else {
-      result['NLT'] = false
+    result['test_tag'] = ""
+    for (atag in tag.split(' ')) {
+      result['test_tag'] += atag + ',' + cluster_size + ' '
     }
+    result['test_tag'] = result['test_tag'].trim()
+  } // if (env.STAGE_NAME.contains('Functional'))
+  if (config['test']) {
+    result['test'] = config['test']
+  }
+  if (config['node_count']) {
+    result['node_count'] = config['node_count']
+  }
+  if (config['pragma_suffix']) {
+    result['pragma_suffix'] = config['pragma_suffix']
+  }
+  if (config['ftest_arg']) {
+    result['ftest_arg'] = config['ftest_arg']
+  }
 
-    if (env.STAGE_NAME.contains('Unit Test') &&
-        env.STAGE_NAME.contains('memcheck')) {
-        result['with_valgrind'] = 'memcheck'
-    }
+  if (env.STAGE_NAME.contains('NLT')) {
+    result['NLT'] = true
+  } else {
+    result['NLT'] = false
+  }
 
-    return result
+  if (env.STAGE_NAME.contains('Unit Test') &&
+    env.STAGE_NAME.contains('memcheck')) {
+    result['with_valgrind'] = 'memcheck'
+  }
+
+  return result
 }
