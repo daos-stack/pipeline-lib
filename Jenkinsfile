@@ -236,12 +236,12 @@ pipeline {
                             commits = [[tags: [[tag: "Test-tag", value: 'datamover']],
                                        tag_template: '@commits.value@,@stages.tag@'],
                                        [tags: [[tag: "Features", value: 'datamover']],
-                                        tag_template: 'pr,@commits.value@,@stages.tag@ daily_regression,@commits.value@,@stages.tag@'],
+                                        tag_template: 'pr,@stages.tag@ daily_regression,@commits.value@,@stages.tag@'],
                                        [tags: [[tag: "Test-tag", value: 'datamover'],
                                                [tag: "Features", value: 'foobar']],
                                         tag_template: '@commits.value@,@stages.tag@'],
                                        [tags: [[tag: "Features", value: 'datamover foobar']],
-                                        tag_template: 'pr,datamover,@stages.tag@ daily_regression,datamover,@stages.tag@ pr,foobar,@stages.tag@ daily_regression,foobar,@stages.tag@'],
+                                        tag_template: 'pr,@stages.tag@ daily_regression,datamover,@stages.tag@ daily_regression,foobar,@stages.tag@'],
                                        [tags: [[tag: "Test-tag", value: 'datamover foobar']],
                                         tag_template: 'datamover,@stages.tag@ foobar,@stages.tag@']]
                             commits.each { commit ->

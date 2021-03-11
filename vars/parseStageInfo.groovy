@@ -169,9 +169,8 @@ def call(Map config = [:]) {
             }
           } else {
             String tmp = tag
-            tag = ""
+            tag = 'pr '
             for (feature in tmp.split(' ')) {
-              tag += 'pr,' + feature + ' '
               tag += 'daily_regression,' + feature + ' '
               /* DAOS-6468 Ideally we'd like to add this but there are too
                            many failures in the full_regression set 
