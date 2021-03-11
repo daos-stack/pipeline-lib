@@ -144,7 +144,7 @@ def call(Map config = [:]) {
     // Higest priority is TestTag parameter but only if ForceRun
     // parameter was given (to support "Run with Parameters" for doing
     // weekly run maintenance)
-    if (params.ForceRun) {
+    if (startedByUser()) {
       tag = params.TestTag
     } else {
       // Next higest priority is a stage specific Test-tag-*
