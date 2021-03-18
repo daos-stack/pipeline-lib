@@ -30,6 +30,8 @@ String call(Map config = [:]) {
     Boolean cachebust = true
     Boolean add_repos = true
     Boolean deps_build = false
+    String repo_type = 'local'
+
     if (config.containsKey('cachebust')) {
       cachebust = config['cachebust']
     }
@@ -39,6 +41,11 @@ String call(Map config = [:]) {
     if (config.containsKey('deps_build')) {
       deps_build = config['deps_build']
     }
+    if (config.containsKey('repo_type')) {
+      repo_type = config['repo_type']
+    }
+
+    Map stage_info = parseStageInfo(config)
 
     ret_str = " --build-arg NOBUILD=1 " +
               " --build-arg UID=" + getuid() +
@@ -48,27 +55,75 @@ String call(Map config = [:]) {
       ret_str += " --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
       ret_str += " --build-arg CB0=" + current_time.get(Calendar.WEEK_OF_YEAR)
     }
-
     if (add_repos) {
       if (env.REPOSITORY_URL) {
         ret_str += ' --build-arg REPO_URL=' + env.REPOSITORY_URL
       }
-      if (env.DAOS_STACK_EL_7_LOCAL_REPO) {
-        ret_str += ' --build-arg REPO_EL7=' + env.DAOS_STACK_EL_7_LOCAL_REPO
+      string repo_name = null
+      if (stage_info['target'] == 'centos7') {
+        if ((repo_type == 'local') && (env.DAOS_STACK_EL_7_LOCAL_REPO)) {
+            repo_name = env.DAOS_STACK_EL_7_LOCAL_REPO
+        } else if ((repo_type == 'stable') &&
+                   (env.DAOS_STACK_EL_7_DOCKER_STABLE_REPO)) {
+          repo_name = env.DAOS_STACK_EL_7_DOCKER_STABLE_REPO
+        } else if ((repo_tpe == 'release') &&
+                   (env.DAOS_STACK_EL_7_DOCKER_RELEASE_REPO)) {
+          repo_name = env.DAOS_STACK_EL_7_DOCKER_RELEASE_REPO
+        } else if ((repo_type == 'dev') &&
+                   (env.DAOS_STACK_EL_7_DOCKER_DEV_REPO)) {
+          repo_name = env.DAOS_STACK_EL_7_DOCKER_DEV_REPO
+        }
+        if (repo_name) {
+          ret_str += ' --build-arg REPO_EL7=' + repo_name
+        }
       }
-      if (env.DAOS_STACK_EL_8_LOCAL_REPO) {
-        ret_str += ' --build-arg REPO_EL8=' + env.DAOS_STACK_EL_8_LOCAL_REPO
+      if (stage_info['target'] == 'centos8') {
+        if ((repo_type == 'local') && (env.DAOS_STACK_EL_8_LOCAL_REPO)) {
+            repo_name = env.DAOS_STACK_EL_8_LOCAL_REPO
+        } else if ((repo_type == 'stable') &&
+                   (env.DAOS_STACK_EL_8_DOCKER_STABLE_REPO)) {
+          repo_name = env.DAOS_STACK_EL_8_DOCKER_STABLE_REPO
+        } else if ((repo_tpe == 'release') &&
+                   (env.DAOS_STACK_EL_8_DOCKER_RELEASE_REPO)) {
+          repo_name = env.DAOS_STACK_EL_8_DOCKER_RELEASE_REPO
+        } else if ((repo_type == 'dev') &&
+                   (env.DAOS_STACK_EL_8_DOCKER_DEV_REPO)) {
+          repo_name = env.DAOS_STACK_EL_8_DOCKER_DEV_REPO
+        }
+        if (repo_name) {
+          ret_str += ' --build-arg REPO_EL8=' + repo_name
+        }
       }
-      if (env.DAOS_STACK_LEAP_15_LOCAL_REPO) {
-        ret_str += ' --build-arg REPO_LOCAL_LEAP15=' +
-                   env.DAOS_STACK_LEAP_15_LOCAL_REPO
+      if (stage_info['target'] == 'leap15') {
+        if (repo_type == 'local') {
+          if (env.DAOS_STACK_LEAP_15_LOCAL_REPO) {
+            ret_str += ' --build-arg REPO_LOCAL_LEAP15=' +
+                       env.DAOS_STACK_LEAP_15_LOCAL_REPO
+          }
+          if (env.DAOS_STACK_LEAP_15_GROUP_REPO) {
+            ret_str += ' --build-arg REPO_GROUP_LEAP15=' +
+                       env.DAOS_STACK_LEAP_15_GROUP_REPO
+          }
+        } else if ((repo_type == 'stable') &&
+                   (env.DAOS_STACK_LEAP_15_DOCKER_STABLE_REPO)) {
+          repo_name = env.DAOS_STACK_LEAP_15_DOCKER_STABLE_REPO
+        } else if ((repo_tpe == 'release') &&
+                   (env.DAOS_STACK_LEAP_15_DOCKER_RELEASE_REPO)) {
+          repo_name = env.DAOS_STACK_LEAP_15_DOCKER_RELEASE_REPO
+        } else if ((repo_type == 'dev') &&
+                   (env.DAOS_STACK_LEAP_15_DOCKER_DEV_REPO)) {
+          repo_name = env.DAOS_STACK_LEAP_15_DOCKER_DEV_REPO
+        }
+        if (repo_name) {
+          ret_str += ' --build-arg REPO_LEAP=' + repo_name
+        }
       }
-      if (env.DAOS_STACK_UBUNTU_20_04_LOCAL_REPO) {
-        ret_str += ' --build-arg REPO_UBUNTU_20_04=' + env.DAOS_STACK_UBUNTU_20_04_LOCAL_REPO
-      }
-      if (env.DAOS_STACK_LEAP_15_GROUP_REPO) {
-        ret_str += ' --build-arg REPO_GROUP_LEAP15=' +
-                   env.DAOS_STACK_LEAP_15_GROUP_REPO
+      if (stage_info['target'] == 'ubuntu20.04') {
+        if ((repo_type == 'local') &&
+            (env.DAOS_STACK_UBUNTU_20_04_LOCAL_REPO)) {
+              ret_str += ' --build-arg REPO_UBUNTU_20_04=' +
+                         env.DAOS_STACK_UBUNTU_20_04_LOCAL_REPO
+        }
       }
     }
     if (env.HTTP_PROXY) {

@@ -39,24 +39,28 @@ def call(Map config = [:]) {
 
   Map result = [:]
   result['target'] = 'centos7'
+  String stage_name = ''
+  if (env.STAGE_NAME) {
+    stage_name = env.STAGE_NAME
+  }
   if (config['target']) {
     result['target'] = config['target']
   } else if (env.TARGET) {
     result['target'] = env.TARGET
   } else {
-    if (env.STAGE_NAME.contains('CentOS 7')) {
+    if (stage_name.contains('CentOS 7')) {
       result['target'] = 'centos7'
-    } else if (env.STAGE_NAME.contains('CentOS 8')) {
+    } else if (stage_name.contains('CentOS 8')) {
       result['target'] = 'centos8'
-    } else if (env.STAGE_NAME.contains('Leap 15')) {
+    } else if (stage_name.contains('Leap 15')) {
       result['target'] = 'leap15'
-    } else if (env.STAGE_NAME.contains('Ubuntu 18')) {
+    } else if (stage_name.contains('Ubuntu 18')) {
       result['target'] = 'ubuntu18.04'
-    } else if (env.STAGE_NAME.contains('Ubuntu 20')) {
+    } else if (stage_name.contains('Ubuntu 20')) {
       result['target'] = 'ubuntu20.04'
     } else {
       echo (
-        "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7")
+        "Could not determine target in ${stage_name}, defaulting to EL7")
     }
   }
 
@@ -76,11 +80,11 @@ def call(Map config = [:]) {
     result['compiler'] = config['COMPILER']
   } else if (env.COMPILER) {
     result['compiler'] = env.COMPILER
-  } else if (env.STAGE_NAME.contains('Clang')) {
+  } else if (stage_name.contains('Clang')) {
     result['compiler'] = 'clang'
-  } else if (env.STAGE_NAME.contains('Intel-C')) {
+  } else if (stage_name.contains('Intel-C')) {
     result['compiler'] = 'icc'
-  } else if (env.STAGE_NAME.contains('Bullseye')) {
+  } else if (stage_name.contains('Bullseye')) {
     result['compiler'] = 'covc'
   }
 
@@ -88,19 +92,19 @@ def call(Map config = [:]) {
     result['build_type'] = config['build_type']
   } else if (config['BUILD_TYPE']) {
     result['build_type'] = config['BUILD_TYPE']
-  } else if (env.STAGE_NAME.contains('release')) {
+  } else if (stage_name.contains('release')) {
     result['build_type'] = 'release'
-  } else if (env.STAGE_NAME.contains('debug')) {
+  } else if (stage_name.contains('debug')) {
     result['build_type'] = 'debug'
   }
 
   if (config['target_prefix']) {
     result['target_prefix'] == config['target_prefix']
-  } else if (env.STAGE_NAME.contains('TARGET_PREFIX')) {
+  } else if (stage_name.contains('TARGET_PREFIX')) {
     result['target_prefix'] = 'install/opt'
   }
 
-  if (env.STAGE_NAME.contains('Coverity')) {
+  if (stage_name.contains('Coverity')) {
     result['test'] = 'coverity'
   }
 
@@ -119,21 +123,21 @@ def call(Map config = [:]) {
   result['node_count'] = 1
 
   String cluster_size = ""
-  if (env.STAGE_NAME.contains('Functional')) {
+  if (stage_name.contains('Functional')) {
     result['test'] = 'Functional'
     result['node_count'] = 9
     cluster_size = '-hw'
     result['pragma_suffix'] = '-vm'
     result['ftest_arg'] = ''
-    if (env.STAGE_NAME.contains('Hardware')) {
+    if (stage_name.contains('Hardware')) {
       cluster_size = 'hw,large'
       result['pragma_suffix'] = '-hw-large'
       result['ftest_arg'] = 'auto:Optane'
-      if (env.STAGE_NAME.contains('Small')) {
+      if (stage_name.contains('Small')) {
         result['node_count'] = 3
         cluster_size = 'hw,small'
         result['pragma_suffix'] = '-hw-small'
-      } else if (env.STAGE_NAME.contains('Medium')) {
+      } else if (stage_name.contains('Medium')) {
         result['node_count'] = 5
         cluster_size = 'hw,medium,ib2'
         result['pragma_suffix'] = '-hw-medium'
@@ -188,7 +192,7 @@ def call(Map config = [:]) {
       result['test_tag'] += atag + ',' + cluster_size + ' '
     }
     result['test_tag'] = result['test_tag'].trim()
-  } // if (env.STAGE_NAME.contains('Functional'))
+  } // if (stage_name.contains('Functional'))
   if (config['test']) {
     result['test'] = config['test']
   }
@@ -202,14 +206,14 @@ def call(Map config = [:]) {
     result['ftest_arg'] = config['ftest_arg']
   }
 
-  if (env.STAGE_NAME.contains('NLT')) {
+  if (stage_name.contains('NLT')) {
     result['NLT'] = true
   } else {
     result['NLT'] = false
   }
 
-  if (env.STAGE_NAME.contains('Unit Test') &&
-    env.STAGE_NAME.contains('memcheck')) {
+  if (stage_name.contains('Unit Test') &&
+    stage_name.contains('memcheck')) {
     result['with_valgrind'] = 'memcheck'
   }
 
