@@ -92,7 +92,7 @@ def call(Map config = [:]) {
                               scm: 'daos-stack/daos'
     recordIssues enabledForFailure: true,
                  failOnError: !ignore_failure,
-                 ignoreFailedBuilds: false,
+                 ignoreFailedBuilds: true,
                  ignoreQualityGate: true,
                  // Set qualitygate to 1 new "NORMAL" priority message
                  // Supporting messages to help identify causes of
