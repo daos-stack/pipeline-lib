@@ -100,28 +100,23 @@ String call(Map config = [:]) {
       ret_str += " --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
       ret_str += " --build-arg CB0=" + current_time.get(Calendar.WEEK_OF_YEAR)
     }
-    if (add_repos) {
+
+    String repo_base = env.REPOSITORY_URL
+    // No repo_base, no repos to add.
+    if (add_repos && repo_base) {
       String repo_name = null
       if (stage_info['target'] == 'centos7') {
         repo_alias = 'EL_7'
-        repo_name = env["DAOS_STACK_${repo_alias}${repo_mod}_${repo_type}_REPO"]
-        if (repo_name) {
-          ret_str += ' --build-arg REPO_EL7=' + repo_name
-        }
+        repo_arg = 'EL7'
       }
       if (stage_info['target'] == 'centos8') {
         repo_alias = 'EL_8'
-        repo_name = env["DAOS_STACK_${repo_alias}${repo_mod}_${repo_type}_REPO"]
-        if (repo_name) {
-          ret_str += ' --build-arg REPO_EL8=' + repo_name
-        }
+        repo_arg = 'EL8'
       }
       if (stage_info['target'] == 'leap15') {
         repo_alias = 'LEAP_15'
-        repo_name = env["DAOS_STACK_${repo_alias}${repo_mod}_${repo_type}_REPO"]
-        if (repo_name) {
-          ret_str += ' --build-arg REPO_EL7=' + repo_name
-        }
+        repo_arg = 'LEAP'
+        // Backwards compatibilty for LOCAL
         if (repo_type == 'LOCAL') {
          if (env.DAOS_STACK_LEAP_15_GROUP_REPO) {
             ret_str += ' --build-arg REPO_GROUP_LEAP15=' +
@@ -130,15 +125,17 @@ String call(Map config = [:]) {
         }
       }
       if (stage_info['target'] == 'ubuntu20.04') {
-        repo_name = env.DAOS_STACK_UBUNTU_20_04_LOCAL_REPO
-        if (repo_type == 'LOCAL') {
-          repo_name = env.DAOS_STACK_UBUNTU_20_04_LOCAL_REPO
-          if (repo_name) {
-            ret_str += ' --build-arg REPO_UBUNTU_20_04=' + repo_name
-          }
-        }
+        // Ubuntu repos usage not yet implemented
+        // When it is implemented it will probably be similar to above.
+        // And the URLS for will be for installing a list of repos.
+        // Details still to be worked out.
+        repo_alias = 'UBUNTU_20_04'
+        repo_arg = 'REPO_UBUNTU'
       }
-      if (repo_name && env.REPOSITORY_URL) {
+      repo_name = env["DAOS_STACK_${repo_alias}${repo_mod}_${repo_type}_REPO"]
+      // Only add the build args if a repo was found.
+      if (repo_name) {
+        ret_str += " --build-arg REPO_${REPO_ARG}=" + repo_name
         ret_str += ' --build-arg REPO_URL=' + env.REPOSITORY_URL
       }
     }
