@@ -105,6 +105,7 @@ String call(Map config = [:]) {
     // No repo_base, no repos to add.
     if (add_repos && repo_base) {
       String repo_name = null
+      String repo_arg = ''
       if (stage_info['target'] == 'centos7') {
         repo_alias = 'EL_7'
         repo_arg = 'EL7'
@@ -135,7 +136,7 @@ String call(Map config = [:]) {
       repo_name = env["DAOS_STACK_${repo_alias}${repo_mod}_${repo_type}_REPO"]
       // Only add the build args if a repo was found.
       if (repo_name) {
-        ret_str += " --build-arg REPO_${REPO_ARG}=" + repo_name
+        ret_str += " --build-arg REPO_${repo_arg}=" + repo_name
         ret_str += ' --build-arg REPO_URL=' + env.REPOSITORY_URL
       }
     }
