@@ -126,12 +126,12 @@ String call(Map config = [:]) {
         }
       }
       if (stage_info['target'] == 'ubuntu20.04') {
-        // Ubuntu repos usage not yet implemented
-        // When it is implemented it will probably be similar to above.
+        // Ubuntu repos curently only used for package building.
+        // When fully implemented it will probably be similar to above.
         // And the URLS for will be for installing a list of repos.
         // Details still to be worked out.
         repo_alias = 'UBUNTU_20_04'
-        repo_arg = 'REPO_UBUNTU'
+        repo_arg = repo_alias
       }
       repo_name = env["DAOS_STACK_${repo_alias}${repo_mod}_${repo_type}_REPO"]
       // Only add the build args if a repo was found.
