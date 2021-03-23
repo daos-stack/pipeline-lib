@@ -26,9 +26,9 @@
    * base URL that is used for all accesses to the repository.
    *
    * The rest of the URL for each specific repo is in additional environment
-   * varables with a name format of "DAOS_STACK_${mod}$(distro}_${type}_REPO".
+   * varables with a name format of "DAOS_STACK_$(distro}${mod}_${type}_REPO".
    *
-   * The ${mod} currently is "DOCKER_" for repositories that are for use
+   * The ${mod} currently is "_DOCKER" for repositories that are for use
    * with dockerfiles, and "" for generic repositories.
    * DOCKER repositories are for both replacing the distro built in
    * repositories and adding locally built packages.
@@ -90,7 +90,6 @@ String call(Map config = [:]) {
         repo_mod = '_DOCKER'
       }
     }
-
     Map stage_info = parseStageInfo(config)
 
     ret_str = " --build-arg NOBUILD=1 " +
@@ -102,27 +101,24 @@ String call(Map config = [:]) {
       ret_str += " --build-arg CB0=" + current_time.get(Calendar.WEEK_OF_YEAR)
     }
     if (add_repos) {
-      if (env.REPOSITORY_URL) {
-        ret_str += ' --build-arg REPO_URL=' + env.REPOSITORY_URL
-      }
       String repo_name = null
       if (stage_info['target'] == 'centos7') {
         repo_alias = 'EL_7'
-        repo_name = env["DAOS_STACK_${repo_mod}${repo_alias}_${repo_type}_REPO"]
+        repo_name = env["DAOS_STACK_${repo_alias}${repo_mod}_${repo_type}_REPO"]
         if (repo_name) {
           ret_str += ' --build-arg REPO_EL7=' + repo_name
         }
       }
       if (stage_info['target'] == 'centos8') {
         repo_alias = 'EL_8'
-        repo_name = env["DAOS_STACK_${repo_mod}${repo_alias}_${repo_type}_REPO"]
+        repo_name = env["DAOS_STACK_${repo_alias}${repo_mod}_${repo_type}_REPO"]
         if (repo_name) {
           ret_str += ' --build-arg REPO_EL8=' + repo_name
         }
       }
       if (stage_info['target'] == 'leap15') {
         repo_alias = 'LEAP_15'
-        repo_name = env["DAOS_STACK_${repo_mod}${repo_alias}_${repo_type}_REPO"]
+        repo_name = env["DAOS_STACK_${repo_alias}${repo_mod}_${repo_type}_REPO"]
         if (repo_name) {
           ret_str += ' --build-arg REPO_EL7=' + repo_name
         }
@@ -134,11 +130,16 @@ String call(Map config = [:]) {
         }
       }
       if (stage_info['target'] == 'ubuntu20.04') {
-        if ((repo_type == 'local') &&
-            (env.DAOS_STACK_UBUNTU_20_04_LOCAL_REPO)) {
-              ret_str += ' --build-arg REPO_UBUNTU_20_04=' +
-                         env.DAOS_STACK_UBUNTU_20_04_LOCAL_REPO
+        repo_name = env.DAOS_STACK_UBUNTU_20_04_LOCAL_REPO
+        if (repo_type == 'LOCAL') {
+          repo_name = env.DAOS_STACK_UBUNTU_20_04_LOCAL_REPO
+          if (repo_name) {
+            ret_str += ' --build-arg REPO_UBUNTU_20_04=' + repo_name
+          }
         }
+      }
+      if (repo_name && env.REPOSITORY_URL) {
+        ret_str += ' --build-arg REPO_URL=' + env.REPOSITORY_URL
       }
     }
     if (env.HTTP_PROXY) {
