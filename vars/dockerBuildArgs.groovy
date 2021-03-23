@@ -108,7 +108,7 @@ String call(Map config = [:]) {
       String repo_name = null
       if (stage_info['target'] == 'centos7') {
         repo_alias = 'EL_7'
-        repo_name = env["DAOS_STACK_${repo_mod}${repo_alias}_${repo_type}_REPO"
+        repo_name = env["DAOS_STACK_${repo_mod}${repo_alias}_${repo_type}_REPO"]
         if (repo_name) {
           ret_str += ' --build-arg REPO_EL7=' + repo_name
         }
