@@ -16,6 +16,47 @@
    *
    * config['deps_build'] Whether to build the daos dependencies.
    *
+   * config['repo_type'] Type of repo to add.  Default 'local'
+   *
+   * Repositories URLs are looked up via Jenkins environment variables.
+   * There are two environment variables that are put together to create
+   * a path to a repo.
+   *
+   * The first envronment variable is "REPOSITORY_URL" which is a common
+   * base URL that is used for all accesses to the repository.
+   *
+   * The rest of the URL for each specific repo is in additional environment
+   * varables with a name format of "DAOS_STACK_${mod}$(distro}_${type}_REPO".
+   *
+   * The ${mod} currently is "DOCKER_" for repositories that are for use
+   * with dockerfiles, and "" for generic repositories.
+   * DOCKER repositories are for both replacing the distro built in
+   * repositories and adding locally built packages.
+   *
+   * The ${distro} is currently one of "EL_7", "EL_8", "LEAP_15", and
+   * "UBUNTU_20_04".
+   *
+   * The ${type} is "LOCAL", "DEV", "STABLE", or "RELEASE".  This is passed
+   * in lower case in the "repo_type" parameter above.
+   *
+   * "LOCAL" type contains only locally built packages.  This is being phased
+   * out for all but Ubuntu.  It is a single repository.
+   *
+   * The other types are group repositories that combine both locally built
+   * package repositories with other repositories.
+   *
+   * The "DEV" type is group for experimental configurations for special PRs.
+   *
+   * The "STABLE" type is a group with locally build packages and also can
+   * contain other repositories.  It should not contain the default distro
+   * provided repositories.  It may also contain locally built signed
+   * release packages.
+   *
+   * The "RELEASE" type contains locally built signed released packages.
+   *
+   * Getting better repositories for Ubuntu is a work in progress.
+   * For Ubuntu repository groups, that will need to be a URL that
+   * can be used to download a list file containing the needed repositories.
    */
 
 // The docker agent setup and the provisionNodes step need to know the
@@ -30,7 +71,9 @@ String call(Map config = [:]) {
     Boolean cachebust = true
     Boolean add_repos = true
     Boolean deps_build = false
-    String repo_type = 'local'
+    String repo_type = 'LOCAL'
+    String repo_alias = ''
+    String repo_mod = ''
 
     if (config.containsKey('cachebust')) {
       cachebust = config['cachebust']
@@ -42,7 +85,10 @@ String call(Map config = [:]) {
       deps_build = config['deps_build']
     }
     if (config.containsKey('repo_type')) {
-      repo_type = config['repo_type']
+      repo_type = config['repo_type'].toString().toUpperCase()
+      if (repo_type != 'LOCAL') {
+        repo_mod = '_DOCKER'
+      }
     }
 
     Map stage_info = parseStageInfo(config)
@@ -59,63 +105,32 @@ String call(Map config = [:]) {
       if (env.REPOSITORY_URL) {
         ret_str += ' --build-arg REPO_URL=' + env.REPOSITORY_URL
       }
-      string repo_name = null
+      String repo_name = null
       if (stage_info['target'] == 'centos7') {
-        if ((repo_type == 'local') && (env.DAOS_STACK_EL_7_LOCAL_REPO)) {
-            repo_name = env.DAOS_STACK_EL_7_LOCAL_REPO
-        } else if ((repo_type == 'stable') &&
-                   (env.DAOS_STACK_EL_7_DOCKER_STABLE_REPO)) {
-          repo_name = env.DAOS_STACK_EL_7_DOCKER_STABLE_REPO
-        } else if ((repo_tpe == 'release') &&
-                   (env.DAOS_STACK_EL_7_DOCKER_RELEASE_REPO)) {
-          repo_name = env.DAOS_STACK_EL_7_DOCKER_RELEASE_REPO
-        } else if ((repo_type == 'dev') &&
-                   (env.DAOS_STACK_EL_7_DOCKER_DEV_REPO)) {
-          repo_name = env.DAOS_STACK_EL_7_DOCKER_DEV_REPO
-        }
+        repo_alias = 'EL_7'
+        repo_name = env["DAOS_STACK_${repo_mod}${repo_alias}_${repo_type}_REPO"
         if (repo_name) {
           ret_str += ' --build-arg REPO_EL7=' + repo_name
         }
       }
       if (stage_info['target'] == 'centos8') {
-        if ((repo_type == 'local') && (env.DAOS_STACK_EL_8_LOCAL_REPO)) {
-            repo_name = env.DAOS_STACK_EL_8_LOCAL_REPO
-        } else if ((repo_type == 'stable') &&
-                   (env.DAOS_STACK_EL_8_DOCKER_STABLE_REPO)) {
-          repo_name = env.DAOS_STACK_EL_8_DOCKER_STABLE_REPO
-        } else if ((repo_tpe == 'release') &&
-                   (env.DAOS_STACK_EL_8_DOCKER_RELEASE_REPO)) {
-          repo_name = env.DAOS_STACK_EL_8_DOCKER_RELEASE_REPO
-        } else if ((repo_type == 'dev') &&
-                   (env.DAOS_STACK_EL_8_DOCKER_DEV_REPO)) {
-          repo_name = env.DAOS_STACK_EL_8_DOCKER_DEV_REPO
-        }
+        repo_alias = 'EL_8'
+        repo_name = env["DAOS_STACK_${repo_mod}${repo_alias}_${repo_type}_REPO"]
         if (repo_name) {
           ret_str += ' --build-arg REPO_EL8=' + repo_name
         }
       }
       if (stage_info['target'] == 'leap15') {
-        if (repo_type == 'local') {
-          if (env.DAOS_STACK_LEAP_15_LOCAL_REPO) {
-            ret_str += ' --build-arg REPO_LOCAL_LEAP15=' +
-                       env.DAOS_STACK_LEAP_15_LOCAL_REPO
-          }
-          if (env.DAOS_STACK_LEAP_15_GROUP_REPO) {
+        repo_alias = 'LEAP_15'
+        repo_name = env["DAOS_STACK_${repo_mod}${repo_alias}_${repo_type}_REPO"]
+        if (repo_name) {
+          ret_str += ' --build-arg REPO_EL7=' + repo_name
+        }
+        if (repo_type == 'LOCAL') {
+         if (env.DAOS_STACK_LEAP_15_GROUP_REPO) {
             ret_str += ' --build-arg REPO_GROUP_LEAP15=' +
                        env.DAOS_STACK_LEAP_15_GROUP_REPO
           }
-        } else if ((repo_type == 'stable') &&
-                   (env.DAOS_STACK_LEAP_15_DOCKER_STABLE_REPO)) {
-          repo_name = env.DAOS_STACK_LEAP_15_DOCKER_STABLE_REPO
-        } else if ((repo_tpe == 'release') &&
-                   (env.DAOS_STACK_LEAP_15_DOCKER_RELEASE_REPO)) {
-          repo_name = env.DAOS_STACK_LEAP_15_DOCKER_RELEASE_REPO
-        } else if ((repo_type == 'dev') &&
-                   (env.DAOS_STACK_LEAP_15_DOCKER_DEV_REPO)) {
-          repo_name = env.DAOS_STACK_LEAP_15_DOCKER_DEV_REPO
-        }
-        if (repo_name) {
-          ret_str += ' --build-arg REPO_LEAP=' + repo_name
         }
       }
       if (stage_info['target'] == 'ubuntu20.04') {
