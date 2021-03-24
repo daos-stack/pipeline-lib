@@ -101,31 +101,28 @@ String call(Map config = [:]) {
       ret_str += " --build-arg CB0=" + current_time.get(Calendar.WEEK_OF_YEAR)
     }
 
-    String repo_base = env.REPOSITORY_URL
-    // No repo_base, no repos to add.
-    if (add_repos && repo_base) {
+    // No env.REPOSITORY_URL, no repos to add.
+    if (add_repos && env.REPOSITORY_URL) {
       String repo_name = null
       String repo_arg = ''
       if (stage_info['target'] == 'centos7') {
         repo_alias = 'EL_7'
         repo_arg = 'EL7'
-      }
-      if (stage_info['target'] == 'centos8') {
+      } else if (stage_info['target'] == 'centos8') {
         repo_alias = 'EL_8'
         repo_arg = 'EL8'
-      }
-      if (stage_info['target'] == 'leap15') {
+      } else if (stage_info['target'] == 'leap15') {
         repo_alias = 'LEAP_15'
         repo_arg = 'LEAP'
         // Backwards compatibilty for LOCAL
         if (repo_type == 'LOCAL') {
          if (env.DAOS_STACK_LEAP_15_GROUP_REPO) {
+            repo_arg = 'LOCAL_LEAP15'
             ret_str += ' --build-arg REPO_GROUP_LEAP15=' +
                        env.DAOS_STACK_LEAP_15_GROUP_REPO
           }
         }
-      }
-      if (stage_info['target'] == 'ubuntu20.04') {
+      } else if (stage_info['target'] == 'ubuntu20.04') {
         // Ubuntu repos curently only used for package building.
         // When fully implemented it will probably be similar to above.
         // And the URLS for will be for installing a list of repos.
