@@ -288,23 +288,13 @@ EOF'''
                             ln -s python3.6 /usr/bin/python3
                         fi'''
   } else if (distro_type == "suse") {
-    // Temp fix for broken mirror until snapshot is rebuilt to not use it.
-    provision_script += '\nzypper mr -d openSUSE-Leap-15.1-1 || true '
-    provision_script += '\nzypper mr -d openSUSE-Leap-15.1-Non-Oss || true '
-    provision_script += '\nzypper mr -d openSUSE-Leap-15.1-Oss || true '
-    provision_script += '\nzypper mr -d openSUSE-Leap-15.1-Update || true '
-    provision_script += '\nzypper mr -d openSUSE-Leap-15.1-Update-Non-Oss || true '
-
+    /* Removed leap-15.1 code, science:HPC repo for it is gone */
     if (repository_g != '') {
       provision_script += '\nzypper --non-interactive ar -f ' +
                            repository_g + ' daos-stack-group-repo'
       provision_script += '\nzypper --non-interactive mr ' +
                           '--gpgcheck-allow-unsigned-repo ' +
                           'daos-stack-group-repo'
-      // Group repo currently needs this key.
-      provision_script += '\nrpm --import "https://download.opensuse.org/' +
-                          'repositories/science:/HPC/openSUSE_Leap_15.1/' +
-                          'repodata/repomd.xml.key"'
     }
     if (repository_l != '') {
       provision_script += '\nzypper --non-interactive ar' +

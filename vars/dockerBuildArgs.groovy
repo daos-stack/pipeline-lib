@@ -16,6 +16,47 @@
    *
    * config['deps_build'] Whether to build the daos dependencies.
    *
+   * config['repo_type'] Type of repo to add.  Default 'local'
+   *
+   * Repositories URLs are looked up via Jenkins environment variables.
+   * There are two environment variables that are put together to create
+   * a path to a repo.
+   *
+   * The first envronment variable is "REPOSITORY_URL" which is a common
+   * base URL that is used for all accesses to the repository.
+   *
+   * The rest of the URL for each specific repo is in additional environment
+   * varables with a name format of "DAOS_STACK_$(distro}${mod}_${type}_REPO".
+   *
+   * The ${mod} currently is "_DOCKER" for repositories that are for use
+   * with dockerfiles, and "" for generic repositories.
+   * DOCKER repositories are for both replacing the distro built in
+   * repositories and adding locally built packages.
+   *
+   * The ${distro} is currently one of "EL_7", "EL_8", "LEAP_15", and
+   * "UBUNTU_20_04".
+   *
+   * The ${type} is "LOCAL", "DEV", "STABLE", or "RELEASE".  This is passed
+   * in lower case in the "repo_type" parameter above.
+   *
+   * "LOCAL" type contains only locally built packages.  This is being phased
+   * out for all but Ubuntu.  It is a single repository.
+   *
+   * The other types are group repositories that combine both locally built
+   * package repositories with other repositories.
+   *
+   * The "DEV" type is group for experimental configurations for special PRs.
+   *
+   * The "STABLE" type is a group with locally build packages and also can
+   * contain other repositories.  It should not contain the default distro
+   * provided repositories.  It may also contain locally built signed
+   * release packages.
+   *
+   * The "RELEASE" type contains locally built signed released packages.
+   *
+   * Getting better repositories for Ubuntu is a work in progress.
+   * For Ubuntu repository groups, that will need to be a URL that
+   * can be used to download a list file containing the needed repositories.
    */
 
 // The docker agent setup and the provisionNodes step need to know the
@@ -30,6 +71,10 @@ String call(Map config = [:]) {
     Boolean cachebust = true
     Boolean add_repos = true
     Boolean deps_build = false
+    String repo_type = 'LOCAL'
+    String repo_alias = ''
+    String repo_mod = ''
+
     if (config.containsKey('cachebust')) {
       cachebust = config['cachebust']
     }
@@ -39,6 +84,13 @@ String call(Map config = [:]) {
     if (config.containsKey('deps_build')) {
       deps_build = config['deps_build']
     }
+    if (config.containsKey('repo_type')) {
+      repo_type = config['repo_type'].toString().toUpperCase()
+      if (repo_type != 'LOCAL') {
+        repo_mod = '_DOCKER'
+      }
+    }
+    Map stage_info = parseStageInfo(config)
 
     ret_str = " --build-arg NOBUILD=1 " +
               " --build-arg UID=" + getuid() +
@@ -49,26 +101,40 @@ String call(Map config = [:]) {
       ret_str += " --build-arg CB0=" + current_time.get(Calendar.WEEK_OF_YEAR)
     }
 
-    if (add_repos) {
-      if (env.REPOSITORY_URL) {
+    // No env.REPOSITORY_URL, no repos to add.
+    if (add_repos && env.REPOSITORY_URL) {
+      String repo_name = null
+      String repo_arg = ''
+      if (stage_info['target'] == 'centos7') {
+        repo_alias = 'EL_7'
+        repo_arg = 'EL7'
+      } else if (stage_info['target'] == 'centos8') {
+        repo_alias = 'EL_8'
+        repo_arg = 'EL8'
+      } else if (stage_info['target'] == 'leap15') {
+        repo_alias = 'LEAP_15'
+        repo_arg = 'LEAP'
+        // Backwards compatibilty for LOCAL
+        if (repo_type == 'LOCAL') {
+         if (env.DAOS_STACK_LEAP_15_GROUP_REPO) {
+            repo_arg = 'LOCAL_LEAP15'
+            ret_str += ' --build-arg REPO_GROUP_LEAP15=' +
+                       env.DAOS_STACK_LEAP_15_GROUP_REPO
+          }
+        }
+      } else if (stage_info['target'] == 'ubuntu20.04') {
+        // Ubuntu repos curently only used for package building.
+        // When fully implemented it will probably be similar to above.
+        // And the URLS for will be for installing a list of repos.
+        // Details still to be worked out.
+        repo_alias = 'UBUNTU_20_04'
+        repo_arg = repo_alias
+      }
+      repo_name = env["DAOS_STACK_${repo_alias}${repo_mod}_${repo_type}_REPO"]
+      // Only add the build args if a repo was found.
+      if (repo_name) {
+        ret_str += " --build-arg REPO_${repo_arg}=" + repo_name
         ret_str += ' --build-arg REPO_URL=' + env.REPOSITORY_URL
-      }
-      if (env.DAOS_STACK_EL_7_LOCAL_REPO) {
-        ret_str += ' --build-arg REPO_EL7=' + env.DAOS_STACK_EL_7_LOCAL_REPO
-      }
-      if (env.DAOS_STACK_EL_8_LOCAL_REPO) {
-        ret_str += ' --build-arg REPO_EL8=' + env.DAOS_STACK_EL_8_LOCAL_REPO
-      }
-      if (env.DAOS_STACK_LEAP_15_LOCAL_REPO) {
-        ret_str += ' --build-arg REPO_LOCAL_LEAP15=' +
-                   env.DAOS_STACK_LEAP_15_LOCAL_REPO
-      }
-      if (env.DAOS_STACK_UBUNTU_20_04_LOCAL_REPO) {
-        ret_str += ' --build-arg REPO_UBUNTU_20_04=' + env.DAOS_STACK_UBUNTU_20_04_LOCAL_REPO
-      }
-      if (env.DAOS_STACK_LEAP_15_GROUP_REPO) {
-        ret_str += ' --build-arg REPO_GROUP_LEAP15=' +
-                   env.DAOS_STACK_LEAP_15_GROUP_REPO
       }
     }
     if (env.HTTP_PROXY) {
