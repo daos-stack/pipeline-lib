@@ -16,25 +16,20 @@ String call(Integer client_ver, String next_version) {
 
 String call(String distro, Integer client_ver, String next_version) {
     String daos_pkgs = getDAOSPackages(distro, next_version)
-    String pkgs = " openmpi3 hwloc ndctl fio " +
-                  "patchutils ior-hpc-daos-${client_ver} " +
-                  "romio-tests-daos-${client_ver} " +
-                  "testmpio " +
-                  "mpi4py-tests " +
-                  "hdf5-mpich-tests " +
-                  "hdf5-openmpi3-tests " +
-                  "hdf5-vol-daos-mpich-tests " +
-                  "hdf5-vol-daos-openmpi3-tests " +
-                  "MACSio-mpich " +
-                  "MACSio-openmpi3 " +
-                  "mpifileutils-mpich-daos-${client_ver} "
-    if (distro.startsWith('leap15')) {
-        return daos_pkgs + pkgs
-    } else if (distro.startsWith('el7') || distro.startsWith('centos7')) {
-        // need to exclude openmpi until we remove it from the repo
-        return  "--exclude openmpi " + daos_pkgs + pkgs
-    } else if (distro.startsWith('ubuntu20')) {
-        return daos_pkgs + " openmpi-bin ndctl fio"
+    if (!fileExists('ci/functional/required_packages.sh')) {
+        echo "ci/functional/required_packages.sh doesn't exist.  " +
+             "Hopefully the daos-tests package has the dependencies configured."
+        return
+    }
+
+    String pkgs = sh(script: "ci/functional/required_packages.sh ${distro} " +
+                             client_ver,
+                        returnStdout: true)
+
+    if (distro.startsWith('leap15') ||
+        distro.startsWith('el7') || distro.startsWith('centos7') ||
+        distro.startsWith('ubuntu20')) {
+        return daos_pkgs + ' ' + pkgs
     } else {
         error 'functionalPackages not implemented for ' + distro
     }
