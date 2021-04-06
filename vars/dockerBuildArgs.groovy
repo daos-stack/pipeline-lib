@@ -63,9 +63,12 @@ String call(Map config = [:]) {
     Boolean cachebust = true
     Boolean add_repos = true
     Boolean deps_build = false
-    String repo_type = 'LOCAL'
+    String daos_type = 'LOCAL'
+    String dist_type = 'GROUP'
     String repo_alias = ''
     String repo_mod = ''
+    String daos_arg = "DAOS"
+    String dist_arg = 'DISTRO'
 
     if (config.containsKey('cachebust')) {
       cachebust = config['cachebust']
@@ -77,9 +80,10 @@ String call(Map config = [:]) {
       deps_build = config['deps_build']
     }
     if (config.containsKey('repo_type')) {
-      repo_type = config['repo_type'].toString().toUpperCase()
-      if (repo_type != 'LOCAL') {
+      daos_type = config['repo_type'].toString().toUpperCase()
+      if (daos_type != 'LOCAL') {
         repo_mod = '_DOCKER'
+        dist_type = daos_type
       }
     }
     Map stage_info = parseStageInfo(config)
@@ -103,19 +107,21 @@ String call(Map config = [:]) {
       String repo_arg = ''
       if (stage_info['target'] == 'centos7') {
         repo_alias = 'EL_7'
-        repo_arg = 'EL7'
+        if (daos_type == 'LOCAL') {
+          daos_arg = 'EL7'
+        }
       } else if (stage_info['target'] == 'centos8') {
         repo_alias = 'EL_8'
-        repo_arg = 'EL8'
+        if (daos_type == 'LOCAL') {
+          daos_arg = 'EL8'
+        }
       } else if (stage_info['target'] == 'leap15') {
         repo_alias = 'LEAP_15'
-        repo_arg = 'LEAP'
         // Backwards compatibilty for LOCAL
-        if (repo_type == 'LOCAL') {
-         if (env.DAOS_STACK_LEAP_15_GROUP_REPO) {
-            repo_arg = 'LOCAL_LEAP15'
-            ret_str += ' --build-arg REPO_GROUP_LEAP15=' +
-                       env.DAOS_STACK_LEAP_15_GROUP_REPO
+        if (daos_type == 'LOCAL') {
+          if (env.DAOS_STACK_LEAP_15_GROUP_REPO) {
+            daos_arg = 'LOCAL_LEAP15'
+            dist_arg = 'GROUP_LEAP15'
           }
         }
       } else if (stage_info['target'] == 'ubuntu20.04') {
@@ -124,13 +130,20 @@ String call(Map config = [:]) {
         // And the URLS for will be for installing a list of repos.
         // Details still to be worked out.
         repo_alias = 'UBUNTU_20_04'
-        repo_arg = repo_alias
+        daos_arg = repo_alias
       }
-      repo_name = env["DAOS_STACK_${repo_alias}${repo_mod}_${repo_type}_REPO"]
+      dist_repo = env["DAOS_STACK_${repo_alias}${repo_mod}_${dist_type}_REPO"]
+      daos_repo = env["DAOS_STACK_${repo_alias}_${daos_type}_REPO"]
+
       // Only add the build args if a repo was found.
-      if (repo_name) {
-        ret_str += " --build-arg REPO_${repo_arg}=" + repo_name
+      if (dist_repo || daos_repo) {
         ret_str += ' --build-arg REPO_URL=' + env.REPOSITORY_URL
+        if (daos_repo) {
+          ret_str += " --build-arg REPO_${daos_arg}=" + daos_repo
+        }
+        if (dist_repo) {
+          ret_str += " --build-arg REPO_${dist_arg}=" + dist_repo
+        }
       }
     }
     if (env.HTTP_PROXY) {
