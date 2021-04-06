@@ -19,6 +19,10 @@
 
 pipeline {
     agent { label 'lightweight' }
+    libraries {
+      lib("pipeline-lib@${env.BRANCH_NAME}")
+    }
+
     environment {
         SSH_KEY_FILE='ci_key'
         SSH_KEY_ARGS="-i$SSH_KEY_FILE"

@@ -16,6 +16,14 @@
  * config['def_val']    Value to return if not found
  */
 def call(Map config = [:]) {
+    // convert the map for compat
+    return commitPragma(config['pragma'], config['def_val'])
+}
 
-    return commitPragmaTrusted(config)
+/**
+ * @param name       Pragma to get the value of
+ * @param def_val    Value to return if not found
+ */
+def call(String name, String def_val = null) {
+    return commitPragmaTrusted(name, def_val)
 }

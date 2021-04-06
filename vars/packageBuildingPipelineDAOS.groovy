@@ -77,11 +77,10 @@ def call(Map pipeline_args) {
         environment {
             QUICKBUILD = sh(script: "git show -s --format=%B | grep \"^Quick-build: true\"",
                             returnStatus: true)
-            PACKAGING_BRANCH = commitPragma pragma: 'Packaging-branch',
-                                            def_val: 'master'
-            DAOS_TESTING_BRANCH = commitPragma pragma: 'DAOS-test-branch',
-                                               def_val: pipeline_args.get('daos_test_branch',
-                                                                          'origin/master')
+            PACKAGING_BRANCH = commitPragma('Packaging-branch', 'master')
+            DAOS_TESTING_BRANCH = commitPragma('DAOS-test-branch',
+                                               pipeline_args.get('daos_test_branch',
+                                                                          'origin/master'))
         }
         stages {
             stage('Cancel Previous Builds') {
