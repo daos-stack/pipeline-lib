@@ -93,7 +93,7 @@ def call(Map config = [:]) {
     recordIssues enabledForFailure: true,
                  failOnError: !ignore_failure,
                  ignoreFailedBuilds: true,
-                 ignoreQualityGate: true,
+                 ignoreQualityGate: false,
                  // Set qualitygate to 1 new "NORMAL" priority message
                  // Supporting messages to help identify causes of
                  // problems are set to "LOW".
