@@ -27,7 +27,8 @@ boolean skip_ftest_hw(String size) {
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-hw-test-' + size) ||
            ! testsInStage() ||
-           (env.BRANCH_NAME == 'master' && ! startedByTimer())
+           (env.BRANCH_NAME == 'master' &&
+            ! (startedByTimer() || startedByUser()))
 }
 
 boolean skip_if_unstable() {
@@ -86,7 +87,7 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build-leap15-rpm')
         case "Build DEB on Ubuntu 20.04":
             return target_branch == 'weekly-testing' ||
-                   skip_stage_pragma('build-leap15-rpm')
+                   skip_stage_pragma('build-ubuntu20-rpm')
         case "Build on CentOS 7":
             return skip_build_on_centos7_gcc()
         case "Build on CentOS 7 Bullseye":
@@ -175,10 +176,13 @@ boolean call(Map config = [:]) {
             return target_branch == 'weekly-testing' ||
                    skip_stage_pragma('scan-centos-rpms', 'true') ||
                    quickFunctional()
+        case "Functional_Hardware_Small":
         case "Functional Hardware Small":
             return skip_ftest_hw('small')
+        case "Functional_Hardware_Medium":
         case "Functional Hardware Medium":
             return skip_ftest_hw('medium')
+        case "Functional_Hardware_Large":
         case "Functional Hardware Large":
             return skip_ftest_hw('large')
         case "Bullseye Report":
