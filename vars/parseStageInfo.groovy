@@ -165,7 +165,11 @@ def call(Map config = [:]) {
             if (!(tag = config['test_tag'])) {
               // Next is deciding if it's a timer run
               if (startedByTimer()) {
-                tag = "daily_regression"
+                if (env.BRANCH_NAME.startsWith("weekly-testing")) {
+                  tag = "full_regression"
+                } else {
+                  tag = "daily_regression"
+                }
               } else {
                 // Must be a PR run
                 tag = "pr"
