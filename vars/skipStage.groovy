@@ -22,6 +22,15 @@ boolean skip_ftest(String distro) {
            skip_stage_pragma('func-test-' + distro)
 }
 
+boolean skip_ftest_valgrind(String distro) {
+    return distro == 'ubuntu20' ||
+           skip_stage_pragma('func-test') ||
+           skip_stage_pragma('func-test-vm') ||
+           skip_stage_pragma('func-test-vm-valgrind') ||
+           ! testsInStage() ||
+           skip_stage_pragma('func-test-' + distro)
+}
+
 boolean skip_ftest_hw(String size) {
     return env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
            skip_stage_pragma('func-test') ||
@@ -163,6 +172,8 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build')
         case "Functional on CentOS 7":
             return skip_ftest('el7')
+        case "Functional on CentOS 7 with Valgrind":
+            return skip_ftest_valgrind('el7')
         case "Functional on Leap 15":
             return skip_ftest('leap15')
         case "Functional on Ubuntu 20.04":
