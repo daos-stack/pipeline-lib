@@ -16,7 +16,7 @@ String call(String next_version) {
 String call(String distro, String next_version) {
     String pkgs
     if (env.TEST_RPMS == 'true') {
-        pkgs = "daos{,-{client,tests,server}}"
+        pkgs = "daos{,-{client,tests{,-java},server}}"
     } else {
         pkgs = "daos{,-client}"
     }
