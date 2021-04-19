@@ -23,12 +23,8 @@ boolean skip_ftest(String distro) {
 }
 
 boolean skip_ftest_valgrind(String distro) {
-    return distro == 'ubuntu20' ||
-           skip_stage_pragma('func-test') ||
-           skip_stage_pragma('func-test-vm') ||
-           skip_stage_pragma('func-test-vm-valgrind') ||
-           ! testsInStage() ||
-           skip_stage_pragma('func-test-' + distro)
+    return skip_ftest(distro) ||
+           skip_stage_pragma('func-test-vm-valgrind')
 }
 
 boolean skip_ftest_hw(String size) {
