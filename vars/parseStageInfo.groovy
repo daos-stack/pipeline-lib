@@ -144,6 +144,10 @@ def call(Map config = [:]) {
         result['pragma_suffix'] = '-hw-medium'
       }
     }
+    if (stage_name.contains('with Valgrind')) {
+      result['ftest_arg'] = ''
+      config['test_tag'] = 'cart'
+    }
 
     String tag
     // Higest priority is TestTag parameter but only if ForceRun
