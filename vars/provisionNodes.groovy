@@ -84,6 +84,8 @@ def call(Map config = [:]) {
       // sles and opensuse leap can use each others binaries.
       // Currently we are only building opensuse leap binaries.
       distro_type = 'suse'
+  }  else if (distro.startsWith("fedora")) {
+      distro_type = 'fedora'
   }  else if (distro.startsWith("ubuntu")) {
       distro_type = 'ubuntu'
   }
@@ -165,6 +167,8 @@ def call(Map config = [:]) {
       provision_script += 'EL_8'
   } else if (distro_type == 'suse') {
       provision_script += 'LEAP_15'
+  } else if (distro_type == 'fedora') {
+      provision_script += distro_type
   } else if (distro_type == 'ubuntu') {
       provision_script += 'UBUNTU_20_04'
   }
