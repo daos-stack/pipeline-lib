@@ -40,6 +40,8 @@ void call(Map config = [:]) {
    *                        Default env.STAGE_NAME.
    */
 
+    Map stage_info = parseStageInfo(config)
+
     if (!fileExists('ci/functional/test_main.sh')) {
         return runTestFunctionalV1(config)
     }
