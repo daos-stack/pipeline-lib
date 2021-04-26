@@ -101,6 +101,7 @@ boolean call(Map config = [:]) {
             return skip_stage_pragma('build-centos7-gcc-release') ||
                    quickBuild()
         case "Build on CentOS 7 with Clang":
+        case "Build on CentOS 7 with Clang debug":
         case "Build on Ubuntu 20.04":
         case "Build on Leap 15 with Clang":
             return env.BRANCH_NAME != target_branch ||
