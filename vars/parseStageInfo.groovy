@@ -216,8 +216,9 @@ def call(Map config = [:]) {
     result['NLT'] = false
   }
 
-  if (stage_name.contains('Unit Test') &&
-    stage_name.contains('memcheck')) {
+  if ((stage_name.contains('Unit Test') &&
+    stage_name.contains('memcheck')) ||
+    stage_name.contains('with Valgrind')) {
     result['with_valgrind'] = 'memcheck'
   }
 
