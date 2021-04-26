@@ -145,7 +145,7 @@ def call(Map config = [:]) {
       }
     }
     if (stage_name.contains('with Valgrind')) {
-      result['ftest_arg'] = ''
+      result['with_valgrind'] = 'memcheck'
       config['test_tag'] = 'cart'
     }
 
@@ -216,9 +216,8 @@ def call(Map config = [:]) {
     result['NLT'] = false
   }
 
-  if ((stage_name.contains('Unit Test') &&
-    stage_name.contains('memcheck')) ||
-    stage_name.contains('with Valgrind')) {
+  if (stage_name.contains('Unit Test') &&
+    stage_name.contains('memcheck')) {
     result['with_valgrind'] = 'memcheck'
   }
 
