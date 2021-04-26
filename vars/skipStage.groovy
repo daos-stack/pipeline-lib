@@ -162,7 +162,7 @@ boolean call(Map config = [:]) {
             if (env.BRANCH_NAME.startsWith('weekly-testing')) {
                 return false
             }
-            return skip_stage_pragma('vagrant-test', 'true'))
+            return skip_stage_pragma('vagrant-test', 'true')
         case "Coverity on CentOS 7":
             return skip_stage_pragma('coverity-test') ||
                    quickFunctional() ||
