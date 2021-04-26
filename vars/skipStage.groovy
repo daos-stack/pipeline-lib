@@ -159,10 +159,8 @@ boolean call(Map config = [:]) {
                     ! startedByUser()) ||
                    skip_if_unstable()
         case "Test on CentOS 7 [in] Vagrant":
-            if (env.BRANCH_NAME.startsWith('weekly-testing')) {
-                return false
-            }
-            return skip_stage_pragma('vagrant-test', 'true')
+            return skip_stage_pragma('vagrant-test', 'true') &&
+                   ! env.BRANCH_NAME.startsWith('weekly-testing')
         case "Coverity on CentOS 7":
             return skip_stage_pragma('coverity-test') ||
                    quickFunctional() ||
