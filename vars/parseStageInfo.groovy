@@ -144,6 +144,10 @@ def call(Map config = [:]) {
         result['pragma_suffix'] = '-hw-medium'
       }
     }
+    // We don't have clients or test tools for EL8 yet
+    if (stage_name.contains('CentOS 8')) {
+      cluster_size += ',-mpich'
+    }
 
     String tag
     // Higest priority is TestTag parameter but only if ForceRun

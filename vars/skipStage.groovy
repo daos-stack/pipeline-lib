@@ -167,6 +167,8 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build')
         case "Functional on CentOS 7":
             return skip_ftest('el7')
+        case "Functional on CentOS 8":
+            return skip_ftest('el8')
         case "Functional on Leap 15":
             return skip_ftest('leap15')
         case "Functional on Ubuntu 20.04":
