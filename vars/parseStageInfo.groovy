@@ -146,7 +146,7 @@ def call(Map config = [:]) {
     }
     if (stage_name.contains('with Valgrind')) {
       result['with_valgrind'] = 'memcheck'
-      config['test_tag'] = 'cart'
+      config['test_tag'] = 'memcheck'
     }
 
     String tag
