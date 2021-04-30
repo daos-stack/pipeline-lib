@@ -1,7 +1,7 @@
-// vars/functionalTest.groovy
+// vars/storagePrepTest.groovy
 
   /**
-   * functionalTest step method
+   * storagePrepTest step method
    *
    * @param config Map of parameters passed
    *
@@ -49,26 +49,31 @@
    * config['test_rpms']         Set to true to test RPMs being built.
    *                             Default env.TEST_RPMS.
    *
-   * config['test_tag']          Avocado tag to test.
+   * config['test_tag']          Avocado tag to test. (Not currently used)
    *                             Default determined by parseStageInfo().
    *
    */
 
 def call(Map config = [:]) {
 
-  String nodelist = config.get('NODELIST', env.NODELIST)
-  String context = config.get('context', 'test/' + env.STAGE_NAME)
-  String description = config.get('description', env.STAGE_NAME)
+  println("Entering Storage Prep Test")
+  def nodelist = config.get('NODELIST', env.NODELIST)
+  def context = config.get('context', 'test/' + env.STAGE_NAME)
+  def description = config.get('description', env.STAGE_NAME)
  
+  println("Calling parseStage_info")
   Map stage_info = parseStageInfo(config)
 
+  println("config = -${config}-")
+
+  println("Calling ProvisionNodes")
   provisionNodes NODELIST: nodelist,
                  node_count: stage_info['node_count'],
                  distro: stage_info['ci_target'],
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: config.get('inst_rpms', '')
 
-  List stashes = []
+  def stashes = []
   if (config['stashes']) {
     stashes = config['stashes']
   } else {
@@ -87,10 +92,38 @@ def call(Map config = [:]) {
   params['context'] = context
   params['description'] = description
 
-  if (config.get('test_function', "runTestFunctional") ==
-      "runTestFunctionalV2") {
-    runTestFunctionalV2 params
-  } else {
-    runTestFunctional params
+  if (!fileExists('ci/storage/test_main.sh')) {
+    println("No storage Prep script found!")
+    return
   }
+
+  Boolean test_rpms = false
+  if (config['test_rpms'] == "true") {
+    test_rpms = true
+  }
+
+  config['script'] = 'export NODE_COUNT="' + stage_info['node_count'] + '"\n ' +
+                     'export OPERATIONS_EMAIL="' +
+                         env.OPERATIONS_EMAIL + '"\n ' +
+                     'export DAOS_PKG_VERSION=' +
+                         daosPackagesVersion("1000") + '\n' +
+                     'ci/storage/test_main.sh'
+                                     
+  if (!config['failure_artifacts']) {
+    config['failure_artifacts'] = env.STAGE_NAME
+  }
+
+  if (test_rpms && config['stashes']) {
+    // we don't need (and might not even have) stashes if testing
+    // from RPMs
+    config.remove('stashes')
+  }
+
+  config.remove('pragma_suffix')
+  config.remove('test_tag')
+  config.remove('ftest_arg')
+  config.remove('node_count')
+  config.remove('test_rpms')
+
+  runTest(config)
 }

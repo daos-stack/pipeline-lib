@@ -45,10 +45,11 @@
 */
 def call(Map config = [:]) {
 
-  def nodeString = config['NODELIST']
-  def node_list = config['NODELIST'].split(',')
-  def node_max_cnt = node_list.size()
-  def node_cnt = node_max_cnt
+  String nodeString = config['NODELIST']
+  List node_list = config['NODELIST'].split(',')
+  int node_max_cnt = node_list.size()
+  int node_cnt = node_max_cnt
+  String repo_type = config.get('repo_type', 'stable')
   Map new_config = config
   if (config['node_count']) {
     // Matrix builds pass requested node count as a string
@@ -75,8 +76,8 @@ def call(Map config = [:]) {
       return node_cnt
   }
 
-  def distro_type = 'el7'
-  def distro = config.get('distro', 'el7')
+  String distro_type = 'el7'
+  String distro = config.get('distro', 'el7')
   if (distro.startsWith("centos8") || distro.startsWith("el8")) {
     distro_type = 'el8'
   } else if (distro.startsWith("sles") || distro.startsWith("leap") ||
@@ -90,13 +91,10 @@ def call(Map config = [:]) {
       distro_type = 'ubuntu'
   }
 
-  def inst_rpms = config.get('inst_rpms', '')
-  def inst_repos = config.get('inst_repos','')
+  String inst_rpms = config.get('inst_rpms', '')
+  String inst_repos = config.get('inst_repos','')
 
-  def repository_g = ''
-  def repository_l = ''
-
-  def gpg_key_urls = []
+  List gpg_key_urls = []
   if (env.DAOS_STACK_REPO_SUPPORT != null) {
      gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT + 'RPM-GPG-KEY-CentOS-7')
      gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT +
@@ -110,45 +108,10 @@ def call(Map config = [:]) {
                         env.DAOS_STACK_REPO_PUB_KEY)
      }
   }
-  if (env.REPOSITORY_URL != null) {
-    if (distro_type == 'el7') {
-        if (env.DAOS_STACK_EL_7_GROUP_REPO != null) {
-            repository_g = env.REPOSITORY_URL + env.DAOS_STACK_EL_7_GROUP_REPO
-        }
-        if (env.DAOS_STACK_EL_7_LOCAL_REPO != null) {
-            repository_l = env.REPOSITORY_URL + env.DAOS_STACK_EL_7_LOCAL_REPO
-        }
-    } else if (distro_type == 'el8') {
-        if (env.DAOS_STACK_EL_8_GROUP_REPO != null) {
-            repository_g = env.REPOSITORY_URL + env.DAOS_STACK_EL_8_GROUP_REPO
-        }
-        if (env.DAOS_STACK_EL_8_LOCAL_REPO != null) {
-            repository_l = env.REPOSITORY_URL + env.DAOS_STACK_EL_8_LOCAL_REPO
-        }
-    } else if (distro.startsWith("sles15")) {
-        if (env.DAOS_STACK_SLES_15_GROUP_REPO != null) {
-            repository_g = env.REPOSITORY_URL +
-                env.DAOS_STACK_SLES_15_GROUP_REPO
-        }
-        if (env.DAOS_STACK_SLES_15_LOCAL_REPO != null) {
-            repository_l = env.REPOSITORY_URL +
-                env.DAOS_STACK_SLES_15_LOCAL_REPO
-        }
-    }  else if (distro.startsWith("leap15") ||
-                distro.startsWith("opensuse15")) {
-        if (env.DAOS_STACK_LEAP_15_GROUP_REPO != null) {
-            repository_g = env.REPOSITORY_URL +
-                env.DAOS_STACK_LEAP_15_GROUP_REPO
-        }
-        if (env.DAOS_STACK_LEAP_15_LOCAL_REPO != null) {
-            repository_l = env.REPOSITORY_URL +
-                env.DAOS_STACK_LEAP_15_LOCAL_REPO
-        }
-    }
-  }
 
   if (!fileExists('ci/provisioning/log_cleanup.sh') ||
       !fileExists('ci/provisioning/post_provision_config.sh')) {
+      println('Falling back to old provisioning code')
       return provisionNodesV1(config)
   }
 
@@ -180,7 +143,6 @@ def call(Map config = [:]) {
                       'GPG_KEY_URLS="' + gpg_key_urls.join(' ') + '" ' +
                       'ci/provisioning/post_provision_config.sh'
   new_config['post_restore'] = provision_script
-
   try {
     def rc = provisionNodesSystem(new_config)
     if (rc != 0) {

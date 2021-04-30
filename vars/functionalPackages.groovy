@@ -30,8 +30,8 @@ String call(String distro, Integer client_ver, String next_version) {
         distro.startsWith('el7') || distro.startsWith('centos7') ||
         distro.startsWith('el8') || distro.startsWith('centos8') ||
         distro.startsWith('ubuntu20')) {
+        println("Functional Packages -${daos_pkgs}-")
         return daos_pkgs + ' ' + pkgs
-    } else {
-        error 'functionalPackages not implemented for ' + distro
     }
+    error 'functionalPackages not implemented for ' + distro
 }
