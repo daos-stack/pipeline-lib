@@ -74,7 +74,7 @@ boolean call(Map config = [:]) {
                    (skip != 'false' &&
                     (docOnlyChange(target_branch) || quickFunctional()))
         case "Python Bandit check":
-            String skip = skip_stage_pragma('python-bandit') ||
+            String skip = skip_stage_pragma('python-bandit')
             return skip == 'true' ||
                    (skip != 'false' &&
                     (docOnlyChange(target_branch) || quickFunctional()))
