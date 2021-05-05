@@ -69,13 +69,15 @@ boolean call(Map config = [:]) {
         case "Pre-build":
             return target_branch == 'weekly-testing'
         case "checkpatch":
-            String skip skip_stage_pragma('checkpatch')
+            String skip = skip_stage_pragma('checkpatch')
             return skip == 'true' ||
                    (skip != 'false' &&
                     (docOnlyChange(target_branch) || quickFunctional()))
         case "Python Bandit check":
-            return skip_stage_pragma('python-bandit', 'false') ||
-                   quickFunctional()
+            String skip = skip_stage_pragma('python-bandit') ||
+            return skip == 'true' ||
+                   (skip != 'false' &&
+                    (docOnlyChange(target_branch) || quickFunctional()))
         case "Build":
             // always build branch landings as we depend on lastSuccessfulBuild
             // always having RPMs in it
