@@ -73,7 +73,7 @@ boolean call(Map config = [:]) {
                    docOnlyChange(target_branch) ||
                    quickFunctional()
         case "Python Bandit check":
-            return skip_stage_pragma('python-bandit', 'true') ||
+            return skip_stage_pragma('python-bandit', 'false') ||
                    quickFunctional()
         case "Build":
             // always build branch landings as we depend on lastSuccessfulBuild
