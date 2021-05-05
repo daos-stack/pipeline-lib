@@ -145,7 +145,7 @@ def call(Map config = [:]) {
       }
     }
     // We don't have clients or test tools for EL8 yet
-    if (stage_name.contains('CentOS 8')) {
+    if (result['target'] == "centos8") {
       cluster_size += ',-mpich'
     }
 
