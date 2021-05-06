@@ -74,12 +74,15 @@ boolean call(Map config = [:]) {
         case "Pre-build":
             return target_branch == 'weekly-testing'
         case "checkpatch":
-            return skip_stage_pragma('checkpatch') ||
-                   docOnlyChange(target_branch) ||
-                   quickFunctional()
+            String skip = skip_stage_pragma('checkpatch')
+            return skip == 'true' ||
+                   (skip != 'false' &&
+                    (docOnlyChange(target_branch) || quickFunctional()))
         case "Python Bandit check":
-            return skip_stage_pragma('python-bandit', 'true') ||
-                   quickFunctional()
+            String skip = skip_stage_pragma('python-bandit')
+            return skip == 'true' ||
+                   (skip != 'false' &&
+                    (docOnlyChange(target_branch) || quickFunctional()))
         case "Build":
             // always build branch landings as we depend on lastSuccessfulBuild
             // always having RPMs in it
@@ -106,6 +109,7 @@ boolean call(Map config = [:]) {
             return skip_stage_pragma('build-centos7-gcc-release') ||
                    quickBuild()
         case "Build on CentOS 7 with Clang":
+        case "Build on CentOS 7 with Clang debug":
         case "Build on Ubuntu 20.04":
         case "Build on Leap 15 with Clang":
             return env.BRANCH_NAME != target_branch ||
@@ -162,6 +166,9 @@ boolean call(Map config = [:]) {
                     ! startedByTimer() &&
                     ! startedByUser()) ||
                    skip_if_unstable()
+        case "Test on CentOS 7 [in] Vagrant":
+            return skip_stage_pragma('vagrant-test', 'true') &&
+                   ! env.BRANCH_NAME.startsWith('weekly-testing')
         case "Coverity on CentOS 7":
             return skip_stage_pragma('coverity-test') ||
                    quickFunctional() ||
@@ -170,6 +177,8 @@ boolean call(Map config = [:]) {
             return skip_ftest('el7')
         case "Functional on CentOS 7 with Valgrind":
             return skip_ftest_valgrind('el7')
+        case "Functional on CentOS 8":
+            return skip_ftest('el8')
         case "Functional on Leap 15":
             return skip_ftest('leap15')
         case "Functional on Ubuntu 20.04":

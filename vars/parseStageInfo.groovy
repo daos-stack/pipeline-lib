@@ -148,6 +148,10 @@ def call(Map config = [:]) {
       result['with_valgrind'] = 'memcheck'
       config['test_tag'] = 'memcheck'
     }
+    // We don't have clients or test tools for EL8 yet
+    if (result['target'] == "centos8") {
+      cluster_size += ',-mpich'
+    }
 
     String tag
     // Higest priority is TestTag parameter but only if ForceRun
@@ -169,7 +173,11 @@ def call(Map config = [:]) {
             if (!(tag = config['test_tag'])) {
               // Next is deciding if it's a timer run
               if (startedByTimer()) {
-                tag = "daily_regression"
+                if (env.BRANCH_NAME.startsWith("weekly-testing")) {
+                  tag = "full_regression"
+                } else {
+                  tag = "daily_regression"
+                }
               } else {
                 // Must be a PR run
                 tag = "pr"
