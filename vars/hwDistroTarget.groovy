@@ -14,6 +14,7 @@ String hw_distro(String size) {
     // Possible values:
     //'leap15
     //'centos7
+    //'centos8
     return cachedCommitPragma('Func-hw-test-' + size + '-distro',
                               cachedCommitPragma('Func-hw-test-distro', 'centos7'))
 }

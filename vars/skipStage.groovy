@@ -69,12 +69,15 @@ boolean call(Map config = [:]) {
         case "Pre-build":
             return target_branch == 'weekly-testing'
         case "checkpatch":
-            return skip_stage_pragma('checkpatch') ||
-                   docOnlyChange(target_branch) ||
-                   quickFunctional()
+            String skip = skip_stage_pragma('checkpatch')
+            return skip == 'true' ||
+                   (skip != 'false' &&
+                    (docOnlyChange(target_branch) || quickFunctional()))
         case "Python Bandit check":
-            return skip_stage_pragma('python-bandit', 'true') ||
-                   quickFunctional()
+            String skip = skip_stage_pragma('python-bandit')
+            return skip == 'true' ||
+                   (skip != 'false' &&
+                    (docOnlyChange(target_branch) || quickFunctional()))
         case "Build":
             // always build branch landings as we depend on lastSuccessfulBuild
             // always having RPMs in it
@@ -167,6 +170,8 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build')
         case "Functional on CentOS 7":
             return skip_ftest('el7')
+        case "Functional on CentOS 8":
+            return skip_ftest('el8')
         case "Functional on Leap 15":
             return skip_ftest('leap15')
         case "Functional on Ubuntu 20.04":
