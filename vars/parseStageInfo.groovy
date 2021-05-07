@@ -150,7 +150,7 @@ def call(Map config = [:]) {
     }
 
     String tag
-    // Higest priority is TestTag parameter but only if ForceRun
+    // Highest priority is TestTag parameter but only if ForceRun
     // parameter was given (to support "Run with Parameters" for doing
     // weekly run maintenance)
     if (startedByUser() && params.TestTag && params.TestTag != "") {
@@ -202,7 +202,7 @@ def call(Map config = [:]) {
     result['test_tag'] = result['test_tag'].trim()
 
     String repeat
-    // Higest priority is TestRepeat parameter
+    // Highest priority is TestRepeat parameter
     if (startedByUser() && params.TestRepeat && params.TestRepeat != "") {
       repeat = params.TestRepeat
     } else {
