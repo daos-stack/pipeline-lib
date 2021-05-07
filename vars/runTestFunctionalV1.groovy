@@ -19,6 +19,7 @@ def call(Map config = [:]) {
    * config['pragma_suffix'] The Test-tag pragma suffix
    * config['test_tag'] The test tags to run
    * config['ftest_arg'] An argument to ftest.sh
+   * config['test_repeat'] Number of times to repeat a functional test
    * config['test_rpms'] Testing using RPMs, true/false
    *
    * config['context'] Context name for SCM to identify the specific stage to
@@ -86,6 +87,10 @@ def call(Map config = [:]) {
                                     rm -rf install/lib/daos/TESTING/ftest/avocado ./*_results.xml
                                     mkdir -p install/lib/daos/TESTING/ftest/avocado/job-results
                                     ftest_arg="%s"
+                                    test_repeat=$(git show -s --format=%%B | sed -ne "/^Test-repeat%s:/s/^.*: *//p")
+                                    if [ -z "$test_repeat" ]; then
+                                        test_repeat=%s
+                                    fi
                                     if ''' + test_rpms + '''; then
                                         ssh -i ci_key -l jenkins "${first_node}" "set -ex
                                           DAOS_TEST_SHARED_DIR=\\$(mktemp -d -p /mnt/share/)
@@ -93,20 +98,21 @@ def call(Map config = [:]) {
                                           export DAOS_TEST_SHARED_DIR
                                           export TEST_RPMS=true
                                           export REMOTE_ACCT=jenkins
-                                          /usr/lib/daos/TESTING/ftest/ftest.sh \\"$test_tag\\" \\"$tnodes\\" \\"$ftest_arg\\""
+                                          /usr/lib/daos/TESTING/ftest/ftest.sh \\"$test_tag\\" \\"$tnodes\\" \\"$ftest_arg\\" \\"$test_repeat\\""
                                         # now collect up the logs and store them like non-RPM test does
                                         mkdir -p install/lib/daos/TESTING/
                                         # scp doesn't copy symlinks, it resolves them
                                         ssh -i ci_key -l jenkins "${first_node}" tar -C /var/tmp/ -czf - ftest | tar -C install/lib/daos/TESTING/ -xzf -
                                     else
-                                        ./ftest.sh "$test_tag" "$tnodes" "$ftest_arg"
+                                        ./ftest.sh "$test_tag" "$tnodes" "$ftest_arg" "$test_repeat"
                                     fi'''
 
     config['script'] = String.format(functional_test_script,
                                      config['pragma_suffix'],
                                      config['test_tag'],
                                      config['node_count'],
-                                     config['ftest_arg'])
+                                     config['ftest_arg'],
+                                     config['test_repeat'])
     config['junit_files'] = "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/*.xml install/lib/daos/TESTING/ftest/*_results.xml"
     config['failure_artifacts'] = 'Functional'
 
@@ -119,6 +125,7 @@ def call(Map config = [:]) {
     config.remove('pragma_suffix')
     config.remove('test_tag')
     config.remove('ftest_arg')
+    config.remove('test_repeat')
     config.remove('node_count')
     config.remove('test_rpms')
 

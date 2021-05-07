@@ -200,6 +200,25 @@ def call(Map config = [:]) {
       result['test_tag'] += atag + ',' + cluster_size + ' '
     }
     result['test_tag'] = result['test_tag'].trim()
+
+    String repeat
+    // Higest priority is TestRepeat parameter
+    if (startedByUser() && params.TestRepeat && params.TestRepeat != "") {
+      repeat = params.TestRepeat
+    } else {
+      // Next higest priority is a stage specific Test-repeat-*
+      repeat = commitPragma("Test-repeat" + result['pragma_suffix'], null)
+      if (!repeat) {
+        // Followed by the more general Test-repeat:
+        repeat = commitPragma("Test-repeat", null)
+        if (!repeat) {
+          // Default to running the tests once
+          repeat = "1"
+        }
+      }
+    }
+    result['test_tag'] = repeat
+
   } // if (stage_name.contains('Functional'))
   if (config['test']) {
     result['test'] = config['test']

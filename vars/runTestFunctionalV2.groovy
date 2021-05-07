@@ -19,6 +19,7 @@ void call(Map config = [:]) {
    * config['pragma_suffix'] The Test-tag pragma suffix
    * config['test_tag'] The test tags to run
    * config['ftest_arg'] An argument to ftest.sh
+   * config['test_repeat'] Number of times to repeat a functional test
    * config['test_rpms'] Testing using RPMs, true/false
    *
    * config['context'] Context name for SCM to identify the specific stage to
@@ -50,6 +51,7 @@ void call(Map config = [:]) {
     }
     config['script'] = 'TEST_TAG="' + config['test_tag'] + '" ' +
                        'FTEST_ARG="' + config['ftest_arg'] + '" ' +
+                       'TEST_REPEAT="' + config['test_repeat'] + '" ' +
                        'PRAGMA_SUFFIX="' + config['pragma_suffix'] + '" ' +
                        'NODE_COUNT="' + config['node_count'] + '" ' +
                        'OPERATIONS_EMAIL="' + env.OPERATIONS_EMAIL + '" ' +
@@ -70,6 +72,7 @@ void call(Map config = [:]) {
     config.remove('pragma_suffix')
     config.remove('test_tag')
     config.remove('ftest_arg')
+    config.remove('test_repeat')
     config.remove('node_count')
     config.remove('test_rpms')
 
