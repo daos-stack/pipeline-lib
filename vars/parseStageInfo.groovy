@@ -156,7 +156,7 @@ def call(Map config = [:]) {
     if (startedByUser() && params.TestTag && params.TestTag != "") {
       tag = params.TestTag
     } else {
-      // Next higest priority is a stage specific Test-tag-*
+      // Next highest priority is a stage specific Test-tag-*
       tag = commitPragma("Test-tag" + result['pragma_suffix'], null)
       if (!tag) {
         // Followed by the more general Test-tag:
@@ -206,7 +206,7 @@ def call(Map config = [:]) {
     if (startedByUser() && params.TestRepeat && params.TestRepeat != "") {
       repeat = params.TestRepeat
     } else {
-      // Next higest priority is a stage specific Test-repeat-*
+      // Next highest priority is a stage specific Test-repeat-*
       repeat = commitPragma("Test-repeat" + result['pragma_suffix'], null)
       if (!repeat) {
         // Followed by the more general Test-repeat:
@@ -217,7 +217,7 @@ def call(Map config = [:]) {
         }
       }
     }
-    result['test_tag'] = repeat
+    result['test_repeat'] = repeat
 
   } // if (stage_name.contains('Functional'))
   if (config['test']) {
