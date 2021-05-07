@@ -8,7 +8,7 @@
    */
 
 def call() {
-      if (env.BRANCH_NAME == 'master' ||
+      if (startedByTimer() ||
         env.BRANCH_NAME.startsWith("release/") ||
         env.BRANCH_NAME == 'weekly-testing') {
         string p = '2'
