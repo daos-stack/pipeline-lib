@@ -19,7 +19,6 @@ void call(Map config = [:]) {
    * config['pragma_suffix'] The Test-tag pragma suffix
    * config['test_tag'] The test tags to run
    * config['ftest_arg'] An argument to ftest.sh
-   * config['test_repeat'] Number of times to repeat a functional test
    * config['test_rpms'] Testing using RPMs, true/false
    *
    * config['context'] Context name for SCM to identify the specific stage to

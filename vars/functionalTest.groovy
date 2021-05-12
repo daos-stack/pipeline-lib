@@ -84,7 +84,6 @@ def call(Map config = [:]) {
   params['test_tag'] =  config.get('test_tag', stage_info['test_tag'])
   params['node_count'] = stage_info['node_count']
   params['ftest_arg'] = stage_info['ftest_arg']
-  params['test_repeat'] = stage_info['test_repeat']
   params['context'] = context
   params['description'] = description
 
