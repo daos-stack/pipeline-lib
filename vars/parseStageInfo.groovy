@@ -64,15 +64,15 @@ def call(Map config = [:]) {
       echo "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7"
     }
   }
-  String new_ci_target = param['CI_' +
-                              result['target'].toString().toUpperCase() +
-                              '_TARGET']
+  String new_ci_target = params['CI_' +
+                                result['target'].toString().toUpperCase() +
+                                '_TARGET']
   if (new_ci_target) {
     result['ci_target'] = new_ci_target
   } else {
     result['ci_target'] = result['target']
   }
-  if (param['CI_' + result['target']])
+  if (params['CI_' + result['target']])
 
   if (result['target'].startsWith('el') ||
       result['target'].startsWith('centos')) {
