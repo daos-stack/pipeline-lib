@@ -76,7 +76,7 @@ def call(Map config = [:]) {
   if (result['ci_target'].startsWith('el') ||
       result['ci_target'].startsWith('centos')) {
     result['java_pkg'] = 'java-1.8.0-openjdk'
-  } else if (result['cI_target'].startsWith('ubuntu')) {
+  } else if (result['ci_target'].startsWith('ubuntu')) {
     result['java_pkg'] = 'openjdk-8-jdk'
   } else if (result['ci_target'].startsWith('leap')) {
     result['java_pkg'] = 'java-1_8_0-openjdk'
