@@ -25,6 +25,5 @@ String call(String distro, String next_version) {
         return pkgs + "=" + daosPackagesVersion(distro, next_version)
     }
     String ret_str = pkgs + "-" + daosPackagesVersion(distro, next_version)
-    println("getDAOSPackages - pkgs=-${ret_str}")
     return pkgs + "-" + daosPackagesVersion(distro, next_version)
 }

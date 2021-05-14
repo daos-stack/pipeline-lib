@@ -64,7 +64,7 @@ def call(Map config = [:]) {
       echo "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7"
     }
   }
-  String new_ci_target = env['CI_' +
+  String new_ci_target = param['CI_' +
                               result['target'].toString().toUpperCase() +
                               '_TARGET']
   if (new_ci_target) {
@@ -72,7 +72,7 @@ def call(Map config = [:]) {
   } else {
     result['ci_target'] = result['target']
   }
-  if (env['CI_' + result['target']])
+  if (param['CI_' + result['target']])
 
   if (result['target'].startsWith('el') ||
       result['target'].startsWith('centos')) {
@@ -211,7 +211,6 @@ def call(Map config = [:]) {
     result['test_tag'] = result['test_tag'].trim()
     // if (stage_name.contains('Functional'))
   } else if (stage_name.contains('Storage')) {
-    println("Nodelist = -${env.NODELIST}-")
     if (env.NODELIST) {
       List node_list = env.NODELIST.split(',')
       result['node_count'] = node_list.size()

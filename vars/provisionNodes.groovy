@@ -111,7 +111,6 @@ def call(Map config = [:]) {
 
   if (!fileExists('ci/provisioning/log_cleanup.sh') ||
       !fileExists('ci/provisioning/post_provision_config.sh')) {
-      println('Falling back to old provisioning code')
       return provisionNodesV1(config)
   }
 
