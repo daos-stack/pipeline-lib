@@ -17,7 +17,7 @@ String hw_distro(String size) {
     //'centos8
     String distro = 'centos7'
     if (params.CI_HARDWARE_DISTRO) {
-        distro = params.CI_HARWARE_DISTRO
+        distro = params.CI_HARDWARE_DISTRO
     }
     return cachedCommitPragma('Func-hw-test-' + size + '-distro',
                               cachedCommitPragma('Func-hw-test-distro', distro))

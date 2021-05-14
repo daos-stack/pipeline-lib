@@ -73,15 +73,15 @@ def call(Map config = [:]) {
     result['ci_target'] = result['target']
   }
 
-  if (result['target'].startsWith('el') ||
-      result['target'].startsWith('centos')) {
+  if (result['ci_target'].startsWith('el') ||
+      result['ci_target'].startsWith('centos')) {
     result['java_pkg'] = 'java-1.8.0-openjdk'
-  } else if (result['target'].startsWith('ubuntu')) {
+  } else if (result['cI_target'].startsWith('ubuntu')) {
     result['java_pkg'] = 'openjdk-8-jdk'
-  } else if (result['target'].startsWith('leap')) {
+  } else if (result['ci_target'].startsWith('leap')) {
     result['java_pkg'] = 'java-1_8_0-openjdk'
   } else {
-    error 'Java package not known for ' + result['target']
+    error 'Java package not known for ' + result['ci_target']
   }
 
   result['compiler'] = 'gcc'
