@@ -72,7 +72,6 @@ def call(Map config = [:]) {
   } else {
     result['ci_target'] = result['target']
   }
-  if (params['CI_' + result['target']])
 
   if (result['target'].startsWith('el') ||
       result['target'].startsWith('centos')) {
