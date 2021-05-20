@@ -15,7 +15,7 @@
 // That PR should be landed with out deleting the PR branch.
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
-//@Library(value="pipeline-lib@my_branch_name") _
+@Library(value="pipeline-lib@bmurrell/shuffle-builds") _
 
 pipeline {
     agent { label 'lightweight' }
@@ -216,8 +216,42 @@ pipeline {
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes_with_slurm_leap15')
-                stage ('parseStageInfo tests') {
+                stage ('Commit Pragma tests') {
                     steps {
+                        script {
+                            stages = ["Functional on Leap 15",
+                                      "Functional on CentOS 7",
+                                      "Functional on CentOS 8",
+                                      "Functional Hardware Small",
+                                      "Functional Hardware Medium",
+                                      "Functional Hardware Large"]
+                            commits = [[pragmas: ['Skip-func-test-leap15: false'],
+                                        skips: [false, false, true, false, false, false]],
+                                       [pragmas: [''],
+                                        skips: [true, false, true, false, false, false]],
+                                       [pragmas: ['Skip-func-hw-test-small: true'],
+                                        skips: [true, false, true, true, false, false]]]
+                            commits.each { commit ->
+                                cm = """\
+                                        Test commit\n\n"""
+                                commit.pragmas.each { pragma ->
+                                    cm += """\
+                                        ${pragma}\n"""
+                                }
+                                i = 0
+                                stages.each { stage ->
+                                    withEnv(['STAGE_NAME=' + stage,
+                                             'UNIT_TEST=true',
+                                             'COMMIT_MESSAGE=' + cm.stripIndent()]) {
+                                        // Useful for debugging since Jenkins'
+                                        // assert() is pretty lame
+                                        assert(skipStage(commit_msg: cm.stripIndent()) == commit.skips[i])
+                                        i++
+                                    }
+                                }
+                                cachedCommitPragma(clear: true)
+                            }
+                        }
                         /* tests for all stages:
                               1. Test-tag: datamover
                               2. Features: datamover
@@ -257,6 +291,7 @@ pipeline {
                                 }
                                 stages.each { stage ->
                                     withEnv(['STAGE_NAME=' + stage.name,
+                                             'UNIT_TEST=true',
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         cmp = commit.tag_template.replace('@commits.value@', commit.tags[0].value)
                                         cmp = cmp.replace('@stages.tag@', stage.tag)
@@ -269,7 +304,7 @@ pipeline {
                             }
                         }
                     } // steps
-                } // stage ('parseStageInfo tests')
+                } // stage ('Commit Pragma tests') {
             } // parallel
         } // stage('Test')
     }
