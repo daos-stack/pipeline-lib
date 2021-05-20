@@ -15,7 +15,8 @@ String skip_stage_pragma(String stage, String def_val='false') {
 }
 
 boolean skip_ftest(String distro) {
-    return distro == 'ubuntu20' ||
+    return !params['CI_FUNCTIONAL_' + distro + '_TEST'] ||
+           distro == 'ubuntu20' ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||
            ! testsInStage() ||
@@ -24,6 +25,7 @@ boolean skip_ftest(String distro) {
 
 boolean skip_ftest_hw(String size) {
     return env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
+           ! params['CI_' + size + '_TEST'] ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-hw-test-' + size) ||
            ! testsInStage() ||
@@ -32,7 +34,8 @@ boolean skip_ftest_hw(String size) {
 }
 
 boolean skip_if_unstable() {
-    if (cachedCommitPragma('Allow-unstable-test').toLowerCase() == 'true' ||
+    if (params.CI_ALLOW_UNSTABLE_TEST ||
+        cachedCommitPragma('Allow-unstable-test').toLowerCase() == 'true' ||
         env.BRANCH_NAME == 'master' ||
         env.BRANCH_NAME.startsWith("weekly-testing") ||
         env.BRANCH_NAME.startsWith("release/")) {
@@ -81,7 +84,8 @@ boolean call(Map config = [:]) {
         case "Build":
             // always build branch landings as we depend on lastSuccessfulBuild
             // always having RPMs in it
-            return (env.BRANCH_NAME != target_branch) &&
+            return params.CI_NOBUILD ||
+                   (env.BRANCH_NAME != target_branch) &&
                    skip_stage_pragma('build') ||
                    docOnlyChange(target_branch) ||
                    rpmTestVersion() != ''
@@ -125,8 +129,8 @@ boolean call(Map config = [:]) {
                    quickBuild()
         case "Unit Tests":
             return  env.NO_CI_TESTING == 'true' ||
-                    (skip_stage_pragma('build') &&
-                     rpmTestVersion() == '') ||
+                    params.CI_NOBUILD ||
+                    skip_stage_pragma('build')
                     docOnlyChange(target_branch) ||
                     skip_build_on_centos7_gcc() ||
                     skip_stage_pragma('unit-tests')
@@ -135,9 +139,11 @@ boolean call(Map config = [:]) {
         case "Unit Test Bullseye":
             return skip_stage_pragma('bullseye', 'true')
         case "Unit Test with memcheck":
-            return skip_stage_pragma('unit-test-memcheck')
+            return ! params.CI_UNIT_TEST_MEMCHECK ||
+                   skip_stage_pragma('unit-test-memcheck')
         case "Unit Test":
-            return skip_stage_pragma('unit-test') ||
+            return params.CI_UNIT_TEST ||
+                   skip_stage_pragma('unit-test') ||
                    skip_stage_pragma('run_test')
         case "Test":
             return env.NO_CI_TESTING == 'true' ||
@@ -165,7 +171,8 @@ boolean call(Map config = [:]) {
             return skip_stage_pragma('vagrant-test', 'true') &&
                    ! env.BRANCH_NAME.startsWith('weekly-testing')
         case "Coverity on CentOS 7":
-            return skip_stage_pragma('coverity-test') ||
+            return params.CI_NOBUILD ||
+                   skip_stage_pragma('coverity-test') ||
                    quickFunctional() ||
                    skip_stage_pragma('build')
         case "Functional on CentOS 7":
@@ -177,13 +184,15 @@ boolean call(Map config = [:]) {
         case "Functional on Ubuntu 20.04":
             return skip_ftest('ubuntu20') 
         case "Test CentOS 7 RPMs":
-            return target_branch == 'weekly-testing' ||
+            return ! params.CI_RPMS_el7_TEST ||
+                   target_branch == 'weekly-testing' ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-centos-rpms') ||
                    quickFunctional()
         case "Scan CentOS 7 RPMs":
-            return target_branch == 'weekly-testing' ||
-                   skip_stage_pragma('scan-centos-rpms', 'true') ||
+            return ! params.CI_SCAN_RPMS_el7_TEST ||
+                   target_branch == 'weekly-testing' ||
+                   skip_stage_pragma('scan-centos-rpms') ||
                    quickFunctional()
         case "Functional_Hardware_Small":
         case "Functional Hardware Small":
