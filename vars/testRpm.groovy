@@ -53,21 +53,21 @@ def call(Map config = [:]) {
     error 'daos_pkg_version is required.'
   }
 
-  String nodelist = config.get('NODELIST', env.NODELIST)
-  String context = config.get('context', 'test/' + env.STAGE_NAME)
-  String description = config.get('description', env.STAGE_NAME)
-  String test_script = config.get('test_script', 'ci/rpm/test_daos.sh')
+  def nodelist = config.get('NODELIST', env.NODELIST)
+  def context = config.get('context', 'test/' + env.STAGE_NAME)
+  def description = config.get('description', env.STAGE_NAME)
+  def test_script = config.get('test_script', 'ci/rpm/test_daos.sh')
 
   Map stage_info = parseStageInfo(config)
 
   provisionNodes NODELIST: nodelist,
                  node_count: 1,
                  profile: config.get('profile', 'daos_ci'),
-                 distro: stage_info['ci_target'],
+                 distro: stage_info['target'],
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: config.get('inst_rpms', '')
 
-  String full_test_script = 'export DAOS_PKG_VERSION=' +
+  def full_test_script = 'export DAOS_PKG_VERSION=' +
                          config['daos_pkg_version'] + '\n' +
                          test_script
 

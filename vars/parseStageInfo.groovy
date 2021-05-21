@@ -64,24 +64,16 @@ def call(Map config = [:]) {
       echo "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7"
     }
   }
-  String new_ci_target = params['CI_' +
-                                result['target'].toString().toUpperCase() +
-                                '_TARGET']
-  if (new_ci_target) {
-    result['ci_target'] = new_ci_target
-  } else {
-    result['ci_target'] = result['target']
-  }
 
-  if (result['ci_target'].startsWith('el') ||
-      result['ci_target'].startsWith('centos')) {
+  if (result['target'].startsWith('el') ||
+      result['target'].startsWith('centos')) {
     result['java_pkg'] = 'java-1.8.0-openjdk'
-  } else if (result['ci_target'].startsWith('ubuntu')) {
+  } else if (result['target'].startsWith('ubuntu')) {
     result['java_pkg'] = 'openjdk-8-jdk'
-  } else if (result['ci_target'].startsWith('leap')) {
+  } else if (result['target'].startsWith('leap')) {
     result['java_pkg'] = 'java-1_8_0-openjdk'
   } else {
-    error 'Java package not known for ' + result['ci_target']
+    error 'Java package not known for ' + result['target']
   }
 
   result['compiler'] = 'gcc'
@@ -208,13 +200,7 @@ def call(Map config = [:]) {
       result['test_tag'] += atag + ',' + cluster_size + ' '
     }
     result['test_tag'] = result['test_tag'].trim()
-    // if (stage_name.contains('Functional'))
-  } else if (stage_name.contains('Storage')) {
-    if (env.NODELIST) {
-      List node_list = env.NODELIST.split(',')
-      result['node_count'] = node_list.size()
-    }
-  }
+  } // if (stage_name.contains('Functional'))
   if (config['test']) {
     result['test'] = config['test']
   }
