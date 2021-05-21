@@ -16,8 +16,7 @@
    *
    * config['deps_build'] Whether to build the daos dependencies.
    *
-   * config['repo_type'] Type of repo to add.  Default 'local' for compatibilty
-   *                     with older dockerfiles.
+   * config['repo_type'] Type of repo to add.  Default 'local'
    *
    * Repositories URLs are looked up via Jenkins environment variables.
    * There are two environment variables that are put together to create
@@ -91,11 +90,11 @@ String call(Map config = [:]) {
 
     // The docker agent setup and the provisionNodes step need to know the
     // UID that the build agent is running under.
-    String ret_str = " --build-arg NOBUILD=1 " +
-                     " --build-arg UID=" + sh(label: 'getuid()',
-                                              script: "id -u",
-                                              returnStdout: true).trim() +
-                     " --build-arg JENKINS_URL=$env.JENKINS_URL"
+    ret_str = " --build-arg NOBUILD=1 " +
+              " --build-arg UID=" + sh(label: 'getuid()',
+                                       script: "id -u",
+                                       returnStdout: true).trim() +
+              " --build-arg JENKINS_URL=$env.JENKINS_URL"
     if (cachebust) {
       Calendar current_time = Calendar.getInstance()
       ret_str += " --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
@@ -115,11 +114,6 @@ String call(Map config = [:]) {
         repo_alias = 'EL_8'
         if (daos_type == 'LOCAL') {
           daos_arg = 'EL8'
-        }
-        // Appstream repo not working in Nexus group repos
-        if (env.DAOS_STACK_EL_8_APPSTREAM) {
-          ret_str += " --build-arg REPO_APPSREAM=" +
-                     env.DAOS_STACK_EL_8_APPSTREAM
         }
       } else if (stage_info['target'] == 'leap15') {
         repo_alias = 'LEAP_15'

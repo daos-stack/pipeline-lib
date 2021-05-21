@@ -11,8 +11,5 @@
  */
 
 boolean call() {
-    if (env.CI_NOBUILD == "true") {
-        return env.CI_RPM_TEST_VERSION
-    }
     return cachedCommitPragma('RPM-test-version')
 }

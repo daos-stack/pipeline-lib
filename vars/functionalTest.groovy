@@ -56,19 +56,19 @@
 
 def call(Map config = [:]) {
 
-  String nodelist = config.get('NODELIST', env.NODELIST)
-  String context = config.get('context', 'test/' + env.STAGE_NAME)
-  String description = config.get('description', env.STAGE_NAME)
+  def nodelist = config.get('NODELIST', env.NODELIST)
+  def context = config.get('context', 'test/' + env.STAGE_NAME)
+  def description = config.get('description', env.STAGE_NAME)
  
   Map stage_info = parseStageInfo(config)
 
   provisionNodes NODELIST: nodelist,
                  node_count: stage_info['node_count'],
-                 distro: stage_info['ci_target'],
-                 inst_repos: config.get('inst_repos', ''),
-                 inst_rpms: config.get('inst_rpms', '')
+                 distro: stage_info['target'],
+                 inst_repos: config['inst_repos'],
+                 inst_rpms: config['inst_rpms']
 
-  List stashes = []
+  def stashes = []
   if (config['stashes']) {
     stashes = config['stashes']
   } else {
