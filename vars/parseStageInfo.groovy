@@ -207,10 +207,10 @@ def call(Map config = [:]) {
       repeat = params.TestRepeat
     } else {
       // Next highest priority is a stage specific Test-repeat-*
-      repeat = commitPragma("Test-repeat" + result['pragma_suffix'], null)
+      repeat = cachedCommitPragma("Test-repeat" + result['pragma_suffix'], null)
       if (!repeat) {
         // Followed by the more general Test-repeat:
-        repeat = commitPragma("Test-repeat", null)
+        repeat = cachedCommitPragma("Test-repeat", null)
       }
     }
     if (repeat) {
