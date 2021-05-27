@@ -21,7 +21,10 @@ boolean call() {
     }
 
     return sh(label: "Get test list",
-              script: """cd src/tests/ftest
+              script: """if [ \${UNIT_TEST:-false} ]; then
+                             exit 0
+                         fi
+                         cd src/tests/ftest
                          ./list_tests.py """ + parseStageInfo()['test_tag'],
               returnStatus: true) == 0
 }

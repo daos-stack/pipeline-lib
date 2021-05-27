@@ -15,6 +15,13 @@ import groovy.transform.Field
 @Field static commit_pragma_cache = [:]
 
 def call(Map config = [:]) {
+    if (config['clear']) {
+        commit_pragma_cache.clear()
+        return
+    } else if (config['dump']) {
+        return commit_pragma_cache
+    }
+
     // convert the map for compat
     return cachedCommitPragma(config['pragma'], config['def_val'])
 }
