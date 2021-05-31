@@ -25,3 +25,7 @@ String call() {
     }
     return parseStageInfo()['target']
 }
+
+String call(String size) {
+    return hw_distro(size)
+}
