@@ -55,7 +55,6 @@ void call(Map config = [:]) {
                        'PRAGMA_SUFFIX="' + config['pragma_suffix'] + '" ' +
                        'NODE_COUNT="' + config['node_count'] + '" ' +
                        'OPERATIONS_EMAIL="' + env.OPERATIONS_EMAIL + '" ' +
-                       "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
                        'ci/functional/test_main.sh'
                                      
     config['junit_files'] = "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/*.xml " +
