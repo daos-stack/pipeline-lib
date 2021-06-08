@@ -195,6 +195,12 @@ def call(Map config = [:]) {
       }
     }
 
+    String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
+    if (target_branch == "release/1.2") {
+      echo "Updating tag to inclue daily_regression for release/1.2"
+      echo "Tag is ${tag}"
+      tag += ' daily_regression'
+    }
     result['test_tag'] = ""
     for (atag in tag.split(' ')) {
       result['test_tag'] += atag + ',' + cluster_size + ' '
