@@ -202,11 +202,9 @@ def call(Map config = [:]) {
         }
     }
 
-    // Builds of Raft may fail if this directory is present in the workspace
-    // from a previous run.
     // Builds may fail if bandit.xml files present in the workspace.
     sh label: 'Remove some old build files if present.',
-       script:'rm -rf src/rdb/raft/CLinkedListQueue bandit.xml test.cov',
+       script:'rm -f bandit.xml test.cov',
        returnStatus: true
 
     def prebuild = ''
