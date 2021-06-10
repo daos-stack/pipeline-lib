@@ -69,8 +69,8 @@
 
 def call(Map config = [:]) {
 
-  def nodelist = config.get('NODELIST', env.NODELIST)
-  def test_script = config.get('test_script', 'ci/unit/test_main.sh')
+  String nodelist = config.get('NODELIST', env.NODELIST)
+  String test_script = config.get('test_script', 'ci/unit/test_main.sh')
 
   Map stage_info = parseStageInfo(config)
 
@@ -84,16 +84,16 @@ def call(Map config = [:]) {
 
   provisionNodes NODELIST: nodelist,
                  node_count: stage_info['node_count'],
-                 distro: stage_info['target'],
-                 inst_repos: config['inst_repos'],
+                 distro: stage_info['ci_target'],
+                 inst_repos: config.get('inst_repos', ''),
                  inst_rpms: inst_rpms
 
-  def target_stash = "${stage_info['target']}-${stage_info['compiler']}"
+  String target_stash = "${stage_info['target']}-${stage_info['compiler']}"
   if (stage_info['build_type']) {
     target_stash += '-' + stage_info['build_type']
   }
 
-  def stashes = []
+  List stashes = []
   if (config['stashes']) {
     stashes = config['stashes']
   } else {
@@ -104,7 +104,7 @@ def call(Map config = [:]) {
 
   if (stage_info['compiler'] == 'covc') {
 
-    def tools_url = env.JENKINS_URL +
+    String tools_url = env.JENKINS_URL +
                     'job/daos-stack/job/tools/job/master' +
                     '/lastSuccessfulBuild/artifact/'
     httpRequest url: tools_url + 'bullseyecoverage-linux.tar',
@@ -123,8 +123,8 @@ def call(Map config = [:]) {
   params['description'] = config.get('description', env.STAGE_NAME)
   params['ignore_failure'] = config.get('ignore_failure', false)
 
-  def time = config.get('timeout_time', 120) as int
-  def unit = config.get('timeout_unit', 'MINUTES')
+  int time = config.get('timeout_time', 120) as int
+  String unit = config.get('timeout_unit', 'MINUTES')
 
   timeout(time: time, unit: unit) {
     runTest params
