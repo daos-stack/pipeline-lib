@@ -24,5 +24,6 @@ String call(String distro, String next_version) {
     if (distro.startsWith('ubuntu20')) {
         return pkgs + "=" + daosPackagesVersion(distro, next_version)
     }
+    String ret_str = pkgs + "-" + daosPackagesVersion(distro, next_version)
     return pkgs + "-" + daosPackagesVersion(distro, next_version)
 }
