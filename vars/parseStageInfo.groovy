@@ -133,7 +133,7 @@ def call(Map config = [:]) {
     if (stage_name.contains('Hardware')) {
       cluster_size = 'hw,large'
       result['pragma_suffix'] = '-hw-large'
-      result['ftest_arg'] = 'auto:Optane'
+      result['ftest_arg'] = '--nvme=auto:Optane'
       if (stage_name.contains('Small')) {
         result['node_count'] = 3
         cluster_size = 'hw,small'
@@ -146,13 +146,13 @@ def call(Map config = [:]) {
     }
 
     String tag
-    // Higest priority is TestTag parameter but only if ForceRun
+    // Highest priority is TestTag parameter but only if ForceRun
     // parameter was given (to support "Run with Parameters" for doing
     // weekly run maintenance)
     if (startedByUser() && params.TestTag && params.TestTag != "") {
       tag = params.TestTag
     } else {
-      // Next higest priority is a stage specific Test-tag-*
+      // Next highest priority is a stage specific Test-tag-*
       tag = commitPragma("Test-tag" + result['pragma_suffix'], null)
       if (!tag) {
         // Followed by the more general Test-tag:
@@ -196,6 +196,27 @@ def call(Map config = [:]) {
       result['test_tag'] += atag + ',' + cluster_size + ' '
     }
     result['test_tag'] = result['test_tag'].trim()
+
+    String repeat
+    // Highest priority is TestRepeat parameter
+    if (startedByUser() && params.TestRepeat && params.TestRepeat != "") {
+      repeat = params.TestRepeat
+    } else {
+      // Next highest priority is a stage specific Test-repeat-*
+      repeat = cachedCommitPragma("Test-repeat" + result['pragma_suffix'], null)
+      if (!repeat) {
+        // Followed by the more general Test-repeat:
+        repeat = cachedCommitPragma("Test-repeat", null)
+      }
+    }
+    if (repeat) {
+      if (result['ftest_arg']) {
+        result['ftest_arg'] += " --repeat=" + repeat
+      } else {
+        result['ftest_arg'] += "--repeat=" + repeat
+      }
+    }
+
   } // if (stage_name.contains('Functional'))
   if (config['test']) {
     result['test'] = config['test']
