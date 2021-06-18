@@ -177,6 +177,12 @@ def call(Map config = [:]) {
               } else {
                 // Must be a PR run
                 tag = "pr"
+
+                String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
+                if (target_branch == "release/1.2") {
+                  echo "Updating tag to inclue daily_regression for release/1.2"
+                  tag += " daily_regression"
+                }
               }
             }
           } else {
