@@ -70,11 +70,6 @@ boolean skip_ftest_hw(String size, String target_branch) {
 }
 
 boolean skip_if_unstable() {
-    if (params.CI_ALLOW_UNSTABLE_TEST) {
-        println('skip if unstable - params.CI_ALLOW_UNSTABLE_TEST is true')
-    } else {
-        println('skip if unstable - params.CI_ALLOW_UNSTABLE_TEST is true')
-    }
     if (params.CI_ALLOW_UNSTABLE_TEST ||
         cachedCommitPragma('Allow-unstable-test').toLowerCase() == 'true' ||
         env.BRANCH_NAME == 'master' ||
@@ -134,7 +129,7 @@ boolean call(Map config = [:]) {
             return params.CI_RPM_centos8_NOBUILD ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos8') == '') ||
-                   skip_stage_pragma('build-centos7-rpm')
+                   skip_stage_pragma('build-centos8-rpm')
         case "Build RPM on Leap 15":
             return params.CI_RPM_leap15_NOBUILD ||
                    target_branch == 'weekly-testing' ||
@@ -231,15 +226,6 @@ boolean call(Map config = [:]) {
             return ! params.CI_UNIT_TEST_MEMCHECK ||
                    skip_stage_pragma('unit-test-memcheck')
         case "Unit Test":
-                   if (params.CI_UNIT_TEST) {
-                       println("CI_UNIT_TEST found!")
-                   }
-                   if (skip_stage_pragma('unit-test')) {
-                       println("Unit test skip requested")
-                   }
-                   if (skip_stage_pragma('run-test')) {
-                       println("Run test skip requested")
-                   }
             return params.CI_UNIT_TEST ||
                    skip_stage_pragma('unit-test') ||
                    skip_stage_pragma('run_test')
