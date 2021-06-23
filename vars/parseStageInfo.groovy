@@ -144,6 +144,10 @@ def call(Map config = [:]) {
         result['pragma_suffix'] = '-hw-medium'
       }
     }
+    if (stage_name.contains('with Valgrind')) {
+      result['with_valgrind'] = 'memcheck'
+      config['test_tag'] = 'memcheck'
+    }
     // We don't have clients or test tools for EL8 yet
     if (result['target'] == "centos8") {
       cluster_size += ',-mpich,-datamover'
