@@ -231,6 +231,15 @@ boolean call(Map config = [:]) {
             return ! params.CI_UNIT_TEST_MEMCHECK ||
                    skip_stage_pragma('unit-test-memcheck')
         case "Unit Test":
+                   if (params.CI_UNIT_TEST) {
+                       println("CI_UNIT_TEST found!")
+                   }
+                   if (skip_stage_pragma('unit-test')) {
+                       println("Unit test skip requested")
+                   }
+                   if (skip_stage_pragma('run-test')) {
+                       println("Run test skip requested")
+                   }
             return params.CI_UNIT_TEST ||
                    skip_stage_pragma('unit-test') ||
                    skip_stage_pragma('run_test')
