@@ -77,14 +77,6 @@ boolean skip_build_on_centos7_gcc(String target_branch) {
            quickFunctional()
 }
 
-boolean tests_in_stage(String size) {
-    Map stage_info = parseStageInfo()
-    return sh(label: "Get test list for ${size}",
-              script: """cd src/tests/ftest
-                         ./list_tests.py """ + stage_info['test_tag'],
-              returnStatus: true) == 0
-}
-
 boolean call(Map config = [:]) {
     if (config['stage']) {
         return skip_stage_pragma(config['stage'], config['def_val'])

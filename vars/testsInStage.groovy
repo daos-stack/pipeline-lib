@@ -21,7 +21,7 @@ boolean call() {
     }
 
     return sh(label: "Get test list",
-              script: """if [ \${UNIT_TEST:-false} ]; then
+              script: """if \${UNIT_TEST:-false}; then
                              exit 0
                          fi
                          cd src/tests/ftest
