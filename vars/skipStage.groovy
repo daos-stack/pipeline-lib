@@ -116,7 +116,7 @@ boolean call(Map config = [:]) {
         case "Build":
             // always build branch landings as we depend on lastSuccessfulBuild
             // always having RPMs in it
-            return params.CI_NOBUILD ||
+            return params.CI_RPM_TEST_VERSION ||
                    (env.BRANCH_NAME != target_branch) &&
                    skip_stage_pragma('build') ||
                    rpmTestVersion() != ''
@@ -211,7 +211,7 @@ boolean call(Map config = [:]) {
         case "Unit Tests":
             return  env.NO_CI_TESTING == 'true' ||
                     params.CI_BUILD_PACKAGES_ONLY ||
-                    params.CI_NOBUILD ||
+                    params.CI_RPM_TEST_VERSION ||
                     quickBuild() ||
                     skip_stage_pragma('build') ||
                     rpmTestVersion() != '' ||
@@ -243,7 +243,7 @@ boolean call(Map config = [:]) {
                    ! env.BRANCH_NAME.startsWith('weekly-testing')
         case "Coverity on CentOS 7":
             return params.CI_BUILD_PACKAGES_ONLY ||
-                   params.CI_NOBUILD ||
+                   params.CI_RPM_TEST_VERSION ||
                    skip_stage_pragma('coverity-test') ||
                    quickFunctional() ||
                    docOnlyChange(target_branch) ||
