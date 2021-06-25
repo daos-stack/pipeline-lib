@@ -30,7 +30,7 @@ boolean is_pr() {
 
 // If a parameter does not exist, we need to set a default
 // value for it.
-boolean params_value(String parameter, boolean def_value {
+boolean params_value(String parameter, boolean def_value) {
     boolean ci_param_exists = params.containsKey(parameter)
     boolean params_value = def_value
     if (ci_param_exists) {
