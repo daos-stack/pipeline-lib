@@ -28,6 +28,17 @@ boolean is_pr() {
     return env.CHANGE_ID
 }
 
+// If a parameter does not exist, we need to set a default
+// value for it.
+boolean params_value(String parameter, boolean def_value {
+    boolean ci_param_exists = params.containsKey(parameter)
+    boolean params_value = def_value
+    if (ci_param_exists) {
+        params_value = params[parameter]
+    }
+    return def_value
+}
+
 boolean skip_ftest(String distro, String target_branch) {
     // Pragmas have highest priority
     if (run_default_skipped_stage('func-test-' + distro)) {
@@ -35,12 +46,7 @@ boolean skip_ftest(String distro, String target_branch) {
         return false
     }
     // If a parameter exists, it is the next priority.
-    boolean ci_func_distro_test =
-      params.containsKey('CI_FUNCTIONAL_' + distro + '_TEST')
-    boolean params_value = false
-    if (ci_func_distro_test) {
-        params_value = ! params['CI_FUNCTIONAL_' + distro + '_TEST']
-    }
+    params_value = ! params_value('CI_FUNCTIONAL_' + distro + '_TEST', true)
     return params_value ||
            distro == 'ubuntu20' ||
            skip_stage_pragma('func-test') ||
@@ -53,13 +59,8 @@ boolean skip_ftest(String distro, String target_branch) {
 }
 
 boolean skip_ftest_hw(String size, String target_branch) {
-    boolean ci_size_test = params.containsKey('CI_' + size + '_TEST')
-    boolean params_value = false
-    if (ci_size_test) {
-        params_value = ! params['CI_' + size + '_TEST']
-    }
     return env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
-           params_value ||
+           ! params_value('CI_' + size + '_TEST', true) ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-hw-test-' + size) ||
            ! testsInStage() ||
@@ -70,7 +71,7 @@ boolean skip_ftest_hw(String size, String target_branch) {
 }
 
 boolean skip_if_unstable() {
-    if (params.CI_ALLOW_UNSTABLE_TEST ||
+    if (params_value('CI_ALLOW_UNSTABLE_TEST', false) ||
         cachedCommitPragma('Allow-unstable-test').toLowerCase() == 'true' ||
         env.BRANCH_NAME == 'master' ||
         env.BRANCH_NAME.startsWith("weekly-testing") ||
@@ -85,7 +86,7 @@ boolean skip_if_unstable() {
 }
 
 boolean skip_build_on_centos7_gcc(String target_branch) {
-    return params.CI_BUILD_PACKAGES_ONLY ||
+    return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
            skip_stage_pragma('build-centos7-gcc') ||
            (docOnlyChange(target_branch) &&
             prRepos('centos7') == '') ||
@@ -121,23 +122,23 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build') ||
                    rpmTestVersion() != ''
         case "Build RPM on CentOS 7":
-            return params.CI_RPM_centos7_NOBUILD ||
+            return params_value('CI_RPM_centos7_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
                    skip_stage_pragma('build-centos7-rpm')
         case "Build RPM on CentOS 8":
-            return params.CI_RPM_centos8_NOBUILD ||
+            return params_value('CI_RPM_centos8_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos8') == '') ||
                    skip_stage_pragma('build-centos8-rpm')
         case "Build RPM on Leap 15":
-            return params.CI_RPM_leap15_NOBUILD ||
+            return params_value('CI_RPM_leap15_NOBUILD', false) ||
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
                    skip_stage_pragma('build-leap15-rpm')
         case "Build DEB on Ubuntu 20.04":
-            return params.CI_RPM_ubuntu20_NOBUILD ||
+            return params_value('CI_RPM_ubuntu20_NOBUILD' false) ||
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
@@ -145,64 +146,64 @@ boolean call(Map config = [:]) {
         case "Build on CentOS 7":
             return skip_build_on_centos7_gcc(target_branch)
         case "Build on CentOS 7 Bullseye":
-            return params.CI_BUILD_PACKAGES_ONLY ||
+            return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
                    env.NO_CI_TESTING == 'true' ||
                    skip_stage_pragma('bullseye', 'true') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
                    quickFunctional()
         case "Build on CentOS 7 debug":
-            return params.CI_BUILD_PACKAGES_ONLY ||
+            return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-centos7-gcc-debug') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
                    quickBuild()
         case "Build on CentOS 7 release":
-            return params.CI_BUILD_PACKAGES_ONLY ||
+            return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-centos7-gcc-release') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
                    quickBuild()
         case "Build on CentOS 7 with Clang":
         case "Build on CentOS 7 with Clang debug":
-            return params.CI_BUILD_PACKAGES_ONLY ||
+            return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
                    env.BRANCH_NAME != target_branch ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
                    quickBuild()
         case "Build on Ubuntu 20.04":
-            return params.CI_BUILD_PACKAGES_ONLY ||
+            return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
                    env.BRANCH_NAME != target_branch ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
                    quickBuild()
         case "Build on Leap 15 with Clang":
-            return params.CI_BUILD_PACKAGES_ONLY ||
+            return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
                    env.BRANCH_NAME != target_branch ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
                    quickBuild()
         case "Build on CentOS 8":
-            return params.CI_BUILD_PACKAGES_ONLY ||
+            return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-centos8-gcc-dev') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos8') == '') ||
                    quickBuild()
         case "Build on Ubuntu 20.04 with Clang":
-            return params.CI_BUILD_PACKAGES_ONLY ||
+            return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
                    target_branch == 'weekly-testing' ||
                    skip_stage_pragma('build-ubuntu-clang') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
                    quickBuild()
         case "Build on Leap 15":
-            return params.CI_BUILD_PACKAGES_ONLY ||
+            return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-leap15-gcc') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
                    quickBuild()
         case "Build on Leap 15 with Intel-C and TARGET_PREFIX":
-            return params.CI_BUILD_PACKAGES_ONLY ||
+            return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
                    target_branch == 'weekly-testing' ||
                    skip_stage_pragma('build-leap15-icc') ||
                    (docOnlyChange(target_branch) &&
@@ -210,7 +211,7 @@ boolean call(Map config = [:]) {
                    quickBuild()
         case "Unit Tests":
             return  env.NO_CI_TESTING == 'true' ||
-                    params.CI_BUILD_PACKAGES_ONLY ||
+                    params_value('CI_BUILD_PACKAGES_ONLY', false) ||
                     params.CI_RPM_TEST_VERSION ||
                     quickBuild() ||
                     skip_stage_pragma('build') ||
@@ -223,10 +224,10 @@ boolean call(Map config = [:]) {
         case "Unit Test Bullseye":
             return skip_stage_pragma('bullseye', 'true')
         case "Unit Test with memcheck":
-            return ! params.CI_UNIT_TEST_MEMCHECK ||
+            return params_value('CI_UNIT_TEST_MEMCHECK', true) ||
                    skip_stage_pragma('unit-test-memcheck')
         case "Unit Test":
-            return params.CI_UNIT_TEST ||
+            return params_value('CI_UNIT_TEST', true) ||
                    skip_stage_pragma('unit-test') ||
                    skip_stage_pragma('run_test')
         case "Test":
@@ -242,7 +243,7 @@ boolean call(Map config = [:]) {
             return skip_stage_pragma('vagrant-test', 'true') &&
                    ! env.BRANCH_NAME.startsWith('weekly-testing')
         case "Coverity on CentOS 7":
-            return params.CI_BUILD_PACKAGES_ONLY ||
+            return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
                    params.CI_RPM_TEST_VERSION ||
                    skip_stage_pragma('coverity-test') ||
                    quickFunctional() ||
@@ -257,14 +258,14 @@ boolean call(Map config = [:]) {
         case "Functional on Ubuntu 20.04":
             return skip_ftest('ubuntu20', target_branch)
         case "Test CentOS 7 RPMs":
-            return ! params.CI_RPMS_el7_TEST ||
+            return ! params_value('CI_RPMS_el7_TEST', true) ||
                    target_branch == 'weekly-testing' ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-centos-rpms') ||
                    docOnlyChange(target_branch) ||
                    quickFunctional()
         case "Scan CentOS 7 RPMs":
-            return ! params.CI_SCAN_RPMS_el7_TEST ||
+            return ! params_value('CI_SCAN_RPMS_el7_TEST', true) ||
                    target_branch == 'weekly-testing' ||
                    skip_stage_pragma('scan-centos-rpms') ||
                    docOnlyChange(target_branch) ||
