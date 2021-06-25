@@ -224,10 +224,10 @@ boolean call(Map config = [:]) {
         case "Unit Test Bullseye":
             return skip_stage_pragma('bullseye', 'true')
         case "Unit Test with memcheck":
-            return params_value('CI_UNIT_TEST_MEMCHECK', true) ||
+            return ! params_value('CI_UNIT_TEST_MEMCHECK', true) ||
                    skip_stage_pragma('unit-test-memcheck')
         case "Unit Test":
-            return params_value('CI_UNIT_TEST', true) ||
+            return ! params_value('CI_UNIT_TEST', true) ||
                    skip_stage_pragma('unit-test') ||
                    skip_stage_pragma('run_test')
         case "Test":
