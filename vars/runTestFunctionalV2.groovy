@@ -40,6 +40,8 @@ void call(Map config = [:]) {
    *                        Default env.STAGE_NAME.
    */
 
+    Map stage_info = parseStageInfo(config)
+
     if (!fileExists('ci/functional/test_main.sh')) {
         return runTestFunctionalV1(config)
     }
@@ -53,6 +55,7 @@ void call(Map config = [:]) {
                        'PRAGMA_SUFFIX="' + config['pragma_suffix'] + '" ' +
                        'NODE_COUNT="' + config['node_count'] + '" ' +
                        'OPERATIONS_EMAIL="' + env.OPERATIONS_EMAIL + '" ' +
+                       "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
                        'ci/functional/test_main.sh'
                                      
     config['junit_files'] = "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/*.xml " +

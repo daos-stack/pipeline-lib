@@ -58,6 +58,11 @@ boolean skip_ftest(String distro, String target_branch) {
            (is_pr() && distro != "el7")
 }
 
+boolean skip_ftest_valgrind(String distro, String target_branch) {
+    return skip_ftest(distro, target_branch) ||
+           skip_stage_pragma('func-test-vm-valgrind')
+}
+
 boolean skip_ftest_hw(String size, String target_branch) {
     return env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
            ! params_value('CI_' + size + '_TEST', true) ||
@@ -251,6 +256,8 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build')
         case "Functional on CentOS 7":
             return skip_ftest('el7', target_branch)
+        case "Functional on CentOS 7 with Valgrind":
+            return skip_ftest_valgrind('el7', target_branch)
         case "Functional on CentOS 8":
             return skip_ftest('el8', target_branch)
         case "Functional on Leap 15":
