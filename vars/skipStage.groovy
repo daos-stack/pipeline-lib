@@ -18,29 +18,51 @@ String skip_stage_pragma(String stage, String def_val='false') {
 // Determine if a stage that defaults to being skipped has been forced to run
 // (i.e. due to a commit pragma)
 String run_default_skipped_stage(String stage) {
+    println "TRACE: cachedCommitPragma('Skip-' + stage).toLowerCase() = " + cachedCommitPragma('Skip-' + stage).toLowerCase()
     return cachedCommitPragma('Skip-' + stage).toLowerCase() == 'false'
 }
 
 boolean is_pr() {
+
+    env.each{entry -> println "TRACE: $entry.key: $entry.value"}
+
     return env.CHANGE_ID
 }
 
 boolean skip_ftest(String distro, String target_branch) {
+
+    println "TRACE: run_default_skipped_stage('func-test-' + distro) = " + run_default_skipped_stage('func-test-' + distro)
+
     if (run_default_skipped_stage('func-test-' + distro)) {
         // Forced to run due to a (Skip) pragma set to false
         return false
     }
+    println "TRACE: distro = " + distro
+    println "TRACE: skip_stage_pragma('func-test') = " + skip_stage_pragma('func-test')
+    println "TRACE: skip_stage_pragma('func-test-vm') = " + skip_stage_pragma('func-test-vm')
+    println "TRACE: testsInStage() = " + testsInStage()
+    println "TRACE: testsInStage() = " + testsInStage()
+    println "TRACE: skip_stage_pragma('func-test-' + distro) = " + skip_stage_pragma('func-test-' + distro) 
+    println "TRACE: prRepos(distro)= " + prRepos(distro)
+    println "TRACE: (docOnlyChange(target_branch) && prRepos(distro) == '') = " + (docOnlyChange(target_branch) && prRepos(distro) == '')
+    println "TRACE: is_pr() = " + is_pr()
+
     return distro == 'ubuntu20' ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||
            ! testsInStage() ||
            skip_stage_pragma('func-test-' + distro) ||
            (docOnlyChange(target_branch) &&
-            prRepos(distro) == '') ||
+           prRepos(distro) == '') ||
            (is_pr() && distro != "el7")
 }
 
 boolean skip_ftest_valgrind(String distro, String target_branch) {
+
+    println "TRACE: skip_stage_pragma('func-test-vm-valgrind')= " + skip_stage_pragma('func-test-vm-valgrind')
+    println "TRACE: target_branch.startsWith('weekly-testing') = " + target_branch.startsWith('weekly-testing')
+    println "TRACE: target_branch = " + target_branch
+
     return skip_ftest(distro, target_branch) ||
            skip_stage_pragma('func-test-vm-valgrind') ||
            is_pr() ||
