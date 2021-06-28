@@ -32,11 +32,11 @@ boolean is_pr() {
 // value for it.
 boolean params_value(String parameter, boolean def_value) {
     boolean ci_param_exists = params.containsKey(parameter)
-    boolean params_value = def_value
+    boolean param_value = def_value
     if (ci_param_exists) {
-        params_value = params[parameter]
+        param_value = params[parameter]
     }
-    return def_value
+    return param_value
 }
 
 boolean skip_ftest(String distro, String target_branch) {
