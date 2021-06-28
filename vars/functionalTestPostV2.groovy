@@ -15,7 +15,7 @@
    *                               Default env.STAGE_NAME subdirectories
    *
    * config['valgrind_pattern']    Pattern for Valgind files.
-   *                               Default: '*.memcheck.xml'
+   *                               Default: 'valgrind.*.memcheck-checked'
    *
    * config['valgrind_stash']      Name to stash valgrind artifacts
    *                               Required if more than one stage is
