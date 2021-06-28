@@ -44,6 +44,10 @@ def call(Map config = [:]) {
 
     if (config['valgrind_stash']) {
         def valgrind_pattern = config.get('valgrind_pattern', 'valgrind.*.memcheck-checked')
+        println("Going to publish valgrind files:",
+                sh(label: "List Valgrind files",
+                   script: "ls -l " + valgrind_pattern,
+                   returnStdout: true).trim())
         stash name: config['valgrind_stash'], includes: valgrind_pattern
     }
 
