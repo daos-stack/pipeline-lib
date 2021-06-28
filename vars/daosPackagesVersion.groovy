@@ -29,7 +29,7 @@ String daos_latest_version(String next_version, String repo_type='stable') {
 String rpm_dist(String distro) {
     if (distro.startsWith('el7') || distro.startsWith('centos7')) {
         return ".el7"
-    if (distro.startsWith('el8') || distro.startsWith('centos8')) {
+    } else if (distro.startsWith('el8') || distro.startsWith('centos8')) {
         return ".el8"
     } else if (distro.startsWith("leap15")) {
         return ".suse.lp152"
