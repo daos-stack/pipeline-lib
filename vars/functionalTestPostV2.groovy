@@ -13,6 +13,13 @@
    *
    * config['testResults']         Junit test result files.
    *                               Default env.STAGE_NAME subdirectories
+   *
+   * config['valgrind_pattern']    Pattern for Valgind files.
+   *                               Default: '*.memcheck.xml'
+   *
+   * config['valgrind_stash']      Name to stash valgrind artifacts
+   *                               Required if more than one stage is
+   *                               creating valgrind reports.
    */
 
 def call(Map config = [:]) {
@@ -34,4 +41,10 @@ def call(Map config = [:]) {
                                    env.STAGE_NAME + '/*/*/*/test-results/*/data/*_results.xml')
 
     junit testResults: junit_results
+
+    if (config['valgrind_stash']) {
+        def valgrind_pattern = config.get('valgrind_pattern', 'valgrind.*.memcheck-checked')
+        stash name: config['valgrind_stash'], includes: valgrind_pattern
+    }
+
 }
