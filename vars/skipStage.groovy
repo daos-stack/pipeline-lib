@@ -40,12 +40,17 @@ boolean params_value(String parameter, boolean def_value) {
 }
 
 boolean skip_ftest(String distro, String target_branch) {
-    // Pragmas have highest priority
+    // Defaults for skipped stages and pragmas to override them
+    // must be checked first before parameters are checked
+    // because the defaults are based on which branch
+    // is being run.
     if (run_default_skipped_stage('func-test-' + distro)) {
         // Forced to run due to a (Skip) pragma set to false
         return false
     }
-    // If a parameter exists, it is the next priority.
+    // If a parameter exists to enable a build, then use it.
+    // The params.CI_MORE_FUNCTIONAL_PR_TESTS allows enabling
+    // tests that are not run in PRs.
     params_value = ! params_value('CI_FUNCTIONAL_' + distro + '_TEST', true)
     return params_value ||
            distro == 'ubuntu20' ||
@@ -122,8 +127,7 @@ boolean call(Map config = [:]) {
         case "Build":
             // always build branch landings as we depend on lastSuccessfulBuild
             // always having RPMs in it
-            return params.CI_RPM_TEST_VERSION ||
-                   (env.BRANCH_NAME != target_branch) &&
+            return (env.BRANCH_NAME != target_branch) &&
                    skip_stage_pragma('build') ||
                    rpmTestVersion() != ''
         case "Build RPM on CentOS 7":
@@ -217,7 +221,6 @@ boolean call(Map config = [:]) {
         case "Unit Tests":
             return  env.NO_CI_TESTING == 'true' ||
                     params_value('CI_BUILD_PACKAGES_ONLY', false) ||
-                    params.CI_RPM_TEST_VERSION ||
                     quickBuild() ||
                     skip_stage_pragma('build') ||
                     rpmTestVersion() != '' ||
@@ -249,7 +252,7 @@ boolean call(Map config = [:]) {
                    ! env.BRANCH_NAME.startsWith('weekly-testing')
         case "Coverity on CentOS 7":
             return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
-                   params.CI_RPM_TEST_VERSION ||
+                   rpmTestVersion() != '' ||
                    skip_stage_pragma('coverity-test') ||
                    quickFunctional() ||
                    docOnlyChange(target_branch) ||

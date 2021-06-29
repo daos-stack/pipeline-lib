@@ -77,11 +77,6 @@ def call(Map config = [:]) {
     return
   }
 
-  Boolean test_rpms = false
-  if (config['test_rpms'] == "true") {
-    test_rpms = true
-  }
-
   config['script'] = 'export NODE_COUNT="' + stage_info['node_count'] + '"\n ' +
                      'export OPERATIONS_EMAIL="' +
                          env.OPERATIONS_EMAIL + '"\n ' +
