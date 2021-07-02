@@ -18,13 +18,16 @@ String skip_stage_pragma(String stage, String def_val='false') {
 // Determine if a stage that defaults to being skipped has been forced to run
 // (i.e. due to a commit pragma)
 String run_default_skipped_stage(String stage) {
+
+    println "TRACE: stage = " + stage
     println "TRACE: cachedCommitPragma('Skip-' + stage).toLowerCase() = " + cachedCommitPragma('Skip-' + stage).toLowerCase()
+
     return cachedCommitPragma('Skip-' + stage).toLowerCase() == 'false'
 }
 
 boolean is_pr() {
 
-    env.each{entry -> println "TRACE: $entry.key: $entry.value"}
+    env.each{entry -> println "TRACE: entry.key: entry.value = $entry.key: $entry.value"}
 
     return env.CHANGE_ID
 }
@@ -37,10 +40,10 @@ boolean skip_ftest(String distro, String target_branch) {
         // Forced to run due to a (Skip) pragma set to false
         return false
     }
+
     println "TRACE: distro = " + distro
     println "TRACE: skip_stage_pragma('func-test') = " + skip_stage_pragma('func-test')
     println "TRACE: skip_stage_pragma('func-test-vm') = " + skip_stage_pragma('func-test-vm')
-    println "TRACE: testsInStage() = " + testsInStage()
     println "TRACE: testsInStage() = " + testsInStage()
     println "TRACE: skip_stage_pragma('func-test-' + distro) = " + skip_stage_pragma('func-test-' + distro) 
     println "TRACE: prRepos(distro)= " + prRepos(distro)
