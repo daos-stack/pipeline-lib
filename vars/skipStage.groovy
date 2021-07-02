@@ -37,7 +37,7 @@ boolean skip_ftest(String distro, String target_branch) {
            skip_stage_pragma('func-test-' + distro) ||
            (docOnlyChange(target_branch) &&
             prRepos(distro) == '') ||
-           (is_pr() && distro != "el7")
+           (is_pr() && distro != "el8")
 }
 
 boolean skip_ftest_valgrind(String distro, String target_branch) {
