@@ -145,6 +145,7 @@ def call(Map config = [:]) {
       }
     }
     if (stage_name.contains('with Valgrind')) {
+      result['pragma_suffix'] = '-valgrind'
       result['with_valgrind'] = 'memcheck'
       config['test_tag'] = 'memcheck'
     }
@@ -255,6 +256,8 @@ def call(Map config = [:]) {
     stage_name.contains('memcheck')) {
     result['with_valgrind'] = 'memcheck'
   }
+
+  result.each{entry -> println "vars/parseStageInfo.groovy:260 TRACE: entry.key: entry.value = $entry.key: $entry.value"}
 
   return result
 }
