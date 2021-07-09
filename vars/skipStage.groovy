@@ -66,8 +66,12 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
     println "TRACE: target_branch.startsWith('weekly-testing') = " + target_branch.startsWith('weekly-testing')
     println "TRACE: target_branch = " + target_branch
 
+    if (skip_stage_pragma('func-test-vm-valgrind') == 'false') {
+        // Forced to run due to a (Skip) pragma set to false
+        return false
+    }
+
     return skip_ftest(distro, target_branch) ||
-           skip_stage_pragma('func-test-vm-valgrind') ||
            is_pr() ||
            (! target_branch.startsWith('weekly-testing'))
 }
