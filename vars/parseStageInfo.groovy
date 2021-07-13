@@ -156,10 +156,6 @@ def call(Map config = [:]) {
       result['with_valgrind'] = 'memcheck'
       config['test_tag'] = 'memcheck'
     }
-    // We don't have clients or test tools for EL8 yet
-    if (result['target'] == "centos8") {
-      cluster_size += ',-mpich,-datamover'
-    }
 
     String tag
     // Highest priority is TestTag parameter but only if ForceRun
