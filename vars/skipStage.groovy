@@ -70,7 +70,7 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
 
     print('DEBUG log: line 71, skip_commit_pragma.getClass() = ', skip_commit_pragma.getClass())
 
-    # Skip if it's boolean false or the string "false"
+    // Skip if it's boolean false or the string "false"
     if (skip_commit_pragma == 'false' || ! skip_commit_pragma) {
         println "line 70, TRACE: returning 'false'"
         // Forced to run due to a (Skip) pragma set to false
