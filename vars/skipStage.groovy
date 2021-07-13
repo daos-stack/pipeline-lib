@@ -62,14 +62,22 @@ boolean skip_ftest(String distro, String target_branch) {
 
 boolean skip_ftest_valgrind(String distro, String target_branch) {
 
-    println "TRACE: skip_stage_pragma('func-test-vm-valgrind')= " + skip_stage_pragma('func-test-vm-valgrind')
+    println "TRACE: skip_stage_pragma('func-test-vm-valgrind') = " + skip_stage_pragma('func-test-vm-valgrind')
     println "TRACE: target_branch.startsWith('weekly-testing') = " + target_branch.startsWith('weekly-testing')
     println "TRACE: target_branch = " + target_branch
 
-    if (skip_stage_pragma('func-test-vm-valgrind') == 'false') {
+    skip_commit_pragma = skip_stage_pragma('func-test-vm-valgrind')
+
+    print('DEBUG log: line 71, skip_commit_pragma.getClass() = ', skip_commit_pragma.getClass())
+
+    # Skip if it's boolean false or the string "false"
+    if (skip_commit_pragma == 'false' || ! skip_commit_pragma) {
+        println "line 70, TRACE: returning 'false'"
         // Forced to run due to a (Skip) pragma set to false
         return false
     }
+
+    print('DEBUG log: line 74, skip_ftest(distro, target_branch) = ', skip_ftest(distro, target_branch))
 
     return skip_ftest(distro, target_branch) ||
            is_pr() ||
