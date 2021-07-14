@@ -15,6 +15,7 @@ import groovy.transform.Field
 @Field static commit_pragma_cache = [:]
 
 def call(Map config = [:]) {
+
     if (config['clear']) {
         commit_pragma_cache.clear()
         return
@@ -28,6 +29,7 @@ def call(Map config = [:]) {
 
 def call(String name, String def_val = null) {
     name = name.toLowerCase()
+
     if (def_val) {
         def_val = def_val.toLowerCase()
     }

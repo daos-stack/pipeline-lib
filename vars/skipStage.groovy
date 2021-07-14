@@ -26,23 +26,31 @@ boolean is_pr() {
 }
 
 boolean skip_ftest(String distro, String target_branch) {
+
+    // Forced to run due to a (Skip) pragma set to false
     if (run_default_skipped_stage('func-test-' + distro)) {
-        // Forced to run due to a (Skip) pragma set to false
         return false
     }
+
     return distro == 'ubuntu20' ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||
            ! testsInStage() ||
            skip_stage_pragma('func-test-' + distro) ||
            (docOnlyChange(target_branch) &&
-            prRepos(distro) == '') ||
+           prRepos(distro) == '') ||
            (is_pr() && distro != "el7")
 }
 
 boolean skip_ftest_valgrind(String distro, String target_branch) {
+    skip_commit_pragma = skip_stage_pragma('func-test-vm-valgrind')
+    if (skip_commit_pragma == 'false' || ! skip_commit_pragma) {
+        return false
+    }
+
     return skip_ftest(distro, target_branch) ||
-           skip_stage_pragma('func-test-vm-valgrind')
+           is_pr() ||
+           (! target_branch.startsWith('weekly-testing'))
 }
 
 boolean skip_ftest_hw(String size, String target_branch) {
