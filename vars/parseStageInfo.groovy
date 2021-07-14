@@ -257,7 +257,5 @@ def call(Map config = [:]) {
     result['with_valgrind'] = 'memcheck'
   }
 
-  result.each{entry -> println "vars/parseStageInfo.groovy:260 TRACE: entry.key: entry.value = $entry.key: $entry.value"}
-
   return result
 }
