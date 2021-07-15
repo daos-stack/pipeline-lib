@@ -18,7 +18,7 @@ String daos_latest_version(String next_version, String repo_type='stable') {
     String v = sh(label: "Get RPM packages version",
                   script: 'repoquery --repofrompath=daos,' + env.REPOSITORY_URL +
                           env["DAOS_STACK_EL_7_" + repo_type.toUpperCase() + "_REPO"] +
-                        '''/ --repoid daos --qf %{version}-%{release} --whatprovides 'daos(x86-64) < ''' +
+                        '''/ --repoid daos --qf %{version}-%{release} --whatprovides 'daos-tests(x86-64) < ''' +
                                      next_version + '''' |
                                  rpmdev-sort | tail -1''',
                   returnStdout: true).trim()

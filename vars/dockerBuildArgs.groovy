@@ -16,7 +16,8 @@
    *
    * config['deps_build'] Whether to build the daos dependencies.
    *
-   * config['repo_type'] Type of repo to add.  Default 'local'
+   * config['repo_type'] Type of repo to add.  Default 'local' for compatibilty
+   *                     with older dockerfiles.
    *
    * Repositories URLs are looked up via Jenkins environment variables.
    * There are two environment variables that are put together to create
@@ -88,13 +89,17 @@ String call(Map config = [:]) {
     }
     Map stage_info = parseStageInfo(config)
 
+    if (config.containsKey('distro')) {
+      stage_info['target'] = config['distro']
+    }
+
     // The docker agent setup and the provisionNodes step need to know the
     // UID that the build agent is running under.
-    ret_str = " --build-arg NOBUILD=1 " +
-              " --build-arg UID=" + sh(label: 'getuid()',
-                                       script: "id -u",
-                                       returnStdout: true).trim() +
-              " --build-arg JENKINS_URL=$env.JENKINS_URL"
+    String ret_str = " --build-arg NOBUILD=1 " +
+                     " --build-arg UID=" + sh(label: 'getuid()',
+                                              script: "id -u",
+                                              returnStdout: true).trim() +
+                     " --build-arg JENKINS_URL=$env.JENKINS_URL"
     if (cachebust) {
       Calendar current_time = Calendar.getInstance()
       ret_str += " --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
@@ -115,6 +120,11 @@ String call(Map config = [:]) {
         if (daos_type == 'LOCAL') {
           daos_arg = 'EL8'
         }
+        // Appstream repo not working in Nexus group repos
+        if (env.DAOS_STACK_EL_8_APPSTREAM) {
+          ret_str += " --build-arg REPO_APPSREAM=" +
+                     env.DAOS_STACK_EL_8_APPSTREAM
+        }
       } else if (stage_info['target'] == 'leap15') {
         repo_alias = 'LEAP_15'
         // Backwards compatibilty for LOCAL
@@ -131,6 +141,10 @@ String call(Map config = [:]) {
         // Details still to be worked out.
         repo_alias = 'UBUNTU_20_04'
         daos_arg = repo_alias
+      } else if (stage_info['target'] == 'fedora' ) {
+        // Used for mock builds, and some code scanning
+        repo_alias = 'FEDORA'
+        daos_arg = 'FEDORA'
       }
       dist_repo = env["DAOS_STACK_${repo_alias}${repo_mod}_${dist_type}_REPO"]
       daos_repo = env["DAOS_STACK_${repo_alias}_${daos_type}_REPO"]
