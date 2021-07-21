@@ -64,16 +64,24 @@ def call(Map config = [:]) {
       echo "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7"
     }
   }
+  String new_ci_target = params['CI_' +
+                                result['target'].toString().toUpperCase() +
+                                '_TARGET']
+  if (new_ci_target) {
+    result['ci_target'] = new_ci_target
+  } else {
+    result['ci_target'] = result['target']
+  }
 
-  if (result['target'].startsWith('el') ||
-      result['target'].startsWith('centos')) {
+  if (result['ci_target'].startsWith('el') ||
+      result['ci_target'].startsWith('centos')) {
     result['java_pkg'] = 'java-1.8.0-openjdk'
-  } else if (result['target'].startsWith('ubuntu')) {
+  } else if (result['ci_target'].startsWith('ubuntu')) {
     result['java_pkg'] = 'openjdk-8-jdk'
-  } else if (result['target'].startsWith('leap')) {
+  } else if (result['ci_target'].startsWith('leap')) {
     result['java_pkg'] = 'java-1_8_0-openjdk'
   } else {
-    error 'Java package not known for ' + result['target']
+    error 'Java package not known for ' + result['ci_target']
   }
 
   result['compiler'] = 'gcc'
@@ -148,10 +156,6 @@ def call(Map config = [:]) {
       result['pragma_suffix'] = '-valgrind'
       result['with_valgrind'] = 'memcheck'
       config['test_tag'] = 'memcheck'
-    }
-    // We don't have clients or test tools for EL8 yet
-    if (result['target'] == "centos8") {
-      cluster_size += ',-mpich,-datamover'
     }
 
     String tag
@@ -232,7 +236,13 @@ def call(Map config = [:]) {
       }
     }
 
-  } // if (stage_name.contains('Functional'))
+    // if (stage_name.contains('Functional'))
+  } else if (stage_name.contains('Storage')) {
+    if (env.NODELIST) {
+      List node_list = env.NODELIST.split(',')
+      result['node_count'] = node_list.size()
+    }
+  } // else if (stage_name.contains('Storage'))
   if (config['test']) {
     result['test'] = config['test']
   }

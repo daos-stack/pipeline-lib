@@ -18,7 +18,7 @@ String daos_latest_version(String next_version, String repo_type='stable') {
     String v = sh(label: "Get RPM packages version",
                   script: 'repoquery --repofrompath=daos,' + env.REPOSITORY_URL +
                           env["DAOS_STACK_EL_7_" + repo_type.toUpperCase() + "_REPO"] +
-                        '''/ --repoid daos --qf %{version}-%{release} --whatprovides 'daos(x86-64) < ''' +
+                        '''/ --repoid daos --qf %{version}-%{release} --whatprovides 'daos-tests(x86-64) < ''' +
                                      next_version + '''' |
                                  rpmdev-sort | tail -1''',
                   returnStdout: true).trim()
@@ -29,6 +29,8 @@ String daos_latest_version(String next_version, String repo_type='stable') {
 String rpm_dist(String distro) {
     if (distro.startsWith('el7') || distro.startsWith('centos7')) {
         return ".el7"
+    } else if (distro.startsWith('el8') || distro.startsWith('centos8')) {
+        return ".el8"
     } else if (distro.startsWith("leap15")) {
         return ".suse.lp152"
     } else {
