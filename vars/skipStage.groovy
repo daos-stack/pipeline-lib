@@ -75,7 +75,8 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
     println "TRACE: target_branch                                     = " + target_branch
     println "TRACE: is_pr()                                           = " + is_pr()
 
-    if (! skip_commit_pragma) {
+    // Commit message contains skip-func-tests-vm-valgrind: false
+    if (skip_commit_pragma) {
         return false
     }
 
