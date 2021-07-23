@@ -66,15 +66,16 @@ boolean skip_ftest(String distro, String target_branch) {
 boolean skip_ftest_valgrind(String distro, String target_branch) {
     skip_commit_pragma = skip_stage_pragma('func-test-vm-valgrind')
 
-    println "TRACE: run_default_skipped_stage('func-test-' + distro) = " + run_default_skipped_stage('func-test-' + distro)
-    println "TRACE: skip_commit_pragma                               = " + skip_commit_pragma
-    println "TRACE: skip_stage_pragma.getClass()                     = " + skip_commit_pragma.getClass()
-    println "TRACE: target_branch.startsWith('weekly-testing')       = " + target_branch.startsWith('weekly-testing')
-    println "TRACE: skip_ftest(distro, target_branch)                = " + skip_ftest(distro, target_branch)
-    println "TRACE: target_branch                                    = " + target_branch
-    println "TRACE: is_pr()                                          = " + is_pr()
+    println "TRACE: run_default_skipped_stage('func-test-' + distro)  = " + run_default_skipped_stage('func-test-' + distro)
+    println "TRACE: run_default_skipped_stage('func-test-vm-valgrind) = " + run_default_skipped_stage('func-test-vm-valgrind)
+    println "TRACE: skip_commit_pragma                                = " + skip_commit_pragma
+    println "TRACE: skip_commit_pragma.getClass()                     = " + skip_commit_pragma.getClass()
+    println "TRACE: target_branch.startsWith('weekly-testing')        = " + target_branch.startsWith('weekly-testing')
+    println "TRACE: skip_ftest(distro, target_branch)                 = " + skip_ftest(distro, target_branch)
+    println "TRACE: target_branch                                     = " + target_branch
+    println "TRACE: is_pr()                                           = " + is_pr()
 
-    if (skip_commit_pragma == 'false' || ! skip_commit_pragma) {
+    if (! skip_commit_pragma) {
         return false
     }
 
