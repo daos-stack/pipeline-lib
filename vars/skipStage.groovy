@@ -131,6 +131,9 @@ boolean call(Map config = [:]) {
         return skip_stage_pragma(config['stage'], config['def_val'])
     }
 
+    distro = 'el7'
+    target_branch = 'weekly-testing'
+
     println "TRACE:134: run_default_skipped_stage('func-test-' + distro)               = " + run_default_skipped_stage('func-test-' + distro)
     println "TRACE:134: run_default_skipped_stage('func-test-vm-valgrind)              = " + run_default_skipped_stage('func-test-vm-valgrind')
     println "TRACE:134: target_branch.startsWith('weekly-testing')                     = " + target_branch.startsWith('weekly-testing')
