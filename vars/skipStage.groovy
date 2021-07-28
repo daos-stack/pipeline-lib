@@ -41,12 +41,13 @@ boolean params_value(String parameter, boolean def_value) {
 
 boolean skip_ftest(String distro, String target_branch) {
 
+    println "TRACE:44: cachedCommitPragma('Skip-' + stage, def_val).toLowerCase()     = " + cachedCommitPragma('Skip-' + stage, true).toLowerCase()
     println "TRACE:44: run_default_skipped_stage('func-test-' + distro)               = " + run_default_skipped_stage('func-test-' + distro)
     println "TRACE:44: run_default_skipped_stage('func-test-vm-valgrind)              = " + run_default_skipped_stage('func-test-vm-valgrind')
     println "TRACE:44: target_branch.startsWith('weekly-testing')                     = " + target_branch.startsWith('weekly-testing')
     println "TRACE:44: target_branch                                                  = " + target_branch
     println "TRACE:44: is_pr()                                                        = " + is_pr()
-    println "TRACE:44: skip_stage_pragma('func-test-vm-valgrind', def_val is 'true')) = " + skip_stage_pragma('func-test-vm-valgrind', def_val='true')
+    println "TRACE:44: skip_stage_pragma('func-test-vm-valgrind', def_val is 'true')) = " + skip_stage_pragma('func-test-vm-valgrind', def_val         = 'true')
 
     // Defaults for skipped stages and pragmas to override them
     // must be checked first before parameters are checked
@@ -73,6 +74,7 @@ boolean skip_ftest(String distro, String target_branch) {
 
 boolean skip_ftest_valgrind(String distro, String target_branch) {
 
+    println "TRACE:77: cachedCommitPragma('Skip-' + stage, def_val).toLowerCase()     = " + cachedCommitPragma('Skip-' + stage, true).toLowerCase()
     println "TRACE:77: run_default_skipped_stage('func-test-' + distro)               = " + run_default_skipped_stage('func-test-' + distro)
     println "TRACE:77: run_default_skipped_stage('func-test-vm-valgrind)              = " + run_default_skipped_stage('func-test-vm-valgrind')
     println "TRACE:77: target_branch.startsWith('weekly-testing')                     = " + target_branch.startsWith('weekly-testing')
@@ -81,7 +83,7 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
     println "TRACE:77: is_pr()                                                        = " + is_pr()
     println "TRACE:77: skip_stage_pragma('func-test-vm-valgrind', def_val is 'true')) = " + skip_stage_pragma('func-test-vm-valgrind', def_val='true')
 
-    if (! skip_stage_pragma('func-test-vm-valgrind', def_val='true')) {
+    if (cachedCommitPragma('Skip-func-test-vm-valgrind', true).toLowerCase() == 'false') {
         return false
     }
 
