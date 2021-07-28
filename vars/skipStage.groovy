@@ -47,7 +47,7 @@ boolean params_value(String parameter, boolean def_value) {
 boolean skip_ftest(String distro, String target_branch) {
 
     stage = 'func-test-vm-valgrind'
-    println "TRACE:44: cachedCommitPragma('Skip-' + stage, def_val).toLowerCase()     = " + cachedCommitPragma('Skip-' + stage, true).toLowerCase()
+    println "TRACE:44: cachedCommitPragma('Skip-' + stage, def_val).toLowerCase()     = " + cachedCommitPragma('Skip-' + stage, 'true').toLowerCase()
     println "TRACE:44: run_default_skipped_stage('func-test-' + distro)               = " + run_default_skipped_stage('func-test-' + distro)
     println "TRACE:44: run_default_skipped_stage('func-test-vm-valgrind)              = " + run_default_skipped_stage('func-test-vm-valgrind')
     println "TRACE:44: target_branch.startsWith('weekly-testing')                     = " + target_branch.startsWith('weekly-testing')
@@ -81,7 +81,7 @@ boolean skip_ftest(String distro, String target_branch) {
 boolean skip_ftest_valgrind(String distro, String target_branch) {
 
     stage = 'func-test-vm-valgrind'
-    println "TRACE:77: cachedCommitPragma('Skip-' + stage, def_val).toLowerCase()     = " + cachedCommitPragma('Skip-' + stage, true).toLowerCase()
+    println "TRACE:77: cachedCommitPragma('Skip-' + stage, def_val).toLowerCase()     = " + cachedCommitPragma('Skip-' + stage, 'true').toLowerCase()
     println "TRACE:77: run_default_skipped_stage('func-test-' + distro)               = " + run_default_skipped_stage('func-test-' + distro)
     println "TRACE:77: run_default_skipped_stage('func-test-vm-valgrind)              = " + run_default_skipped_stage('func-test-vm-valgrind')
     println "TRACE:77: target_branch.startsWith('weekly-testing')                     = " + target_branch.startsWith('weekly-testing')
