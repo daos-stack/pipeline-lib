@@ -40,7 +40,6 @@ boolean params_value(String parameter, boolean def_value) {
 }
 
 boolean skip_ftest(String distro, String target_branch) {
-
     // Defaults for skipped stages and pragmas to override them
     // must be checked first before parameters are checked
     // because the defaults are based on which branch
@@ -65,8 +64,7 @@ boolean skip_ftest(String distro, String target_branch) {
 }
 
 boolean skip_ftest_valgrind(String distro, String target_branch) {
-
-    if (cachedCommitPragma('Skip-func-test-vm-valgrind', 'true').toLowerCase() == 'false') {
+    if (! skip_stage_pragma('Skip-func-test-vm-valgrind', 'true')) {
         return false
     }
 
