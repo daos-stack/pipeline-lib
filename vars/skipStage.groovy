@@ -90,7 +90,7 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
     println "TRACE:77: is_pr()                                                        = " + is_pr()
     println "TRACE:77: skip_stage_pragma('func-test-vm-valgrind', def_val is 'true')) = " + skip_stage_pragma('func-test-vm-valgrind', def_val='true')
 
-    if (cachedCommitPragma('Skip-func-test-vm-valgrind', true).toLowerCase() == 'false') {
+    if (cachedCommitPragma('Skip-func-test-vm-valgrind', 'true').toLowerCase() == 'false') {
         return false
     }
 
