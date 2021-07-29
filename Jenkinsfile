@@ -221,19 +221,16 @@ pipeline {
                         script {
                             stages = ["Functional on Leap 15",
                                       "Functional on CentOS 7",
-                                      "Functional on CentOS 7 with Valgrind",
                                       "Functional on CentOS 8",
                                       "Functional Hardware Small",
                                       "Functional Hardware Medium",
                                       "Functional Hardware Large"]
                             commits = [[pragmas: ['Skip-func-test-leap15: false'],
-                                        skips: [false, false, true, true, false, false, false]],
-                                       [pragmas: ['Skip-func-test-vm-valgrind: false'],
-                                        skips: [false, false, true, true, false, false, false]],
+                                        skips: [false, false, true, false, false, false]],
                                        [pragmas: [''],
-                                        skips: [true, false, true, true, false, false, false]],
+                                        skips: [true, false, true, false, false, false]],
                                        [pragmas: ['Skip-func-hw-test-small: true'],
-                                        skips: [true, false, true, true, true, false, false]]]
+                                        skips: [true, false, true, true, false, false]]]
                             commits.each { commit ->
                                 cm = """\
                                         Test commit\n\n"""
