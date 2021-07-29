@@ -12,11 +12,6 @@
 
 // Determine if a stage has been specified to skip with a commit pragma
 String skip_stage_pragma(String stage, String def_val='false') {
-
-    println "TRACE:15: def_val                                                    = " + def_val
-    println "TRACE:15: stage                                                      = " + stage
-    println "TRACE:15: cachedCommitPragma('Skip-' + stage, def_val).toLowerCase() = " + cachedCommitPragma('Skip-' + stage, def_val).toLowerCase()
-
     return cachedCommitPragma('Skip-' + stage, def_val).toLowerCase() == 'true'
 }
 
@@ -46,15 +41,6 @@ boolean params_value(String parameter, boolean def_value) {
 
 boolean skip_ftest(String distro, String target_branch) {
 
-    stage = 'func-test-vm-valgrind'
-    println "TRACE:44: cachedCommitPragma('Skip-' + stage, def_val).toLowerCase()     = " + cachedCommitPragma('Skip-' + stage, 'true').toLowerCase()
-    println "TRACE:44: run_default_skipped_stage('func-test-' + distro)               = " + run_default_skipped_stage('func-test-' + distro)
-    println "TRACE:44: run_default_skipped_stage('func-test-vm-valgrind)              = " + run_default_skipped_stage('func-test-vm-valgrind')
-    println "TRACE:44: target_branch.startsWith('weekly-testing')                     = " + target_branch.startsWith('weekly-testing')
-    println "TRACE:44: target_branch                                                  = " + target_branch
-    println "TRACE:44: is_pr()                                                        = " + is_pr()
-    println "TRACE:44: skip_stage_pragma('func-test-vm-valgrind', def_val is 'true')) = " + skip_stage_pragma('func-test-vm-valgrind', def_val         = 'true')
-
     // Defaults for skipped stages and pragmas to override them
     // must be checked first before parameters are checked
     // because the defaults are based on which branch
@@ -79,16 +65,6 @@ boolean skip_ftest(String distro, String target_branch) {
 }
 
 boolean skip_ftest_valgrind(String distro, String target_branch) {
-
-    stage = 'func-test-vm-valgrind'
-    println "TRACE:77: cachedCommitPragma('Skip-' + stage, def_val).toLowerCase()     = " + cachedCommitPragma('Skip-' + stage, 'true').toLowerCase()
-    println "TRACE:77: run_default_skipped_stage('func-test-' + distro)               = " + run_default_skipped_stage('func-test-' + distro)
-    println "TRACE:77: run_default_skipped_stage('func-test-vm-valgrind)              = " + run_default_skipped_stage('func-test-vm-valgrind')
-    println "TRACE:77: target_branch.startsWith('weekly-testing')                     = " + target_branch.startsWith('weekly-testing')
-    println "TRACE:77: skip_ftest(distro, target_branch)                              = " + skip_ftest(distro, target_branch)
-    println "TRACE:77: target_branch                                                  = " + target_branch
-    println "TRACE:77: is_pr()                                                        = " + is_pr()
-    println "TRACE:77: skip_stage_pragma('func-test-vm-valgrind', def_val is 'true')) = " + skip_stage_pragma('func-test-vm-valgrind', def_val='true')
 
     if (cachedCommitPragma('Skip-func-test-vm-valgrind', 'true').toLowerCase() == 'false') {
         return false
@@ -138,17 +114,6 @@ boolean call(Map config = [:]) {
     if (config['stage']) {
         return skip_stage_pragma(config['stage'], config['def_val'])
     }
-
-    distro = 'el7'
-    target_branch = 'weekly-testing'
-
-    println "TRACE:134: run_default_skipped_stage('func-test-' + distro)               = " + run_default_skipped_stage('func-test-' + distro)
-    println "TRACE:134: run_default_skipped_stage('func-test-vm-valgrind)              = " + run_default_skipped_stage('func-test-vm-valgrind')
-    println "TRACE:134: target_branch.startsWith('weekly-testing')                     = " + target_branch.startsWith('weekly-testing')
-    println "TRACE:134: skip_ftest(distro, target_branch)                              = " + skip_ftest(distro, target_branch)
-    println "TRACE:134: target_branch                                                  = " + target_branch
-    println "TRACE:134: is_pr()                                                        = " + is_pr()
-    println "TRACE:134: skip_stage_pragma('func-test-vm-valgrind', def_val is 'true')) = " + skip_stage_pragma('func-test-vm-valgrind', def_val='true')
 
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
 
