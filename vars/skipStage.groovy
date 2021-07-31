@@ -67,8 +67,8 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
 
     stage   = 'func-test-vm-valgrind'
     def_val = 'true'
-    println 'TRACE: skip_stage_pragma(stage, 'true')             = ' + skip_stage_pragma(stage, 'true')
-    println 'TRACE: cachedCommitPragma('Skip-' + stage, def_val) = ' + cachedCommitPragma('Skip-' + stage, def_val)
+    println 'TRACE: skip_stage_pragma(stage, "true")             = ' + skip_stage_pragma(stage, 'true')
+    println 'TRACE: cachedCommitPragma("Skip-" + stage, def_val) = ' + cachedCommitPragma('Skip-' + stage, def_val)
 
     if (! skip_stage_pragma('func-test-vm-valgrind', 'true')) {
         return false
