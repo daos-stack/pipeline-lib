@@ -64,8 +64,13 @@ boolean skip_ftest(String distro, String target_branch) {
 }
 
 boolean skip_ftest_valgrind(String distro, String target_branch) {
+    if (! skip_stage_pragma('func-test-vm-valgrind', 'true')) {
+        return false
+    }
+
     return skip_ftest(distro, target_branch) ||
-           skip_stage_pragma('func-test-vm-valgrind')
+           is_pr() ||
+           target_branch.startsWith('weekly-testing')
 }
 
 boolean skip_ftest_hw(String size, String target_branch) {

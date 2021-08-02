@@ -153,6 +153,7 @@ def call(Map config = [:]) {
       }
     }
     if (stage_name.contains('with Valgrind')) {
+      result['pragma_suffix'] = '-valgrind'
       result['with_valgrind'] = 'memcheck'
       config['test_tag'] = 'memcheck'
     }
