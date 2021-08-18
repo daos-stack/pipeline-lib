@@ -261,12 +261,12 @@ EOF'''
                                                  python36-nose                                 \
                                                  python36-pip valgrind                         \
                                                  python36-paramiko                             \
-                                                 python2-avocado                               \
-                                                 python2-avocado-plugins-output-html           \
-                                                 python2-avocado-plugins-varianter-yaml-to-mux \
+                                                 python3-avocado                               \
+                                                 python3-avocado-plugins-output-html           \
+                                                 python3-avocado-plugins-varianter-yaml-to-mux \
                                                  libcmocka python-pathlib                      \
-                                                 python2-numpy git                             \
-                                                 python2-clustershell                          \
+                                                 python3-numpy git                             \
+                                                 python3-clustershell                          \
                                                  golang-bin ipmctl ndctl'''
     if (inst_rpms) {
       provision_script += ' ' + inst_rpms
