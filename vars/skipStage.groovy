@@ -272,6 +272,12 @@ boolean call(Map config = [:]) {
             return skip_ftest('leap15', target_branch)
         case "Functional on Ubuntu 20.04":
             return skip_ftest('ubuntu20', target_branch)
+        case "Fault injection testing":
+            return skip_stage_pragma('fault-injection-test') ||
+                   quickFunctional() ||
+                   docOnlyChange(target_branch) ||
+                   skip_stage_pragma('func-test') ||
+                   skip_stage_pragma('func-test-vm')
         case "Test CentOS 7 RPMs":
             return ! params_value('CI_RPMS_el7_TEST', true) ||
                    target_branch == 'weekly-testing' ||
