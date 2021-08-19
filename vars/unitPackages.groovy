@@ -20,16 +20,14 @@ String call() {
     Map stage_info = parseStageInfo()
 
     if (stage_info['target'] == 'centos7') {
-        if (env.STAGE_NAME.contains('Bullseye') ||
-            quickBuild()) {
+        if (quickBuild()) {
             // the script run below will read from this file
             unstash stage_info['target'] + '-required-mercury-rpm-version'
         }
 
         return sh(script: "ci/unit/required_packages.sh " +
                           stage_info['target'] + " " +
-                          String.valueOf(env.STAGE_NAME.contains('Bullseye') ||
-                                         quickBuild()),
+                          String.valueOf(quickBuild()),
                   returnStdout: true)
     } else {
         error 'unitPackages not implemented for ' + stage_info['target']
