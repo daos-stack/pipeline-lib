@@ -24,7 +24,8 @@ boolean call() {
               script: """if \${UNIT_TEST:-false}; then
                              exit 0
                          fi
+                         dnf -y install python3-avocado
                          cd src/tests/ftest
-                         ./list_tests.py """ + parseStageInfo()['test_tag'],
+                         ./launch.py --list """ + parseStageInfo()['test_tag'],
               returnStatus: true) == 0
 }
