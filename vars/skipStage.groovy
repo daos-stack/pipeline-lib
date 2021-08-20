@@ -141,11 +141,16 @@ boolean call(Map config = [:]) {
                     prRepos('centos7') == '') ||
                    skip_stage_pragma('build-centos7-rpm')
         case "Build RPM on CentOS 8":
+        case "Build RPM on CentOS 8.3":
+        case "Build RPM on CentOS 8.4":
             return params_value('CI_RPM_centos8_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos8') == '') ||
                    skip_stage_pragma('build-centos8-rpm')
         case "Build RPM on Leap 15":
+        case "Build RPM on Leap 15.2":
+        case "Build RPM on Leap 15.3":
+        case "Build RPM on Leap 15.4":
             return params_value('CI_RPM_leap15_NOBUILD', false) ||
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
