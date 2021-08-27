@@ -332,7 +332,7 @@ def call(Map pipeline_args) {
                                    script: '''(cd /var/lib/mock/epel-8-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/centos-8.3/)\n''' +
                                               pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "centos-8.3") +
-                                             '\ncreaterepo artifacts/centos_8.3/'
+                                             '\ncreaterepo artifacts/centos-8.3/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
                                                     maturity: 'stable',
