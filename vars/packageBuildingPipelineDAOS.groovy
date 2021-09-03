@@ -320,8 +320,8 @@ def call(Map pipeline_args) {
                         }
                         steps {
                             sh label: "Build package",
-                               script: '''rm -rf artifacts/centos8.3/ artifacts/centos8/
-                                          mkdir -p artifacts/centos8.3/
+                               script: '''rm -rf artifacts/centos-8.3/ artifacts/centos8*
+                                          mkdir -p artifacts/centos-8.3/
                                           make DOT_VER="3" CHROOT_NAME="epel-8-x86_64" ''' +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
@@ -330,14 +330,14 @@ def call(Map pipeline_args) {
                             success {
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/epel-8-x86_64/result/ &&
-                                              cp -r . $OLDPWD/artifacts/centos8.3/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "centos8.3") +
-                                             '\ncreaterepo artifacts/centos8.3/'
+                                              cp -r . $OLDPWD/artifacts/centos-8.3/)\n''' +
+                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "centos-8.3") +
+                                             '\ncreaterepo artifacts/centos-8.3/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
                                                     maturity: 'stable',
                                                     tech: 'centos-8.3',
-                                                    repo_dir: 'artifacts/centos8.3/',
+                                                    repo_dir: 'artifacts/centos-8.3/',
                                                     publish_branch: publish_branch
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
@@ -361,14 +361,14 @@ def call(Map pipeline_args) {
                                                        if [ ! -f $dir/config.log ]; then
                                                            continue
                                                        fi
-                                                       tdir="$OLDPWD/artifacts/centos8.3/autoconf-logs/$dir"
+                                                       tdir="$OLDPWD/artifacts/centos-8.3/autoconf-logs/$dir"
                                                        mkdir -p $tdir
                                                        cp -a $dir/config.log $tdir/
                                                    done
                                                fi)'''
                             }
                             cleanup {
-                                archiveArtifacts artifacts: 'artifacts/centos8.3/**'
+                                archiveArtifacts artifacts: 'artifacts/centos-8.3/**'
                             }
                         }
                     } //stage('Build on CentOS 8.3')
@@ -391,8 +391,8 @@ def call(Map pipeline_args) {
                         }
                         steps {
                             sh label: "Build package",
-                               script: '''rm -rf artifacts/centos8.4/ artifacts/centos8/
-                                          mkdir -p artifacts/centos8.4/
+                               script: '''rm -rf artifacts/centos-8.4/ artifacts/centos8*
+                                          mkdir -p artifacts/centos-8.4/
                                           make DOT_VER="4" CHROOT_NAME="epel-8-x86_64" ''' +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
@@ -401,14 +401,14 @@ def call(Map pipeline_args) {
                             success {
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/epel-8-x86_64/result/ &&
-                                              cp -r . $OLDPWD/artifacts/centos8.4/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "centos8.4") +
-                                             '\ncreaterepo artifacts/centos8.4/'
+                                              cp -r . $OLDPWD/artifacts/centos-8.4/)\n''' +
+                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "centos-8.4") +
+                                             '\ncreaterepo artifacts/centos-8.4/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
                                                     maturity: 'stable',
                                                     tech: 'centos-8.4',
-                                                    repo_dir: 'artifacts/centos8.4/',
+                                                    repo_dir: 'artifacts/centos-8.4/',
                                                     publish_branch: publish_branch
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
@@ -419,7 +419,7 @@ def call(Map pipeline_args) {
                                    script: '''mockroot=/var/lib/mock/epel-8-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
-                                              artdir=$PWD/artifacts/centos8.4
+                                              artdir=$PWD/artifacts/centos-8.4
                                               cp -af _topdir/SRPMS $artdir
                                               (cd $mockroot/result/ &&
                                                cp -r . $artdir)'''
@@ -432,14 +432,14 @@ def call(Map pipeline_args) {
                                                        if [ ! -f $dir/config.log ]; then
                                                            continue
                                                        fi
-                                                       tdir="$OLDPWD/artifacts/centos8.4/autoconf-logs/$dir"
+                                                       tdir="$OLDPWD/artifacts/centos-8.4/autoconf-logs/$dir"
                                                        mkdir -p $tdir
                                                        cp -a $dir/config.log $tdir/
                                                    done
                                                fi)'''
                             }
                             cleanup {
-                                archiveArtifacts artifacts: 'artifacts/centos8.4/**'
+                                archiveArtifacts artifacts: 'artifacts/centos-8.4/**'
                             }
                         }
                     } //stage('Build on CentOS 8.3')
@@ -463,8 +463,8 @@ def call(Map pipeline_args) {
                         }
                         steps {
                             sh label: "Build package",
-                               script: '''rm -rf  artifacts/leap15.2/ artifacts/leap15/
-                                          mkdir -p artifacts/leap15.2/
+                               script: '''rm -rf  artifacts/opensuse-15.2/ artifacts/leap15*
+                                          mkdir -p artifacts/opensuse-15.2/
                                           make CHROOT_NAME="opensuse-leap-15.2-x86_64" ''' +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
@@ -473,14 +473,14 @@ def call(Map pipeline_args) {
                             success {
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/opensuse-leap-15.2-x86_64/result/ &&
-                                              cp -r . $OLDPWD/artifacts/leap15.2/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "leap15.2") +
-                                             '\ncreaterepo artifacts/leap15.2/'
+                                              cp -r . $OLDPWD/artifacts/opensuse-15.2/)\n''' +
+                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "opensuse-15.2") +
+                                             '\ncreaterepo artifacts/opensuse-15.2/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
                                                     maturity: 'stable',
                                                     tech: 'opensuse-15.2',
-                                                    repo_dir: 'artifacts/leap15.2/',
+                                                    repo_dir: 'artifacts/opensuse-15.2/',
                                                     publish_branch: publish_branch
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
@@ -491,7 +491,7 @@ def call(Map pipeline_args) {
                                    script: '''mockroot=/var/lib/mock/opensuse-leap-15.2-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
-                                              artdir=$PWD/artifacts/leap15.2
+                                              artdir=$PWD/artifacts/opensuse-15.2
                                               cp -af _topdir/SRPMS $artdir
                                               (cd $mockroot/result/ &&
                                                cp -r . $artdir)'''
@@ -504,14 +504,14 @@ def call(Map pipeline_args) {
                                                        if [ ! -f $dir/config.log ]; then
                                                            continue
                                                        fi
-                                                       tdir="$OLDPWD/artifacts/leap15.2/autoconf-logs/$dir"
+                                                       tdir="$OLDPWD/artifacts/opensuse-15.2/autoconf-logs/$dir"
                                                        mkdir -p $tdir
                                                        cp -a $dir/config.log $tdir/
                                                    done
                                                fi)'''
                             }
                             cleanup {
-                                archiveArtifacts artifacts: 'artifacts/leap15.2/**'
+                                archiveArtifacts artifacts: 'artifacts/opensuse-15.2/**'
                             }
                         }
                     } //stage('Build on Leap 15.2')
@@ -535,8 +535,8 @@ def call(Map pipeline_args) {
                         }
                         steps {
                             sh label: "Build package",
-                               script: '''rm -rf  artifacts/leap15.3/ artifacts/leap15/
-                                          mkdir -p artifacts/leap15.3/
+                               script: '''rm -rf  artifacts/opensuse-15.3/ artifacts/leap15*
+                                          mkdir -p artifacts/opensuse-15.3/
                                           make CHROOT_NAME="opensuse-leap-15.3-x86_64" ''' +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
@@ -545,14 +545,14 @@ def call(Map pipeline_args) {
                             success {
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/opensuse-leap-15.3-x86_64/result/ &&
-                                              cp -r . $OLDPWD/artifacts/leap15.3/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "leap15.3") +
-                                             '\ncreaterepo artifacts/leap15.3/'
+                                              cp -r . $OLDPWD/artifacts/opensuse-15.3/)\n''' +
+                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "opensuse-15.3") +
+                                             '\ncreaterepo artifacts/opensuse-15.3/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
                                                     maturity: 'stable',
                                                     tech: 'opensuse-15.3',
-                                                    repo_dir: 'artifacts/leap15.3/',
+                                                    repo_dir: 'artifacts/opensuse-15.3/',
                                                     publish_branch: publish_branch
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
@@ -563,7 +563,7 @@ def call(Map pipeline_args) {
                                    script: '''mockroot=/var/lib/mock/opensuse-leap-15.3-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
-                                              artdir=$PWD/artifacts/leap15.3
+                                              artdir=$PWD/artifacts/opensuse-15.3
                                               cp -af _topdir/SRPMS $artdir
                                               (cd $mockroot/result/ &&
                                                cp -r . $artdir)'''
@@ -576,14 +576,14 @@ def call(Map pipeline_args) {
                                                        if [ ! -f $dir/config.log ]; then
                                                            continue
                                                        fi
-                                                       tdir="$OLDPWD/artifacts/leap15.3/autoconf-logs/$dir"
+                                                       tdir="$OLDPWD/artifacts/opensuse-15.3/autoconf-logs/$dir"
                                                        mkdir -p $tdir
                                                        cp -a $dir/config.log $tdir/
                                                    done
                                                fi)'''
                             }
                             cleanup {
-                                archiveArtifacts artifacts: 'artifacts/leap15.3/**'
+                                archiveArtifacts artifacts: 'artifacts/opensuse-15.3/**'
                             }
                         }
                     } //stage('Build on Leap 15.3')
