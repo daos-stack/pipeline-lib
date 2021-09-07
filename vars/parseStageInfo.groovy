@@ -52,10 +52,10 @@ def call(Map config = [:]) {
       result['target'] = hwDistroTarget()
     } else if (stage_name.contains('CentOS 7')) {
       result['target'] = 'centos7'
-    } else if (stage_name.contains('CentOS 8')) {
-      result['target'] = 'centos8'
     } else if (stage_name.contains('CentOS 8.3.2011')) {
       result['target'] = 'centos8.3'
+    } else if (stage_name.contains('CentOS 8')) {
+      result['target'] = 'centos8'
     } else if (stage_name.contains('Leap 15')) {
       result['target'] = 'leap15'
     } else if (stage_name.contains('Ubuntu 18')) {
