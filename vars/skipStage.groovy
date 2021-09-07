@@ -314,6 +314,6 @@ boolean call(Map config = [:]) {
             return env.BULLSEYE == null ||
                    skip_stage_pragma('bullseye', 'true')
         default:
-            error("Don't know how to skip stage \"${env.STAGE_NAME}\"")
+            println("Don't know how to skip stage \"${env.STAGE_NAME}\", not skipping")
     }
 }
