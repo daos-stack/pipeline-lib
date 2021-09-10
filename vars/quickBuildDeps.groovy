@@ -18,7 +18,7 @@ def call(String distro, always=false) {
         }
     }
     if (distro.startsWith('leap15')) {
-        rpmspec_args = "--define dist\\ .suse.lp152 " +
+        rpmspec_args = "--define dist\\ .suse.lp153 " +
                        "--undefine rhel " +
                        "--define suse_version\\ 1502"
     } else if (distro.startsWith('el7') || distro.startsWith('centos7')) {

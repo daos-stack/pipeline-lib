@@ -32,7 +32,7 @@ String rpm_dist(String distro) {
     } else if (distro.startsWith('el8') || distro.startsWith('centos8')) {
         return ".el8"
     } else if (distro.startsWith("leap15")) {
-        return ".suse.lp152"
+        return ".suse.lp153"
     } else {
         error("Don't know what the RPM %{dist} is for ${distro}")
     }
@@ -85,31 +85,14 @@ String call(String distro, String next_version) {
     }
 
     // use the stash after that
-    String distro_stash = distro + '-rpm-version'
-    String exp_mercury_ver = distro + '-required-mercury-rpm-version'
-    String stash_name = distro
-    if (distro.startsWith('opensuse-15')) {
-      stash_name = 'opensuse-' + env.DAOS_STACK_LEAP_15_VERSION
-    } else if (distro.startsWith('centos-8')) {
-      stash_name = 'centos-' + env.DAOS_STACK_CENTOS_8_VERSION
-    }
-    String act_mercury_ver = stash_name + '-required-mercury-rpm-version'
-    stash_name += '-rpm-version'
-    unstash stash_name
-    version = readFile(stash_name).trim()
+    unstash distro + '-rpm-version'
+    version = readFile(distro + '-rpm-version').trim()
     if (version != "") {
         return version
     }
 
-    sh('ls -l ' + stash_name + ' || true; ' +
-       'cat ' + stash_name + ' || true; ' +
-       'if [ ! -e "' + distro_stash + '" ]; then cp ' +
-        stash_name + ' ' + distro_stash + ' || true; fi')
-
-    sh('ls -l ' + act_mercury_ver + ' || true; ' +
-       'cat ' + act_mercury_ver + ' || true; ' +
-       'if [ ! -e "' + exp_mercury_ver + '" ]; then cp ' +
-        act_mercury_ver + ' ' + exp_mercury_ver + ' || true; fi')
+    sh('ls -l ' + distro + '-rpm-version || true; ' +
+       'cat ' + distro + '-rpm-version || true;')
 
     error "Don't know how to determine package version for " + distro
 }
