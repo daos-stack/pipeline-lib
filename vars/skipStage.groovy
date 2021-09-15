@@ -175,7 +175,7 @@ boolean call(Map config = [:]) {
                    quickBuild()
         case "Build on CentOS 7 release":
             return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
-                   skip_stage_pragma('build-centos7-gcc-release') ||
+                   skip_stage_pragma('build-centos7-gcc-release', 'true') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
                    quickBuild()
@@ -234,7 +234,7 @@ boolean call(Map config = [:]) {
                     skip_build_on_centos7_gcc(target_branch) ||
                     skip_stage_pragma('unit-tests')
         case "NLT":
-            return skip_stage_pragma('nlt', 'true')
+            return skip_stage_pragma('nlt')
         case "Unit Test Bullseye":
             return skip_stage_pragma('bullseye', 'true')
         case "Unit Test with memcheck":
