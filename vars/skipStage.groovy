@@ -234,7 +234,7 @@ boolean call(Map config = [:]) {
                     skip_build_on_centos7_gcc(target_branch) ||
                     skip_stage_pragma('unit-tests')
         case "NLT":
-            return skip_stage_pragma('nlt')
+            return skip_stage_pragma('nlt', 'true')
         case "Unit Test Bullseye":
             return skip_stage_pragma('bullseye', 'true')
         case "Unit Test with memcheck":
