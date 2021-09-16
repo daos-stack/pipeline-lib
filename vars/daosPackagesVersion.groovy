@@ -32,7 +32,7 @@ String rpm_dist(String distro) {
     } else if (distro.startsWith('el8') || distro.startsWith('centos8')) {
         return ".el8"
     } else if (distro.startsWith("leap15")) {
-        return ".suse.lp152"
+        return ".suse.lp153"
     } else {
         error("Don't know what the RPM %{dist} is for ${distro}")
     }

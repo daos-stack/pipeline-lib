@@ -118,6 +118,7 @@ boolean call(Map config = [:]) {
     switch(env.STAGE_NAME) {
         case "Pre-build":
             return target_branch == 'weekly-testing' ||
+                   rpmTestVersion() != '' ||
                    quickBuild()
         case "checkpatch":
             String skip = skip_stage_pragma('checkpatch', '')
@@ -174,7 +175,7 @@ boolean call(Map config = [:]) {
                    quickBuild()
         case "Build on CentOS 7 release":
             return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
-                   skip_stage_pragma('build-centos7-gcc-release') ||
+                   skip_stage_pragma('build-centos7-gcc-release', 'true') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
                    quickBuild()
@@ -272,6 +273,12 @@ boolean call(Map config = [:]) {
             return skip_ftest('leap15', target_branch)
         case "Functional on Ubuntu 20.04":
             return skip_ftest('ubuntu20', target_branch)
+        case "Fault injection testing":
+            return skip_stage_pragma('fault-injection-test') ||
+                   quickFunctional() ||
+                   docOnlyChange(target_branch) ||
+                   skip_stage_pragma('func-test') ||
+                   skip_stage_pragma('func-test-vm')
         case "Test CentOS 7 RPMs":
             return ! params_value('CI_RPMS_el7_TEST', true) ||
                    target_branch == 'weekly-testing' ||
@@ -309,6 +316,6 @@ boolean call(Map config = [:]) {
             return env.BULLSEYE == null ||
                    skip_stage_pragma('bullseye', 'true')
         default:
-            error("Don't know how to skip stage \"${env.STAGE_NAME}\"")
+            println("Don't know how to skip stage \"${env.STAGE_NAME}\", not skipping")
     }
 }
