@@ -56,7 +56,9 @@ def call(Map config = [:]) {
   String nodelist = config.get('NODELIST', env.NODELIST)
   String context = config.get('context', 'test/' + env.STAGE_NAME)
   String description = config.get('description', env.STAGE_NAME)
-  String test_script = config.get('test_script', 'ci/rpm_scan_daos_test.sh')
+  String test_script = config.get('test_script', fileExists('ci/rpm/scan_daos.sh') ?
+                                                   'ci/rpm/scan_daos.sh' :
+                                                   'ci/rpm_scan_daos_test.sh')
   String inst_rpms = config.get('inst_rpms', 'clamav clamav-devel')
 
   Map stage_info = parseStageInfo(config)
@@ -71,7 +73,7 @@ def call(Map config = [:]) {
                          config['daos_pkg_version'] + '\n' +
                          test_script
 
-  def junit_files = config.get('junit_files', null)
+  def junit_files = config.get('junit_files', 'maldetect.xml')
   def failure_artifacts = config.get('failure_artifacts', env.STAGE_NAME)
   def ignore_failure = config.get('ignore_failure', false)
   runTest script: full_test_script,

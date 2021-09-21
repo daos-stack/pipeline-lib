@@ -19,7 +19,7 @@ String call() {
 
     Map stage_info = parseStageInfo()
 
-    if (stage_info['target'] == 'centos7') {
+    if (stage_info['target'].startsWith('centos')) {
         if (quickBuild()) {
             // the script run below will read from this file
             unstash stage_info['target'] + '-required-mercury-rpm-version'

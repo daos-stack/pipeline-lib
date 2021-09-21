@@ -24,6 +24,9 @@ def call(String distro, always=false) {
     } else if (distro.startsWith('el7') || distro.startsWith('centos7')) {
         rpmspec_args = "--undefine suse_version " +
                        "--define rhel\\ 7"
+    } else if (distro.startsWith('el8') || distro.startsWith('centos8')) {
+        rpmspec_args = "--undefine suse_version " +
+                       "--define rhel\\ 8"
     } else {
         error("Unknown distro: ${distro} in quickBuildDeps()")
     }
