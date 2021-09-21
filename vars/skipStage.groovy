@@ -316,19 +316,21 @@ boolean call(Map config = [:]) {
             return ! params_value('CI_SCAN_RPMS_el7_TEST', true) ||
                    target_branch == 'weekly-testing' ||
                    skip_stage_pragma('scan-centos-rpms') ||
-                   skip_stage_pragma('scan-centos-7-rpms') ||
+                   skip_stage_pragma('scan-centos-7-rpms', 'true') ||
                    docOnlyChange(target_branch) ||
                    quickFunctional()
         case "Scan CentOS 8 RPMs":
             return ! params_value('CI_SCAN_RPMS_el8_TEST', true) ||
                    target_branch == 'weekly-testing' ||
-                   skip_stage_pragma('scan-centos-8-rpms') ||
+                   skip_stage_pragma('scan-centos-rpms') ||
+                   skip_stage_pragma('scan-centos-8-rpms', 'true') ||
                    docOnlyChange(target_branch) ||
                    quickFunctional()
         case "Scan Leap 15 RPMs":
             return ! params_value('CI_SCAN_RPMS_leap15_TEST', true) ||
                    target_branch == 'weekly-testing' ||
-                   skip_stage_pragma('scan-centos-15-rpms') ||
+                   skip_stage_pragma('scan-centos-rpms') ||
+                   skip_stage_pragma('scan-centos-15-rpms', 'true') ||
                    docOnlyChange(target_branch) ||
                    quickFunctional()
         case "Test Hardware":
