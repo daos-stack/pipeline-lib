@@ -39,6 +39,17 @@ boolean params_value(String parameter, boolean def_value) {
     return param_value
 }
 
+boolean skip_scan_rpms(String distro, String target_branch) {
+    return target_branch == 'weekly-testing' ||
+           skip_stage_pragma('scan-rpms', 'true') ||
+           (distro == 'centos-7' &&
+            (! params_value('CI_SCAN_RPMS_el7_TEST', true)) ||
+            skip_stage_pragma('scan-centos-rpms')) ||
+           skip_stage_pragma('scan-' + distro + '-rpms') ||
+           docOnlyChange(target_branch) ||
+           quickFunctional()
+}
+
 boolean skip_ftest(String distro, String target_branch) {
     // Defaults for skipped stages and pragmas to override them
     // must be checked first before parameters are checked
@@ -313,26 +324,11 @@ boolean call(Map config = [:]) {
                    docOnlyChange(target_branch) ||
                    quickFunctional()
         case "Scan CentOS 7 RPMs":
-            return ! params_value('CI_SCAN_RPMS_el7_TEST', true) ||
-                   target_branch == 'weekly-testing' ||
-                   skip_stage_pragma('scan-centos-rpms') ||
-                   skip_stage_pragma('scan-centos-7-rpms', 'true') ||
-                   docOnlyChange(target_branch) ||
-                   quickFunctional()
+            return skip_scan_rpms('centos-7', target_branch)
         case "Scan CentOS 8 RPMs":
-            return ! params_value('CI_SCAN_RPMS_el8_TEST', true) ||
-                   target_branch == 'weekly-testing' ||
-                   skip_stage_pragma('scan-centos-rpms') ||
-                   skip_stage_pragma('scan-centos-8-rpms', 'true') ||
-                   docOnlyChange(target_branch) ||
-                   quickFunctional()
+            return skip_scan_rpms('centos-8', target_branch)
         case "Scan Leap 15 RPMs":
-            return ! params_value('CI_SCAN_RPMS_leap15_TEST', true) ||
-                   target_branch == 'weekly-testing' ||
-                   skip_stage_pragma('scan-centos-rpms') ||
-                   skip_stage_pragma('scan-centos-15-rpms', 'true') ||
-                   docOnlyChange(target_branch) ||
-                   quickFunctional()
+            return skip_scan_rpms('leap-15', target_branch)
         case "Test Hardware":
             return env.NO_CI_TESTING == 'true' ||
                    skip_stage_pragma('func-test') ||

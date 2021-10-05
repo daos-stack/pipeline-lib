@@ -37,14 +37,20 @@ def call(Map config = [:]) {
   stashes.each {
     try {
       unstash it
-      } catch(Exception ex) {
-         println("Ignoring failure to unstash ${it}.  Perhaps the stage was skipped?")
-      }
+      stash_cnt++
+    } catch(Exception ex) {
+      println("Ignoring failure to unstash ${it}.  Perhaps the stage was skipped?")
+    }
   }
 
-  def ignore_failure = config.get('ignore_failure', false)
+  if (stash_cnt < 1) {
+    println("No valgrind XML files found, skipping valgrind publishing")
+    return
+  }
 
-  def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
+  boolean ignore_failure = config.get('ignore_failure', false)
+
+  String valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
   def cb_result = currentBuild.result
   publishValgrind failBuildOnInvalidReports: true,
                   failBuildOnMissingReports: !ignore_failure,
