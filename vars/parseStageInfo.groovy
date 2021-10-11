@@ -183,7 +183,7 @@ def call(Map config = [:]) {
                 if (env.BRANCH_NAME.startsWith("weekly-testing")) {
                   tag = "full_regression"
                 } else {
-                  tag = "daily_regression"
+                  tag = "pr daily_regression"
                 }
               } else {
                 // Must be a PR run
