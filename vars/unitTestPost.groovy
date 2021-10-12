@@ -33,14 +33,25 @@ def call(Map config = [:]) {
 
   String always_script = config.get('always_script',
                                     'ci/unit/test_post_always.sh')
+
+  //////////////////////////////////////////////////////////
+  println "TRACE: unitTestPost\n"
+  echo "TRACE: find config['testResults']\n"
+  sh "find " + config['testResults']
+  echo "TRACE: pwd\n"
+  sh "pwd"
+  //////////////////////////////////////////////////////////
+
   sh label: 'Job Cleanup',
      script: always_script
 
   Map stage_info = parseStageInfo(config)
 
   if (config['testResults'] != 'None' ) {
+    println "TRACE: unitTestPost.groovy:51\n"
     double health_scale = 1.0
     if (config['ignore_failure']) {
+      println "TRACE: unitTestPost.groovy:54\n"
       health_scale = 0.0
     }
 
@@ -49,11 +60,14 @@ def call(Map config = [:]) {
           healthScaleFactor: health_scale
 
     if (cb_result != currentBuild.result) {
+      println "TRACE: unitTestPost.groovy:63\n"
       println "The junit plugin changed result to ${currentBuild.result}."
     }
   }
 
   if (stage_info['with_valgrind']) {
+    println "TRACE: unitTestPost.groovy:69\n"
+
     // NLT Valgrind testing
     String target_dir = "unit_test_memcheck_logs"
     String src_files = "unit-test-*.memcheck.xml"
@@ -83,26 +97,31 @@ def call(Map config = [:]) {
   def artifact_list = config.get('artifacts', ['run_test.sh/*'])
   def ignore_failure = config.get('ignore_failure', false)
   artifact_list.each {
+    println "TRACE: unitTestPost.groovy:100\n"
     archiveArtifacts artifacts: it,
                      allowEmptyArchive: ignore_failure
   }
 
   def target_stash = "${stage_info['target']}-${stage_info['compiler']}"
   if (stage_info['build_type']) {
+    println "TRACE: unitTestPost.groovy:107\n"
     target_stash += '-' + stage_info['build_type']
   }
 
   // Coverage instrumented tests and Vagrind are probably mutually exclusive
   if (stage_info['compiler'] == 'covc') {
+    println "TRACE: unitTestPost.groovy:113\n"
     return
   }
 
   if (config['valgrind_stash']) {
+    println "TRACE: unitTestPost.groovy:118\n"
     def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
     stash name: config['valgrind_stash'], includes: valgrind_pattern
   }
 
   if (stage_info['NLT']) {
+    println "TRACE: unitTestPost.groovy:124\n"
     def cb_result = currentBuild.result
     discoverGitReferenceBuild referenceJob: config.get('referenceJobName',
                                               'daos-stack/daos/master'),
@@ -125,6 +144,7 @@ def call(Map config = [:]) {
                                id: 'VM_test')
 
     if (cb_result != currentBuild.result) {
+      println "TRACE: unitTestPost.groovy:147\n"
       println "The recordIssues step changed result to ${currentBuild.result}."
     }
   }
