@@ -53,7 +53,8 @@ def call(Map config = [:]) {
     }
   }
 
-  if(stage_info['with_valgrind']) {
+  if (stage_info['with_valgrind']) {
+    // NLT Valgrind testing
     String target_dir = "unit_test_memcheck_logs"
     String src_files = "unit-test-*.memcheck.xml"
     fileOperations([fileCopyOperation(excludes: '',
@@ -61,6 +62,22 @@ def call(Map config = [:]) {
                                       includes: src_files,
                                       targetLocation: target_dir)])
     sh "tar -czf ${target_dir}.tar.gz ${target_dir}"
+
+    //////////////////////////////
+    // TRACING
+    sh "echo 'find .'"
+    sh "find ."
+    //////////////////////////////
+
+    // CaRT Valgrind testing
+    target_dir = "valgrind_logs"
+    src_files = "valgrind.*.memcheck.xml"
+    fileOperations([fileCopyOperation(excludes: '',
+                                      flattenFiles: false,
+                                      includes: src_files,
+                                      targetLocation: target_dir)])
+    sh "tar -czf ${target_dir}.tar.gz ${target_dir}"
+
   }
 
   def artifact_list = config.get('artifacts', ['run_test.sh/*'])
