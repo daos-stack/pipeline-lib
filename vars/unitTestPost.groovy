@@ -36,8 +36,10 @@ def call(Map config = [:]) {
 
   //////////////////////////////////////////////////////////
   println "TRACE: unitTestPost\n"
-  echo "TRACE: find config['testResults']\n"
-  sh "find " + config['testResults']
+  echo "TRACE: find \"config['testResults']\"\n"
+  sh "find \"" + config['testResults'] + "\" || :"
+  echo "TRACE: find .\n"
+  sh "find ."
   echo "TRACE: pwd\n"
   sh "pwd"
   //////////////////////////////////////////////////////////
