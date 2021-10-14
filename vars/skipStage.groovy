@@ -55,7 +55,8 @@ boolean skip_ftest(String distro, String target_branch) {
     // must be checked first before parameters are checked
     // because the defaults are based on which branch
     // is being run.
-    if (run_default_skipped_stage('func-test-' + distro)) {
+    if (run_default_skipped_stage('func-test-' + distro) ||
+        run_default_skipped_stage('func-test-vm-all')) {
         // Forced to run due to a (Skip) pragma set to false
         return false
     }
@@ -67,6 +68,7 @@ boolean skip_ftest(String distro, String target_branch) {
            distro == 'ubuntu20' ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||
+           skip_stage_pragma('func-test-vm-all') ||
            ! testsInStage() ||
            skip_stage_pragma('func-test-' + distro) ||
            (docOnlyChange(target_branch) &&
@@ -294,7 +296,9 @@ boolean call(Map config = [:]) {
         case "Functional on Leap 15":
             return skip_ftest('leap15', target_branch)
         case "Functional on Ubuntu 20.04":
-            return skip_ftest('ubuntu20', target_branch)
+            /* we don't do any testing on Ubuntu yet
+            skip_ftest('ubuntu20', target_branch) */
+            return true
         case "Fault injection testing":
             return skip_stage_pragma('fault-injection-test') ||
                    quickFunctional() ||
@@ -305,24 +309,30 @@ boolean call(Map config = [:]) {
             return ! params_value('CI_RPMS_el7_TEST', true) ||
                    target_branch == 'weekly-testing' ||
                    skip_stage_pragma('test') ||
+                   skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-centos-rpms') ||
                    skip_stage_pragma('test-centos-7-rpms') ||
                    docOnlyChange(target_branch) ||
-                   quickFunctional()
+                   (quickFunctional() &&
+                    ! run_default_skipped_stage('test-centos-7-rpms'))
         case "Test CentOS 8.3.2011 RPMs":
             return ! params_value('CI_RPMS_el8.3.2011_TEST', true) ||
                    target_branch == 'weekly-testing' ||
                    skip_stage_pragma('test') ||
+                   skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-centos-8.3-rpms') ||
                    docOnlyChange(target_branch) ||
-                   quickFunctional()
+                   (quickFunctional() &&
+                    ! run_default_skipped_stage('test-centos-8.3-rpms'))
         case "Test Leap 15 RPMs":
             return ! params_value('CI_RPMS_leap15_TEST', true) ||
                    target_branch == 'weekly-testing' ||
                    skip_stage_pragma('test') ||
+                   skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-leap-15-rpms') ||
                    docOnlyChange(target_branch) ||
-                   quickFunctional()
+                   (quickFunctional() &&
+                    ! run_default_skipped_stage('test-leap-15-rpms'))
         case "Scan CentOS 7 RPMs":
             return skip_scan_rpms('centos-7', target_branch)
         case "Scan CentOS 8 RPMs":
