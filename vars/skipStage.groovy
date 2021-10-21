@@ -196,7 +196,7 @@ boolean call(Map config = [:]) {
                    quickBuild()
         case "Build on CentOS 7 release":
             return params_value('CI_BUILD_PACKAGES_ONLY', false) ||
-                   skip_stage_pragma('build-centos7-gcc-release', 'true') ||
+                   skip_stage_pragma('build-centos7-gcc-release') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
                    quickBuild()
