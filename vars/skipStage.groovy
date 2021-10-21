@@ -92,7 +92,8 @@ boolean skip_ftest_hw(String size, String target_branch) {
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-hw-test-' + size) ||
            ! testsInStage() ||
-           (env.BRANCH_NAME == 'master' &&
+           ((env.BRANCH_NAME == 'master' ||
+             env.BRANCH_NAME.startsWith('release/')) &&
             ! (startedByTimer() || startedByUser())) ||
            (docOnlyChange(target_branch) &&
             prRepos(hwDistroTarget(size)) == '')
