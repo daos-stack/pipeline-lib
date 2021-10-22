@@ -240,13 +240,11 @@ def call(Map pipeline_args) {
                             }
                         }
                         agent {
-                            dockerfile {
-                                filename 'packaging/Dockerfile.mockbuild'
+                            docker {
                                 label 'docker_runner'
-                                args  '--group-add mock' +
-                                      ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true'
-                                additionalBuildArgs dockerBuildArgs()
+                                image 'fedorapackaging/builder:fedora32'
+                                args '--privileged=true' +
+                                     ' -v $HOME:/home/build'
                             }
                         }
                         steps {
@@ -547,11 +545,10 @@ def call(Map pipeline_args) {
                         }
                         agent {
                             dockerfile {
-                                filename 'packaging/Dockerfile.mockbuild'
                                 label 'docker_runner'
-                                args  '--group-add mock' +
-                                      ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true'
+                                filename 'packaging/Dockerfile.mockbuild-new'
+                                args ' --privileged=true' +
+                                     ' -v $HOME:/home/build'
                                 additionalBuildArgs dockerBuildArgs()
                             }
                         }
@@ -744,13 +741,11 @@ def call(Map pipeline_args) {
                             }
                         }
                         agent {
-                            dockerfile {
-                                filename 'packaging/Dockerfile.mockbuild'
-                                label 'docker_runner'
+                            docker {
+                                image 'fedorapackaging/builder:fedora32'
                                 args  ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true' +
-                                      ' -u 0'
-                                additionalBuildArgs dockerBuildArgs()
+                                      ' --privileged=true' //+
+                                      //' -u 0'
                             }
                         }
                         steps {
