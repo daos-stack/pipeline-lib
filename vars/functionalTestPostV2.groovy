@@ -1,7 +1,7 @@
 // vars/functionalTestPostV2.groovy
 
   /**
-   * functionalTestPost step method
+   * functionalTestPostV2 step method
    *
    * @param config Map of parameters passed
    *
@@ -13,12 +13,17 @@
    *
    * config['testResults']         Junit test result files.
    *                               Default env.STAGE_NAME subdirectories
+   *
+   * config['NODELIST']            The list of nodes the test was run on.
+   *                               Default env.NODELIST.
    */
 
 def call(Map config = [:]) {
 
+    String nodelist = config.get('NODELIST', env.NODELIST)
     String always_script = config.get('always_script',
-                                      'ci/functional/job_cleanup.sh')
+                                      'NODELIST="' + nodelist +
+                                      '" ci/functional/job_cleanup.sh')
     String rc = sh label: "Job Cleanup",
                    script: always_script,
                    returnStatus: true
