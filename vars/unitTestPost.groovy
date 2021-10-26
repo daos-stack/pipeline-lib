@@ -8,6 +8,9 @@
    * config['always_script']       Script to run after any test.
    *                               Default 'ci/unit/test_post_always.sh'.
    *
+   * config['skip_post_script']    Skip the running of always_script.
+   *                               Default false.
+   *
    * TODO: Always provided, should make required
    * config['artifacts']           Artifacts to archive.
    *                               Default ['run_test.sh/*']
@@ -32,20 +35,24 @@
 def call(Map config = [:]) {
 
   String always_script = config.get('always_script',
-                                    'ci/unit/test_post_always.sh')
+                                        'ci/unit/test_post_always.sh')
 
-  //////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////
   println "TRACE: unitTestPost\n"
+  println "TRACE: config['skip_post_script']" + config['skip_post_script'] + "\n"
+
   echo "TRACE: find \"config['testResults']\"\n"
   sh "find \"" + config['testResults'] + "\" || :"
   echo "TRACE: find .\n"
   sh "find ."
   echo "TRACE: pwd\n"
   sh "pwd"
-  //////////////////////////////////////////////////////////
+  ////////////////////////////////////////////////////////////////////////////////
 
-  sh label: 'Job Cleanup',
-     script: always_script
+  if (!config['skip_post_script']) {
+    sh label: 'Job Cleanup',
+       script: always_script
+  }
 
   Map stage_info = parseStageInfo(config)
 
@@ -58,6 +65,11 @@ def call(Map config = [:]) {
     }
 
     def cb_result = currentBuild.result
+
+    ////////////////////////////////////////////////////////////////////////////////
+    println "TRACE: cb_result " + cb_result + "\n"
+    ////////////////////////////////////////////////////////////////////////////////
+
     junit testResults: config.get('testResults', 'test_results/*.xml'),
           healthScaleFactor: health_scale
 
