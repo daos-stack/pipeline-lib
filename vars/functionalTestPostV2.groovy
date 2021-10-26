@@ -26,9 +26,9 @@ def call(Map config = [:]) {
     String nodelist = config.get('NODELIST', env.NODELIST)
     String remote_acct = config.get('remote_acct', 'jenkins')
     String always_script = config.get('always_script',
-                                      'NODELIST="' + nodelist +
-                                      'REMOTE_ACCT="' + remote_acct +
-                                      '" ci/functional/job_cleanup.sh')
+                                      'NODELIST="' + nodelist + '" ' +
+                                      'REMOTE_ACCT="' + remote_acct + '" ' +
+                                      'ci/functional/job_cleanup.sh')
     String rc = sh label: "Job Cleanup",
                    script: always_script,
                    returnStatus: true
