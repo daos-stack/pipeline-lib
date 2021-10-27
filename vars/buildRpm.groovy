@@ -52,7 +52,8 @@ def call(Map config = [:]) {
   checkoutScm withSubmodules: true
 
   def env_vars = ''
-  env_vars = ' TARGET=' + stage_info['target']
+  env_vars = ' TARGET=' + stage_info['target'] +
+             ' CI_TARGET=' + stage_info['ci_target']
   if (config['chroot_name']) {
     env_vars = ' CHROOT_NAME=' + config_info['chroot_name']
   }

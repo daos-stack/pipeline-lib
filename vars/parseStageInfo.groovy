@@ -35,6 +35,7 @@
  * config['test_tag']          Avocado tag to test.
  *                             Default determined by this function below.
  */
+
 def call(Map config = [:]) {
 
   Map result = [:]
@@ -43,6 +44,8 @@ def call(Map config = [:]) {
   if (env.STAGE_NAME) {
     stage_name = env.STAGE_NAME
   }
+
+  String new_ci_target = ''
   if (config['target']) {
     result['target'] = config['target']
   } else if (env.TARGET) {
@@ -51,24 +54,30 @@ def call(Map config = [:]) {
     if (env.STAGE_NAME.contains('Hardware')) {
       result['target'] = hwDistroTarget()
     } else if (stage_name.contains('CentOS 7')) {
-      result['target'] = cachedCommitPragma('EL7-target', 'centos7')
+      result['target'] = 'centos7'
+      new_ci_target = cachedCommitPragma('EL7-target', result['target'])
     } else if (stage_name.contains('CentOS 8.3.2011')) {
-      result['target'] = cachedCommitPragma('EL8.3-target', 'centos8.3')
+      result['target'] = 'centos8.3'
+      new_ci_target = cachedCommitPragma('EL8.3-target', result['target'])
     } else if (stage_name.contains('CentOS 8')) {
-      result['target'] = cachedCommitPragma('EL8-target', 'centos8')
+      result['target'] = 'centos8'
+      new_ci_target = cachedCommitPragma('EL8-target', result['target'])
     } else if (stage_name.contains('Leap 15')) {
-      result['target'] = cachedCommitPragma('LEAP15-target', 'leap15')
+      result['target'] = 'leap15'
+      new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
     } else if (stage_name.contains('Ubuntu 18')) {
-      result['target'] = cachedCommitPragma('UBUNTU18-target', 'ubuntu18.04')
+      result['target'] = 'ubuntu18.04'
+      new_ci_target = cachedCommitPragma('UBUNTU18-target', result['target'])
     } else if (stage_name.contains('Ubuntu 20')) {
-      result['target'] = cachedCommitPragma('UBUNTU20-target', 'ubuntu20.04')
+      result['target'] = 'ubuntu20.04'
+      new_ci_target = cachedCommitPragma('UBUNTU20-target', result['target'])
     } else {
       echo "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7"
     }
   }
-  String new_ci_target = params['CI_' +
-                                result['target'].toString().toUpperCase() +
-                                '_TARGET']
+  new_ci_target = paramsValue('CI_' +
+                              result['target'].toString().toUpperCase() +
+                              '_TARGET', new_ci_target)
   if (new_ci_target) {
     result['ci_target'] = new_ci_target
   } else {
