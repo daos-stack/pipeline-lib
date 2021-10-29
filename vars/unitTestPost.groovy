@@ -104,8 +104,9 @@ def call(Map config = [:]) {
                                       includes: src_files,
                                       targetLocation: target_dir)])
 
-    # target_dir may not exist, if there were no src_files
-    if (target_dir.exists()) {
+    // target_dir may not exist, if there were no src_files
+    tf = new File(target_dir)
+    if (tf.exists()) {
       println "TRACE: unitTestPost.groovy:109\n"
       sh "tar -czf ${target_dir}.tar.gz ${target_dir}"
     }
@@ -118,8 +119,9 @@ def call(Map config = [:]) {
                                       includes: src_files,
                                       targetLocation: target_dir)])
 
-    # target_dir may not exist, if there were no src_files
-    if (target_dir.exists()) {
+    // target_dir may not exist, if there were no src_files
+    tf = new File(target_dir)
+    if (tf.exists()) {
       println "TRACE: unitTestPost.groovy:123\n"
       sh "tar -czf ${target_dir}.tar.gz ${target_dir}"
     }
