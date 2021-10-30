@@ -109,7 +109,7 @@ def call(Map config = [:]) {
     println "TRACE: unitTestPost.groovy:109\n"
 
     tar_cmd = "tar -czf ${target_dir}.tar.gz ${target_dir}"
-    rc = sh(tar_cmd, returnStatus: true)
+    rc = sh(script: tar_cmd, returnStatus: true)
     if (rc != 0) {
       log_msg = String.format("tar command '%s' returned rc=%d\n", tar_cmd, rc)
       println log_msg
@@ -126,7 +126,7 @@ def call(Map config = [:]) {
     println "TRACE: unitTestPost.groovy:126\n"
 
     tar_cmd = "tar -czf ${target_dir}.tar.gz ${target_dir}"
-    rc = sh(tar_cmd, returnStatus: true)
+    rc = sh(script: tar_cmd, returnStatus: true)
     if (rc != 0) {
       log_msg = String.format("tar command '%s' returned rc=%d\n", tar_cmd, rc)
       println log_msg
