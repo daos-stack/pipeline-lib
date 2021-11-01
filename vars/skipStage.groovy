@@ -314,6 +314,7 @@ boolean call(Map config = [:]) {
                    docOnlyChange(target_branch) ||
                    (quickFunctional() &&
                     ! run_default_skipped_stage('test-centos-8.3-rpms'))
+        case "Test Leap 15 RPMs":
         case "Test Leap 15.2 RPMs":
             // Skip by default as it doesn't pass with Leap15.3 due to
             // requiring a newer glibc

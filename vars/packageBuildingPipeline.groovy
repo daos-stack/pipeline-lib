@@ -127,14 +127,24 @@ def call(Map pipeline_args) {
                         }
                         steps {
                             sh label: "SPEC file sanity check",
-                               script: '[ "$(make ' +
+                               script: 'if ! result="$(make ' +
                                        pipeline_args.get('make args', '') +
-                                       ' CHROOT_NAME=epel-7-x86_64 show_sources)" != "" ]'
+                                       '''  CHROOT_NAME=epel-7-x86_64 show_sources)"; then
+                                            rc=${PIPESTATUS[0]}
+                                            echo "Got an error from make show_sources!"
+                                                exit "$rc"
+                                        fi
+                                        if [ "$result" = "" ]; then
+                                            exit 1
+                                        fi'''
                         }
                         post {
                             unsuccessful {
                                 sh label: "Diagnose SPEC file sanity check failure",
-                                   script: '''set +x
+                                   script: 'make ' +
+                                           pipeline_args.get('make args', '') +
+                                           ' CHROOT_NAME=epel-7-x86_64 show_sources || true' +
+                                           '''set -x
                                               eval args=($(make ''' +
                                               pipeline_args.get('make args', '') + ' ' +
                                            '''show_common_rpm_args 2>/dev/null))
@@ -251,7 +261,7 @@ def call(Map pipeline_args) {
                                script: '''rm -rf artifacts/centos7/
                                           mkdir -p artifacts/centos7/
                                           make CHROOT_NAME="epel-7-x86_64" ''' +
-                                              'TARGET=' + parseStageInfo()['ci_target'][6..-1] + " " +
+                                              'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + " " +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
                         }
@@ -327,7 +337,7 @@ def call(Map pipeline_args) {
                                script: '''rm -rf artifacts/centos8/
                                           mkdir -p artifacts/centos8/
                                           make CHROOT_NAME="epel-8-x86_64" ''' +
-                                              'TARGET=' + parseStageInfo()['ci_target'][6..-1] + " " +
+                                              'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + " " +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
                         }
@@ -404,7 +414,7 @@ def call(Map pipeline_args) {
                                script: '''rm -rf artifacts/leap15/
                                           mkdir -p artifacts/leap15/
                                           make CHROOT_NAME="opensuse-leap-15.3-x86_64" ''' +
-                                              'TARGET=' + parseStageInfo()['ci_target'][4..-1] + " " +
+                                              'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + " " +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
                         }

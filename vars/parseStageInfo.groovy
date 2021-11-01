@@ -50,26 +50,35 @@ def call(Map config = [:]) {
     result['target'] = config['target']
   } else if (env.TARGET) {
     result['target'] = env.TARGET
+    result['distro_version'] = '7'
   } else {
     if (env.STAGE_NAME.contains('Hardware')) {
-      result['target'] = hwDistroTarget()
+      res = hwDistroTarget2()
+      result['target'] = res[0] + res[1]
+      result['distro_version'] = res[1]
     } else if (stage_name.contains('CentOS 7')) {
       result['target'] = 'centos7'
+      result['distro_version'] = cachedCommitPragma('EL7-version', '7')
       new_ci_target = cachedCommitPragma('EL7-target', result['target'])
     } else if (stage_name.contains('CentOS 8.3.2011')) {
       result['target'] = 'centos8.3'
+      result['distro_version'] = cachedCommitPragma('EL8.3-version', '8.3')
       new_ci_target = cachedCommitPragma('EL8.3-target', result['target'])
     } else if (stage_name.contains('CentOS 8')) {
       result['target'] = 'centos8'
+      result['distro_version'] = cachedCommitPragma('EL8-version', '8')
       new_ci_target = cachedCommitPragma('EL8-target', result['target'])
     } else if (stage_name.contains('Leap 15')) {
       result['target'] = 'leap15'
+      result['distro_version'] = cachedCommitPragma('LEAP15-version', '15')
       new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
     } else if (stage_name.contains('Ubuntu 18')) {
       result['target'] = 'ubuntu18.04'
+      result['distro_version'] = cachedCommitPragma('UBUNTU18-version', '18.04')
       new_ci_target = cachedCommitPragma('UBUNTU18-target', result['target'])
     } else if (stage_name.contains('Ubuntu 20')) {
       result['target'] = 'ubuntu20.04'
+      result['distro_version'] = cachedCommitPragma('UBUNTU20-version', '20.04')
       new_ci_target = cachedCommitPragma('UBUNTU20-target', result['target'])
     } else {
       echo "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7"
