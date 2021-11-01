@@ -118,8 +118,19 @@ def call(Map config = [:]) {
     // CaRT Valgrind testing
     target_dir = "valgrind_logs"
     src_files = "Functional on CentOS 8 with Valgrind/cart/*/valgrind.*.memcheck.xml"
+
+    ////////////////////////////////////////////////////////////////////////////////
+    echo "TRACE: find \"target_dir\" (line 123)\n"
+    sh "find \"" + target_dir  + "\" || :"
+    echo "TRACE: find . (line 123)\n"
+    sh "find ."
+    echo "TRACE: pwd (line 123)\n"
+    sh "pwd"
+    ////////////////////////////////////////////////////////////////////////////////
+
     fileOperations([fileCopyOperation(excludes: '',
-                                      flattenFiles: false,
+                                      flattenFiles: true,
+                                      renameFiles: true,
                                       includes: src_files,
                                       targetLocation: target_dir)])
 
