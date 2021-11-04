@@ -134,6 +134,15 @@ def call(Map config = [:]) {
                                       includes: src_files,
                                       targetLocation: target_dir)])
 
+    ////////////////////////////////////////////////////////////////////////////////
+    echo "TRACE: find \"target_dir\" (line 138)\n"
+    sh "find \"" + target_dir  + "\" || :"
+    echo "TRACE: find . (line 138)\n"
+    sh "find ."
+    echo "TRACE: pwd (line 138)\n"
+    sh "pwd"
+    ////////////////////////////////////////////////////////////////////////////////
+
     println "TRACE: unitTestPost.groovy:126\n"
 
     tar_cmd = "tar -czf ${target_dir}.tar.gz ${target_dir}"
