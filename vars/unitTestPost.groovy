@@ -117,7 +117,7 @@ def call(Map config = [:]) {
 
     // CaRT Valgrind testing
     target_dir = "valgrind_logs"
-    src_files = "Functional on CentOS 8 with Valgrind/cart/*/valgrind.*.memcheck.xml"
+    src_files = "Functional on CentOS 8 with Valgrind/cart/*/valgrind_logs/valgrind.*.memcheck.xml"
 
     ////////////////////////////////////////////////////////////////////////////////
     echo "TRACE: find \"target_dir\" (line 123)\n"
