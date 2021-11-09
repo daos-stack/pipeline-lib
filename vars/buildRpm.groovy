@@ -39,9 +39,9 @@
 
 def call(Map config = [:]) {
 
-  def context = config.get('context', 'build/' + env.STAGE_NAME)
-  def description = config.get('description', env.STAGE_NAME)
-  def build_script = config.get('build_script', 'ci/rpm/build.sh')
+  String context = config.get('context', 'build/' + env.STAGE_NAME)
+  String description = config.get('description', env.STAGE_NAME)
+  String build_script = config.get('build_script', 'ci/rpm/build.sh')
 
   Map stage_info = parseStageInfo(config)
 
@@ -51,14 +51,15 @@ def call(Map config = [:]) {
 
   checkoutScm withSubmodules: true
 
-  def env_vars = ''
-  env_vars = ' TARGET=' + stage_info['target']
+  String env_vars = ''
+  env_vars = ' TARGET=' + stage_info['target'] +
+             ' DISTRO_VERSION=' + stage_info['distro_version']
   if (config['chroot_name']) {
     env_vars = ' CHROOT_NAME=' + config_info['chroot_name']
   }
 
-  def error_stage_result = 'FAILURE'
-  def error_build_result = 'FAILURE'
+  String error_stage_result = 'FAILURE'
+  String error_build_result = 'FAILURE'
   if (config['unstable']) {
     error_stage_result = 'UNSTABLE'
     error_build_result = 'SUCCESS'
@@ -66,7 +67,7 @@ def call(Map config = [:]) {
   catchError(stageResult: error_stage_result,
              buildResult: error_build_result) {
     // flow_name used as the label for this step to allow log lookup.
-    def rc = sh label: config.get('flow_name', env.STAGE_NAME),
+    int rc = sh label: config.get('flow_name', env.STAGE_NAME),
                 script: "${env_vars} " + build_script
   }
 }
