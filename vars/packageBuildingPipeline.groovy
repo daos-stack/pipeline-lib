@@ -556,7 +556,7 @@ def call(Map pipeline_args) {
                             sh label: "Build package",
                                script: '''rm -rf artifacts/leap15/
                                           mkdir -p artifacts/leap15/
-                                          make CHROOT_NAME="opensuse-leap-15.3-x86_64" ''' +
+                                          make CHROOT_NAME="opensuse-leap-15.2-x86_64" ''' +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
                         }
@@ -564,10 +564,10 @@ def call(Map pipeline_args) {
                             success {
                                 catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS') {
                                     sh label: "RPM Lint artifacts",
-                                       script: 'rpmlint /var/lib/mock/opensuse-leap-15.3-x86_64/result/*.rpm'
+                                       script: 'rpmlint /var/lib/mock/opensuse-leap-15.2-x86_64/result/*.rpm'
                                 }
                                 sh label: "Collect artifacts",
-                                   script: '''(cd /var/lib/mock/opensuse-leap-15.3-x86_64/result/ &&
+                                   script: '''(cd /var/lib/mock/opensuse-leap-15.2-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/leap15/)\n''' +
                                               pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "leap15") +
                                              '\ncreaterepo artifacts/leap15/'
@@ -583,7 +583,7 @@ def call(Map pipeline_args) {
                             }
                             unsuccessful {
                                 sh label: "Build Log",
-                                   script: '''mockroot=/var/lib/mock/opensuse-leap-15.3-x86_64
+                                   script: '''mockroot=/var/lib/mock/opensuse-leap-15.2-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
                                               artdir=$PWD/artifacts/leap15

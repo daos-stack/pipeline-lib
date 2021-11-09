@@ -38,7 +38,7 @@
 def call(Map config = [:]) {
 
   Map result = [:]
-  result['target'] = 'centos7'
+  result['target'] = cachedCommitPragma('EL7-target', 'centos7')
   String stage_name = ''
   if (env.STAGE_NAME) {
     stage_name = env.STAGE_NAME
@@ -51,17 +51,17 @@ def call(Map config = [:]) {
     if (env.STAGE_NAME.contains('Hardware')) {
       result['target'] = hwDistroTarget()
     } else if (stage_name.contains('CentOS 7')) {
-      result['target'] = 'centos7'
+      result['target'] = cachedCommitPragma('EL7-target', 'centos7')
     } else if (stage_name.contains('CentOS 8.3.2011')) {
-      result['target'] = 'centos8.3'
+      result['target'] = cachedCommitPragma('EL8.3-target', 'centos8.3')
     } else if (stage_name.contains('CentOS 8')) {
-      result['target'] = 'centos8'
+      result['target'] = cachedCommitPragma('EL8-target', 'centos8')
     } else if (stage_name.contains('Leap 15')) {
-      result['target'] = 'leap15'
+      result['target'] = cachedCommitPragma('LEAP15-target', 'leap15')
     } else if (stage_name.contains('Ubuntu 18')) {
-      result['target'] = 'ubuntu18.04'
+      result['target'] = cachedCommitPragma('UBUNTU18-target', 'ubuntu18.04')
     } else if (stage_name.contains('Ubuntu 20')) {
-      result['target'] = 'ubuntu20.04'
+      result['target'] = cachedCommitPragma('UBUNTU20-target', 'ubuntu20.04')
     } else {
       echo "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7"
     }
@@ -183,7 +183,7 @@ def call(Map config = [:]) {
                 if (env.BRANCH_NAME.startsWith("weekly-testing")) {
                   tag = "full_regression"
                 } else {
-                  tag = "daily_regression"
+                  tag = "pr daily_regression"
                 }
               } else {
                 // Must be a PR run

@@ -15,7 +15,7 @@ String hw_distro(String size) {
     //'leap15
     //'centos7
     //'centos8
-    String distro = 'centos7'
+    String distro = cachedCommitPragma('EL7-target', 'centos7')
     if (params.CI_HARDWARE_DISTRO) {
         distro = params.CI_HARDWARE_DISTRO
     }
