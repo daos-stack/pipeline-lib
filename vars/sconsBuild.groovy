@@ -71,14 +71,10 @@ def call(Map config = [:]) {
    */
 
     String config_target
-    /* not sure what this is supposed to do but it causes an error:
-    + cd el8.4
-    /var/lib/jenkins/jenkins-1/docker_1/workspace/daos-stack_daos_PR-7004@4@tmp/durable-f9d65df2/script.sh: line 3: cd: el8.4: No such file or directory
     if (config['target']) {
       config_target = config['target']
       config.remove('target')
     }
-    */
     Map stage_info = parseStageInfo(config)
 
     String tee_file = '| tee $WORKSPACE/' + stage_info['log_to_file']
