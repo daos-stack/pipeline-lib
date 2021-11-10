@@ -65,7 +65,7 @@ def call(Map config = [:]) {
 
   provisionNodes NODELIST: nodelist,
                  node_count: 1,
-                 distro: stage_info['ci_target'],
+                 distro: (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpmms: inst_rpms
 
