@@ -65,7 +65,7 @@ boolean skip_ftest(String distro, String target_branch) {
     // The params.CI_MORE_FUNCTIONAL_PR_TESTS allows enabling
     // tests that are not run in PRs.
     params_value = ! paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true)
-    def distro_map[el7: 'centos7', el8: 'centos8', leap15: 'leap15']
+    Map distro_map = ['el7': 'centos7', 'el8': 'centos8', 'leap15': 'leap15']
     return params_value ||
            distro == 'ubuntu20' ||
            skip_stage_pragma('build-' + distro_map[distro] + '-rpm') ||
