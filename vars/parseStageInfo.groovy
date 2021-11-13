@@ -56,7 +56,7 @@ def call(Map config = [:]) {
       res = hwDistroTarget2()
       result['target'] = res[0] + res[1]
       result['distro_version'] = res[1]
-    } else if (stage_name.contains('CentOS 8 Stream')) {
+    } else if (stage_name.contains('CentOS Stream 8')) {
       result['target'] = 'centos8s'
       result['distro_version'] = '8'
       new_ci_target = result['target']
