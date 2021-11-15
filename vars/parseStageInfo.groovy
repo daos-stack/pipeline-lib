@@ -70,7 +70,7 @@ def call(Map config = [:]) {
       new_ci_target = cachedCommitPragma('EL8-target', result['target'])
     } else if (stage_name.contains('Leap 15')) {
       result['target'] = 'leap15'
-      result['distro_version'] = cachedCommitPragma('LEAP15-version', '15')
+      result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.3')
       new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
     } else if (stage_name.contains('Ubuntu 18')) {
       result['target'] = 'ubuntu18.04'
