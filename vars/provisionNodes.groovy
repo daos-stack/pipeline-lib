@@ -78,7 +78,11 @@ def call(Map config = [:]) {
 
   String distro_type = 'el7'
   String distro = config.get('distro', 'el7')
-  if (distro.startsWith("centos8") || distro.startsWith("el8")) {
+  if (distro.startsWith("centos8s") || distro.startsWith("el8s")) {
+    // centos8s images don't exist yet so use centos8 and upgrade them to c8s
+    new_config['distro'] = 'centos8'
+    distro_type = 'el8s'
+  } else if (distro.startsWith("centos8") || distro.startsWith("el8")) {
     distro_type = 'el8'
   } else if (distro.startsWith("sles") || distro.startsWith("leap") ||
       distro.startsWith("opensuse")) {
@@ -125,6 +129,11 @@ def call(Map config = [:]) {
   provision_script += 'DISTRO='
   if (distro_type == "el7") {
       provision_script += 'EL_7'
+  } else if (distro_type == "el8s") {
+      provision_script += 'EL_8 STREAM=true'
+      if (config['use_stream_rpms']) {
+          provision_script += ' REPO_POSTFIX=s'
+      }
   } else if (distro_type == "el8") {
       provision_script += 'EL_8'
   } else if (distro_type == 'suse') {
