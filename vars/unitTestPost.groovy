@@ -34,12 +34,18 @@
 
 def call(Map config = [:]) {
 
+  def str = config.inspect()
+  println "TRACE: unitTestPost:38\n"
+  println "TRACE: str = " + str + "\n"
+
   String always_script = config.get('always_script',
                                         'ci/unit/test_post_always.sh')
 
   ////////////////////////////////////////////////////////////////////////////////
-  println "TRACE: unitTestPost\n"
+  println "TRACE: unitTestPost:41\n"
   println "TRACE: config['skip_post_script']" + config['skip_post_script'] + "\n"
+  println "TRACE: unitTestPost:43\n"
+  println "TRACE: config['valgrind_stash']" + config['valgrind_stash'] + "\n"
 
   echo "TRACE: find \"config['testResults']\"\n"
   sh "find \"" + config['testResults'] + "\" || :"
@@ -57,7 +63,7 @@ def call(Map config = [:]) {
   Map stage_info = parseStageInfo(config)
 
   if (config['testResults'] != 'None' ) {
-    println "TRACE: unitTestPost.groovy:60\n"
+    println "TRACE: unitTestP214ost.groovy:60\n"
     double health_scale = 1.0
     if (config['ignore_failure']) {
       println "TRACE: unitTestPost.groovy:63\n"
@@ -143,7 +149,7 @@ def call(Map config = [:]) {
     sh "pwd"
     ////////////////////////////////////////////////////////////////////////////////
 
-    println "TRACE: unitTestPost.groovy:126\n"
+    println "TRACE: unitTestPost.groovy:146\n"
 
     tar_cmd = "tar -czf ${target_dir}.tar.gz ${target_dir}"
     rc = sh(script: tar_cmd, returnStatus: true)
@@ -157,35 +163,38 @@ def call(Map config = [:]) {
   def artifact_list = config.get('artifacts', ['run_test.sh/*'])
   def ignore_failure = config.get('ignore_failure', false)
   artifact_list.each {
-    println "TRACE: unitTestPost.groovy:140\n"
+    println "TRACE: unitTestPost.groovy:160\n"
     archiveArtifacts artifacts: it,
                      allowEmptyArchive: ignore_failure
   }
 
   def target_stash = "${stage_info['target']}-${stage_info['compiler']}"
   if (stage_info['build_type']) {
-    println "TRACE: unitTestPost.groovy:147\n"
+    println "TRACE: unitTestPost.groovy:167\n"
     target_stash += '-' + stage_info['build_type']
   }
 
   // Coverage instrumented tests and Vagrind are probably mutually exclusive
   if (stage_info['compiler'] == 'covc') {
-    println "TRACE: unitTestPost.groovy:153\n"
+    println "TRACE: unitTestPost.groovy:173\n"
     return
   }
 
-  if (config['valgrind_stash']) {
-    println "TRACE: unitTestPost.groovy:158\n"
+  println "TRACE: unitTestPost:177\n"
+  println "TRACE: config['valgrind_stash']" + config['valgrind_stash'] + "\n"
 
+  if (config['valgrind_stash']) {
+
+    println "TRACE: unitTestPost.groovy:182\n"
     def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
 
     println "TRACE: valgrind_pattern" + valgrind_pattern + "\n"
-
     stash name: config['valgrind_stash'], includes: valgrind_pattern
   }
 
   if (stage_info['NLT']) {
-    println "TRACE: unitTestPost.groovy:168\n"
+
+    println "TRACE: unitTestPost.groovy:191\n"
     def cb_result = currentBuild.result
     discoverGitReferenceBuild referenceJob: config.get('referenceJobName',
                                               'daos-stack/daos/master'),
@@ -208,7 +217,7 @@ def call(Map config = [:]) {
                                id: 'VM_test')
 
     if (cb_result != currentBuild.result) {
-      println "TRACE: unitTestPost.groovy:191\n"
+      println "TRACE: unitTestPost.groovy:214\n"
       println "The recordIssues step changed result to ${currentBuild.result}."
     }
   }
