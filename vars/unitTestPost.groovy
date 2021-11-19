@@ -34,6 +34,10 @@
 
 def call(Map config = [:]) {
 
+  def str = config.inspect()
+  println "TRACE: unitTestPost:38\n"
+  println "TRACE: str = " + str + "\n"
+
   String always_script = config.get('always_script',
                                         'ci/unit/test_post_always.sh')
 
