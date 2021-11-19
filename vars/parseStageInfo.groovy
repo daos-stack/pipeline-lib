@@ -35,40 +35,57 @@
  * config['test_tag']          Avocado tag to test.
  *                             Default determined by this function below.
  */
+
 def call(Map config = [:]) {
 
   Map result = [:]
-  result['target'] = cachedCommitPragma('EL7-target', 'centos7')
   String stage_name = ''
   if (env.STAGE_NAME) {
     stage_name = env.STAGE_NAME
   }
+
+  String new_ci_target = ''
   if (config['target']) {
     result['target'] = config['target']
   } else if (env.TARGET) {
     result['target'] = env.TARGET
+    result['distro_version'] = '7'
   } else {
     if (env.STAGE_NAME.contains('Hardware')) {
-      result['target'] = hwDistroTarget()
-    } else if (stage_name.contains('CentOS 7')) {
-      result['target'] = cachedCommitPragma('EL7-target', 'centos7')
+      res = hwDistroTarget2()
+      result['target'] = res[0] + res[1]
+      result['distro_version'] = res[1]
     } else if (stage_name.contains('CentOS 8.3.2011')) {
-      result['target'] = cachedCommitPragma('EL8.3-target', 'centos8.3')
+      result['target'] = 'centos8.3'
+      result['distro_version'] = cachedCommitPragma('EL8.3-version', '8.3')
+      new_ci_target = cachedCommitPragma('EL8.3-target', result['target'])
     } else if (stage_name.contains('CentOS 8')) {
-      result['target'] = cachedCommitPragma('EL8-target', 'centos8')
+      result['target'] = 'centos8'
+      result['distro_version'] = cachedCommitPragma('EL8-version', '8')
+      new_ci_target = cachedCommitPragma('EL8-target', result['target'])
     } else if (stage_name.contains('Leap 15')) {
-      result['target'] = cachedCommitPragma('LEAP15-target', 'leap15')
+      result['target'] = 'leap15'
+      result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.3')
+      new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
     } else if (stage_name.contains('Ubuntu 18')) {
-      result['target'] = cachedCommitPragma('UBUNTU18-target', 'ubuntu18.04')
+      result['target'] = 'ubuntu18.04'
+      result['distro_version'] = cachedCommitPragma('UBUNTU18-version', '18.04')
+      new_ci_target = cachedCommitPragma('UBUNTU18-target', result['target'])
     } else if (stage_name.contains('Ubuntu 20')) {
-      result['target'] = cachedCommitPragma('UBUNTU20-target', 'ubuntu20.04')
+      result['target'] = 'ubuntu20.04'
+      result['distro_version'] = cachedCommitPragma('UBUNTU20-version', '20.04')
+      new_ci_target = cachedCommitPragma('UBUNTU20-target', result['target'])
     } else {
-      echo "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7"
+      // also for: if (stage_name.contains('CentOS 7')) {
+      echo "Could not determine target in ${stage_name}, defaulting to EL7"
+      result['target'] = 'centos7'
+      result['distro_version'] = cachedCommitPragma('EL7-version', '7')
+      new_ci_target = cachedCommitPragma('EL7-target', result['target'])
     }
   }
-  String new_ci_target = params['CI_' +
-                                result['target'].toString().toUpperCase() +
-                                '_TARGET']
+  new_ci_target = paramsValue('CI_' +
+                              result['target'].toString().toUpperCase() +
+                              '_TARGET', new_ci_target)
   if (new_ci_target) {
     result['ci_target'] = new_ci_target
   } else {

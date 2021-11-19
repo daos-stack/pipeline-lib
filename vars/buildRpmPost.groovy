@@ -52,18 +52,18 @@
 
 def call(Map config = [:]) {
 
-  def context = config.get('context', 'build/' + env.STAGE_NAME)
-  def description = config.get('description', env.STAGE_NAME)
-  def ignore_failure = config.get('ignore_failure', false)
+  String context = config.get('context', 'build/' + env.STAGE_NAME)
+  String description = config.get('description', env.STAGE_NAME)
+  String ignore_failure = config.get('ignore_failure', false)
 
   Map stage_info = parseStageInfo(config)
 
-  def env_vars = ' TARGET=' + stage_info['target']
+  String env_vars = ' TARGET=' + stage_info['target']
 
   if (config['condition'] == 'success') {
     
-    def success_script = config.get('success_script',
-                                    'ci/rpm/build_success.sh')
+    String success_script = config.get('success_script',
+                                      'ci/rpm/build_success.sh')
     sh label: 'Build Log',
        script: "${env_vars} " + success_script
 
@@ -76,7 +76,7 @@ def call(Map config = [:]) {
     stash name: stage_info['target'] + '-rpm-version',
           includes: stage_info['target'] + '-rpm-version'
 
-    def product = config.get('product', 'daos')
+    String product = config.get('product', 'daos')
     publishToRepository product: product,
                         format: 'yum',
                         maturity: 'stable',
@@ -97,8 +97,8 @@ def call(Map config = [:]) {
   }
 
   if (config['condition'] == 'unsuccessful') {
-    def unsuccessful_script = config.get('unsuccessful_script',
-                                         'ci/rpm/build_unsuccessful.sh')
+    String unsuccessful_script = config.get('unsuccessful_script',
+                                            'ci/rpm/build_unsuccessful.sh')
 
     sh label: 'Build Log',
        script: "${env_vars} " + unsuccessful_script
