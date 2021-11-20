@@ -107,6 +107,8 @@ String call(Map config = [:]) {
     }
 
     // No env.REPOSITORY_URL, no repos to add.
+    println("add_repos = " + add_repos)
+    println("env.REPOSITORY_URL = " + env.REPOSITORY_URL)
     if (add_repos && env.REPOSITORY_URL) {
       String repo_name = null
       String repo_arg = ''
@@ -121,6 +123,7 @@ String call(Map config = [:]) {
           daos_arg = 'EL8'
         }
         // Appstream repo not working in Nexus group repos
+        println("env.DAOS_STACK_EL_8_APPSTREAM_REPO = " + env.DAOS_STACK_EL_8_APPSTREAM)_REPO
         if (env.DAOS_STACK_EL_8_APPSTREAM_REPO) {
           ret_str += " --build-arg REPO_APPSTREAM=" +
                      env.DAOS_STACK_EL_8_APPSTREAM_REPO
