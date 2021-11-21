@@ -323,6 +323,7 @@ boolean call(Map config = [:]) {
             skip_ftest('ubuntu20', target_branch) */
             return true
         case "Fault injection testing":
+        case "Fault injection testing on CentOS 8":
             return skip_stage_pragma('fault-injection-test') ||
                    quickFunctional() ||
                    docOnlyChange(target_branch) ||
