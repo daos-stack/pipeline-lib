@@ -271,7 +271,6 @@ boolean call(Map config = [:]) {
                     skip_stage_pragma('build') ||
                     rpmTestVersion() != '' ||
                     docOnlyChange(target_branch) ||
-                    skip_build_on_centos_gcc(target_branch, '8') ||
                     skip_stage_pragma('unit-tests')
         case "NLT":
         case "NLT on CentOS 8":
@@ -282,10 +281,12 @@ boolean call(Map config = [:]) {
         case "Unit Test with memcheck on CentOS 8":
         case "Unit Test with memcheck":
             return ! paramsValue('CI_UNIT_TEST_MEMCHECK', true) ||
+                   skip_build_on_centos_gcc(target_branch, '8') ||
                    skip_stage_pragma('unit-test-memcheck')
         case "Unit Test":
         case "Unit Test on CentOS 8":
             return ! paramsValue('CI_UNIT_TEST', true) ||
+                   skip_build_on_centos_gcc(target_branch, '8') ||
                    skip_stage_pragma('unit-test') ||
                    skip_stage_pragma('run_test')
         case "Test":
@@ -382,7 +383,9 @@ boolean call(Map config = [:]) {
             return skip_ftest_hw('large', target_branch)
         case "Bullseye Report":
             return env.BULLSEYE == null ||
-                   skip_stage_pragma('bullseye', 'true')
+                   skip_build_bullseye(target_branch, 'centos8') ||
+                   skip_stage_pragma('bullseye', 'true') ||
+                   skip_stage_pragma('unit-tests')
         default:
             println("Don't know how to skip stage \"${env.STAGE_NAME}\", not skipping")
     }
