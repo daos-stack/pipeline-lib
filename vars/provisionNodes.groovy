@@ -131,9 +131,6 @@ def call(Map config = [:]) {
       provision_script += 'EL_7'
   } else if (distro_type == "el8s") {
       provision_script += 'EL_8 STREAM=true'
-      if (config['use_stream_rpms']) {
-          provision_script += ' REPO_POSTFIX=s'
-      }
   } else if (distro_type == "el8") {
       provision_script += 'EL_8'
   } else if (distro_type == 'suse') {
@@ -142,6 +139,9 @@ def call(Map config = [:]) {
       provision_script += distro_type
   } else if (distro_type == 'ubuntu') {
       provision_script += 'UBUNTU_20_04'
+  }
+  if (config['use_stream_rpms']) {
+      provision_script += ' REPO_POSTFIX=s'
   }
   provision_script += ' ' +
                       'NODESTRING=' + nodeString + ' ' +
