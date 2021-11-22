@@ -56,15 +56,10 @@ def call(Map config = [:]) {
       res = hwDistroTarget2()
       result['target'] = res[0] + res[1]
       result['distro_version'] = res[1]
-    } else if (stage_name.contains('CentOS Stream 8')) {
+    } else if (stage_name.endsWith('on CentOS Stream 8')) {
       result['target'] = 'centos8s'
       result['distro_version'] = '8'
       new_ci_target = result['target']
-      if (stage_name.startsWith("Test CentOS Stream 8 RPMs on ")) {
-          result['use_stream_rpms'] = true
-      } else {
-          result['use_stream_rpms'] = false
-      }
     } else if (stage_name.contains('CentOS 7')) {
       result['target'] = 'centos7'
       result['distro_version'] = cachedCommitPragma('EL7-version', '7')
@@ -92,6 +87,11 @@ def call(Map config = [:]) {
     } else {
       echo "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7"
     }
+  }
+  if (stage_name.startsWith("Test CentOS Stream 8 RPMs on ")) {
+      result['use_stream_rpms'] = true
+  } else {
+      result['use_stream_rpms'] = false
   }
   new_ci_target = paramsValue('CI_' +
                               result['target'].toString().toUpperCase() +
