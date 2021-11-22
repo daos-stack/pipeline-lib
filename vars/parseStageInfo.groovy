@@ -60,7 +60,7 @@ def call(Map config = [:]) {
       result['target'] = 'centos8s'
       result['distro_version'] = '8'
       new_ci_target = result['target']
-      if (stage_name.startsWith("Test CentOS Stream 8 RPMs on ") {
+      if (stage_name.startsWith("Test CentOS Stream 8 RPMs on ")) {
           result['use_stream_rpms'] = true
       } else {
           result['use_stream_rpms'] = false
