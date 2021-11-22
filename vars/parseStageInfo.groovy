@@ -88,10 +88,14 @@ def call(Map config = [:]) {
       echo "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7"
     }
   }
+  println(stage_name + " starts with \"Test CentOS Stream 8 RPMs on \"" + " == " +
+          stage_name.startsWith("Test CentOS Stream 8 RPMs on "))
   if (stage_name.startsWith("Test CentOS Stream 8 RPMs on ")) {
       result['use_stream_rpms'] = true
+      println("Using Stream RPMs")
   } else {
       result['use_stream_rpms'] = false
+      println("NOT using Stream RPMs")
   }
   new_ci_target = paramsValue('CI_' +
                               result['target'].toString().toUpperCase() +
