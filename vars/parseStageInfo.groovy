@@ -39,7 +39,6 @@
 def call(Map config = [:]) {
 
   Map result = [:]
-  result['target'] = cachedCommitPragma('EL7-target', 'centos7')
   String stage_name = ''
   if (env.STAGE_NAME) {
     stage_name = env.STAGE_NAME
@@ -56,10 +55,6 @@ def call(Map config = [:]) {
       res = hwDistroTarget2()
       result['target'] = res[0] + res[1]
       result['distro_version'] = res[1]
-    } else if (stage_name.contains('CentOS 7')) {
-      result['target'] = 'centos7'
-      result['distro_version'] = cachedCommitPragma('EL7-version', '7')
-      new_ci_target = cachedCommitPragma('EL7-target', result['target'])
     } else if (stage_name.contains('CentOS 8.3.2011')) {
       result['target'] = 'centos8.3'
       result['distro_version'] = cachedCommitPragma('EL8.3-version', '8.3')
@@ -81,7 +76,11 @@ def call(Map config = [:]) {
       result['distro_version'] = cachedCommitPragma('UBUNTU20-version', '20.04')
       new_ci_target = cachedCommitPragma('UBUNTU20-target', result['target'])
     } else {
-      echo "Could not determine target in ${env.STAGE_NAME}, defaulting to EL7"
+      // also for: if (stage_name.contains('CentOS 7')) {
+      echo "Could not determine target in ${stage_name}, defaulting to EL7"
+      result['target'] = 'centos7'
+      result['distro_version'] = cachedCommitPragma('EL7-version', '7')
+      new_ci_target = cachedCommitPragma('EL7-target', result['target'])
     }
   }
   new_ci_target = paramsValue('CI_' +

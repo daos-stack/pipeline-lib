@@ -121,9 +121,9 @@ String call(Map config = [:]) {
           daos_arg = 'EL8'
         }
         // Appstream repo not working in Nexus group repos
-        if (env.DAOS_STACK_EL_8_APPSTREAM) {
-          ret_str += " --build-arg REPO_APPSREAM=" +
-                     env.DAOS_STACK_EL_8_APPSTREAM
+        if (env.DAOS_STACK_EL_8_APPSTREAM_REPO) {
+          ret_str += " --build-arg REPO_APPSTREAM=" +
+                     env.DAOS_STACK_EL_8_APPSTREAM_REPO
         }
       } else if (stage_info['target'] == 'leap15') {
         repo_alias = 'LEAP_15'
