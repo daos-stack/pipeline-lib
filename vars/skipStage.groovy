@@ -380,6 +380,7 @@ boolean call(Map config = [:]) {
         case "Functional Hardware Large":
             return skip_ftest_hw('large', target_branch)
         case "Bullseye Report":
+        case "Bullseye Report on CentOS 8":
             return env.BULLSEYE == null ||
                    skip_stage_pragma('bullseye', 'true')
         default:
