@@ -34,26 +34,8 @@
 
 def call(Map config = [:]) {
 
-  def str = config.inspect()
-  println "TRACE: unitTestPost:38\n"
-  println "TRACE: str = " + str + "\n"
-
   String always_script = config.get('always_script',
                                         'ci/unit/test_post_always.sh')
-
-  ////////////////////////////////////////////////////////////////////////////////
-  println "TRACE: unitTestPost:41\n"
-  println "TRACE: config['skip_post_script']" + config['skip_post_script'] + "\n"
-  println "TRACE: unitTestPost:43\n"
-  println "TRACE: config['valgrind_stash']" + config['valgrind_stash'] + "\n"
-
-  echo "TRACE: find \"config['testResults']\"\n"
-  sh "find \"" + config['testResults'] + "\" || :"
-  echo "TRACE: find .\n"
-  sh "find ."
-  echo "TRACE: pwd\n"
-  sh "pwd"
-  ////////////////////////////////////////////////////////////////////////////////
 
   if (!config['skip_post_script']) {
     sh label: 'Job Cleanup',
@@ -63,46 +45,27 @@ def call(Map config = [:]) {
   Map stage_info = parseStageInfo(config)
 
   if (config['testResults'] != 'None' ) {
-    println "TRACE: unitTestP214ost.groovy:60\n"
     double health_scale = 1.0
     if (config['ignore_failure']) {
-      println "TRACE: unitTestPost.groovy:63\n"
       health_scale = 0.0
     }
 
     def cb_result = currentBuild.result
 
-    ////////////////////////////////////////////////////////////////////////////////
-    println "TRACE: cb_result " + cb_result + "\n"
-    ////////////////////////////////////////////////////////////////////////////////
-
     junit testResults: config.get('testResults', 'test_results/*.xml'),
           healthScaleFactor: health_scale
 
     if (cb_result != currentBuild.result) {
-      println "TRACE: unitTestPost.groovy:77\n"
       println "The junit plugin changed result to ${currentBuild.result}."
     }
   }
 
   if (stage_info['with_valgrind']) {
 
-    println "TRACE: unitTestPost.groovy:84\n"
-    println "TRACE: stage_info['NLT']" + stage_info['NLT'] + "\n"
-    println "TRACE: stage_info['test']" + stage_info['test'] + "\n"
-    println "TRACE: stage_info['target']" + stage_info['target'] + "\n"
-    println "TRACE: stage_info['compiler']" + stage_info['compiler'] + "\n"
-
     String target_dir
     String src_files
     String log_msg
     int rc = 0
-
-    //////////////////////////////
-    // TRACING
-    sh "echo 'find .'"
-    sh "find ."
-    //////////////////////////////
 
     // NLT Valgrind testing
     target_dir = "unit_test_memcheck_logs"
@@ -111,8 +74,6 @@ def call(Map config = [:]) {
                                       flattenFiles: false,
                                       includes: src_files,
                                       targetLocation: target_dir)])
-
-    println "TRACE: unitTestPost.groovy:109\n"
 
     tar_cmd = "tar -czf ${target_dir}.tar.gz ${target_dir}"
     rc = sh(script: tar_cmd, returnStatus: true)
@@ -125,31 +86,11 @@ def call(Map config = [:]) {
     src_files = "**/valgrind.*.memcheck.xml"
     target_dir = "valgrind_logs"
 
-    ////////////////////////////////////////////////////////////////////////////////
-    echo "TRACE: find \"target_dir\" (line 123)\n"
-    sh "find \"" + target_dir  + "\" || :"
-    echo "TRACE: find . (line 123)\n"
-    sh "find ."
-    echo "TRACE: pwd (line 123)\n"
-    sh "pwd"
-    ////////////////////////////////////////////////////////////////////////////////
-
     fileOperations([fileCopyOperation(excludes: '',
                                       renameFiles: true,
                                       flattenFiles: false,
                                       includes: src_files,
                                       targetLocation: target_dir)])
-
-    ////////////////////////////////////////////////////////////////////////////////
-    echo "TRACE: find \"target_dir\" (line 138)\n"
-    sh "find \"" + target_dir  + "\" || :"
-    echo "TRACE: find . (line 138)\n"
-    sh "find ."
-    echo "TRACE: pwd (line 138)\n"
-    sh "pwd"
-    ////////////////////////////////////////////////////////////////////////////////
-
-    println "TRACE: unitTestPost.groovy:146\n"
 
     tar_cmd = "tar -czf ${target_dir}.tar.gz ${target_dir}"
     rc = sh(script: tar_cmd, returnStatus: true)
@@ -163,38 +104,26 @@ def call(Map config = [:]) {
   def artifact_list = config.get('artifacts', ['run_test.sh/*'])
   def ignore_failure = config.get('ignore_failure', false)
   artifact_list.each {
-    println "TRACE: unitTestPost.groovy:160\n"
     archiveArtifacts artifacts: it,
                      allowEmptyArchive: ignore_failure
   }
 
   def target_stash = "${stage_info['target']}-${stage_info['compiler']}"
   if (stage_info['build_type']) {
-    println "TRACE: unitTestPost.groovy:167\n"
     target_stash += '-' + stage_info['build_type']
   }
 
   // Coverage instrumented tests and Vagrind are probably mutually exclusive
   if (stage_info['compiler'] == 'covc') {
-    println "TRACE: unitTestPost.groovy:173\n"
     return
   }
 
-  println "TRACE: unitTestPost:177\n"
-  println "TRACE: config['valgrind_stash']" + config['valgrind_stash'] + "\n"
-
   if (config['valgrind_stash']) {
-
-    println "TRACE: unitTestPost.groovy:182\n"
     def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
-
-    println "TRACE: valgrind_pattern" + valgrind_pattern + "\n"
     stash name: config['valgrind_stash'], includes: valgrind_pattern
   }
 
   if (stage_info['NLT']) {
-
-    println "TRACE: unitTestPost.groovy:191\n"
     def cb_result = currentBuild.result
     discoverGitReferenceBuild referenceJob: config.get('referenceJobName',
                                               'daos-stack/daos/master'),
@@ -217,9 +146,7 @@ def call(Map config = [:]) {
                                id: 'VM_test')
 
     if (cb_result != currentBuild.result) {
-      println "TRACE: unitTestPost.groovy:214\n"
       println "The recordIssues step changed result to ${currentBuild.result}."
     }
   }
-
 }
