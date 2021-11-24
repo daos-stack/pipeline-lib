@@ -8,9 +8,6 @@
    * config['always_script']       Script to run after any test.
    *                               Default 'ci/unit/test_post_always.sh'.
    *
-   * config['skip_post_script']    Skip the running of always_script.
-   *                               Default false.
-   *
    * TODO: Always provided, should make required
    * config['artifacts']           Artifacts to archive.
    *                               Default ['run_test.sh/*']
@@ -36,11 +33,6 @@ def call(Map config = [:]) {
 
   String always_script = config.get('always_script',
                                         'ci/unit/test_post_always.sh')
-
-  if (!config['skip_post_script']) {
-    sh label: 'Job Cleanup',
-       script: always_script
-  }
 
   Map stage_info = parseStageInfo(config)
 
@@ -81,24 +73,6 @@ def call(Map config = [:]) {
       log_msg = String.format("tar command '%s' returned rc=%d\n", tar_cmd, rc)
       println log_msg
     }
-
-    // CaRT Valgrind testing
-    src_files = "**/valgrind.*.memcheck.xml"
-    target_dir = "valgrind_logs"
-
-    fileOperations([fileCopyOperation(excludes: '',
-                                      renameFiles: true,
-                                      flattenFiles: false,
-                                      includes: src_files,
-                                      targetLocation: target_dir)])
-
-    tar_cmd = "tar -czf ${target_dir}.tar.gz ${target_dir}"
-    rc = sh(script: tar_cmd, returnStatus: true)
-    if (rc != 0) {
-      log_msg = String.format("tar command '%s' returned rc=%d\n", tar_cmd, rc)
-      println log_msg
-    }
-
   }
 
   def artifact_list = config.get('artifacts', ['run_test.sh/*'])
