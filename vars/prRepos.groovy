@@ -28,5 +28,5 @@ String call(String distro) {
        error 'prRepos not implemented for ' + distro
     }
     return [repos,
-            cachedCommitPragma('PR-repos')].join(' ')
+            cachedCommitPragma('PR-repos')].join(' ').trim()
 }

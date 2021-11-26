@@ -130,14 +130,24 @@ def call(Map pipeline_args) {
                         }
                         steps {
                             sh label: "SPEC file sanity check",
-                               script: '[ "$(make ' +
-                                       pipeline_args.get('make args', '') +
-                                       ' CHROOT_NAME=epel-7-x86_64 show_sources)" != "" ]'
+                               script: 'if ! result="$(make ' +
+                                        pipeline_args.get('make args', '') +
+                                       '''  CHROOT_NAME=epel-7-x86_64 show_sources)"; then
+                                            rc=${PIPESTATUS[0]}
+                                            echo "Got an error from make show_sources!"
+                                                exit "$rc"
+                                        fi
+                                        if [ "$result" = "" ]; then
+                                            exit 1
+                                        fi'''
                         }
                         post {
                             unsuccessful {
                                 sh label: "Diagnose SPEC file sanity check failure",
-                                   script: '''set +x
+                                   script: 'make ' +
+                                           pipeline_args.get('make args', '') +
+                                           ' CHROOT_NAME=epel-7-x86_64 show_sources || true' +
+                                           '''set -x
                                               eval args=($(make ''' +
                                               pipeline_args.get('make args', '') + ' ' +
                                            '''show_common_rpm_args 2>/dev/null))
@@ -254,6 +264,7 @@ def call(Map pipeline_args) {
                                script: '''rm -rf artifacts/centos7/
                                           mkdir -p artifacts/centos7/
                                           make CHROOT_NAME="epel-7-x86_64" ''' +
+                                              'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + " " +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
                         }
@@ -329,6 +340,7 @@ def call(Map pipeline_args) {
                                script: '''rm -rf artifacts/centos8/
                                           mkdir -p artifacts/centos8/
                                           make CHROOT_NAME="epel-8-x86_64" ''' +
+                                              'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + " " +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
                         }
@@ -382,161 +394,6 @@ def call(Map pipeline_args) {
                             }
                         }
                     } //stage('Build on CentOS 8')
-                    stage('Build on SLES 12.3') {
-                        when {
-                            beforeAgent true
-                            allOf {
-                                environment name: 'SLES12_3_DOCKER', value: 'true'
-                                expression { false }
-                                expression { distros.contains('sles12.3') }
-                                expression { return env.QUICKBUILD == '1' }
-                            }
-                        }
-                        agent {
-                            dockerfile {
-                                filename 'packaging/Dockerfile.mockbuild'
-                                label 'docker_runner'
-                                args  '--group-add mock' +
-                                      ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true'
-                                additionalBuildArgs dockerBuildArgs()
-                            }
-                        }
-                        steps {
-                            sh label: "Build package",
-                               script: '''rm -rf artifacts/sles12.3/
-                                          mkdir -p artifacts/sles12.3/
-                                          make CHROOT_NAME="suse-12.3-x86_64" ''' +
-                                       pipeline_args.get('make args', '') + ' chrootbuild ' +
-                                       pipeline_args.get('add_make_targets', '')
-                        }
-                        post {
-                            success {
-                                catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS') {
-                                    sh label: "RPM Lint artifacts",
-                                       script: 'rpmlint /var/lib/mock/sles-12.3-x86_64/result/*.rpm'
-                                }
-                                sh label: "Collect artifacts",
-                                   script: '''(cd /var/lib/mock/sles-12.3-x86_64/result/ &&
-                                              cp -r . $OLDPWD/artifacts/sles12.3/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "sles12.3") +
-                                             '\ncreaterepo artifacts/sles12.3/'
-                                publishToRepository product: package_name,
-                                                    format: 'yum',
-                                                    maturity: 'stable',
-                                                    tech: 'sles-12',
-                                                    repo_dir: 'artifacts/sles12.3/',
-                                                    publish_branch: publish_branch
-                                archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
-                                                                              'no-optional-artifacts-to-archive'),
-                                                            allowEmptyArchive: true
-                            }
-                            unsuccessful {
-                                sh label: "Build Log",
-                                   script: '''mockroot=/var/lib/mock/sles-12.3-x86_64
-                                              ls -l $mockroot/result/
-                                              cat $mockroot/result/{root,build}.log
-                                              artdir=$PWD/artifacts/sles12.3
-                                              cp -af _topdir/SRPMS $artdir
-                                              (cd $mockroot/result/ &&
-                                               cp -r . $artdir)'''
-                            }
-                            always {
-                                sh label: "Collect config.log(s)",
-                                   script: '''(if cd /var/lib/mock/sles-12.3-x86_64/root/builddir/build/BUILD/*/; then
-                                                   find . -name configure -printf %h\\\\n | \
-                                                   while read dir; do
-                                                       if [ ! -f $dir/config.log ]; then
-                                                           continue
-                                                       fi
-                                                       tdir="$OLDPWD/artifacts/sles12.3/autoconf-logs/$dir"
-                                                       mkdir -p $tdir
-                                                       cp -a $dir/config.log $tdir/
-                                                   done
-                                               fi)'''
-                            }
-                            cleanup {
-                                archiveArtifacts artifacts: 'artifacts/sles12.3/**'
-                            }
-                        }
-                    } //stage('Build on SLES 12.3')
-                    stage('Build on Leap 42.3') {
-                        when {
-                            beforeAgent true
-                            allOf {
-                                expression { false }
-                                expression { distros.contains('leap42.3') }
-                                expression { return env.QUICKBUILD == '1' }
-                            }
-                        }
-                        agent {
-                            dockerfile {
-                                filename 'packaging/Dockerfile.mockbuild'
-                                label 'docker_runner'
-                                args  '--group-add mock' +
-                                      ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true'
-                                additionalBuildArgs dockerBuildArgs()
-                            }
-                        }
-                        steps {
-                            sh label: "Build package",
-                               script: '''rm -rf artifacts/leap42.3/
-                                          mkdir -p artifacts/leap42.3/
-                                          make CHROOT_NAME="opensuse-leap-42.3-x86_64" ''' +
-                                       pipeline_args.get('make args', '') + ' chrootbuild ' +
-                                       pipeline_args.get('add_make_targets', '')
-                        }
-                        post {
-                            success {
-                                catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS') {
-                                    sh label: "RPM Lint artifacts",
-                                       script: 'rpmlint /var/lib/mock/opensuse-leap-42.3-x86_64/result/*.rpm'
-                                }
-                                sh label: "Collect artifacts",
-                                   script: '''(cd /var/lib/mock/opensuse-leap-42.3-x86_64/result/ &&
-                                              cp -r . $OLDPWD/artifacts/leap42.3/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "leap42.3") +
-                                             '\ncreaterepo artifacts/leap42.3/'
-                                publishToRepository product: package_name,
-                                                    format: 'yum',
-                                                    maturity: 'stable',
-                                                    tech: 'leap-42',
-                                                    repo_dir: 'artifacts/leap42.3/',
-                                                    publish_branch: publish_branch
-                                archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
-                                                                              'no-optional-artifacts-to-archive'),
-                                                            allowEmptyArchive: true
-                            }
-                            unsuccessful {
-                                sh label: "Build Log",
-                                   script: '''mockroot=/var/lib/mock/opensuse-leap-42.3-x86_64
-                                              ls -l $mockroot/result/
-                                              cat $mockroot/result/{root,build}.log
-                                              artdir=$PWD/artifacts/leap42.3
-                                              cp -af _topdir/SRPMS $artdir
-                                              (cd $mockroot/result/ &&
-                                               cp -r . $artdir)'''
-                            }
-                            always {
-                                sh label: "Collect config.log(s)",
-                                   script: '''(if cd /var/lib/mock/opensuse-leap-42.3-x86_64/root/builddir/build/BUILD/*/; then
-                                                   find . -name configure -printf %h\\\\n | \
-                                                   while read dir; do
-                                                       if [ ! -f $dir/config.log ]; then
-                                                           continue
-                                                       fi
-                                                       tdir="$OLDPWD/artifacts/leap42.3/autoconf-logs/$dir"
-                                                       mkdir -p $tdir
-                                                       cp -a $dir/config.log $tdir/
-                                                   done
-                                               fi)'''
-                            }
-                            cleanup {
-                                archiveArtifacts artifacts: 'artifacts/leap42.3/**'
-                            }
-                        }
-                    } //stage('Build on Leap 42.3')
                     stage('Build on Leap 15') {
                         when {
                             beforeAgent true
@@ -560,6 +417,7 @@ def call(Map pipeline_args) {
                                script: '''rm -rf artifacts/leap15/
                                           mkdir -p artifacts/leap15/
                                           make CHROOT_NAME="opensuse-leap-15.3-x86_64" ''' +
+                                              'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + " " +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
                         }
@@ -748,8 +606,7 @@ def call(Map pipeline_args) {
                                 filename 'packaging/Dockerfile.mockbuild'
                                 label 'docker_runner'
                                 args  ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true' +
-                                      ' -u 0'
+                                      ' --privileged=true'
                                 additionalBuildArgs dockerBuildArgs()
                             }
                         }
@@ -797,8 +654,7 @@ def call(Map pipeline_args) {
                                 filename 'packaging/Dockerfile.mockbuild'
                                 label 'docker_runner'
                                 args  ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true' +
-                                      ' -u 0'
+                                      ' --privileged=true'
                                 additionalBuildArgs dockerBuildArgs()
                             }
                         }
@@ -846,8 +702,7 @@ def call(Map pipeline_args) {
                                 filename 'packaging/Dockerfile.mockbuild'
                                 label 'docker_runner'
                                 args  ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true' +
-                                      ' -u 0'
+                                      ' --privileged=true'
                                 additionalBuildArgs dockerBuildArgs()
                             }
                         }

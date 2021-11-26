@@ -64,7 +64,7 @@ def call(Map config = [:]) {
 
   provisionNodes NODELIST: nodelist,
                  node_count: stage_info['node_count'],
-                 distro: stage_info['ci_target'],
+                 distro: (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: config.get('inst_rpms', '')
 
@@ -86,6 +86,15 @@ def call(Map config = [:]) {
   params['ftest_arg'] = stage_info['ftest_arg']
   params['context'] = context
   params['description'] = description
+
+  sh label: "Install Launchable",
+     script: "pip3 install --user --upgrade launchable~=1.0"
+
+  withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
+     sh label: "Send build data",
+        script: """export PATH=$PATH:$HOME/.local/bin
+                   launchable record build --name $BUILD_TAG --source src=."""
+  }
 
   if (config.get('test_function', "runTestFunctional") ==
       "runTestFunctionalV2") {

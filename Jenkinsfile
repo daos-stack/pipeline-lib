@@ -245,6 +245,7 @@ pipeline {
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         // Useful for debugging since Jenkins'
                                         // assert() is pretty lame
+                                        //println('assert(' + skipStage(commit_msg: ' + cm.stripIndent() +') == ' + commit.skips[i] + ')'
                                         assert(skipStage(commit_msg: cm.stripIndent()) == commit.skips[i])
                                         i++
                                     }
