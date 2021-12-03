@@ -52,13 +52,14 @@
 
 def call(Map config = [:]) {
 
+  Map stage_info = parseStageInfo(config)
+  
   String context = config.get('context', 'build/' + env.STAGE_NAME)
   String description = config.get('description', env.STAGE_NAME)
   String ignore_failure = config.get('ignore_failure', false)
+  String target = config.get('target', stage_info['target'])
 
-  Map stage_info = parseStageInfo(config)
-
-  String env_vars = ' TARGET=' + stage_info['target']
+  String env_vars = ' TARGET=' + target
 
   if (config['condition'] == 'success') {
     
@@ -68,20 +69,20 @@ def call(Map config = [:]) {
        script: "${env_vars} " + success_script
 
     // TODO: Have Ubuntu support this
-    if (stage_info['target'] != 'ubuntu20.04') {
-        stash name: stage_info['target'] + '-required-mercury-rpm-version',
-              includes: stage_info['target'] + '-required-mercury-rpm-version'
+    if (target != 'ubuntu20.04') {
+        stash name: target + '-required-mercury-rpm-version',
+              includes: target + '-required-mercury-rpm-version'
     }
 
-    stash name: stage_info['target'] + '-rpm-version',
-          includes: stage_info['target'] + '-rpm-version'
+    stash name: target + '-rpm-version',
+          includes: target + '-rpm-version'
 
     String product = config.get('product', 'daos')
     publishToRepository product: product,
                         format: 'yum',
                         maturity: 'stable',
-                        tech: stage_info['target'],
-                        repo_dir: 'artifacts/' + stage_info['target']
+                        tech: target,
+                        repo_dir: 'artifacts/' + target
   }
 
   if ((config['condition'] == 'success') ||
@@ -102,14 +103,14 @@ def call(Map config = [:]) {
 
     sh label: 'Build Log',
        script: "${env_vars} " + unsuccessful_script
-    archiveArtifacts artifacts: 'config.log-' + stage_info['target'] + '-rpm',
+    archiveArtifacts artifacts: 'config.log-' + target + '-rpm',
                      allowEmptyArchive: true
 
     return
   }
 
   if (config['condition'] == 'cleanup') {
-    archiveArtifacts artifacts: "artifacts/" + stage_info['target'] + '/**'
+    archiveArtifacts artifacts: "artifacts/" + target + '/**'
     return
   }
   error 'Invalid value for condition parameter'
