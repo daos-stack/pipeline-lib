@@ -43,6 +43,15 @@ def call(Map config = [:]) {
     }
   }
 
+  //////////////////////////////
+  // TRACING
+  // 
+  println("'find .")
+  sh "find ."
+  println("pwd")
+  sh "pwd"
+  //////////////////////////////
+
   if (stash_cnt < 1) {
     println("No valgrind XML files found, skipping valgrind publishing")
     return
@@ -50,7 +59,7 @@ def call(Map config = [:]) {
 
   boolean ignore_failure = config.get('ignore_failure', false)
 
-  String valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
+  String valgrind_pattern = config.get('valgrind_pattern', '**/*.memcheck.xml')
   def cb_result = currentBuild.result
   publishValgrind failBuildOnInvalidReports: true,
                   failBuildOnMissingReports: !ignore_failure,
