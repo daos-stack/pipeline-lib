@@ -10,13 +10,23 @@
  * Method to return the list of DAOS packages
  */
 String call(String next_version) {
-    return getDAOSPackages(parseStageInfo()['target'])
+    return getDAOSPackages(parseStageInfo()['target'], next_version)
 }
 
 String call(String distro, String next_version) {
+    return getDAOSPackages(distro, next_version, null)
+}
+
+String call(String distro, String next_version, String add_daos_pkgs) {
+    if (add_daos_pkgs) {
+        add_daos_pkgs = ",-" + add_daos_pkgs
+    } else {
+        add_daos_pkgs = ""
+    }
+
     String pkgs
     if (env.TEST_RPMS == 'true') {
-        pkgs = "daos{,-{client,tests,server}}"
+        pkgs = "daos{,-{client,tests,server}" + add_daos_pkgs + "}"
     } else {
         pkgs = "daos{,-client}"
     }
