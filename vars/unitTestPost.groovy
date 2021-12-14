@@ -32,7 +32,9 @@
 def call(Map config = [:]) {
 
   String always_script = config.get('always_script',
-                                        'ci/unit/test_post_always.sh')
+    sh label: 'Job Cleanup',
+       script: always_script
+  }
 
   Map stage_info = parseStageInfo(config)
 
@@ -43,7 +45,6 @@ def call(Map config = [:]) {
     }
 
     def cb_result = currentBuild.result
-
     junit testResults: config.get('testResults', 'test_results/*.xml'),
           healthScaleFactor: health_scale
 
@@ -52,27 +53,14 @@ def call(Map config = [:]) {
     }
   }
 
-  if (stage_info['with_valgrind']) {
-
-    String target_dir
-    String src_files
-    String log_msg
-    int rc = 0
-
-    // NLT Valgrind testing
-    target_dir = "unit_test_memcheck_logs"
-    src_files = "unit-test-*.memcheck.xml"
+  if(stage_info['with_valgrind']) {
+    String target_dir = "unit_test_memcheck_logs"
+    String src_files = "unit-test-*.memcheck.xml"
     fileOperations([fileCopyOperation(excludes: '',
                                       flattenFiles: false,
                                       includes: src_files,
                                       targetLocation: target_dir)])
-
-    tar_cmd = "tar -czf ${target_dir}.tar.gz ${target_dir}"
-    rc = sh(script: tar_cmd, returnStatus: true)
-    if (rc != 0) {
-      log_msg = String.format("tar command '%s' returned rc=%d\n", tar_cmd, rc)
-      println log_msg
-    }
+    sh "tar -czf ${target_dir}.tar.gz ${target_dir}"
   }
 
   def artifact_list = config.get('artifacts', ['run_test.sh/*'])
@@ -123,4 +111,5 @@ def call(Map config = [:]) {
       println "The recordIssues step changed result to ${currentBuild.result}."
     }
   }
+
 }

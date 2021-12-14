@@ -46,9 +46,9 @@ def call(Map config = [:]) {
   //////////////////////////////
   // TRACING
   // 
-  println("'find .")
+  println("TRACE: find .")
   sh "find ."
-  println("pwd")
+  println("TRACE: pwd")
   sh "pwd"
   //////////////////////////////
 
