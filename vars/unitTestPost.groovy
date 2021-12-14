@@ -32,9 +32,9 @@
 def call(Map config = [:]) {
 
   String always_script = config.get('always_script',
-    sh label: 'Job Cleanup',
-       script: always_script
-  }
+                                    'ci/unit/test_post_always.sh')
+  sh label: 'Job Cleanup',
+     script: always_script
 
   Map stage_info = parseStageInfo(config)
 
