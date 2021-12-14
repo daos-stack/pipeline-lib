@@ -92,8 +92,8 @@ def call(Map config = [:]) {
 
   withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
      sh label: "Send build data",
-        script: """export PATH=$PATH:$HOME/.local/bin
-                   launchable record build --name $BUILD_TAG --source src=."""
+        script: '''export PATH=$PATH:$HOME/.local/bin
+                   launchable record build --name ${BUILD_TAG//%2F/-} --source src=.'''
   }
 
   if (config.get('test_function', "runTestFunctional") ==
