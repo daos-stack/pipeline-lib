@@ -43,15 +43,6 @@ def call(Map config = [:]) {
     }
   }
 
-  //////////////////////////////
-  // TRACING
-  // 
-  println("TRACE: find .")
-  sh "find ."
-  println("TRACE: pwd")
-  sh "pwd"
-  //////////////////////////////
-
   if (stash_cnt < 1) {
     println("No valgrind XML files found, skipping valgrind publishing")
     return
