@@ -42,7 +42,7 @@ def call(Map config = [:]) {
         sh label: "Submit test results to Launchable",
            script: 'if ls -l ' + '"' + env.STAGE_NAME + '''"/*/*/xunit1_results.xml 2>/dev/null; then
                         export PATH=$PATH:$HOME/.local/bin
-                        launchable record tests --build $BUILD_TAG pytest ''' +
+                        launchable record tests --build ${BUILD_TAG//%2F/-} pytest ''' +
                                    '"' + env.STAGE_NAME + '''"/*/*/xunit1_results.xml
                     fi'''
     }
