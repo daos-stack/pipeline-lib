@@ -11,11 +11,19 @@
  */
 
 String call(Integer client_ver, String next_version) {
-    return functionalPackages(hwDistroTarget(), client_ver, next_version)
+    return functionalPackages(client_ver, next_version, null)
+}
+
+String call(Integer client_ver, String next_version, String add_daos_pkgs) {
+    return functionalPackages(parseStageInfo()['target'], client_ver, next_version, add_daos_pkgs)
 }
 
 String call(String distro, Integer client_ver, String next_version) {
-    String daos_pkgs = getDAOSPackages(distro, next_version)
+    return functionalPackages(distro, client_ver, next_version, null)
+}
+
+String call(String distro, Integer client_ver, String next_version, String add_daos_pkgs) {
+    String daos_pkgs = getDAOSPackages(distro, next_version, add_daos_pkgs)
     if (!fileExists('ci/functional/required_packages.sh')) {
         echo "ci/functional/required_packages.sh doesn't exist.  " +
              "Hopefully the daos-tests package has the dependencies configured."
