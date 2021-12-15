@@ -304,7 +304,7 @@ boolean call(Map config = [:]) {
         case "Coverity on CentOS 8":
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    rpmTestVersion() != '' ||
-                   skip_stage_pragma('coverity-test') ||
+                   skip_stage_pragma('coverity-test', 'true') ||
                    quickFunctional() ||
                    docOnlyChange(target_branch) ||
                    skip_stage_pragma('build')
