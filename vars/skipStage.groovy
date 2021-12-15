@@ -347,6 +347,15 @@ boolean call(Map config = [:]) {
                    docOnlyChange(target_branch) ||
                    (quickFunctional() &&
                     ! run_default_skipped_stage('test-centos-8.3-rpms'))
+        case "Test CentOS 8.4.2105 RPMs":
+            return ! paramsValue('CI_RPMS_el8.4.2105_TEST', true) ||
+                   target_branch == 'weekly-testing' ||
+                   skip_stage_pragma('test') ||
+                   skip_stage_pragma('test-rpms') ||
+                   skip_stage_pragma('test-centos-8.4-rpms') ||
+                   docOnlyChange(target_branch) ||
+                   (quickFunctional() &&
+                    ! run_default_skipped_stage('test-centos-8.4-rpms'))
         case "Test Leap 15 RPMs":
         case "Test Leap 15.2 RPMs":
             // Skip by default as it doesn't pass with Leap15.3 due to

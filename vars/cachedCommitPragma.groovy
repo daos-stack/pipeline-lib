@@ -33,9 +33,15 @@ def call(String name, String def_val = null) {
     }
 
     if (!commit_pragma_cache[name]) {
-        commit_pragma_cache[name] = commitPragma([name, def_val])
+        commit_pragma_cache[name] = commitPragma(name)
     }
 
-    return commit_pragma_cache[name]
+    if (commit_pragma_cache[name]) {
+       return commit_pragma_cache[name]
+    } else if (def_val) {
+        return def_val
+    }
+    
+    return ""
 
 }

@@ -84,7 +84,13 @@ String call(String distro, String next_version) {
         return version + dist
     }
 
-    // use the stash after that
+    // otherwise use the version in the stash
+    // but trim off any point release from the distro first
+    Integer dot = distro.indexOf('.')
+    if (dot > -1) {
+        distro = distro[0..dot - 1]
+    }
+
     unstash distro + '-rpm-version'
     version = readFile(distro + '-rpm-version').trim()
     if (version != "") {
