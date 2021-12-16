@@ -38,8 +38,6 @@ def call(Map config = [:]) {
 
   Map stage_info = parseStageInfo(config)
 
-  println "TRACE: unitTestPost.groovy:41\n"
-
   if (config['testResults'] != 'None' ) {
     double health_scale = 1.0
     if (config['ignore_failure']) {
@@ -55,8 +53,6 @@ def call(Map config = [:]) {
     }
   }
 
-  println "TRACE: unitTestPost.groovy:58\n"
-
   if(stage_info['with_valgrind']) {
     String target_dir = "unit_test_memcheck_logs"
     String src_files = "unit-test-*.memcheck.xml"
@@ -67,16 +63,12 @@ def call(Map config = [:]) {
     sh "tar -czf ${target_dir}.tar.gz ${target_dir}"
   }
 
-  println "TRACE: unitTestPost.groovy:70\n"
-
   def artifact_list = config.get('artifacts', ['run_test.sh/*'])
   def ignore_failure = config.get('ignore_failure', false)
   artifact_list.each {
     archiveArtifacts artifacts: it,
                      allowEmptyArchive: ignore_failure
   }
-
-  println "TRACE: unitTestPost.groovy:79\n"
 
   def target_stash = "${stage_info['target']}-${stage_info['compiler']}"
   if (stage_info['build_type']) {
@@ -88,13 +80,7 @@ def call(Map config = [:]) {
     return
   }
 
-
-  println "TRACE: unitTestPost.groovy:92\n"
-
   if (config['valgrind_stash']) {
-
-    println "TRACE: unitTestPost.groovy:96\n"
-
     def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
     stash name: config['valgrind_stash'], includes: valgrind_pattern
   }
