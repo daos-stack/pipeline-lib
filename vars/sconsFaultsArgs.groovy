@@ -12,9 +12,8 @@
 
 boolean call() {
     // The default build will have BUILD_TYPE=dev; fault injection enabled
-    if (params.TestTag.indexOf("with_fi") >= 0 ||
-        (cachedCommitPragma('faults-enabled', 'true').toLowerCase() == 'true' &&
-         !releaseCandidate())) {
+    if (cachedCommitPragma('faults-enabled', 'true').toLowerCase() == 'true' &&
+         (!releaseCandidate() || params.FIEnabledRC)) {
         return "BUILD_TYPE=dev"
     } else {
         return "BUILD_TYPE=release"
