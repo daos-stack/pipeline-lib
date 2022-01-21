@@ -205,6 +205,12 @@ boolean call(Map config = [:]) {
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
                    quickBuild()
+        case "Build on CentOS 7":
+            return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
+                   skip_stage_pragma('build-centos7', 'true') ||
+                   (docOnlyChange(target_branch) &&
+                    prRepos('centos7') == '') ||
+                   quickBuild()
         case "Build on CentOS 8 release":
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-centos8-gcc-release', 'true') ||
