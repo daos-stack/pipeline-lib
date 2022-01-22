@@ -11,6 +11,7 @@ def num_proc() {
     return sh(label: "Get number of processors online",
               script: "/usr/bin/getconf _NPROCESSORS_ONLN",
               returnStdout: true)
+          
 }
 
 def call(Map config = [:]) {
@@ -138,8 +139,7 @@ def call(Map config = [:]) {
     def scons_exe = 'scons'
     def scons_args = ''
     if (config['parallel_build'] && config['parallel_build'] == true) {
-        String procs = num_proc()
-        scons_args += '-j ' + procs.trim()
+        scons_args += '-j ' + num_proc()
     }
     def sconstruct = ''
     if (config['scons_exe']) {
