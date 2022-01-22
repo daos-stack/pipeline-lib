@@ -65,8 +65,10 @@ boolean skip_ftest(String distro, String target_branch) {
     // The params.CI_MORE_FUNCTIONAL_PR_TESTS allows enabling
     // tests that are not run in PRs.
     params_value = ! paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true)
+    Map distro_map = ['el7': 'centos7', 'el8': 'centos8', 'leap15': 'leap15']
     return params_value ||
            distro == 'ubuntu20' ||
+           skip_stage_pragma('build-' + distro_map[distro] + '-rpm') ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||
            skip_stage_pragma('func-test-vm-all') ||
@@ -90,6 +92,7 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
 boolean skip_ftest_hw(String size, String target_branch) {
     return env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
            ! paramsValue('CI_' + size + '_TEST', true) ||
+           skip_stage_pragma('build-' + hwDistroTarget() + '-rpm') ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-hw-test-' + size) ||
            ! testsInStage() ||
@@ -331,6 +334,7 @@ boolean call(Map config = [:]) {
         case "Test CentOS 7 RPMs":
             return ! paramsValue('CI_RPMS_el7_TEST', true) ||
                    target_branch == 'weekly-testing' ||
+                   skip_stage_pragma('build-centos7-rpm') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-centos-rpms') ||
@@ -341,6 +345,7 @@ boolean call(Map config = [:]) {
         case "Test CentOS 8.3.2011 RPMs":
             return ! paramsValue('CI_RPMS_el8.3.2011_TEST', true) ||
                    target_branch == 'weekly-testing' ||
+                   skip_stage_pragma('build-centos8-rpm') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-centos-8.3-rpms') ||
@@ -361,6 +366,7 @@ boolean call(Map config = [:]) {
             // Skip by default as it doesn't pass with Leap15.3 due to
             // requiring a newer glibc
             return ! paramsValue('CI_RPMS_leap15_TEST', true) ||
+                   skip_stage_pragma('build-leap-15-rpm') ||
                    skip_stage_pragma('test-leap-15-rpms', 'true')
         case "Scan CentOS 7 RPMs":
             return skip_scan_rpms('centos-7', target_branch)
