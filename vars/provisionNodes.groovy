@@ -52,6 +52,10 @@ def call(Map config = [:]) {
   int node_cnt = node_max_cnt
   String repo_type = config.get('repo_type', 'stable')
   Map new_config = config
+
+  // Provisioning-pool: commit pragma overrides caller
+  new_config['pool'] = cachedCommitPragma('Provisioning-pool', new_config['pool'])
+
   if (config['node_count']) {
     // Matrix builds pass requested node count as a string
     def rq_count = config['node_count'] as int
