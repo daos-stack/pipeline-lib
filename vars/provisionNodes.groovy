@@ -16,6 +16,7 @@
  * config['distro']     Distribution to use.  Default 'el7'
  * config['NODELIST']   Comma separated list of nodes available.
  * config['node_count'] Optional lower number of nodes to provision.
+ * config['pool']       Optional pool from which to get image (i.e. test)
  * config['profile']    Profile to use.  Default 'daos_ci'.
  * config['power_only'] Only power cycle the nodes, do not provision.
  * config['timeout']    Timeout in minutes.  Default 30.
@@ -51,6 +52,10 @@ def call(Map config = [:]) {
   int node_cnt = node_max_cnt
   String repo_type = config.get('repo_type', 'stable')
   Map new_config = config
+
+  // Provisioning-pool: commit pragma overrides caller
+  new_config['pool'] = cachedCommitPragma('Provisioning-pool', new_config['pool'])
+
   if (config['node_count']) {
     // Matrix builds pass requested node count as a string
     def rq_count = config['node_count'] as int
