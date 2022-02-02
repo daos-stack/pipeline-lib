@@ -1,5 +1,11 @@
 // vars/dockerBuildArgs.groovy
 
+def num_proc() {
+    return sh(label: "Get number of processors online",
+              script: "/usr/bin/getconf _NPROCESSORS_ONLN",
+              returnStdout: true)
+}
+
   /**
    * dockerBuildArgs step method
    *
@@ -15,6 +21,8 @@
    *                     Defaults to true.
    *
    * config['deps_build'] Whether to build the daos dependencies.
+   *
+   * config['parallel_build'] Whether to build in parallel (-j)
    *
    * config['repo_type'] Type of repo to add.  Default 'local' for compatibilty
    *                     with older dockerfiles.
@@ -64,6 +72,7 @@ String call(Map config = [:]) {
     Boolean cachebust = true
     Boolean add_repos = true
     Boolean deps_build = false
+    Boolean parallel_build = false
     String daos_type = 'LOCAL'
     String dist_type = 'GROUP'
     String repo_alias = ''
@@ -79,6 +88,9 @@ String call(Map config = [:]) {
     }
     if (config.containsKey('deps_build')) {
       deps_build = config['deps_build']
+    }
+    if (config.containsKey('parallel_build')) {
+      parallel_build = config['parallel_build']
     }
     if (config.containsKey('repo_type')) {
       daos_type = config['repo_type'].toString().toUpperCase()
@@ -175,6 +187,10 @@ String call(Map config = [:]) {
             ret_str += ' --build-arg DAOS_DEPS_BUILD=yes --build-arg DAOS_BUILD=no'
         } else {
             ret_str += ' --build-arg DAOS_DEPS_BUILD=no'
+        }
+        if (parallel_build) {
+            String procs = num_proc()
+            ret_str += ' --build-arg DEPS_JOBS=' + procs.trim()
         }
     }
     ret_str += ' '
