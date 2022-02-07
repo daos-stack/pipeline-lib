@@ -37,7 +37,8 @@ String call(String distro, Integer client_ver, String next_version, String add_d
     if (distro.startsWith('leap15') ||
         distro.startsWith('el7') || distro.startsWith('centos7') ||
         distro.startsWith('el8') || distro.startsWith('centos8') ||
-        distro.startsWith('ubuntu20')) {
+        distro.startsWith('rocky8') || distro.startsWith('almalinux8') ||
+        distro.startsWith('rhel8') || distro.startsWith('ubuntu20')) {
         return daos_pkgs + ' ' + pkgs
     }
     error 'functionalPackages not implemented for ' + distro

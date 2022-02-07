@@ -9,7 +9,7 @@
  * result['compiler']      Known compilers are 'gcc', 'icc', clang, and 'covc'.
  *                         Default is 'gcc'
  *
- * result['target']        Known targets are 'centos7','centos8','leap15',
+ * result['target']        Known targets are 'centos7','centos8','el8', 'leap15',
  *                         'ubuntu18.04', 'ubuntu20.04'.  Default is 'centos7'
  *
  * result['target_prefix'] Target prefix to use for the build if present.
@@ -63,6 +63,10 @@ def call(Map config = [:]) {
       result['target'] = 'centos8'
       result['distro_version'] = cachedCommitPragma('EL8-version', '8')
       new_ci_target = cachedCommitPragma('EL8-target', result['target'])
+    } else if (stage_name.contains('EL 8')) {
+      result['target'] = 'el8'
+      result['distro_version'] = cachedCommitPragma('EL8-version', '8')
+      new_ci_target = cachedCommitPragma('EL8-target', result['target'])
     } else if (stage_name.contains('Leap 15')) {
       result['target'] = 'leap15'
       result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.3')
@@ -93,7 +97,9 @@ def call(Map config = [:]) {
   }
 
   if (result['ci_target'].startsWith('el') ||
-      result['ci_target'].startsWith('centos')) {
+      result['ci_target'].startsWith('centos') ||
+      result['ci_target'].startsWith('rocky') ||
+      result['ci_target'].startsWith('almalinux')) {
     result['java_pkg'] = 'java-1.8.0-openjdk'
   } else if (result['ci_target'].startsWith('ubuntu')) {
     result['java_pkg'] = 'openjdk-8-jdk'
