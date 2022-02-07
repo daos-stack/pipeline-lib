@@ -178,7 +178,7 @@ def call(Map config = [:]) {
         result['pragma_suffix'] = '-hw-small'
       } else if (stage_name.contains('Medium')) {
         result['node_count'] = 5
-        cluster_size = 'hw,medium,ib2'
+        cluster_size = 'hw,medium'
         result['pragma_suffix'] = '-hw-medium'
       }
     }

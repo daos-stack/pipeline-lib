@@ -334,7 +334,7 @@ pipeline {
                                       [name: 'Fake CentOS 7 Functional Hardware Small stage',
                                        tag: 'hw,small'],
                                       [name: 'Fake CentOS 7 Functional Hardware Medium stage',
-                                       tag: 'hw,medium,ib2'],
+                                       tag: 'hw,medium'],
                                       [name: 'Fake CentOS 7 Functional Hardware Large stage',
                                        tag: 'hw,large']]
                             commits = [[tags: [[tag: "Test-tag", value: 'datamover']],
