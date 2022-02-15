@@ -80,7 +80,7 @@ def call(Map config = [:]) {
         healthyTarget: config.get('coverage_healthy',
                                    [methodCoverage: 70,
                                     conditionalCoverage: 80,
-                                    statementCoverage: 80])])
+                                    statementCoverage: 80]),
         unhealthyTarget: config.get('coverage_healthy',
                                      [methodCoverage: 10,
                                       conditionalCoverage: 10,
