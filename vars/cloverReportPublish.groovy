@@ -78,13 +78,17 @@ def call(Map config = [:]) {
         cloverReportDir: 'test_coverage',
         cloverReportFileName: 'clover.xml',
         healthyTarget: config.get('coverage_healthy',
-                                   [methodCoverage: 70,
+                                   [methodCoverage: 80,
                                     conditionalCoverage: 80,
                                     statementCoverage: 80]),
-        unhealthyTarget: config.get('coverage_healthy',
-                                     [methodCoverage: 10,
-                                      conditionalCoverage: 10,
-                                      statementCoverage: 10])])
+        unhealthyTarget: config.get('coverage_unhealthy',
+                                   [methodCoverage: 70,
+                                    conditionalCoverage: 70,
+                                    statementCoverage: 70]),
+        failingTarget: config.get('coverage_failing',
+                                     [methodCoverage: 60,
+                                      conditionalCoverage: 60,
+                                      statementCoverage: 60])])
 
   if (cb_result != currentBuild.result) {
     println "The CloverPublisher plugin changed result to " +
