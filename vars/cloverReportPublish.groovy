@@ -11,6 +11,10 @@
    *                               Default is:
    *                                 [method:70, conditional:80, statement:80]
    *
+   * config['coverage_unhealthy']  Map of a coverage unhealthy target.
+   *
+   * config['coverage_failing']    Map of a coverage failing target.
+   *
    * config['coverage_script']     Script to run to get coverage results
    *                               Default is "ci/bullseye_generate_report.sh"
    *
@@ -22,7 +26,6 @@
    *                               coverage website, if it is a coverage
    *                               build.  Defaults to 'coverage_website.zip'
    *
-   * config['ignore_failure']      Ignore test failures.  Default false.
    *
    * config['stash']               Stash name for the ".build-vars.*" files.
    */
