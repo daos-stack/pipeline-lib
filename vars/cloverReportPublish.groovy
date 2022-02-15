@@ -81,6 +81,10 @@ def call(Map config = [:]) {
                                    [methodCoverage: 70,
                                     conditionalCoverage: 80,
                                     statementCoverage: 80])])
+        unhealthyTarget: config.get('coverage_healthy',
+                                     [methodCoverage: 10,
+                                      conditionalCoverage: 10,
+                                      statementCoverage: 10])])
 
   if (cb_result != currentBuild.result) {
     println "The CloverPublisher plugin changed result to " +
