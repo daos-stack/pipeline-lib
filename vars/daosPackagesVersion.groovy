@@ -14,6 +14,16 @@ import groovy.transform.Field
 
 @Field static rpm_version_cache = ""
 
+String normalize_distro(String distro) {
+    if (distro.startsWith('el8') || distro.startsWith('centos8') ||
+        distro.startsWith('rocky8') || distro.startsWith('almalinux8') ||
+        distro.startsWith('rhel8')) {
+        return 'el8' 
+    }
+    
+    return distro
+}
+
 String daos_latest_version(String next_version, String repo_type='stable') {
     String v = sh(label: "Get RPM packages version",
                   script: 'repoquery --repofrompath=daos,' + env.REPOSITORY_URL +
@@ -29,7 +39,9 @@ String daos_latest_version(String next_version, String repo_type='stable') {
 String rpm_dist(String distro) {
     if (distro.startsWith('el7') || distro.startsWith('centos7')) {
         return ".el7"
-    } else if (distro.startsWith('el8') || distro.startsWith('centos8')) {
+    } else if (distro.startsWith('el8') || distro.startsWith('centos8') ||
+               distro.startsWith('rocky8') || distro.startsWith('almalinux8') ||
+               distro.startsWith('rhel8')) {
         return ".el8"
     } else if (distro.startsWith("leap15")) {
         return ".suse.lp153"
@@ -91,14 +103,38 @@ String call(String distro, String next_version) {
         distro = distro[0..dot - 1]
     }
 
-    unstash distro + '-rpm-version'
-    version = readFile(distro + '-rpm-version').trim()
-    if (version != "") {
-        return version
+    String err_msg = null
+    // TODO: the stage info should tell us the name of the distro that the packages to be tested were built on and stashed in
+    String normalized_distro = normalize_distro(distro)
+    String version_file = normalized_distro
+    try {
+        unstash normalized_distro + '-rpm-version'
+    } catch (Exception e1) {
+        // backward compatibilty
+        try {
+            // ugly backwards compatibility hack due to hardware distro
+            // being el8 now
+            if (distro == normalized_distro && distro == "el8") {
+                distro = "centos8"
+            }
+            unstash distro + '-rpm-version'
+            version_file = distro
+        } catch (Exception e2) {
+            err_msg = "Don't know how to determine package version for " + distro
+        }
     }
 
-    sh('ls -l ' + distro + '-rpm-version || true; ' +
-       'cat ' + distro + '-rpm-version || true;')
+    if (! err_msg) {
+        version = readFile(version_file + '-rpm-version').trim()
+        if (version != "") {
+            return version
+        } else {
+            err_msg = "Unable to read a version from " + version_file + '-rpm-version'
+        }
+    }
 
-    error "Don't know how to determine package version for " + distro
+    sh('ls -l ' + version_file + '-rpm-version || true; ' +
+       'cat ' + version_file + '-rpm-version || true;')
+
+    error err_msg
 }

@@ -1,0 +1,13 @@
+#
+# Copyright 2018-2022, Intel Corporation
+#
+
+# Pull base image
+FROM rockylinux:8
+LABEL maintainer="daos@daos.groups.io"
+
+# Update distribution
+RUN dnf -y upgrade
+
+# Install basic tools
+RUN dnf install -y dnf-plugins-core
