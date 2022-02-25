@@ -213,7 +213,8 @@ boolean call(Map config = [:]) {
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-centos7-gcc', 'false') ||
                    (docOnlyChange(target_branch) &&
-                    prRepos('centos7') == '')
+                    prRepos('centos7') == '') ||
+                    quickFunctional()
         case "Build on CentOS 8 release":
         case "Build on EL 8 release":
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
