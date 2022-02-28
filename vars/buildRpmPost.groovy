@@ -69,9 +69,14 @@ def call(Map config = [:]) {
        script: "${env_vars} " + success_script
 
     // TODO: Have Ubuntu support this
-    if (target != 'ubuntu20.04') {
+    if (!target.startsWith('ubuntu')) {
         stash name: target + '-required-mercury-rpm-version',
               includes: target + '-required-mercury-rpm-version'
+    }
+
+    String repo_format = 'yum'
+    if (target.startsWith('ubuntu')) {
+        repo_format = 'apt'
     }
 
     stash name: target + '-rpm-version',
@@ -79,10 +84,11 @@ def call(Map config = [:]) {
 
     String product = config.get('product', 'daos-stack')
     publishToRepository product: product,
-                        format: 'yum',
+                        format: repo_format,
                         maturity: 'stable',
                         tech: target,
                         repo_dir: 'artifacts/' + target
+
   }
 
   if ((config['condition'] == 'success') ||
