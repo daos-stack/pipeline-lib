@@ -30,8 +30,7 @@
    *                        for reporting to the SCM.
    *                        Default is to use env.STAGE_NAME.
    *
-   * config['target']       Target distribution, such as 'centos7', 'el8,
-   *                        'leap15'.
+   * config['target']       Target distribution, such as 'centos7', 'leap15'.
    *                        Default based on parsing environment variables.
    *
    * config['Unstable']     Convert build error to unstable.
@@ -56,7 +55,7 @@ def call(Map config = [:]) {
   env_vars = ' TARGET=' + stage_info['target'] +
              ' DISTRO_VERSION=' + stage_info['distro_version']
   if (config['chroot_name']) {
-    env_vars = ' CHROOT_NAME=' + config['chroot_name']
+    env_vars = ' CHROOT_NAME=' + config_info['chroot_name']
   }
 
   String error_stage_result = 'FAILURE'

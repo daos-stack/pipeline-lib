@@ -49,7 +49,7 @@ def call(Map pipeline_args) {
     if (pipeline_args['distros']) {
         distros = pipeline_args['distros']
     } else {
-        distros = ['centos7', 'el8', 'leap15', 'ubuntu_rolling']
+        distros = ['centos7', 'leap15', 'ubuntu_rolling']
     }
 
     if (pipeline_args['name']) {
@@ -83,44 +83,10 @@ def call(Map pipeline_args) {
                                                                           'origin/master'))
         }
         stages {
-            stage('Validation') {
-                parallel {
-                    stage('centos8 changed to el8') {
-                        steps {
-                            script {
-                                if (distros.contains('centos8')) {
-                                    error("You need to update the Jenkinsfile and replace centos8 with el8")
-                                }
-                            }
-                        }
-                    }
-                    stage('CODEOWNER file exists') {
-                        steps {
-                            sh script: 'ls -l .github/CODEOWNERS || true'
-                            script {
-                                println(fileExists('.github/CODEOWNERS'))
-                                if (! fileExists('.github/CODEOWNERS')) {
-                                    error("""You need to create the file .github/CODEOWNERS with the following content:
-# Have Release Engineering added as a reviewer to any packaging PR
-* @daos-stack/build-and-release-watchers""")
-                                }
-                            }
-                        }
-                    }
-                }
-            }
             stage('Cancel Previous Builds') {
                 when { changeRequest() }
                 steps {
                     cancelPreviousBuilds()
-                }
-            }
-            stage('Get Commit Message') {
-                steps {
-                    script {
-                        env.COMMIT_MESSAGE = sh(script: 'git show -s --format=%B',
-                                                returnStdout: true).trim()
-                    }
                 }
             }
             stage('Lint') {
@@ -166,7 +132,7 @@ def call(Map pipeline_args) {
                             sh label: "SPEC file sanity check",
                                script: 'if ! result="$(make ' +
                                         pipeline_args.get('make args', '') +
-                                       '''  CHROOT_NAME=centos+epel-7-x86_64 show_sources)"; then
+                                       '''  CHROOT_NAME=epel-7-x86_64 show_sources)"; then
                                             rc=${PIPESTATUS[0]}
                                             echo "Got an error from make show_sources!"
                                                 exit "$rc"
@@ -180,12 +146,12 @@ def call(Map pipeline_args) {
                                 sh label: "Diagnose SPEC file sanity check failure",
                                    script: 'make ' +
                                            pipeline_args.get('make args', '') +
-                                           ' CHROOT_NAME=centos+epel-7-x86_64 show_sources || true' +
+                                           ' CHROOT_NAME=epel-7-x86_64 show_sources || true' +
                                            '''set -x
                                               eval args=($(make ''' +
                                               pipeline_args.get('make args', '') + ' ' +
                                            '''show_common_rpm_args 2>/dev/null))
-                                              vars=$(CHROOT_NAME="centos+epel-7-x86_64" spectool --debug "${args[@]}" $(make ''' +
+                                              vars=$(CHROOT_NAME="epel-7-x86_64" spectool --debug "${args[@]}" $(make ''' +
                                               pipeline_args.get('make args', '') + ' ' +
                                            '''show_spec 2>/dev/null) 2>&1 | sed -e 's/: /=/' -e 's/ /_/g')
                                               eval $vars
@@ -297,7 +263,7 @@ def call(Map pipeline_args) {
                             sh label: "Build package",
                                script: '''rm -rf artifacts/centos7/
                                           mkdir -p artifacts/centos7/
-                                          make CHROOT_NAME="centos+epel-7-x86_64" ''' +
+                                          make CHROOT_NAME="epel-7-x86_64" ''' +
                                               'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + " " +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
@@ -306,10 +272,10 @@ def call(Map pipeline_args) {
                             success {
                                 catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS') {
                                     sh label: "RPM Lint artifacts",
-                                       script: 'rpmlint /var/lib/mock/centos+epel-7-x86_64/result/*.rpm'
+                                       script: 'rpmlint /var/lib/mock/epel-7-x86_64/result/*.rpm'
                                 }
                                 sh label: "Collect artifacts",
-                                   script: '''(cd /var/lib/mock/centos+epel-7-x86_64/result/ &&
+                                   script: '''(cd /var/lib/mock/epel-7-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/centos7/)\n''' +
                                               pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "centos7") +
                                              '\ncreaterepo artifacts/centos7/'
@@ -325,7 +291,7 @@ def call(Map pipeline_args) {
                             }
                             unsuccessful {
                                 sh label: "Build Log",
-                                   script: '''mockroot=/var/lib/mock/centos+epel-7-x86_64
+                                   script: '''mockroot=/var/lib/mock/epel-7-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
                                               artdir=$PWD/artifacts/centos7
@@ -335,7 +301,7 @@ def call(Map pipeline_args) {
                             }
                             always {
                                 sh label: "Collect config.log(s)",
-                                   script: '''(if cd /var/lib/mock/centos+epel-7-x86_64/root/builddir/build/BUILD/*/; then
+                                   script: '''(if cd /var/lib/mock/epel-7-x86_64/root/builddir/build/BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
@@ -352,11 +318,11 @@ def call(Map pipeline_args) {
                             }
                         }
                     } //stage('Build on CentOS 7')
-                    stage('Build on EL 8') {
+                    stage('Build on CentOS 8') {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { distros.contains('el8') }
+                                expression { distros.contains('centos8') }
                             }
                         }
                         agent {
@@ -371,9 +337,9 @@ def call(Map pipeline_args) {
                         }
                         steps {
                             sh label: "Build package",
-                               script: '''rm -rf artifacts/el8/
-                                          mkdir -p artifacts/el8/
-                                          make CHROOT_NAME="rocky+epel-8-x86_64" ''' +
+                               script: '''rm -rf artifacts/centos8/
+                                          mkdir -p artifacts/centos8/
+                                          make CHROOT_NAME="epel-8-x86_64" ''' +
                                               'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + " " +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
@@ -382,18 +348,18 @@ def call(Map pipeline_args) {
                             success {
                                 catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS') {
                                     sh label: "RPM Lint artifacts",
-                                       script: 'rpmlint /var/lib/mock/rocky+epel-8-x86_64/result/*.rpm'
+                                       script: 'rpmlint /var/lib/mock/epel-8-x86_64/result/*.rpm'
                                 }
                                 sh label: "Collect artifacts",
-                                   script: '''(cd /var/lib/mock/rocky+epel-8-x86_64/result/ &&
-                                              cp -r . $OLDPWD/artifacts/el8/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "el8") +
-                                             '\ncreaterepo artifacts/el8/'
+                                   script: '''(cd /var/lib/mock/epel-8-x86_64/result/ &&
+                                              cp -r . $OLDPWD/artifacts/centos8/)\n''' +
+                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "centos8") +
+                                             '\ncreaterepo artifacts/centos8/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
                                                     maturity: 'stable',
                                                     tech: 'el-8',
-                                                    repo_dir: 'artifacts/el8/',
+                                                    repo_dir: 'artifacts/centos8/',
                                                     publish_branch: publish_branch
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
@@ -401,33 +367,33 @@ def call(Map pipeline_args) {
                             }
                             unsuccessful {
                                 sh label: "Build Log",
-                                   script: '''mockroot=/var/lib/mock/rocky+epel-8-x86_64
+                                   script: '''mockroot=/var/lib/mock/epel-8-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
-                                              artdir=$PWD/artifacts/el8
+                                              artdir=$PWD/artifacts/centos8
                                               cp -af _topdir/SRPMS $artdir
                                               (cd $mockroot/result/ &&
                                                cp -r . $artdir)'''
                             }
                             always {
                                 sh label: "Collect config.log(s)",
-                                   script: '''(if cd /var/lib/mock/rocky+epel-8-x86_64/root/builddir/build/BUILD/*/; then
+                                   script: '''(if cd /var/lib/mock/epel-8-x86_64/root/builddir/build/BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
                                                            continue
                                                        fi
-                                                       tdir="$OLDPWD/artifacts/el8/autoconf-logs/$dir"
+                                                       tdir="$OLDPWD/artifacts/centos8/autoconf-logs/$dir"
                                                        mkdir -p $tdir
                                                        cp -a $dir/config.log $tdir/
                                                    done
                                                fi)'''
                             }
                             cleanup {
-                                archiveArtifacts artifacts: 'artifacts/el8/**'
+                                archiveArtifacts artifacts: 'artifacts/centos8/**'
                             }
                         }
-                    } //stage('Build on EL 8')
+                    } //stage('Build on CentOS 8')
                     stage('Build on Leap 15') {
                         when {
                             beforeAgent true
@@ -657,18 +623,18 @@ def call(Map pipeline_args) {
                                           if ! make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
                                                '@' + env.BRANCH_NAME + ':' + env.BUILD_NUMBER +
                                                ' ' + pipeline_args.get('test_repos', '') + '''" \
-                                               CHROOT_NAME=centos+epel-7-x86_64                        \
+                                               CHROOT_NAME=epel-7-x86_64                        \
                                                -C utils/rpms chrootbuild; then
                                             # We need to allow failures from missing other packages
                                             # we build for creating an initial set of packages
                                             grep 'No matching package to install'               \
-                                                 /var/lib/mock/centos+epel-7-x86_64/result/root.log
+                                                 /var/lib/mock/epel-7-x86_64/result/root.log
                                           fi'''
                         }
                         post {
                             always {
                                 sh label: "Build Log",
-                                   script: 'cat /var/lib/mock/centos+epel-7-x86_64/result/{root,build}.log'
+                                   script: 'cat /var/lib/mock/epel-7-x86_64/result/{root,build}.log'
                             }
                             cleanup {
                                 archiveArtifacts artifacts: 'test_artifacts/**',
@@ -676,11 +642,11 @@ def call(Map pipeline_args) {
                             }
                         }
                     } // stage('Test build with DAOS on CentOS 7')
-                    stage('Test build with DAOS on EL 8') {
+                    stage('Test build with DAOS on CentOS 8') {
                         when {
                             beforeAgent true
                             allOf {
-                                expression { distros.contains('el8') }
+                                expression { distros.contains('centos8') }
                             }
                         }
                         agent {
@@ -705,25 +671,25 @@ def call(Map pipeline_args) {
                                           if ! make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
                                                '@' + env.BRANCH_NAME + ':' + env.BUILD_NUMBER +
                                                ' ' + pipeline_args.get('test_repos', '') + '''" \
-                                               CHROOT_NAME=rocky+epel-8-x86_64                  \
+                                               CHROOT_NAME=epel-8-x86_64                        \
                                                -C utils/rpms chrootbuild; then
                                             # We need to allow failures from missing other packages
                                             # we build for creating an initial set of packages
                                             grep 'No matching package to install'               \
-                                                 /var/lib/mock/rocky+epel-8-x86_64/result/root.log
+                                                 /var/lib/mock/epel-8-x86_64/result/root.log
                                           fi'''
                         }
                         post {
                             always {
                                 sh label: "Build Log",
-                                   script: 'cat /var/lib/mock/rocky+epel-8-x86_64/result/{root,build}.log'
+                                   script: 'cat /var/lib/mock/epel-8-x86_64/result/{root,build}.log'
                             }
                             cleanup {
                                 archiveArtifacts artifacts: 'test_artifacts/**',
                                                             allowEmptyArchive: true
                             }
                         }
-                    } // stage('Test build with DAOS on EL 8')
+                    } // stage('Test build with DAOS on CentOS 8')
                     stage('Test build with DAOS on Leap 15') {
                         when {
                             beforeAgent true
