@@ -20,7 +20,7 @@
  * config['profile']    Profile to use.  Default 'daos_ci'.
  * config['power_only'] Only power cycle the nodes, do not provision.
  * config['timeout']    Timeout in minutes.  Default 30.
- * config['inst_repos'] DAOS stack repos that should be configured.
+ * config['inst_repos']  DAOS stack repos that should be configured.
  * config['inst_rpms']  DAOS stack RPMs that should be installed.
  *  if timeout is <= 0, then will not wait for provisioning.
  *  if power_only is specified, the nodes will be rebooted and the
@@ -33,6 +33,8 @@
                      Not planned to be used as RHEL free development licenses
                      do not currently allow them to be used for CI automation.
    Prefix "centos":  Specifically the CentOS build of Enterprise Linux.
+                     This is the only el compatible distro we are using.
+
    Prefix "suse":    Anything that is compatible with "Suse Linux Enterprise"
                      as far as this environment cares.
    Prefix "sles":    Specifically the SUSE Linux Enterprise Server.
@@ -81,9 +83,7 @@ def call(Map config = [:]) {
 
   String distro_type = 'el7'
   String distro = config.get('distro', 'el7')
-  if (distro.startsWith("centos8") || distro.startsWith("el8") ||
-      distro.startsWith("rocky8") || distro.startsWith("almalinux8") ||
-      distro.startsWith("rhel8")) {
+  if (distro.startsWith("centos8") || distro.startsWith("el8")) {
     distro_type = 'el8'
   } else if (distro.startsWith("sles") || distro.startsWith("leap") ||
       distro.startsWith("opensuse")) {

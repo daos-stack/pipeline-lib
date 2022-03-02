@@ -127,11 +127,7 @@ String call(Map config = [:]) {
         if (daos_type == 'LOCAL') {
           daos_arg = 'EL7'
         }
-      } else if (stage_info['target'] == 'centos8' ||
-                 stage_info['target'] == 'el8' ||
-                 stage_info['target'] == 'rocky8'  ||
-                 stage_info['target'] == 'almalinux8' ||
-                 stage_info['target'] == 'rhel8') {
+      } else if (stage_info['target'] == 'centos8') {
         repo_alias = 'EL_8'
         if (daos_type == 'LOCAL') {
           daos_arg = 'EL8'
