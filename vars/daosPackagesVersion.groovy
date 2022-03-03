@@ -15,9 +15,10 @@ import groovy.transform.Field
 @Field static rpm_version_cache = ""
 
 String daos_latest_version(String next_version, String repo_type='stable') {
+    repo_type = repo_type.toUpperCase()
     String v = sh(label: "Get RPM packages version",
                   script: 'repoquery --repofrompath=daos,' + env.REPOSITORY_URL +
-                          env["DAOS_STACK_EL_7_" + repo_type.toUpperCase() + "_REPO"] +
+                          env."DAOS_STACK_EL_7_${repo_type}_REPO" +
                         '''/ --repoid daos --qf %{version}-%{release} --whatprovides 'daos-tests(x86-64) < ''' +
                                      next_version + '''' |
                                  rpmdev-sort | tail -1''',

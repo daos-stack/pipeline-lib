@@ -158,8 +158,8 @@ String call(Map config = [:]) {
         repo_alias = 'FEDORA'
         daos_arg = 'FEDORA'
       }
-      dist_repo = env["DAOS_STACK_${repo_alias}${repo_mod}_${dist_type}_REPO"]
-      daos_repo = env["DAOS_STACK_${repo_alias}_${daos_type}_REPO"]
+      dist_repo = env."DAOS_STACK_${repo_alias}${repo_mod}_${dist_type}_REPO"
+      daos_repo = env."DAOS_STACK_${repo_alias}_${daos_type}_REPO"
 
       // Only add the build args if a repo was found.
       if (dist_repo || daos_repo) {
