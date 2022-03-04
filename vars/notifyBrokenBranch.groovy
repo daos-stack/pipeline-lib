@@ -34,7 +34,7 @@ def call(Map config = [:]) {
                  subject: 'Build broken on ' + env.GIT_BRANCH,
                  onPR: config['onPR']
 
-    def branch = env.GIT_BRANCH.toUpperCase().replaceAll("-", "_"))
+    def branch = env.GIT_BRANCH.toUpperCase().replaceAll("-", "_")
     def watchers = env."DAOS_STACK_${branch}_WATCHER"
 
     if (watchers != "null") {
