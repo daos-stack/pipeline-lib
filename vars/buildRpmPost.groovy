@@ -87,7 +87,8 @@ def call(Map config = [:]) {
                         format: repo_format,
                         maturity: 'stable',
                         tech: target,
-                        repo_dir: 'artifacts/' + target
+                        repo_dir: 'artifacts/' + target,
+                        publish_branch: env.BRANCH_NAME
 
   }
 
