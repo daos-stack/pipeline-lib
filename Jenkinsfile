@@ -16,7 +16,7 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 //@Library(value="pipeline-lib@my_branch_name") _
-@Library(value="pipeline-lib@corci-1162") _
+@Library(value="pipeline-lib@corci-1162a") _
 
 pipeline {
     agent { label 'lightweight' }
@@ -268,11 +268,11 @@ pipeline {
                                       "Functional Hardware Medium",
                                       "Functional Hardware Large"]
                             commits = [[pragmas: ['Skip-func-test-leap15: false'],
-                                        skips: [false, false, true, false, false, false]],
+                                        skips: [false, true, false, false, false, false]],
                                        [pragmas: [''],
-                                        skips: [true, false, true, false, false, false]],
+                                        skips: [true, true, false, false, false, false]],
                                        [pragmas: ['Skip-func-hw-test-small: true'],
-                                        skips: [true, false, true, true, false, false]]]
+                                        skips: [true, true, false, true, false, false]]]
                             commits.each { commit ->
                                 cm = """\
                                         Test commit\n\n"""
