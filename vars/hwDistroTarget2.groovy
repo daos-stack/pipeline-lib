@@ -15,11 +15,11 @@
 // least)
 List call(String size) {
     // Possible values:
-    // leap15
-    // centos7
-    // el8
+    //'leap15
+    //'centos7
+    //'centos8
     // NOTE: the default distro does not get set, here below if the DAOS Jenkinsfile has a CI_HARDWARE_DISTRO parameter
-    String distro = cachedCommitPragma('EL8-target', 'el' +
+    String distro = cachedCommitPragma('EL8-target', 'centos' +
                                        cachedCommitPragma('EL8-version', '8'))
     if (params.CI_HARDWARE_DISTRO) {
         distro = params.CI_HARDWARE_DISTRO

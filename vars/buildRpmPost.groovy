@@ -39,7 +39,7 @@
    *                               Default 'ci/rpm/build_success.sh'.
    *
    * config['target']              Target distribution, such as 'centos7',
-   *                               'el8', 'leap15'.
+   *                               'leap15'.
    *                               Default based on parsing environment
    *                               variables for the stage.
    *
@@ -80,7 +80,7 @@ def call(Map config = [:]) {
     stash name: target + '-rpm-version',
           includes: target + '-rpm-version'
 
-    String product = config.get('product', 'daos-stack')
+    String product = config.get('product', 'daos')
     publishToRepository product: product,
                         format: repo_format,
                         maturity: 'stable',

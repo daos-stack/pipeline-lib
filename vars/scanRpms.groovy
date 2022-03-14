@@ -39,7 +39,7 @@
    *                             Default env.NODELIST
    *
    * config['target']            Target distribution, such as 'centos7',
-   *                             'el8', 'leap15'.  Default based on parsing
+   *                             'leap15'.  Default based on parsing
    *                             environment variables for the stage.
    *
    * config['test_script']       Script to build RPMs. 
