@@ -16,6 +16,7 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 //@Library(value="pipeline-lib@my_branch_name") _
+@Library(value="pipeline-lib@corci-1162") _
 
 pipeline {
     agent { label 'lightweight' }
@@ -27,6 +28,8 @@ pipeline {
         SSH_KEY_FILE='ci_key'
         SSH_KEY_ARGS="-i$SSH_KEY_FILE"
         CLUSH_ARGS="-o$SSH_KEY_ARGS"
+        ARTIFACTORY_URL = 'https://artifactory.dc.hpdd.intel.com/'
+
     }
 
     options {
@@ -78,8 +81,7 @@ pipeline {
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('grep JUnit results tests error case')
-                stage('publishToRepository tests') {
-                    // currently broken.
+                stage('publishToRepository RPM tests') {
                     when {
                         beforeAgent true
                         expression { false }
@@ -94,15 +96,15 @@ pipeline {
                     steps {
                         // Populate an artifact directory
                         copyArtifacts projectName: '/daos-stack/libfabric/master',
-                                      filter: 'artifacts/centos7/**',
+                                      filter: 'artifacts/centos8/**',
                                       target: 'artifact'
                         publishToRepository(
                             product: 'zzz_pl-' + env.BRANCH_NAME + '_' +
                                       env.BUILD_ID,
                             format: 'yum',
                             maturity: 'test',
-                            tech: 'el-7',
-                            repo_dir: 'artifact/artifacts/centos7',
+                            tech: 'el-8',
+                            repo_dir: 'artifact/artifacts/centos8',
                             download_dir: 'artifact/download',
                             test: true)
                     }
@@ -118,7 +120,47 @@ pipeline {
                                       status: 'SUCCESS'
                         }
                     }
-                } //stage('publishToRepository tests')
+                } //stage('publishToRepository RPM tests')
+                stage('publishToRepository DEB tests') {
+                    when {
+                        beforeAgent true
+                        expression { false }
+                    }
+                    agent {
+                        dockerfile {
+                            filename 'docker/Dockerfile.centos.7'
+                            label 'docker_runner'
+                            additionalBuildArgs dockerBuildArgs(cachebust: False, add_repos: False)
+                        }
+                    }
+                    steps {
+                        // Populate an artifact directory
+                        copyArtifacts projectName: '/daos-stack/libfabric/master',
+                                      filter: 'artifacts/ubuntu20.04/**',
+                                      target: 'artifact'
+                        publishToRepository(
+                            product: 'zzz_pl-' + env.BRANCH_NAME + '_' +
+                                      env.BUILD_ID,
+                            format: 'apt',
+                            maturity: 'test',
+                            tech: 'ubuntu-20.04',
+                            repo_dir: 'artifact/artifacts/ubuntu20.04',
+                            download_dir: 'artifact/download',
+                            test: true)
+                    }
+                    post {
+                        unsuccessful {
+                            scmNotify description: env.STAGE_NAME,
+                                      context: 'test/' + env.STAGE_NAME,
+                                      status: 'FAILURE'
+                        }
+                        success {
+                            scmNotify description: env.STAGE_NAME,
+                                      context: 'test/' + env.STAGE_NAME,
+                                      status: 'SUCCESS'
+                        }
+                    }
+                } //stage('publishToRepository DEB tests')
                 stage('provisionNodes with release/0.9 Repo') {
                     when {
                         beforeAgent true
