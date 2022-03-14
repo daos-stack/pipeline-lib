@@ -68,14 +68,12 @@ def call(Map config = [:]) {
     sh label: 'Build Log',
        script: "${env_vars} " + success_script
 
-    // TODO: Have Ubuntu support this
+    String repo_format = 'yum'
     if (!target.startsWith('ubuntu')) {
         stash name: target + '-required-mercury-rpm-version',
               includes: target + '-required-mercury-rpm-version'
-    }
-
-    String repo_format = 'yum'
-    if (target.startsWith('ubuntu')) {
+    } else {
+        // TODO: Have Ubuntu support stashes with mercury target
         repo_format = 'apt'
     }
 
@@ -87,8 +85,7 @@ def call(Map config = [:]) {
                         format: repo_format,
                         maturity: 'stable',
                         tech: target,
-                        repo_dir: 'artifacts/' + target,
-                        publish_branch: env.BRANCH_NAME
+                        repo_dir: 'artifacts/' + target
 
   }
 
