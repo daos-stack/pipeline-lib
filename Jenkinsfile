@@ -84,7 +84,7 @@ pipeline {
                 stage('publishToRepository RPM tests') {
                     when {
                         beforeAgent true
-                        expression { false }
+                        expression { env.NO_CI_TESTING != "true" }
                     }
                     agent {
                         dockerfile {
@@ -124,7 +124,7 @@ pipeline {
                 stage('publishToRepository DEB tests') {
                     when {
                         beforeAgent true
-                        expression { false }
+                        expression { env.NO_CI_TESTING != "true" }
                     }
                     agent {
                         dockerfile {
