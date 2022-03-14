@@ -125,10 +125,10 @@ def call(Map config = [:]) {
         }
     }  else if (distro.startsWith("leap15") ||
                 distro.startsWith("opensuse15")) {
-        if (env.DAOS_STACK_LEAP_15_GROUP_REPO != null) {
-            repository_g = env.REPOSITORY_URL +
-                env.DAOS_STACK_LEAP_15_GROUP_REPO
-        }
+        // if (env.DAOS_STACK_LEAP_15_GROUP_REPO != null) {
+        //    repository_g = env.REPOSITORY_URL +
+        //        env.DAOS_STACK_LEAP_15_GROUP_REPO
+        //}
         if (env.DAOS_STACK_LEAP_15_LOCAL_REPO != null) {
             repository_l = env.REPOSITORY_URL +
                 env.DAOS_STACK_LEAP_15_LOCAL_REPO

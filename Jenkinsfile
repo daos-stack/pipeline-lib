@@ -90,7 +90,7 @@ pipeline {
                         dockerfile {
                             filename 'docker/Dockerfile.centos.7'
                             label 'docker_runner'
-                            additionalBuildArgs dockerBuildArgs(cachebust: False, add_repos: False)
+                            additionalBuildArgs dockerBuildArgs(cachebust: false, add_repos: false)
                         }
                     }
                     steps {
@@ -130,7 +130,7 @@ pipeline {
                         dockerfile {
                             filename 'docker/Dockerfile.centos.7'
                             label 'docker_runner'
-                            additionalBuildArgs dockerBuildArgs(cachebust: False, add_repos: False)
+                            additionalBuildArgs dockerBuildArgs(cachebust: false, add_repos: false)
                         }
                     }
                     steps {
