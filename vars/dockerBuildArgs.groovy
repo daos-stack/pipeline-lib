@@ -114,7 +114,7 @@ String call(Map config = [:]) {
                      " --build-arg JENKINS_URL=$env.JENKINS_URL"
     if (cachebust) {
       Calendar current_time = Calendar.getInstance()
-      ret_str += " --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
+      ret_str += " --build-arg CACHEBUST=" + current_time.get(Calendar.WEEK_OF_YEAR)
       ret_str += " --build-arg CB0=" + current_time.get(Calendar.WEEK_OF_YEAR)
     }
 
