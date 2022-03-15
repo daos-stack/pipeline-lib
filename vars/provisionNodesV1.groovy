@@ -257,6 +257,7 @@ EOF'''
     provision_script += '''\nrm -f /etc/profile.d/openmpi.sh
                              rm -f /tmp/daos_control.log
                              yum -y erase metabench mdtest simul IOR compat-openmpi16
+                             yum -y install dnf dnf-plugins-core
                              if ! dnf -y install --exclude=ompi CUnit python36-PyYAML          \
                                                  python36-nose                                 \
                                                  python36-pip valgrind                         \
