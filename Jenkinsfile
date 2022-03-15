@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-/* Copyright (C) 2019-2020 Intel Corporation
+/* Copyright (C) 2019-2022 Intel Corporation
  * All rights reserved.
  *
  * This file is part of the DAOS Project. It is subject to the license terms
@@ -16,7 +16,8 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 //@Library(value="pipeline-lib@my_branch_name") _
-@Library(value="pipeline-lib@corci-1162a") _
+@Library(value=["pipeline-lib@corci-1162a",
+                "system-pipeline-lib@corci-1162b"]) _
 
 pipeline {
     agent { label 'lightweight' }
