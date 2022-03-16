@@ -125,10 +125,10 @@ def call(Map config = [:]) {
         }
     }  else if (distro.startsWith("leap15") ||
                 distro.startsWith("opensuse15")) {
-        if (env.DAOS_STACK_LEAP_15_GROUP_REPO != null) {
-            repository_g = env.REPOSITORY_URL +
-                env.DAOS_STACK_LEAP_15_GROUP_REPO
-        }
+        // if (env.DAOS_STACK_LEAP_15_GROUP_REPO != null) {
+        //    repository_g = env.REPOSITORY_URL +
+        //        env.DAOS_STACK_LEAP_15_GROUP_REPO
+        //}
         if (env.DAOS_STACK_LEAP_15_LOCAL_REPO != null) {
             repository_l = env.REPOSITORY_URL +
                 env.DAOS_STACK_LEAP_15_LOCAL_REPO
@@ -257,7 +257,8 @@ EOF'''
     provision_script += '''\nrm -f /etc/profile.d/openmpi.sh
                              rm -f /tmp/daos_control.log
                              yum -y erase metabench mdtest simul IOR compat-openmpi16
-                             if ! yum -y install --exclude=ompi CUnit python36-PyYAML          \
+                             yum -y install dnf dnf-plugins-core
+                             if ! dnf -y install --exclude=ompi CUnit python36-PyYAML          \
                                                  python36-nose                                 \
                                                  python36-pip valgrind                         \
                                                  python36-paramiko                             \
