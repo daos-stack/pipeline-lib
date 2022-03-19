@@ -718,10 +718,11 @@ def call(Map pipeline_args) {
                                           git submodule update --init
                                           if ! make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
                                                '@' + env.BRANCH_NAME + ':' + env.BUILD_NUMBER +
-                                               ' ' + pipeline_args.get('test_repos', '') + '''" \
-                                               CHROOT_NAME=opensuse-leap-15.3-x86_64            \
+                                               ' ' + pipeline_args.get('test_repos', '') +
+                                               ' ' + pipeline_args.get('test_repos-leap15', '') + '''" \
+                                               CHROOT_NAME=opensuse-leap-15.3-x86_64                   \
                                                -C utils/rpms chrootbuild; then
-                                            grep 'No matching package to install'               \
+                                            grep 'No matching package to install'                      \
                                                  /var/lib/mock/opensuse-leap-15.3-x86_64/result/root.log
                                             # We need to allow failures from missing other packages
                                             # we build for creating an initial set of packages
