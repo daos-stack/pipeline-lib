@@ -91,14 +91,18 @@ String call(String distro, String next_version) {
         distro = distro[0..dot - 1]
     }
 
-    unstash distro + '-rpm-version'
-    version = readFile(distro + '-rpm-version').trim()
-    if (version != "") {
-        return version
+    try {
+        unstash distro + '-rpm-version'
+        version = readFile(distro + '-rpm-version').trim()
+        if (version != "") {
+            return version
+        }
+    } catch(Exception ex){
+        sh('ls -l ' + distro + '-rpm-version || true; ' +
+           'cat ' + distro + '-rpm-version || true;')
+        println(distro + '-rpm-version stash not found.  Installing packages by version will not be available.')
+        return ""
     }
-
-    sh('ls -l ' + distro + '-rpm-version || true; ' +
-       'cat ' + distro + '-rpm-version || true;')
 
     error "Don't know how to determine package version for " + distro
 }
