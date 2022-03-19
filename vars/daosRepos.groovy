@@ -33,9 +33,11 @@ String call(String distro) {
     String pr_repos = prRepos(distro)
 
     echo "PR-repos for distro " + distro + " is " + pr_repos
+    echo "PR-repos contains daos@: " + pr_repos.contains('daos@')
     if (! pr_repos.contains('daos@')) {
         pr_repos += ' ' + daos_repo()
     }
 
+    echo "returning: " + pr_repos
     return pr_repos
 }
