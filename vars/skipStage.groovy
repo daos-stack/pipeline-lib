@@ -154,30 +154,39 @@ boolean call(Map config = [:]) {
         case "Build":
             // always build branch landings as we depend on lastSuccessfulBuild
             // always having RPMs in it
+            print("checking if " + cachedCommitPragma('PR-repos').trim() + "contains daos@ to skip build: " +
+                   cachedCommitPragma('PR-repos').trim().contains("daos@"))
             return (env.BRANCH_NAME != target_branch) &&
                    skip_stage_pragma('build') ||
-                   rpmTestVersion() != ''
+                   rpmTestVersion() != '' ||
+                   (quickFunctional() && cachedCommitPragma('PR-repos').trim().contains("daos@"))
         case "Build RPM on CentOS 7":
+            print("prRepos('centos7'): " + prRepos('centos7'))
             return paramsValue('CI_RPM_centos7_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
+                    prRepos('centos7').contains('daos@') ||
                    skip_stage_pragma('build-centos7-rpm')
         case "Build RPM on CentOS 8":
+            print("prRepos('centos8'): " + prRepos('centos8'))
             return paramsValue('CI_RPM_centos8_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos8') == '') ||
+                   prRepos('centos8').contains('daos@') ||
                    skip_stage_pragma('build-centos8-rpm')
         case "Build RPM on Leap 15":
             return paramsValue('CI_RPM_leap15_NOBUILD', false) ||
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
+                   prRepos('leap15').contains('daos@') ||
                    skip_stage_pragma('build-leap15-rpm')
         case "Build DEB on Ubuntu 20.04":
             return paramsValue('CI_RPM_ubuntu20_NOBUILD', false) ||
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
+                   prRepos('ubuntu20').contains('daos@') ||
                    skip_stage_pragma('build-ubuntu20-rpm')
         case "Build on CentOS 8":
             return skip_build_on_centos_gcc(target_branch, '8')
@@ -192,7 +201,7 @@ boolean call(Map config = [:]) {
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
-                   quickBuild() 
+                   quickBuild()
         case "Build on CentOS 8 debug":
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-centos7-gcc-debug') ||
@@ -210,7 +219,7 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build-centos7-gcc', 'false') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
-                   quickBuild()
+                   quickFunctional()
         case "Build on CentOS 8 release":
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-centos8-gcc-release', 'true') ||
