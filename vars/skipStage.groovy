@@ -210,7 +210,7 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build-centos7-gcc', 'false') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
-                   quickBuild()
+                    quickFunctional()
         case "Build on CentOS 8 release":
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-centos8-gcc-release', 'true') ||
@@ -329,6 +329,8 @@ boolean call(Map config = [:]) {
             skip_ftest('ubuntu20', target_branch) */
             return true
         case "Fault injection testing":
+        case "Fault injection testing on CentOS 8":
+        case "Fault injection testing on EL 8":
             return skip_stage_pragma('fault-injection-test') ||
                    quickFunctional() ||
                    docOnlyChange(target_branch) ||
