@@ -20,6 +20,7 @@
  * config['product']        Name of product.
  * config['repo_dir']       Directory to post artifacts from.
  * config['tech']           Distro/version code for reposiory eg: 'centos7'
+ *                          'el8', 'leap15', etc.
  * config['test']           Test by creating a temporary repo and then
  *                          deleting it.
  *                          Default false.  Used to unit test this step.
