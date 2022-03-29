@@ -176,6 +176,9 @@ String call(Map config = [:]) {
         }
       }
     }
+    if (env.REPO_FILE_URL) {
+        ret_str += ' --build-arg REPO_FILE_URL="' + env.REPO_FILE_URL + '"'
+    }
     if (env.HTTP_PROXY) {
       ret_str += ' --build-arg HTTP_PROXY="' + env.HTTP_PROXY + '"'
                  ' --build-arg http_proxy="' + env.HTTP_PROXY + '"'

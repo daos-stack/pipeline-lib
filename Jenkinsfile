@@ -98,7 +98,7 @@ pipeline {
                     steps {
                         // Populate an artifact directory
                         copyArtifacts projectName: '/daos-stack/libfabric/master',
-                                      filter: 'artifacts/centos8/**',
+                                      filter: 'artifacts/el8/**',
                                       target: 'artifact'
                         publishToRepository(
                             product: 'zzz_pl-' + env.BRANCH_NAME + '_' +
@@ -106,7 +106,7 @@ pipeline {
                             format: 'yum',
                             maturity: 'test',
                             tech: 'el-8',
-                            repo_dir: 'artifact/artifacts/centos8',
+                            repo_dir: 'artifact/artifacts/el8',
                             download_dir: 'artifact/download',
                             test: true)
                     }
