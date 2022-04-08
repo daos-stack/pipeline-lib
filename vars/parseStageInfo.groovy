@@ -167,7 +167,7 @@ def call(Map config = [:]) {
     if (stage_name.contains('Hardware')) {
       cluster_size = 'hw,large'
       result['pragma_suffix'] = '-hw-large'
-      result['ftest_arg'] = '--nvme=auto:Optane'
+      result['ftest_arg'] = '--nvme=auto:-3DNAND'
       if (stage_name.contains('Small')) {
         result['node_count'] = 3
         cluster_size = 'hw,small'
