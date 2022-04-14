@@ -41,6 +41,8 @@
 //@Library(value="pipeline-lib@your_branch") _ line the Jenkinsfile for a
 //project to point to the above branch.  Then build and test as usual
 
+Map foo = [:]
+
 def call(Map pipeline_args) {
     if (!pipeline_args) {
         pipeline_args = [:]
@@ -78,9 +80,6 @@ def call(Map pipeline_args) {
             QUICKBUILD = sh(script: "git show -s --format=%B | grep \"^Quick-build: true\"",
                             returnStatus: true)
             PACKAGING_BRANCH = commitPragma('Packaging-branch', 'master')
-            DAOS_TESTING_BRANCH = commitPragma('DAOS-test-branch',
-                                               pipeline_args.get('daos_test_branch',
-                                                                          'origin/master'))
         }
         stages {
             stage('Validation') {
@@ -225,13 +224,15 @@ def call(Map pipeline_args) {
                 } // parallel
             } //stage('Lint')
             stage('Build') {
+                when {
+                    beforeAgent true
+                    expression { ! skipStage() }
+                }
                 parallel {
                     stage('Coverity') {
                         when {
                             beforeAgent true
-                            allOf {
-                                expression { pipeline_args.get('coverity','') != '' }
-                            }
+                            expression { pipeline_args.get('coverity','') != '' }
                         }
                         agent {
                             dockerfile {
@@ -304,10 +305,7 @@ def call(Map pipeline_args) {
                         }
                         post {
                             success {
-                                catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS') {
-                                    sh label: "RPM Lint artifacts",
-                                       script: 'rpmlint /var/lib/mock/centos+epel-7-x86_64/result/*.rpm'
-                                }
+                                rpmlintMockResults("centos+epel-7-x86_64")
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/centos+epel-7-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/centos7/)\n''' +
@@ -380,10 +378,7 @@ def call(Map pipeline_args) {
                         }
                         post {
                             success {
-                                catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS') {
-                                    sh label: "RPM Lint artifacts",
-                                       script: 'rpmlint /var/lib/mock/rocky+epel-8-x86_64/result/*.rpm'
-                                }
+                                rpmlintMockResults("rocky+epel-8-x86_64")
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/rocky+epel-8-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/el8/)\n''' +
@@ -457,10 +452,7 @@ def call(Map pipeline_args) {
                         }
                         post {
                             success {
-                                catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS') {
-                                    sh label: "RPM Lint artifacts",
-                                       script: 'rpmlint /var/lib/mock/opensuse-leap-15.3-x86_64/result/*.rpm'
-                                }
+                                rpmlintMockResults("opensuse-leap-15.3-x86_64")
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/opensuse-leap-15.3-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/leap15/)\n''' +
@@ -627,155 +619,74 @@ def call(Map pipeline_args) {
                 } // parallel
             } //stage('Build')
             stage('Test') {
-                parallel {
-                    stage('Test build with DAOS on CentOS 7') {
-                        when {
-                            beforeAgent true
-                            allOf {
-                                expression { distros.contains('centos7') }
-                            }
+                matrix {
+                    axes {
+                        axis {
+                            name 'TARGET'
+                            values 'centos7',
+                                   'el8',
+                                   'leap15'
                         }
-                        agent {
-                            dockerfile {
-                                filename 'packaging/Dockerfile.mockbuild'
-                                label 'docker_runner'
-                                args  ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true'
-                                additionalBuildArgs dockerBuildArgs()
-                            }
+                        axis {
+                            name 'BRANCH'
+                            values 'master',
+                                   'release/2.2',
+                                   'release/2.0'
                         }
-                        steps {
-                            sh label: env.STAGE_NAME,
-                               script: '''rm -rf test_dir
-                                          mkdir test_dir
-                                          trap "popd; rm -rf test_dir" EXIT
-                                          pushd test_dir
-                                          git clone https://github.com/daos-stack/daos.git
-                                          cd daos
-                                          git checkout ''' + env.DAOS_TESTING_BRANCH + '''
-                                          git submodule update --init
-                                          if ! make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
-                                               '@' + env.BRANCH_NAME + ':' + env.BUILD_NUMBER +
-                                               ' ' + pipeline_args.get('test_repos', '') +
-                                               ' ' + pipeline_args.get('test_repos-centos7', '') + '''" \
-                                               CHROOT_NAME=centos+epel-7-x86_64                         \
-                                               -C utils/rpms chrootbuild; then
-                                            # We need to allow failures from missing other packages
-                                            # we build for creating an initial set of packages
-                                            grep 'No matching package to install'               \
-                                                 /var/lib/mock/centos+epel-7-x86_64/result/root.log
-                                          fi'''
+                    }
+                    when {
+                        beforeAgent true
+                        expression { distros.contains(env.TARGET) }
+                    }
+                    agent {
+                        dockerfile {
+                            filename 'packaging/Dockerfile.mockbuild'
+                            label 'docker_runner'
+                            args  ' --cap-add=SYS_ADMIN' +
+                                  ' --privileged=true'
+                            additionalBuildArgs dockerBuildArgs()
                         }
-                        post {
-                            always {
-                                sh label: "Build Log",
-                                   script: 'cat /var/lib/mock/centos+epel-7-x86_64/result/{root,build}.log'
+                    }
+                    stages {
+                        stage('Test build with DAOS') {
+                            steps {
+                                sh label: env.STAGE_NAME,
+                                   script: '''rm -rf test_dir
+                                              mkdir test_dir
+                                              trap "popd; rm -rf test_dir" EXIT
+                                              pushd test_dir
+                                              git clone https://github.com/daos-stack/daos.git
+                                              cd daos
+                                              git checkout ''' + cachedCommitPragma('DAOS-test-branch-' + env.BRANCH,
+                                                                                    pipeline_args.get('daos_test_branch-' + env.BRANCH,
+                                                                                    'origin/' + env.BRANCH)) + '''
+                                              git submodule update --init
+                                              if ! make PR_REPOS="''' +
+                                                   (prRepos(env.TARGET).contains('libfabric@') ? '' : env.JOB_NAME.split('/')[1] + '@' + env.BRANCH_NAME + ':' + env.BUILD_NUMBER + ' ') +
+                                                   pipeline_args.get('test_repos', '') +
+                                                   ' ' + pipeline_args.get('test_repos-' + env.TARGET, '') +
+                                                   ' ' + prRepos(env.TARGET) + '"' +
+                                                   ' CHROOT_NAME=' + getChrootName(env.TARGET) +
+                                                 ''' -C utils/rpms chrootbuild; then
+                                                # We need to allow failures from missing other packages
+                                                # we build for creating an initial set of packages
+                                                grep 'No matching package to install'               \
+                                                     /var/lib/mock/''' + getChrootName(env.TARGET) + '''/result/root.log
+                                              fi'''
                             }
-                            cleanup {
-                                archiveArtifacts artifacts: 'test_artifacts/**',
-                                                            allowEmptyArchive: true
+                            post {
+                                always {
+                                    sh label: "Build Log",
+                                       script: 'cat /var/lib/mock/' + getChrootName(env.TARGET) + '/result/{root,build}.log'
+                                }
+                                cleanup {
+                                    archiveArtifacts artifacts: 'test_artifacts/**',
+                                                                allowEmptyArchive: true
+                                }
                             }
-                        }
-                    } // stage('Test build with DAOS on CentOS 7')
-                    stage('Test build with DAOS on EL 8') {
-                        when {
-                            beforeAgent true
-                            allOf {
-                                expression { distros.contains('el8') }
-                            }
-                        }
-                        agent {
-                            dockerfile {
-                                filename 'packaging/Dockerfile.mockbuild'
-                                label 'docker_runner'
-                                args  ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true'
-                                additionalBuildArgs dockerBuildArgs()
-                            }
-                        }
-                        steps {
-                            sh label: env.STAGE_NAME,
-                               script: '''rm -rf test_dir
-                                          mkdir test_dir
-                                          trap "popd; rm -rf test_dir" EXIT
-                                          pushd test_dir
-                                          git clone https://github.com/daos-stack/daos.git
-                                          cd daos
-                                          git checkout ''' + env.DAOS_TESTING_BRANCH + '''
-                                          git submodule update --init
-                                          if ! make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
-                                               '@' + env.BRANCH_NAME + ':' + env.BUILD_NUMBER +
-                                               ' ' + pipeline_args.get('test_repos', '') +
-                                               ' ' + pipeline_args.get('test_repos-el8', '') + '''" \
-                                               CHROOT_NAME=rocky+epel-8-x86_64                      \
-                                               -C utils/rpms chrootbuild; then
-                                            # We need to allow failures from missing other packages
-                                            # we build for creating an initial set of packages
-                                            grep 'No matching package to install'               \
-                                                 /var/lib/mock/rocky+epel-8-x86_64/result/root.log
-                                          fi'''
-                        }
-                        post {
-                            always {
-                                sh label: "Build Log",
-                                   script: 'cat /var/lib/mock/rocky+epel-8-x86_64/result/{root,build}.log'
-                            }
-                            cleanup {
-                                archiveArtifacts artifacts: 'test_artifacts/**',
-                                                            allowEmptyArchive: true
-                            }
-                        }
-                    } // stage('Test build with DAOS on EL 8')
-                    stage('Test build with DAOS on Leap 15') {
-                        when {
-                            beforeAgent true
-                            allOf {
-                                expression { distros.contains('leap15') }
-                            }
-                        }
-                        agent {
-                            dockerfile {
-                                filename 'packaging/Dockerfile.mockbuild'
-                                label 'docker_runner'
-                                args  ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true'
-                                additionalBuildArgs dockerBuildArgs()
-                            }
-                        }
-                        steps {
-                            sh label: env.STAGE_NAME,
-                               script: '''rm -rf test_dir
-                                          mkdir test_dir
-                                          trap "popd; rm -rf test_dir" EXIT
-                                          pushd test_dir
-                                          git clone https://github.com/daos-stack/daos.git
-                                          cd daos
-                                          git checkout ''' + env.DAOS_TESTING_BRANCH + '''
-                                          git submodule update --init
-                                          if ! make PR_REPOS="''' + env.JOB_NAME.split('/')[1] +
-                                               '@' + env.BRANCH_NAME + ':' + env.BUILD_NUMBER +
-                                               ' ' + pipeline_args.get('test_repos', '') +
-                                               ' ' + pipeline_args.get('test_repos-leap15', '') + '''" \
-                                               CHROOT_NAME=opensuse-leap-15.3-x86_64                   \
-                                               -C utils/rpms chrootbuild; then
-                                            grep 'No matching package to install'                      \
-                                                 /var/lib/mock/opensuse-leap-15.3-x86_64/result/root.log
-                                            # We need to allow failures from missing other packages
-                                            # we build for creating an initial set of packages
-                                          fi'''
-                        }
-                        post {
-                            always {
-                                sh label: "Build Log",
-                                   script: 'cat /var/lib/mock/opensuse-leap-15.3-x86_64/result/{root,build}.log'
-                            }
-                            cleanup {
-                                archiveArtifacts artifacts: 'test_artifacts/**',
-                                                            allowEmptyArchive: true
-                            }
-                        }
-                    } // stage('Test build with DAOS on Leap 15')
-                } // parallel
+                        } // stage "Test build with DAOS on $TARGET"
+                    } // stages
+                } // matrix
             } // stage('Test')
         } // stages
     } // pipeline

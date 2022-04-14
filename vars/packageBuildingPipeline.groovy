@@ -83,23 +83,25 @@ def call(Map pipeline_args) {
             stage('Validation') {
                 parallel {
                     stage('centos8 changed to el8') {
-                        when {
-                            beforeAgent true
-                            expression { distros.contains('centos8') }
-                        }
                         steps {
-                            error "You need to update the Jenkinsfile and replace centos8 with el8"
+                            script {
+                                if (distros.contains('centos8')) {
+                                    error("You need to update the Jenkinsfile and replace centos8 with el8")
+                                }
+                        }
                         }
                     }
                     stage('CODEOWNER file exists') {
-                        when {
-                            beforeAgent true
-                            not { expression { fileExists ('.github/CODEOWNERS') } }
-                        }
                         steps {
-                            error """You need to create the file .github/CODEOWNERS with the following content:
+                            sh script: 'ls -l .github/CODEOWNERS || true'
+                            script {
+                                println(fileExists('.github/CODEOWNERS'))
+                                if (! fileExists('.github/CODEOWNERS')) {
+                                    error("""You need to create the file .github/CODEOWNERS with the following content:
 # Have Release Engineering added as a reviewer to any packaging PR
-* @daos-stack/build-and-release-watchers"""
+* @daos-stack/build-and-release-watchers""")
+                                }
+                            }
                         }
                     }
                 }
@@ -220,13 +222,15 @@ def call(Map pipeline_args) {
                 } // parallel
             } //stage('Lint')
             stage('Build') {
+                when {
+                    beforeAgent true
+                    expression { ! skipStage() }
+                }
                 parallel {
                     stage('Coverity') {
                         when {
                             beforeAgent true
-                            allOf {
-                                expression { pipeline_args.get('coverity','') != '' }
-                            }
+                            expression { pipeline_args.get('coverity','') != '' }
                         }
                         agent {
                             dockerfile {
@@ -299,10 +303,7 @@ def call(Map pipeline_args) {
                         }
                         post {
                             success {
-                                catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS') {
-                                    sh label: "RPM Lint artifacts",
-                                       script: 'rpmlint /var/lib/mock/centos+epel-7-x86_64/result/*.rpm'
-                                }
+                                rpmlintMockResults("centos+epel-7-x86_64")
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/centos+epel-7-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/centos7/)\n''' +
@@ -375,10 +376,7 @@ def call(Map pipeline_args) {
                         }
                         post {
                             success {
-                                catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS') {
-                                    sh label: "RPM Lint artifacts",
-                                       script: 'rpmlint /var/lib/mock/rocky+epel-8-x86_64/result/*.rpm'
-                                }
+                                rpmlintMockResults("rocky+epel-8-x86_64")
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/rocky+epel-8-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/el8/)\n''' +
@@ -452,10 +450,7 @@ def call(Map pipeline_args) {
                         }
                         post {
                             success {
-                                catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS') {
-                                    sh label: "RPM Lint artifacts",
-                                       script: 'rpmlint /var/lib/mock/opensuse-leap-15.3-x86_64/result/*.rpm'
-                                }
+                                rpmlintMockResults("opensuse-leap-15.3-x86_64")
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/opensuse-leap-15.3-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/leap15/)\n''' +
@@ -626,9 +621,7 @@ def call(Map pipeline_args) {
                     stage('Test on CentOS 7') {
                         when {
                             beforeAgent true
-                            allOf {
-                                expression { distros.contains('centos7') }
-                            }
+                            expression { distros.contains('centos7') }
                         }
                         agent {
                             dockerfile {

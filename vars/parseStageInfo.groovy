@@ -59,6 +59,10 @@ def call(Map config = [:]) {
       result['target'] = 'centos8.3'
       result['distro_version'] = cachedCommitPragma('EL8.3-version', '8.3')
       new_ci_target = cachedCommitPragma('EL8.3-target', result['target'])
+    } else if (stage_name.contains('EL 8.4')) {
+      result['target'] = 'el8.4'
+      result['distro_version'] = cachedCommitPragma('EL8.4-version', '8.4')
+      new_ci_target = cachedCommitPragma('EL8.4-target', result['target'])
     } else if (stage_name.contains('CentOS 8')) {
       result['target'] = 'centos8'
       result['distro_version'] = cachedCommitPragma('EL8-version', '8')
