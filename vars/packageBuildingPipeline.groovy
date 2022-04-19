@@ -1,5 +1,6 @@
 #!/usr/bin/groovy
-/* Copyright (C) 2019 Intel Corporation
+/* groovylint-disable DuplicateMapLiteral, DuplicateStringLiteral, NestedBlockDepth */
+/* Copyright (C) 2019-2022 Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,8 +42,11 @@
 //@Library(value="pipeline-lib@your_branch") _ line the Jenkinsfile for a
 //project to point to the above branch.  Then build and test as usual
 
-def call(Map pipeline_args) {
+/* groovylint-disable-next-line MethodSize, ParameterName */
+void call(Map pipeline_args) {
+    /* groovylint-disable-next-line CouldBeElvis */
     if (!pipeline_args) {
+        /* groovylint-disable-next-line ParameterReassignment */
         pipeline_args = [:]
     }
 
@@ -75,7 +79,7 @@ def call(Map pipeline_args) {
          */
 
         environment {
-            QUICKBUILD = sh(script: "git show -s --format=%B | grep \"^Quick-build: true\"",
+            QUICKBUILD = sh(script: 'git show -s --format=%B | grep "^Quick-build: true"',
                             returnStatus: true)
             PACKAGING_BRANCH = commitPragma('Packaging-branch', 'master')
         }
@@ -86,9 +90,9 @@ def call(Map pipeline_args) {
                         steps {
                             script {
                                 if (distros.contains('centos8')) {
-                                    error("You need to update the Jenkinsfile and replace centos8 with el8")
+                                    error('You need to update the Jenkinsfile and replace centos8 with el8')
                                 }
-                        }
+                            }
                         }
                     }
                     stage('CODEOWNER file exists') {
@@ -96,10 +100,10 @@ def call(Map pipeline_args) {
                             sh script: 'ls -l .github/CODEOWNERS || true'
                             script {
                                 println(fileExists('.github/CODEOWNERS'))
-                                if (! fileExists('.github/CODEOWNERS')) {
-                                    error("""You need to create the file .github/CODEOWNERS with the following content:
+                                if (!fileExists('.github/CODEOWNERS')) {
+                                    error('''You need to create the file .github/CODEOWNERS with the following content:
 # Have Release Engineering added as a reviewer to any packaging PR
-* @daos-stack/build-and-release-watchers""")
+* @daos-stack/build-and-release-watchers''')
                                 }
                             }
                         }
@@ -133,14 +137,14 @@ def call(Map pipeline_args) {
                             dockerfile {
                                 filename 'packaging/Dockerfile.mockbuild'
                                 label 'docker_runner'
-                                args  '--group-add mock' +
-                                      ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true'
+                                args '--group-add mock' +
+                                     ' --cap-add=SYS_ADMIN' +
+                                     ' --privileged=true'
                                 additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
-                            sh label: "SPEC file linting check",
+                            sh label: 'SPEC file linting check',
                                script: 'make ' +
                                        pipeline_args.get('make args', '') +
                                        ' rpmlint',
@@ -153,16 +157,17 @@ def call(Map pipeline_args) {
                             dockerfile {
                                 filename 'packaging/Dockerfile.mockbuild'
                                 label 'docker_runner'
-                                args  '--group-add mock' +
-                                      ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true'
+                                args '--group-add mock' +
+                                     ' --cap-add=SYS_ADMIN' +
+                                     ' --privileged=true'
                                 additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
-                            sh label: "SPEC file sanity check",
+                            sh label: 'SPEC file sanity check',
                                script: 'if ! result="$(make ' +
-                                       pipeline_args.get('make args', '') +
+                                        pipeline_args.get('make args', '') +
+                                       /* groovylint-disable-next-line GStringExpressionWithinString */
                                        '''  CHROOT_NAME=centos+epel-7-x86_64 show_sources)"; then
                                             rc=${PIPESTATUS[0]}
                                             echo "Got an error from make show_sources!"
@@ -174,7 +179,7 @@ def call(Map pipeline_args) {
                         }
                         post {
                             unsuccessful {
-                                sh label: "Diagnose SPEC file sanity check failure",
+                                sh label: 'Diagnose SPEC file sanity check failure',
                                    script: 'make ' +
                                            pipeline_args.get('make args', '') +
                                            ' CHROOT_NAME=centos+epel-7-x86_64 show_sources || true' +
@@ -182,7 +187,9 @@ def call(Map pipeline_args) {
                                               eval args=($(make ''' +
                                               pipeline_args.get('make args', '') + ' ' +
                                            '''show_common_rpm_args 2>/dev/null))
-                                              vars=$(CHROOT_NAME="centos+epel-7-x86_64" spectool --debug "${args[@]}" $(make ''' +
+                                              vars=$(CHROOT_NAME="centos+epel-7-x86_64" ''' +
+                                              /* groovylint-disable-next-line GStringExpressionWithinString */
+                                              '''spectool --debug "${args[@]}" $(make ''' +
                                               pipeline_args.get('make args', '') + ' ' +
                                            '''show_spec 2>/dev/null) 2>&1 | sed -e 's/: /=/' -e 's/ /_/g')
                                               eval $vars
@@ -210,7 +217,7 @@ def call(Map pipeline_args) {
                             success { noop() }
                             unsuccessful {
                                 emailext body: 'Packaging out of date for ' + jobName() + '.\n' +
-                                               "You should update it and submit your PR again.",
+                                               'You should update it and submit your PR again.',
                                          recipientProviders: [
                                               [$class: 'DevelopersRecipientProvider'],
                                               [$class: 'RequesterRecipientProvider']
@@ -224,13 +231,13 @@ def call(Map pipeline_args) {
             stage('Build') {
                 when {
                     beforeAgent true
-                    expression { ! skipStage() }
+                    expression { !skipStage() }
                 }
                 parallel {
                     stage('Coverity') {
                         when {
                             beforeAgent true
-                            expression { pipeline_args.get('coverity','') != '' }
+                            expression { pipeline_args.get('coverity', '') != '' }
                         }
                         agent {
                             dockerfile {
@@ -243,7 +250,8 @@ def call(Map pipeline_args) {
                         steps {
                             coverityToolDownload tool_path: './cov_analysis',
                                             project: pipeline_args['coverity']
-                            sh label: "Coverity",
+                            sh label: 'Coverity',
+                               /* groovylint-disable-next-line GStringExpressionWithinString */
                                script: '''set -e
                                           if [ ! -e ./cov_analysis/bin ]; then
                                               exit
@@ -254,7 +262,7 @@ def call(Map pipeline_args) {
                         }
                         post {
                             success {
-                                sh label: "Collect Coverity Success artifacts",
+                                sh label: 'Collect Coverity Success artifacts',
                                    script: '''mkdir -p coverity
                                               rm -f coverity/*
                                               if [ -e cov-int ]; then
@@ -262,7 +270,7 @@ def call(Map pipeline_args) {
                                               fi'''
                             }
                             unsuccessful {
-                                sh label: "Collect Coverity Fail artifacts",
+                                sh label: 'Collect Coverity Fail artifacts',
                                    script: '''mkdir -p coverity
                                               rm -f coverity/*
                                               if [ -f cov-int/build-log.txt ]; then
@@ -274,7 +282,7 @@ def call(Map pipeline_args) {
                                 allowEmptyArchive: true
                             }
                         }
-                    } //stage('Build on CentOS 7')
+                    } //stage('Coverity') {
                     stage('Build on CentOS 7') {
                         when {
                             beforeAgent true
@@ -286,28 +294,31 @@ def call(Map pipeline_args) {
                             dockerfile {
                                 filename 'packaging/Dockerfile.mockbuild'
                                 label 'docker_runner'
-                                args  '--group-add mock' +
-                                      ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true'
+                                args '--group-add mock' +
+                                     ' --cap-add=SYS_ADMIN' +
+                                     ' --privileged=true'
                                 additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
-                            sh label: "Build package",
+                            sh label: 'Build package',
                                script: '''rm -rf artifacts/centos7/
                                           mkdir -p artifacts/centos7/
                                           make CHROOT_NAME="centos+epel-7-x86_64" ''' +
-                                              'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + " " +
+                                              'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + ' ' +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
                         }
                         post {
                             success {
-                                rpmlintMockResults("centos+epel-7-x86_64")
-                                sh label: "Collect artifacts",
+                                rpmlintMockResults('centos+epel-7-x86_64',
+                                                   pipeline_args.get('rpmlint_rpms_allow_errors', false),
+                                                   pipeline_args.get('rpmlint_rpms_skip', false))
+                                sh label: 'Collect artifacts',
                                    script: '''(cd /var/lib/mock/centos+epel-7-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/centos7/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "centos7") +
+                                              pipeline_args.get('add_archiving_cmds', '').replace('<distro>',
+                                                                                                  'centos7') +
                                              '\ncreaterepo artifacts/centos7/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
@@ -320,7 +331,7 @@ def call(Map pipeline_args) {
                                                             allowEmptyArchive: true
                             }
                             unsuccessful {
-                                sh label: "Build Log",
+                                sh label: 'Build Log',
                                    script: '''mockroot=/var/lib/mock/centos+epel-7-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
@@ -330,8 +341,9 @@ def call(Map pipeline_args) {
                                                cp -r . $artdir)'''
                             }
                             always {
-                                sh label: "Collect config.log(s)",
-                                   script: '''(if cd /var/lib/mock/centos+epel-7-x86_64/root/builddir/build/BUILD/*/; then
+                                sh label: 'Collect config.log(s)',
+                                   script: '(if cd /var/lib/mock/centos+epel-7-x86_64/root/builddir/build/BUILD/*/; ' +
+                                         '''then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
@@ -359,28 +371,30 @@ def call(Map pipeline_args) {
                             dockerfile {
                                 filename 'packaging/Dockerfile.mockbuild'
                                 label 'docker_runner'
-                                args  '--group-add mock' +
-                                      ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true'
+                                args '--group-add mock' +
+                                     ' --cap-add=SYS_ADMIN' +
+                                     ' --privileged=true'
                                 additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
-                            sh label: "Build package",
+                            sh label: 'Build package',
                                script: '''rm -rf artifacts/el8/
                                           mkdir -p artifacts/el8/
                                           make CHROOT_NAME="rocky+epel-8-x86_64" ''' +
-                                              'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + " " +
+                                              'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + ' ' +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
                         }
                         post {
                             success {
-                                rpmlintMockResults("rocky+epel-8-x86_64")
-                                sh label: "Collect artifacts",
+                                rpmlintMockResults('rocky+epel-8-x86_64',
+                                                   pipeline_args.get('rpmlint_rpms_allow_errors', false),
+                                                   pipeline_args.get('rpmlint_rpms_skip', false))
+                                sh label: 'Collect artifacts',
                                    script: '''(cd /var/lib/mock/rocky+epel-8-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/el8/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "el8") +
+                                              pipeline_args.get('add_archiving_cmds', '').replace('<distro>', 'el8') +
                                              '\ncreaterepo artifacts/el8/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
@@ -393,7 +407,7 @@ def call(Map pipeline_args) {
                                                             allowEmptyArchive: true
                             }
                             unsuccessful {
-                                sh label: "Build Log",
+                                sh label: 'Build Log',
                                    script: '''mockroot=/var/lib/mock/rocky+epel-8-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
@@ -403,8 +417,9 @@ def call(Map pipeline_args) {
                                                cp -r . $artdir)'''
                             }
                             always {
-                                sh label: "Collect config.log(s)",
-                                   script: '''(if cd /var/lib/mock/rocky+epel-8-x86_64/root/builddir/build/BUILD/*/; then
+                                sh label: 'Collect config.log(s)',
+                                   script: '(if cd /var/lib/mock/rocky+epel-8-x86_64/root/builddir/build/BUILD/*/; ' +
+                                          '''then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
@@ -426,35 +441,37 @@ def call(Map pipeline_args) {
                             beforeAgent true
                             allOf {
                                 expression { distros.contains('leap15') }
-                                expression { return env.QUICKBUILD == '1' }
                             }
                         }
                         agent {
                             dockerfile {
                                 filename 'packaging/Dockerfile.mockbuild'
                                 label 'docker_runner'
-                                args  '--group-add mock' +
-                                      ' --cap-add=SYS_ADMIN' +
-                                      ' --privileged=true'
+                                args '--group-add mock' +
+                                     ' --cap-add=SYS_ADMIN' +
+                                     ' --privileged=true'
                                 additionalBuildArgs dockerBuildArgs()
                             }
                         }
                         steps {
-                            sh label: "Build package",
+                            sh label: 'Build package',
                                script: '''rm -rf artifacts/leap15/
                                           mkdir -p artifacts/leap15/
                                           make CHROOT_NAME="opensuse-leap-15.3-x86_64" ''' +
-                                              'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + " " +
+                                              'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + ' ' +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
                         }
                         post {
                             success {
-                                rpmlintMockResults("opensuse-leap-15.3-x86_64")
-                                sh label: "Collect artifacts",
+                                rpmlintMockResults('opensuse-leap-15.3-x86_64',
+                                                   pipeline_args.get('rpmlint_rpms_allow_errors', false),
+                                                   pipeline_args.get('rpmlint_rpms_skip', false))
+                                sh label: 'Collect artifacts',
                                    script: '''(cd /var/lib/mock/opensuse-leap-15.3-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/leap15/)\n''' +
-                                              pipeline_args.get('add_archiving_cmds', '').replace("<distro>", "leap15") +
+                                              pipeline_args.get('add_archiving_cmds', '').replace('<distro>',
+                                                                                                  'leap15') +
                                              '\ncreaterepo artifacts/leap15/'
                                 publishToRepository product: package_name,
                                                     format: 'yum',
@@ -467,7 +484,7 @@ def call(Map pipeline_args) {
                                                             allowEmptyArchive: true
                             }
                             unsuccessful {
-                                sh label: "Build Log",
+                                sh label: 'Build Log',
                                    script: '''mockroot=/var/lib/mock/opensuse-leap-15.3-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
@@ -477,8 +494,9 @@ def call(Map pipeline_args) {
                                                cp -r . $artdir)'''
                             }
                             always {
-                                sh label: "Collect config.log(s)",
-                                   script: '''(if cd /var/lib/mock/opensuse-leap-15.3-x86_64/root/builddir/build/BUILD/*/; then
+                                sh label: 'Collect config.log(s)',
+                                   script: '(if cd /var/lib/mock/opensuse-leap-15.3-x86_64/root/builddir/build/' +
+                                          '''BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
                                                        if [ ! -f $dir/config.log ]; then
@@ -500,11 +518,10 @@ def call(Map pipeline_args) {
                             beforeAgent true
                             allOf {
                                 expression { distros.contains('ubuntu20.04') }
-                                expression { return env.QUICKBUILD == '1' }
                                 expression { env.DAOS_STACK_REPO_PUB_KEY != null }
                                 expression { env.DAOS_STACK_REPO_SUPPORT != null }
-                                expression { env.DAOS_STACK_REPO_UBUNTU_20_04_LIST != null}
-                             }
+                                expression { env.DAOS_STACK_REPO_UBUNTU_20_04_LIST != null }
+                            }
                         }
                         agent {
                             dockerfile {
@@ -515,7 +532,8 @@ def call(Map pipeline_args) {
                             }
                         }
                         steps {
-                            sh label: "Build package",
+                            sh label: 'Build package',
+                               /* groovylint-disable-next-line GStringExpressionWithinString */
                                script: '''rm -rf artifacts/ubuntu20.04/
                                           mkdir -p artifacts/ubuntu20.04/
                                           : "${DEBEMAIL:="$env.DAOS_EMAIL"}"
@@ -527,7 +545,7 @@ def call(Map pipeline_args) {
                         }
                         post {
                             success {
-                                sh label: "Collect artifacts",
+                                sh label: 'Collect artifacts',
                                    script: '''cp -v \
                                                 /var/cache/pbuilder/result/*{.buildinfo,.changes,.deb,.dsc,.xz} \
                                                 artifacts/ubuntu20.04/
@@ -546,8 +564,8 @@ def call(Map pipeline_args) {
                                                     publish_branch: publish_branch
                             }
                             unsuccessful {
-                                sh label: "Collect artifacts",
-                                   script: "cat /var/cache/pbuilder/result/*.buildinfo",
+                                sh label: 'Collect artifacts',
+                                   script: 'cat /var/cache/pbuilder/result/*.buildinfo',
                                    returnStatus: true
                             }
                             cleanup {
@@ -561,7 +579,6 @@ def call(Map pipeline_args) {
                             beforeAgent true
                             allOf {
                                 expression { distros.contains('ubuntu_rolling') }
-                                expression { return env.QUICKBUILD == '1' }
                             }
                         }
                         agent {
@@ -573,7 +590,8 @@ def call(Map pipeline_args) {
                             }
                         }
                         steps {
-                            sh label: "Build package",
+                            sh label: 'Build package',
+                               /* groovylint-disable-next-line GStringExpressionWithinString */
                                script: '''rm -rf artifacts/ubuntu_rolling/
                                           mkdir -p artifacts/ubuntu_rolling/
                                           mkdir -p _topdir
@@ -586,7 +604,7 @@ def call(Map pipeline_args) {
                         }
                         post {
                             success {
-                                sh label: "Collect artifacts",
+                                sh label: 'Collect artifacts',
                                    script: '''cp -v \
                                                 /var/cache/pbuilder/result/*{.buildinfo,.changes,.deb,.dsc,.xz} \
                                                 artifacts/ubuntu_rolling/
@@ -605,8 +623,8 @@ def call(Map pipeline_args) {
                                                     publish_branch: publish_branch
                             }
                             unsuccessful {
-                                sh label: "Collect artifacts",
-                                   script: "cat /var/cache/pbuilder/result/*.buildinfo",
+                                sh label: 'Collect artifacts',
+                                   script: 'cat /var/cache/pbuilder/result/*.buildinfo',
                                    returnStatus: true
                             }
                             cleanup {
@@ -634,7 +652,7 @@ def call(Map pipeline_args) {
                             }
                         }
                         steps {
-                            sh label: "Test",
+                            sh label: 'Test',
                                script: 'make ' + pipeline_args.get('make args', '') + ' test'
                         }
                     } // stage('Test on CentOS 7')
