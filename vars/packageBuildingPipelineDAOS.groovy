@@ -305,7 +305,8 @@ def call(Map pipeline_args) {
                         }
                         post {
                             success {
-                                rpmlintMockResults("centos+epel-7-x86_64")
+                                rpmlintMockResults("centos+epel-7-x86_64",
+                                                   pipeline_args.get('rpmlint_rpms_allow_errors', false))
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/centos+epel-7-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/centos7/)\n''' +
@@ -378,7 +379,8 @@ def call(Map pipeline_args) {
                         }
                         post {
                             success {
-                                rpmlintMockResults("rocky+epel-8-x86_64")
+                                rpmlintMockResults("rocky+epel-8-x86_64",
+                                                   pipeline_args.get('rpmlint_rpms_allow_errors', false))
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/rocky+epel-8-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/el8/)\n''' +
@@ -452,7 +454,8 @@ def call(Map pipeline_args) {
                         }
                         post {
                             success {
-                                rpmlintMockResults("opensuse-leap-15.3-x86_64")
+                                rpmlintMockResults("opensuse-leap-15.3-x86_64",
+                                                   pipeline_args.get('rpmlint_rpms_allow_errors', false))
                                 sh label: "Collect artifacts",
                                    script: '''(cd /var/lib/mock/opensuse-leap-15.3-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/leap15/)\n''' +
