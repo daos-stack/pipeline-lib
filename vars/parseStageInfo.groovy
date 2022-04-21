@@ -216,10 +216,11 @@ def call(Map config = [:]) {
               } else {
                 // Must be a PR run
                 tag = "pr"
-
+                // target_branch is the branch that a PR is based on for PRs,
+                // or the branch being landed to for landings
                 String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
-                if (target_branch == "release/1.2") {
-                  echo "Updating tag to inclue daily_regression for release/1.2"
+                if (target_branch == "release/1.2" ||
+                    env.BRANCH_NAME == "release/2.0") {
                   tag += " daily_regression"
                 }
               }
