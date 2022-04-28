@@ -87,14 +87,14 @@ def call(Map config = [:]) {
   params['context'] = context
   params['description'] = description
 
-  sh label: "Install Launchable",
-     script: "python3 -m pip install --user launchable~=1.0"
+  #sh label: "Install Launchable",
+  #   script: "python3 -m pip install --user launchable~=1.0"
 
-  withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
-     sh label: "Send build data",
-        script: '''export PATH=$PATH:$HOME/.local/bin
-                   launchable record build --name ${BUILD_TAG//%2F/-} --source src=.'''
-  }
+  #withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
+  #   sh label: "Send build data",
+  #      script: '''export PATH=$PATH:$HOME/.local/bin
+  #                 launchable record build --name ${BUILD_TAG//%2F/-} --source src=.'''
+  #}
 
   if (config.get('test_function', "runTestFunctional") ==
       "runTestFunctionalV2") {
