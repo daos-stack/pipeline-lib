@@ -33,7 +33,7 @@ String call(String name, String def_val = null) {
     String _def_val
 
     if (def_val) {
-        _def_val = def_val.toLowerCase()
+        _def_val = def_val
     }
 
     /* groovylint-disable-next-line CouldBeElvis */

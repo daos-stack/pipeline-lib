@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral */
 // vars/testsInStage.groovy
 
 /**
@@ -11,28 +12,26 @@
  */
 
 boolean call() {
-    if (env.BRANCH_NAME.startsWith('weekly-testing') ||
-        env.BRANCH_NAME.startsWith('provider-testing') ||
-        (env.CHANGE_TARGET && env.CHANGE_TARGET.startsWith('weekly-testing')) ||
-        (env.CHANGE_TARGET && env.CHANGE_TARGET.startsWith('provider-testing'))) {
-        /* This doesn't actually work on weekly-testing branches due to a lack
-         * src/test/ftest/launch.py (and friends).  We could probably just
-         * check that out from the branch we are testing against (i.e. master,
-         * release/*, etc.) but let's save that for another day
-         */
-        return true
-    }
-
-    return sh(label: "Get test list",
-              script: """if \${UNIT_TEST:-false}; then
+    return sh(label: 'Get test list',
+              /* groovylint-disable-next-line GStringExpressionWithinString */
+              script: '''trap 'echo "Got an unhandled error, exiting as if a match was found"; exit 0' ERR
+                         if ${UNIT_TEST:-false}; then
                              exit 0
                          fi
-                         cd src/tests/ftest
-                         if [ -x list_tests.py ]
-                         then
-                             ./list_tests.py """ + parseStageInfo()['test_tag'] + """
+                         # This doesn't actually work on weekly-testing branches due to a lack
+                         # src/test/ftest/launch.py (and friends).  We could probably just
+                         # check that out from the branch we are testing against (i.e. master,
+                         # release/*, etc.) but let's save that for another day and just exit
+                         # with a "tests found" for now.
+                         if ! cd src/tests/ftest; then
+                             echo "src/tests/ftest doesn't exist."
+                             echo "Could not determine if tests exist for this stage, assuming they do."
+                             exit 0
+                         fi
+                         if [ -x list_tests.py ]; then
+                             ./list_tests.py ''' + parseStageInfo()['test_tag'] + '''
                          else
-                             ./launch.py --list """ + parseStageInfo()['test_tag'] + """
-                         fi""",
+                             ./launch.py --list ''' + parseStageInfo()['test_tag'] + '''
+                         fi''',
               returnStatus: true) == 0
 }

@@ -97,9 +97,7 @@ void call(Map pipeline_args) {
                     }
                     stage('CODEOWNER file exists') {
                         steps {
-                            sh script: 'ls -l .github/CODEOWNERS || true'
                             script {
-                                println(fileExists('.github/CODEOWNERS'))
                                 if (!fileExists('.github/CODEOWNERS')) {
                                     error('''You need to create the file .github/CODEOWNERS with the following content:
 # Have Release Engineering added as a reviewer to any packaging PR
