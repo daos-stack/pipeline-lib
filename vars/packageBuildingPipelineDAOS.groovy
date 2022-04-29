@@ -50,7 +50,6 @@ Map foo = [:]
 
 /* groovylint-disable-next-line MethodSize, ParameterName */
 void call(Map pipeline_args) {
-
     // Map of targets to Dockerfiles for the matrix
     Map dockerfile_map = ['centos7': 'Dockerfile.mockbuild',
                           'el8': 'Dockerfile.mockbuild',
@@ -695,8 +694,7 @@ void call(Map pipeline_args) {
                                                                                     pipeline_args.get(
                                                                                         'daos_test_branch-' +
                                                                                         env.BRANCH,
-                                                                                    /* groovylint-disable-next-line
-                                                                                       GStringExpressionWithinString */
+                                                        /* groovylint-disable-next-line GStringExpressionWithinString */
                                                                                     'origin/' + env.BRANCH)) + '''
                                               git submodule update --init
                                               : "${DEBEMAIL:="$env.DAOS_EMAIL"}"

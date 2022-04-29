@@ -93,8 +93,27 @@ def call(Map config = [:]) {
   params['context'] = context
   params['description'] = description
 
-  if (config.get('test_function', "runTestFunctional") ==
-      "runTestFunctionalV2") {
+  sh label: 'Install Launchable',
+     script: '''# can't use --upgrade with pip3 because it tries to upgrade everything
+                v=$(pip3 install --user launchable== 2>&1 | sed -ne '2s/.*, \\(.*\\))/\\1/p')
+                if ! pip3 install --user launchable==$v; then
+                  echo "Failed to install launchable"
+                  id
+                  pip3 list --user || true
+                  find ~/.local/lib -type d
+                  hostname
+                  exit 1
+                fi
+                pip3 list --user || true
+                '''
+  withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
+     sh label: 'Send build data',
+        script: '''export PATH=$PATH:$HOME/.local/bin
+                   launchable record build --name ${BUILD_TAG//%2F/-} --source src=.'''
+  }
+
+  if (config.get('test_function', 'runTestFunctional') ==
+      'runTestFunctionalV2') {
     runTestFunctionalV2 params
   } else {
     runTestFunctional params

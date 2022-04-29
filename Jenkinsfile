@@ -1,4 +1,5 @@
 #!/usr/bin/env groovy
+/* groovylint-disable DuplicateNumberLiteral, DuplicateStringLiteral, NestedBlockDepth */
 /* Copyright (C) 2019-2022 Intel Corporation
  * All rights reserved.
  *
@@ -17,6 +18,7 @@
 // is landed, both PR branches can be deleted.
 //@Library(value="pipeline-lib@my_branch_name") _
 
+/* groovylint-disable-next-line CompileStatic */
 pipeline {
     agent { label 'lightweight' }
     libraries {
@@ -24,9 +26,9 @@ pipeline {
     }
 
     environment {
-        SSH_KEY_FILE='ci_key'
-        SSH_KEY_ARGS="-i$SSH_KEY_FILE"
-        CLUSH_ARGS="-o$SSH_KEY_ARGS"
+        SSH_KEY_FILE = 'ci_key'
+        SSH_KEY_ARGS = "-i$SSH_KEY_FILE"
+        CLUSH_ARGS = "-o$SSH_KEY_ARGS"
     }
 
     options {
@@ -62,7 +64,7 @@ pipeline {
                                            rm -f *.xml
                                            echo "<failure bla bla bla/>" > \
                                              pipeline-test-failure.xml''',
-                            junit_files: "*.xml non-exist*.xml",
+                            junit_files: '*.xml non-exist*.xml',
                             failure_artifacts: env.STAGE_NAME
                     }
                     // runTest handles SCM notification via stepResult
@@ -79,7 +81,7 @@ pipeline {
                                            rm -f *.xml
                                            echo "<error bla bla bla/>" > \
                                              pipeline-test-error.xml''',
-                            junit_files: "*.xml non-exist*.xml",
+                            junit_files: '*.xml non-exist*.xml',
                             failure_artifacts: env.STAGE_NAME
                     }
                     // runTest handles SCM notification via stepResult
@@ -87,7 +89,7 @@ pipeline {
                 stage('publishToRepository RPM tests') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != "true" }
+                        expression { env.NO_CI_TESTING != 'true' }
                     }
                     agent {
                         dockerfile {
@@ -126,7 +128,7 @@ pipeline {
                 stage('publishToRepository DEB tests') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != "true" }
+                        expression { env.NO_CI_TESTING != 'true' }
                     }
                     agent {
                         dockerfile {
@@ -166,7 +168,7 @@ pipeline {
                 stage('provisionNodes with release/0.9 Repo') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != "true" }
+                        expression { env.NO_CI_TESTING != 'true' }
                     }
                     agent {
                         label 'ci_vm1'
@@ -179,7 +181,8 @@ pipeline {
                                        profile: 'daos_ci',
                                        node_count: '1',
                                        snapshot: true,
-                                       inst_repos: "daos@release/0.9"
+                                       inst_repos: 'daos@release/0.9'
+                        /* groovylint-disable-next-line GStringExpressionWithinString */
                         runTest script: '''NODE=${NODELIST%%,*}
                                            ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
                                            yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
@@ -191,7 +194,7 @@ pipeline {
                 stage('provisionNodes with release/2.0 Repo') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != "true" }
+                        expression { env.NO_CI_TESTING != 'true' }
                     }
                     agent {
                         label 'ci_vm1'
@@ -202,10 +205,11 @@ pipeline {
                                        profile: 'daos_ci',
                                        node_count: '1',
                                        snapshot: true,
-                                       inst_repos: "daos@release/2.0"
+                                       inst_repos: 'daos@release/2.0'
+                        /* groovylint-disable-next-line GStringExpressionWithinString */
                         runTest script: '''NODE=${NODELIST%%,*}
                                            ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
-                                           yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
+                                           yum -y --disablerepo=\\* --enablerepo=build\\* makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
                     }
@@ -214,7 +218,7 @@ pipeline {
                 stage('provisionNodes with master Repo') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != "true" }
+                        expression { env.NO_CI_TESTING != 'true' }
                     }
                     agent {
                         label 'ci_vm1'
@@ -225,7 +229,8 @@ pipeline {
                                        profile: 'daos_ci',
                                        node_count: 1,
                                        snapshot: true,
-                                       inst_repos: "daos@master"
+                                       inst_repos: 'daos@master'
+                        /* groovylint-disable-next-line GStringExpressionWithinString */
                         runTest script: '''NODE=${NODELIST%%,*}
                                            ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
                                            dnf -y makecache"''',
@@ -237,7 +242,7 @@ pipeline {
                 stage('provisionNodes with slurm EL8') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != "true" }
+                        expression { env.NO_CI_TESTING != 'true' }
                     }
                     agent {
                         label 'ci_vm1'
@@ -248,9 +253,10 @@ pipeline {
                                        profile: 'daos_ci',
                                        node_count: 1,
                                        snapshot: true,
-                                       inst_rpms: "slurm" +
-                                                  " slurm-slurmctld slurm-slurmd" +
-                                                  " ipmctl"
+                                       inst_rpms: 'slurm' +
+                                                  ' slurm-slurmctld slurm-slurmd' +
+                                                  ' ipmctl'
+                        /* groovylint-disable-next-line GStringExpressionWithinString */
                         runTest script: '''NODE=${NODELIST%%,*}
                                            ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
                                            which scontrol"''',
@@ -262,7 +268,7 @@ pipeline {
                 stage('provisionNodes with slurm Leap15') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != "true" }
+                        expression { env.NO_CI_TESTING != 'true' }
                     }
                     agent {
                         label 'ci_vm1'
@@ -273,7 +279,8 @@ pipeline {
                                        profile: 'daos_ci',
                                        node_count: 1,
                                        snapshot: true,
-                                       inst_rpms: "slurm ipmctl"
+                                       inst_rpms: 'slurm ipmctl'
+                        /* groovylint-disable-next-line GStringExpressionWithinString */
                         runTest script: '''NODE=${NODELIST%%,*}
                                            ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
                                            which scontrol"''',
@@ -282,15 +289,15 @@ pipeline {
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes_with_slurm_leap15')
-                stage ('Commit Pragma tests') {
+                stage('Commit Pragma tests') {
                     steps {
                         script {
-                            stages = ["Functional on Leap 15",
-                                      "Functional on CentOS 7",
-                                      "Functional on EL 8",
-                                      "Functional Hardware Small",
-                                      "Functional Hardware Medium",
-                                      "Functional Hardware Large"]
+                            stages = ['Functional on Leap 15',
+                                      'Functional on CentOS 7',
+                                      'Functional on EL 8',
+                                      'Functional Hardware Small',
+                                      'Functional Hardware Medium',
+                                      'Functional Hardware Large']
                             commits = [[pragmas: ['Skip-func-test-leap15: false'],
                                         skips: [false, true, false, false, false, false]],
                                        [pragmas: [''],
@@ -298,8 +305,8 @@ pipeline {
                                        [pragmas: ['Skip-func-hw-test-small: true'],
                                         skips: [true, true, false, true, false, false]]]
                             commits.each { commit ->
-                                cm = """\
-                                        Test commit\n\n"""
+                                cm = '''\
+                                        Test commit\n\n'''
                                 commit.pragmas.each { pragma ->
                                     cm += """\
                                         ${pragma}\n"""
@@ -311,7 +318,8 @@ pipeline {
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         // Useful for debugging since Jenkins'
                                         // assert() is pretty lame
-                                        //println('For stage: ' + stage + ', assert(skipStage(commit_msg: ' + cm.stripIndent() + ') == ' + commit.skips[i] + ')')
+                                        //println('For stage: ' + stage + ', assert(skipStage(commit_msg: ' +
+                                        //          cm.stripIndent() + ') == ' + commit.skips[i] + ')')
                                         assert(skipStage(commit_msg: cm.stripIndent()) == commit.skips[i])
                                         i++
                                     }
@@ -337,26 +345,27 @@ pipeline {
                                        tag: 'hw,medium'],
                                       [name: 'Fake CentOS 7 Functional Hardware Large stage',
                                        tag: 'hw,large']]
-                            commits = [[tags: [[tag: "Test-tag", value: 'datamover']],
+                            commits = [[tags: [[tag: 'Test-tag', value: 'datamover']],
                                        tag_template: '@commits.value@,@stages.tag@'],
-                                       [tags: [[tag: "Features", value: 'datamover']],
+                                       [tags: [[tag: 'Features', value: 'datamover']],
                                         tag_template: 'pr,@stages.tag@ ' +
                                                       'daily_regression,@commits.value@,@stages.tag@ ' +
                                                       'full_regression,@commits.value@,@stages.tag@'],
-                                       [tags: [[tag: "Test-tag", value: 'datamover'],
-                                               [tag: "Features", value: 'foobar']],
+                                       /* groovylint-disable-next-line DuplicateMapLiteral */
+                                       [tags: [[tag: 'Test-tag', value: 'datamover'],
+                                               [tag: 'Features', value: 'foobar']],
                                         tag_template: '@commits.value@,@stages.tag@'],
-                                       [tags: [[tag: "Features", value: 'datamover foobar']],
+                                       [tags: [[tag: 'Features', value: 'datamover foobar']],
                                         tag_template: 'pr,@stages.tag@ ' +
                                                       'daily_regression,datamover,@stages.tag@ ' +
                                                       'full_regression,datamover,@stages.tag@ ' +
                                                       'daily_regression,foobar,@stages.tag@ ' +
                                                       'full_regression,foobar,@stages.tag@'],
-                                       [tags: [[tag: "Test-tag", value: 'datamover foobar']],
+                                       [tags: [[tag: 'Test-tag', value: 'datamover foobar']],
                                         tag_template: 'datamover,@stages.tag@ foobar,@stages.tag@']]
                             commits.each { commit ->
-                                cm = """\
-                                        Test commit\n"""
+                                cm = '''\
+                                        Test commit\n'''
                                 commit.tags.each { tag ->
                                     cm += """\
 

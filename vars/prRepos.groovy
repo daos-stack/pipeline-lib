@@ -16,6 +16,10 @@ String call() {
 
 String call(String distro) {
     String repos = ""
+    if (params.CI_PR_REPOS) {
+        repos = params.CI_PR_REPOS
+    }
+    // TODO: add parameter support for per-distro CI_PR_REPOS
     if (distro.startsWith('el7') || distro.startsWith('centos7')) {
         repos = cachedCommitPragma('PR-repos-el7')
     } else if (distro.startsWith('el8') || distro.startsWith('centos8') ||

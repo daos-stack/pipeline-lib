@@ -35,4 +35,15 @@ def call(Map config = [:]) {
 
     junit testResults: junit_results
 
+    sh label: "Install Launchable",
+       script: "pip3 install --user --upgrade launchable~=1.0"
+
+    withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
+        sh label: "Submit test results to Launchable",
+           script: 'if ls -l ' + '"' + env.STAGE_NAME + '''"/*/*/xunit1_results.xml 2>/dev/null; then
+                        export PATH=$PATH:$HOME/.local/bin
+                        launchable record tests --build ${BUILD_TAG//%2F/-} pytest ''' +
+                                   '"' + env.STAGE_NAME + '''"/*/*/xunit1_results.xml
+                    fi'''
+    }
 }

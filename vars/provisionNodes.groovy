@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateNumberLiteral, DuplicateStringLiteral, VariableName */
 // vars/provisionNodes.groovy
 
 /**
@@ -8,7 +9,6 @@
 
 /**
  * Method to provision a set of nodes
- *
  *
  * @param config Map of parameters passed.
  *
@@ -42,26 +42,30 @@
    Prefix "leap":    Specifically OpenSUSE leap oprating system builds of
                      Suse Linux Enterprise Server.
 */
-def call(Map config = [:]) {
-
+/* groovylint-disable-next-line MethodSize */
+void call(Map config = [:]) {
   String nodeString = config['NODELIST']
   List node_list = config['NODELIST'].split(',')
   int node_max_cnt = node_list.size()
   int node_cnt = node_max_cnt
-  String repo_type = config.get('repo_type', 'stable')
   Map new_config = config
 
-  // Provisioning-pool: commit pragma overrides caller
-  new_config['pool'] = cachedCommitPragma('Provisioning-pool', new_config['pool'])
+  // Parameter overrides commit pragma
+  if (params.CI_PROVISIONING_POOL) {
+    new_config['pool'] = params.CI_PROVISIONING_POOL
+  } else {
+      // Provisioning-pool: commit pragma overrides caller
+      new_config['pool'] = cachedCommitPragma('Provisioning-pool', new_config['pool'])
+  }
 
   if (config['node_count']) {
     // Matrix builds pass requested node count as a string
-    def rq_count = config['node_count'] as int
+    int rq_count = config['node_count'] as int
     new_config['node_count'] = rq_count
     if (rq_count < node_cnt) {
       // take is blacklisted by Jenkins.
       //new_list = node_list.take(config['clients'])
-      def new_list = []
+      List new_list = []
       int ii
       for (ii = 0; ii < rq_count; ii++) {
         new_list.add(node_list[ii])
@@ -75,29 +79,29 @@ def call(Map config = [:]) {
   }
 
   if (env.NO_CI_PROVISIONING != null) {
-      println "Jenkins not configured for CI provisioning."
+      println 'Jenkins not configured for CI provisioning.'
       return node_cnt
   }
 
   String distro_type = 'el7'
   String distro = config.get('distro', 'el7')
-  if (distro.startsWith("centos8") || distro.startsWith("el8") ||
-      distro.startsWith("rocky8") || distro.startsWith("almalinux8") ||
-      distro.startsWith("rhel8")) {
+  if (distro.startsWith('centos8') || distro.startsWith('el8') ||
+      distro.startsWith('rocky8') || distro.startsWith('almalinux8') ||
+      distro.startsWith('rhel8')) {
     distro_type = 'el8'
-  } else if (distro.startsWith("sles") || distro.startsWith("leap") ||
-      distro.startsWith("opensuse")) {
+  } else if (distro.startsWith('sles') || distro.startsWith('leap') ||
+      distro.startsWith('opensuse')) {
       // sles and opensuse leap can use each others binaries.
       // Currently we are only building opensuse leap binaries.
       distro_type = 'suse'
-  }  else if (distro.startsWith("fedora")) {
+  }  else if (distro.startsWith('fedora')) {
       distro_type = 'fedora'
-  }  else if (distro.startsWith("ubuntu")) {
+  }  else if (distro.startsWith('ubuntu')) {
       distro_type = 'ubuntu'
-  }
+      }
 
   String inst_rpms = config.get('inst_rpms', '')
-  String inst_repos = config.get('inst_repos','')
+  String inst_repos = config.get('inst_repos', '')
 
   List gpg_key_urls = []
   if (env.DAOS_STACK_REPO_SUPPORT != null) {
@@ -126,18 +130,26 @@ def call(Map config = [:]) {
   new_config['post_reboot'] = cleanup_logs
 
   String provision_script = 'set -ex\n'
-  String config_power_only = config['power_only'] ? 'true': 'false'
+  String config_power_only = config['power_only'] ? 'true' : 'false'
   provision_script += 'DISTRO='
-  if (distro_type == "el7") {
+  switch (distro_type) {
+    case 'el7':
       provision_script += 'EL_7'
-  } else if (distro_type == "el8") {
+      break
+    case 'el8':
       provision_script += 'EL_8'
-  } else if (distro_type == 'suse') {
+      break
+    case 'suse':
       provision_script += 'LEAP_15'
-  } else if (distro_type == 'fedora') {
-      provision_script += distro_type
-  } else if (distro_type == 'ubuntu') {
+      break
+    case 'fedora':
+      provision_script += 'fedora'
+      break
+    case 'ubuntu':
       provision_script += 'UBUNTU_20_04'
+      break
+    default:
+      error "Unsupported distro type: ${distro_type}"
   }
   provision_script += ' ' +
                       'NODESTRING=' + nodeString + ' ' +
@@ -148,10 +160,10 @@ def call(Map config = [:]) {
                       'ci/provisioning/post_provision_config.sh'
   new_config['post_restore'] = provision_script
   try {
-    def rc = provisionNodesSystem(new_config)
+    int rc = provisionNodesSystem(new_config)
     if (rc != 0) {
-      stepResult name: env.STAGE_NAME, context: "test", result: "FAILURE"
-      error "One or more nodes failed post-provision configuration!"
+      stepResult name: env.STAGE_NAME, context: 'test', result: 'FAILURE'
+      error 'One or more nodes failed post-provision configuration!'
     }
   } catch (java.lang.NoSuchMethodError e) {
     error('Could not find a provisionNodesSystem step in' +
