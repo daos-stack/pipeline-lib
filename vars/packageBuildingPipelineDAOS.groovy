@@ -1,5 +1,5 @@
 #!/usr/bin/groovy
-/* groovylint-disable DuplicateMapLiteral, DuplicateStringLiteral, NestedBlockDepth */
+/* groovylint-disable DuplicateMapLiteral, DuplicateStringLiteral, NestedBlockDepth, VariableName */
 /* Copyright (C) 2019-2022 Intel Corporation
  * All rights reserved.
  *
@@ -50,6 +50,13 @@ Map foo = [:]
 
 /* groovylint-disable-next-line MethodSize, ParameterName */
 void call(Map pipeline_args) {
+
+    // Map of targets to Dockerfiles for the matrix
+    Map dockerfile_map = ['centos7': 'Dockerfile.mockbuild',
+                          'el8': 'Dockerfile.mockbuild',
+                          'leap15': 'Dockerfile.mockbuild',
+                          'ubuntu20.04': 'Dockerfile.ubuntu.20.04']
+
     /* groovylint-disable-next-line CouldBeElvis */
     if (!pipeline_args) {
         /* groovylint-disable-next-line ParameterReassignment */
@@ -652,6 +659,7 @@ void call(Map pipeline_args) {
                             values 'centos7',
                                    'el8',
                                    'leap15'
+                                   // 'ubuntu20.04' not quite ready for ubuntu yet  release/2.* branches fail to build
                         }
                         axis {
                             name 'BRANCH'
@@ -666,7 +674,7 @@ void call(Map pipeline_args) {
                     }
                     agent {
                         dockerfile {
-                            filename 'packaging/Dockerfile.mockbuild'
+                            filename 'packaging/' + dockerfile_map[env.TARGET]
                             label 'docker_runner'
                             args ' --cap-add=SYS_ADMIN' +
                                  ' --privileged=true'
@@ -687,8 +695,14 @@ void call(Map pipeline_args) {
                                                                                     pipeline_args.get(
                                                                                         'daos_test_branch-' +
                                                                                         env.BRANCH,
+                                                                                    /* groovylint-disable-next-line
+                                                                                       GStringExpressionWithinString */
                                                                                     'origin/' + env.BRANCH)) + '''
                                               git submodule update --init
+                                              : "${DEBEMAIL:="$env.DAOS_EMAIL"}"
+                                              : "${DEBFULLNAME:="$env.DAOS_FULLNAME"}"
+                                              export DEBEMAIL
+                                              export DEBFULLNAME
                                               if ! make PR_REPOS="''' +
                                                    (prRepos(env.TARGET).contains('libfabric@') ? '' :
                                                     env.JOB_NAME.split('/')[1] + '@' + env.BRANCH_NAME + ':' +
@@ -700,8 +714,12 @@ void call(Map pipeline_args) {
                                                  ''' -C utils/rpms chrootbuild; then
                                                 # We need to allow failures from missing other packages
                                                 # we build for creating an initial set of packages
-                                                grep 'No matching package to install'               \
-                                                     /var/lib/mock/''' + getChrootName(env.TARGET) + '''/result/root.log
+                                                if [ -f /var/lib/mock/''' + getChrootName(env.TARGET) +
+                                                '''/result/root.log ]; then
+                                                    grep 'No matching package to install'               \
+                                                         /var/lib/mock/''' + getChrootName(env.TARGET) +
+                                                      '''/result/root.log
+                                                    fi
                                               fi'''
                             }
                             post {
