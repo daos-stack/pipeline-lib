@@ -44,7 +44,14 @@ void call(String config, Boolean allow_errors=false, Boolean skip_rpmlint=false)
     }
 
     String output = sh(label: 'RPM Lint built RPMs',
-                       script: "rpmlint \$(ls /var/lib/mock/${config}/result/*.rpm | grep -v -e -debuginfo) || exit 0",
+                       /* groovylint-disable-next-line GStringExpressionWithinString */
+                       script: '''name=$(make show_NAME)
+                                  if [ -f "$name".rpmlintrc ]; then
+                                      rpmlint_args=(-r "$name".rpmlintrc)
+                                  fi
+                                  rpmlint --ignore-unused-rpmlintrc "${rpmlint_args[@]}" ''' +
+                                 '$(ls /var/lib/mock/' + config + '/result/*.rpm | ' +
+                                  'grep -v -e -debuginfo) || exit 0',
                        returnStdout: true).trim()
 
     int result = sh(label: 'Analyze rpmlint output',
