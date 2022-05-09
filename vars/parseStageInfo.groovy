@@ -267,6 +267,26 @@ def call(Map config = [:]) {
       }
     }
 
+    String provider
+    // Highest priority is TestProvider parameter
+    if (startedByUser() && params.TestProvider && params.TestProvider != "") {
+      provider = params.TestProvider
+    } else {
+      // Next highest priority is a stage specific Test-provider-*
+      provider = cachedCommitPragma("Test-provider" + result['pragma_suffix'], null)
+      if (!repeat) {
+        // Followed by the more general Test-provider:
+        provider = cachedCommitPragma("Test-provider", null)
+      }
+    }
+    if (provider) {
+      if (result['ftest_arg']) {
+        result['ftest_arg'] += " --provider='" + provider + "'"
+      } else {
+        result['ftest_arg'] += "--provider='" + provider + "'"
+      }
+    }
+
     // if (stage_name.contains('Functional'))
   } else if (stage_name.contains('Storage')) {
     if (env.NODELIST) {
