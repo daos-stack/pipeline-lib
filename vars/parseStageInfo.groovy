@@ -245,6 +245,7 @@ def call(Map config = [:]) {
     for (atag in tag.split(' ')) {
       result['test_tag'] += atag + ',' + cluster_size + ' '
     }
+    result['test_tag'] = result['test_tag'].trim()
 
     String repeat
     // Highest priority is TestRepeat parameter
@@ -272,7 +273,7 @@ def call(Map config = [:]) {
       result['ftest_arg'] += " --provider='" + provider + "'"
     }
 
-    result['test_tag'] = result['test_tag'].trim()
+    result['ftest_tag'] = result['ftest_tag'].trim()
 
     // if (stage_name.contains('Functional'))
   } else if (stage_name.contains('Storage')) {
