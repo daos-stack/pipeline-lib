@@ -25,7 +25,7 @@ boolean call() {
                              exit 0
                          fi
                          cd src/tests/ftest
-                         if [ -e list_tests.py ]
+                         if [ -x list_tests.py ]
                          then
                              ./list_tests.py """ + parseStageInfo()['test_tag'] + """
                          else
