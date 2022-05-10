@@ -25,11 +25,11 @@ boolean call() {
                              exit 0
                          fi
                          cd src/tests/ftest
-                         if [ -f list_tests.py ]
+                         if [ -e list_tests.py ]
                          then
                              ./list_tests.py """ + parseStageInfo()['test_tag'] + """
                          else
                              ./lanunch.py --list """ + parseStageInfo()['test_tag'] + """
-                         fi"""
+                         fi""",
               returnStatus: true) == 0
 }
