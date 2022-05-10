@@ -245,26 +245,18 @@ def call(Map config = [:]) {
     for (atag in tag.split(' ')) {
       result['test_tag'] += atag + ',' + cluster_size + ' '
     }
-    result['test_tag'] = result['test_tag'].trim()
 
     String repeat
     // Highest priority is TestRepeat parameter
     if (startedByUser() && params.TestRepeat && params.TestRepeat != "") {
       repeat = params.TestRepeat
     } else {
-      // Next highest priority is a stage specific Test-repeat-*
-      repeat = cachedCommitPragma("Test-repeat" + result['pragma_suffix'], null)
-      if (!repeat) {
-        // Followed by the more general Test-repeat:
-        repeat = cachedCommitPragma("Test-repeat", null)
-      }
+      // Next highest priority is a stage specific Test-repeat-* then the general Test-repeat
+      repeat = cachedCommitPragma(
+        "Test-repeat" + result['pragma_suffix'], cachedCommitPragma("Test-repeat", null))
     }
     if (repeat) {
-      if (result['ftest_arg']) {
-        result['ftest_arg'] += " --repeat=" + repeat
-      } else {
-        result['ftest_arg'] += "--repeat=" + repeat
-      }
+      result['ftest_arg'] += " --repeat=" + repeat
     }
 
     String provider
@@ -272,20 +264,15 @@ def call(Map config = [:]) {
     if (startedByUser() && params.TestProvider && params.TestProvider != "") {
       provider = params.TestProvider
     } else {
-      // Next highest priority is a stage specific Test-provider-*
-      provider = cachedCommitPragma("Test-provider" + result['pragma_suffix'], null)
-      if (!repeat) {
-        // Followed by the more general Test-provider:
-        provider = cachedCommitPragma("Test-provider", null)
-      }
+      // Next highest priority is a stage specific Test-provider-* then the general Test-provider
+      provider = cachedCommitPragma(
+        "Test-provider" + result['pragma_suffix'], cachedCommitPragma("Test-provider", null))
     }
     if (provider) {
-      if (result['ftest_arg']) {
-        result['ftest_arg'] += " --provider='" + provider + "'"
-      } else {
-        result['ftest_arg'] += "--provider='" + provider + "'"
-      }
+      result['ftest_arg'] += " --provider='" + provider + "'"
     }
+
+    result['test_tag'] = result['test_tag'].trim()
 
     // if (stage_name.contains('Functional'))
   } else if (stage_name.contains('Storage')) {
