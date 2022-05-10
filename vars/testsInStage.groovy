@@ -29,7 +29,7 @@ boolean call() {
                          then
                              ./list_tests.py """ + parseStageInfo()['test_tag'] + """
                          else
-                             ./lanunch.py --list """ + parseStageInfo()['test_tag'] + """
+                             ./launch.py --list """ + parseStageInfo()['test_tag'] + """
                          fi""",
               returnStatus: true) == 0
 }
