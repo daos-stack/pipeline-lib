@@ -78,7 +78,9 @@ boolean skip_ftest(String distro, String target_branch) {
 }
 
 boolean skip_ftest_valgrind(String distro, String target_branch) {
-    if (! skip_stage_pragma('func-test-vm-valgrind', 'true')) {
+    // Check if the default for skipping this stage been overriden
+    if (run_default_skipped_stage('func-test-vm-valgrind')) {
+        // Forced to run due to a (Skip) pragma set to false
         return false
     }
 
