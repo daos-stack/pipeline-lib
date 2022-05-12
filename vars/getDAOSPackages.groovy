@@ -26,7 +26,7 @@ String call(String distro, String next_version, String add_daos_pkgs) {
 
     String pkgs
     if (env.TEST_RPMS == 'true') {
-        pkgs = "daos{,-{client{,-tests-openmpi},tests,server{,-tests-openmpi},serialize}" + add_daos_pkgs + "}"
+        pkgs = "daos{,-{client,tests-internal,server,serialize}" + add_daos_pkgs + "}"
     } else {
         pkgs = "daos{,-client}"
     }
