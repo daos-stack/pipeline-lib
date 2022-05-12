@@ -16,6 +16,7 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 //@Library(value="pipeline-lib@my_branch_name") _
+@Library(value="pipeline-lib@corci-1200") _
 
 pipeline {
     agent { label 'lightweight' }
@@ -64,6 +65,7 @@ pipeline {
                                              pipeline-test-failure.xml''',
                             junit_files: "*.xml non-exist*.xml",
                             failure_artifacts: env.STAGE_NAME
+                        jobStatusUpdate()
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('grep JUnit results tests failure case')
@@ -81,10 +83,11 @@ pipeline {
                                              pipeline-test-error.xml''',
                             junit_files: "*.xml non-exist*.xml",
                             failure_artifacts: env.STAGE_NAME
+                        jobStatusUpdate()
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('grep JUnit results tests error case')
-                stage('publishToRepository RPM tests') {
+                /* stage('publishToRepository RPM tests') {
                     when {
                         beforeAgent true
                         expression { env.NO_CI_TESTING != "true" }
@@ -120,6 +123,9 @@ pipeline {
                             scmNotify description: env.STAGE_NAME,
                                       context: 'test/' + env.STAGE_NAME,
                                       status: 'SUCCESS'
+                        }
+                        cleanup {
+                            jobStatusUpdate()
                         }
                     }
                 } //stage('publishToRepository RPM tests')
@@ -161,6 +167,9 @@ pipeline {
                                       context: 'test/' + env.STAGE_NAME,
                                       status: 'SUCCESS'
                         }
+                        cleanup {
+                            jobStatusUpdate()
+                        }
                     }
                 } //stage('publishToRepository DEB tests')
                 stage('provisionNodes with release/0.9 Repo') {
@@ -185,6 +194,7 @@ pipeline {
                                            yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
+                        jobStatusUpdate()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with release/0.9 Repo')
@@ -208,6 +218,7 @@ pipeline {
                                            yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
+                        jobStatusUpdate()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with release/0.9 Repo')
@@ -231,6 +242,7 @@ pipeline {
                                            dnf makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
+                        jobStatusUpdate()
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('provisionNodes with master Repo')
@@ -256,6 +268,7 @@ pipeline {
                                            which scontrol"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
+                        jobStatusUpdate()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with slurm EL8')
@@ -279,10 +292,12 @@ pipeline {
                                            which scontrol"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
+                        jobStatusUpdate()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes_with_slurm_leap15')
-                stage ('Commit Pragma tests') {
+                */
+                /* stage ('Commit Pragma tests') {
                     steps {
                         script {
                             stages = ["Functional on Leap 15",
@@ -328,7 +343,7 @@ pipeline {
                               5. Test-tag: datamover foobar
                         */
                         // lots more test cases could be cooked up, to be sure
-                        script {
+                        /* script {
                             stages = [[name: 'Fake CentOS 7 Functional stage',
                                        tag: '-hw'],
                                       [name: 'Fake CentOS 7 Functional Hardware Small stage',
@@ -370,9 +385,16 @@ pipeline {
                                 }
                             }
                         }
+                        jobStatusUpdate()
                     } // steps
-                } // stage ('Commit Pragma tests') {
+                } // stage ('Commit Pragma tests') */
             } // parallel
         } // stage('Test')
     }
+    post {
+        always {
+            jobStatusUpdate('final_status')
+            jobStatusWrite()
+        }
+    } // post
 }
