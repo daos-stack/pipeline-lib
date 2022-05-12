@@ -79,14 +79,8 @@ boolean skip_ftest(String distro, String target_branch) {
 
 boolean skip_ftest_valgrind(String distro, String target_branch) {
     // Check if the default for skipping this stage been overriden
-    if (run_default_skipped_stage('func-test-vm-valgrind')) {
-        // Forced to run due to a (Skip) pragma set to false
-        return false
-    }
-
-    return skip_ftest(distro, target_branch) ||
-           is_pr() ||
-           target_branch.startsWith('weekly-testing')
+    // otherwise always skip this stage (DAOS-10585)
+    return ! run_default_skipped_stage('func-test-vm-valgrind')
 }
 
 boolean skip_ftest_hw(String size, String target_branch) {
