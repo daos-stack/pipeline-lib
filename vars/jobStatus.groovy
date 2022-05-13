@@ -11,7 +11,7 @@ def var_check() {
         jobStatusInternal = [:]
     }
     println("#####", env.STAGE_NAME)
-    for jobStatusInternal.each { key, value ->
+    jobStatusInternal.each { key, value ->
         println("#####", key, ": ", value)
     }
 }
