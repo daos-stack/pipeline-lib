@@ -18,8 +18,6 @@ def call() {
                                 returnText: true)
     // Need to use shell script for creating files that are not
     // in the workspace.
-    job_status_text.split("\n").each { String line ->
-      sh(label: "Write jenkins_job_staus ${line}",
-         script: "echo '${line}' >> ${file_name}")
-    }
+    sh label: "Write jenkins_job_status ${file_name}",
+       script: "echo \"${job_status_text}\" >> ${file_name}"
 }

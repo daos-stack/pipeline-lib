@@ -10,6 +10,10 @@ def var_check() {
     if (! binding.hasVariable('jobStatusInternal')) {
         jobStatusInternal = [:]
     }
+    println("#####", env.STAGE_NAME)
+    for jobStatusIntenal.each { key, value ->
+        println("#####", key, ": ", value)
+    }
 }
 
 def call() {

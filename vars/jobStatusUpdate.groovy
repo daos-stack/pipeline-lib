@@ -6,13 +6,7 @@
  *
  */
 
-def call(String name='', String value='') {
-    if (name == '') {
-        name = env.STAGE_NAME
-    }
-    if (value == '') {
-        value = currentBuild.currentResult
-    }
+def call(String name=env.STAGE_NAME, String value=currentBuild.currentResult) {
     name = name.replace(' ', '_')
     name = name.replace('.', '_')
     jobStatus(name, value)
