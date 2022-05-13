@@ -32,6 +32,7 @@ def call(String key, value) {
 def call(String key) {
     var_check()
     if (! jobStatusInternal[key]) {
+        println("#### setting")
         jobStatusInternal[key] = "Not Set"
     }
     return jobStatusInternal[key]
