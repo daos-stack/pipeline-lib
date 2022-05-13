@@ -86,13 +86,15 @@ pipeline {
                         }
                     }
                     steps {
+                        jobStatus('JUNIT_failure')
                         runTest script: '''set -ex
                                            rm -f *.xml
                                            echo "<failure bla bla bla/>" > \
                                              pipeline-test-failure.xml''',
                             junit_files: "*.xml non-exist*.xml",
                             failure_artifacts: env.STAGE_NAME
-                        job_status_update()
+                        job_status_update(env.STAGE_NAME,
+                                          jobStatus('JUNIT_failure'))
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('grep JUnit results tests failure case')

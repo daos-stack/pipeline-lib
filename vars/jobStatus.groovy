@@ -6,28 +6,33 @@
  *
  */
 
+
 def var_check() {
     if (! binding.hasVariable('jobStatusInternal')) {
-        println("##### failed")
-        return false
+        jobStatusInternal = [:]
     }
+}
+
+def key(String key) {
+    var_check()
+    jobStatusInternal[key] = env.STAGE_NAME
     println("##### ${env.STAGE_NAME}")
     jobStatusInternal.each { key, value ->
         println("##### ${key}: ${value}")
     }
 }
 
-def call() {
-    if (! var_check()) {
-        return false
+def call(String key, value) {
+    var_check()
+    if (jobStatusInternal[key]) {
+        jobStatusInternal[key] = value
     }
-    return jobStatusInternal
 }
 
-def call(String name, value) {
-    if (!var_check()) {
-        return [:]
+def call(String key) {
+    var_check()
+    if (! jobStatusInternal[key]) {
+        jobStatusIntenal[key] = "Not Set"
     }
-    jobStatusInternal[name] = value
-    return jobStatusInternal
+    return jobStatusInternal[key]
 }
