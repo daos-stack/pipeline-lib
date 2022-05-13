@@ -17,8 +17,8 @@ def key(String key) {
     var_check()
     jobStatusInternal[key] = env.STAGE_NAME
     println("##### ${env.STAGE_NAME}")
-    jobStatusInternal.each { key, value ->
-        println("##### ${key}: ${value}")
+    jobStatusInternal.each { mykey, value ->
+        println("##### ${mykey}: ${value}")
     }
 }
 
