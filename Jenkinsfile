@@ -18,7 +18,32 @@
 //@Library(value="pipeline-lib@my_branch_name") _
 @Library(value="pipeline-lib@corci-1200") _
 
-jobStatusInternal = [:]
+job_status_internal = [:]
+
+def job_status_write {
+    if (!env.DAOS_STACK_JOB_STATUS_DIR) {
+        return
+    }
+    String job_name = env.JOB_NAME.replace('/', '_')
+    job_name += '_' + env.BUILD_NUMBER
+    String file_name = env.DAOS_STACK_JOB_STATUS_DIR + '/' + job_name
+
+    String job_status_text = writeYaml data: job_status_internal,
+                                       returnText: true
+
+    // Need to use shell script for creating files that are not
+    // in the workspace.
+    sh label: "Write jenkins_job_status ${file_name}",
+       script: "echo \"${job_status_text}\" >> ${file_name}"
+}
+
+def job_status_write(String name=env.STAGE_NAME,
+                     String value=currentBuild.currentResult) {
+    name = name.replace(' ', '_')
+    name = name.replace('.', '_')
+    job_status_internal[name] = value
+}
+
 
 pipeline {
     agent { label 'lightweight' }
@@ -67,7 +92,7 @@ pipeline {
                                              pipeline-test-failure.xml''',
                             junit_files: "*.xml non-exist*.xml",
                             failure_artifacts: env.STAGE_NAME
-                        jobStatusUpdate()
+                        job_status_update()
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('grep JUnit results tests failure case')
@@ -85,7 +110,7 @@ pipeline {
                                              pipeline-test-error.xml''',
                             junit_files: "*.xml non-exist*.xml",
                             failure_artifacts: env.STAGE_NAME
-                        jobStatusUpdate()
+                        job_status_update()
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('grep JUnit results tests error case')
@@ -127,7 +152,7 @@ pipeline {
                                       status: 'SUCCESS'
                         }
                         cleanup {
-                            jobStatusUpdate()
+                            job_status_update()
                         }
                     }
                 } //stage('publishToRepository RPM tests')
@@ -170,7 +195,7 @@ pipeline {
                                       status: 'SUCCESS'
                         }
                         cleanup {
-                            jobStatusUpdate()
+                            job_status_update()
                         }
                     }
                 } //stage('publishToRepository DEB tests')
@@ -196,7 +221,7 @@ pipeline {
                                            yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
-                        jobStatusUpdate()
+                        job_status_update()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with release/0.9 Repo')
@@ -220,7 +245,7 @@ pipeline {
                                            yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
-                        jobStatusUpdate()
+                        job_status_update()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with release/0.9 Repo')
@@ -244,7 +269,7 @@ pipeline {
                                            dnf makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
-                        jobStatusUpdate()
+                        job_status_update()
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('provisionNodes with master Repo')
@@ -270,7 +295,7 @@ pipeline {
                                            which scontrol"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
-                        jobStatusUpdate()
+                        job_status_update()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with slurm EL8')
@@ -294,7 +319,7 @@ pipeline {
                                            which scontrol"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
-                        jobStatusUpdate()
+                        job_status_update()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes_with_slurm_leap15')
@@ -387,7 +412,7 @@ pipeline {
                                 }
                             }
                         }
-                        jobStatusUpdate()
+                        job_status_update()
                     } // steps
                 } // stage ('Commit Pragma tests') */
             } // parallel
@@ -395,8 +420,8 @@ pipeline {
     }
     post {
         always {
-            jobStatusUpdate('final_status')
-            jobStatusWrite()
+            job_status_update('final_status')
+            job_status_write()
         }
     } // post
 }
