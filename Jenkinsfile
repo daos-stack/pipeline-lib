@@ -18,6 +18,8 @@
 //@Library(value="pipeline-lib@my_branch_name") _
 @Library(value="pipeline-lib@corci-1200") _
 
+jobStatusInternal = [:]
+
 pipeline {
     agent { label 'lightweight' }
     libraries {

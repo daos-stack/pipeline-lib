@@ -8,7 +8,8 @@
 
 def var_check() {
     if (! binding.hasVariable('jobStatusInternal')) {
-        jobStatusInternal = [:]
+        println("##### failed")
+        return false
     }
     println("##### ${env.STAGE_NAME}")
     jobStatusInternal.each { key, value ->
@@ -17,12 +18,16 @@ def var_check() {
 }
 
 def call() {
-    var_check()
+    if (! var_check()) {
+        return false
+    }
     return jobStatusInternal
 }
 
 def call(String name, value) {
-    var_check()
+    if (!var_check()) {
+        return [:]
+    }
     jobStatusInternal[name] = value
     return jobStatusInternal
 }
