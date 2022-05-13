@@ -10,9 +10,9 @@ def var_check() {
     if (! binding.hasVariable('jobStatusInternal')) {
         jobStatusInternal = [:]
     }
-    println("#####", env.STAGE_NAME)
+    println("##### ${env.STAGE_NAME}")
     jobStatusInternal.each { key, value ->
-        println("#####", key, ": ", value)
+        println("##### ${key}: ${value}")
     }
 }
 
