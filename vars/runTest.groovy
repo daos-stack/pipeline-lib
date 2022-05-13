@@ -54,7 +54,7 @@ def call(Map config = [:]) {
     def description = config.get('description', env.STAGE_NAME)
     def flow_name = config.get('flow_name', env.STAGE_NAME)
 
-    jobStatus(JUNIT_failure, 'Entered runTest')
+    jobStatus('JUNIT_failure', 'Entered runTest')
 
     dir('install') {
         deleteDir()
