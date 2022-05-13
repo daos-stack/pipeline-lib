@@ -13,10 +13,10 @@ def var_check() {
 }
 
 def call(String key, value) {
+    println("jobStatus key, vaue called")
     var_check()
-    if (jobStatusInternal[key]) {
-        jobStatusInternal[key] = value
-    }
+    jobStatusInternal[key] = value
+
     jobStatusInternal.each {key1, value1 ->
         println("#### ${key1}: ${value1}")
     }
