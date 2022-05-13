@@ -6,19 +6,9 @@
  *
  */
 
-
 def var_check() {
     if (! binding.hasVariable('jobStatusInternal')) {
         jobStatusInternal = [:]
-    }
-}
-
-def key(String key) {
-    var_check()
-    jobStatusInternal[key] = env.STAGE_NAME
-    println("##### ${env.STAGE_NAME}")
-    jobStatusInternal.each { mykey, value ->
-        println("##### ${mykey}: ${value}")
     }
 }
 
