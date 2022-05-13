@@ -20,7 +20,7 @@
 
 job_status_internal = [:]
 
-def job_status_write {
+def job_status_write() {
     if (!env.DAOS_STACK_JOB_STATUS_DIR) {
         return
     }
@@ -37,8 +37,8 @@ def job_status_write {
        script: "echo \"${job_status_text}\" >> ${file_name}"
 }
 
-def job_status_write(String name=env.STAGE_NAME,
-                     String value=currentBuild.currentResult) {
+def job_status_update(String name=env.STAGE_NAME,
+                      String value=currentBuild.currentResult) {
     name = name.replace(' ', '_')
     name = name.replace('.', '_')
     job_status_internal[name] = value
