@@ -20,6 +20,7 @@ def call(String key, value) {
     println("##### jobStatus key=${key}, value=${value} called")
     var_check()
     jobStatusInternal.put(key, value)
+    println("###### ${jobStatusInternal}")
 
     jobStatusInternal.each {key1, value1 ->
         println("#### ${key1}: ${value1}")
@@ -29,7 +30,7 @@ def call(String key, value) {
 def call(String key) {
     var_check()
     if (! jobStatusInternal[key]) {
-        println("#### setting default")
+        println("#### setting default for existing ${jobStatusInternal}")
         jobStatusInternal[key] = "Not Set"
     } else {
         println("#### reading existing ${jobStatusInternal[key]}")
