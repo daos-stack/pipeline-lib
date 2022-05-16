@@ -45,15 +45,14 @@ def job_status_update(String name=env.STAGE_NAME,
 }
 
 def job_step_update(value) {
-    println("##### job_step_update value=${value}")
+    // Wrapper around a pipeline step to obtain a status.
+    // println("##### job_step_update value=${value}")
     name = env.STAGE_NAME
     name = name.replace(' ', '_')
     name = name.replace('.', '_')
     job_status_internal[name] = value
-    println("##### name: ${name}, value: ${value}, => ${job_status_internal}")
+    // println("##### name: ${name}, value: ${value}, => ${job_status_internal}")
 }
-
-
 
 pipeline {
     agent { label 'lightweight' }
