@@ -50,7 +50,7 @@ def job_step_update(value) {
     name = name.replace(' ', '_')
     name = name.replace('.', '_')
     job_status_internal[name] = value
-    println("##### name: ${name}, value: ${value}, => ${job_status_internal}"
+    println("##### name: ${name}, value: ${value}, => ${job_status_internal}")
 }
 
 
