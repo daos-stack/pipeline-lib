@@ -273,7 +273,9 @@ def call(Map config = [:]) {
       result['ftest_arg'] += " --provider='" + provider + "'"
     }
 
-    result['ftest_tag'] = result['ftest_tag'].trim()
+    if (result['ftest_tag']) {
+      result['ftest_tag'] = result['ftest_tag'].trim()
+    }
 
     // if (stage_name.contains('Functional'))
   } else if (stage_name.contains('Storage')) {
