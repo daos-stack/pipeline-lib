@@ -16,7 +16,7 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 //@Library(value="pipeline-lib@my_branch_name") _
-//@Library(value="pipeline-lib@corci-1200") _
+@Library(value="pipeline-lib@corci-1200") _
 
 job_status_internal = [:]
 
@@ -122,7 +122,7 @@ pipeline {
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('grep JUnit results tests error case')
-                /* stage('publishToRepository RPM tests') {
+                stage('publishToRepository RPM tests') {
                     when {
                         beforeAgent true
                         expression { env.NO_CI_TESTING != "true" }
@@ -331,8 +331,7 @@ pipeline {
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes_with_slurm_leap15')
-                */
-                /* stage ('Commit Pragma tests') {
+                stage ('Commit Pragma tests') {
                     steps {
                         script {
                             stages = ["Functional on Leap 15",
@@ -378,7 +377,7 @@ pipeline {
                               5. Test-tag: datamover foobar
                         */
                         // lots more test cases could be cooked up, to be sure
-                        /* script {
+                        script {
                             stages = [[name: 'Fake CentOS 7 Functional stage',
                                        tag: '-hw'],
                                       [name: 'Fake CentOS 7 Functional Hardware Small stage',
