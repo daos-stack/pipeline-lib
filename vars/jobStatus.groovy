@@ -19,7 +19,7 @@ def var_check() {
 def call(String key, value) {
     println("##### jobStatus key=${key}, value=${value} called")
     var_check()
-    jobStatusInternal[key] = value
+    jobStatusInternal.put(key, value)
 
     jobStatusInternal.each {key1, value1 ->
         println("#### ${key1}: ${value1}")
