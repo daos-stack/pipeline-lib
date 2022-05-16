@@ -6,7 +6,7 @@
  *
  */
 
-@grooy.transform.Field
+@groovy.transform.Field
 jobStatusInternal = [:]
 
 def var_check() {
