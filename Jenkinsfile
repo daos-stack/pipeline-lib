@@ -16,7 +16,7 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 //@Library(value="pipeline-lib@my_branch_name") _
-@Library(value="pipeline-lib@corci-1200") _
+//@Library(value="pipeline-lib@corci-1200") _
 
 job_status_internal = [:]
 
@@ -46,12 +46,10 @@ def job_status_update(String name=env.STAGE_NAME,
 
 def job_step_update(value) {
     // Wrapper around a pipeline step to obtain a status.
-    // println("##### job_step_update value=${value}")
     name = env.STAGE_NAME
     name = name.replace(' ', '_')
     name = name.replace('.', '_')
     job_status_internal[name] = value
-    // println("##### name: ${name}, value: ${value}, => ${job_status_internal}")
 }
 
 pipeline {
