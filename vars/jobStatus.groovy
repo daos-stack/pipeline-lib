@@ -6,10 +6,12 @@
  *
  */
 
+jobStatusInternal = [:]
+
 def var_check() {
     if (! binding.hasVariable('jobStatusInternal')) {
-        jobStatusInternal = [:]
-        println("##### initializing JobStatusInternal to [:]")
+        // jobStatusInternal = [:]
+        println("##### jobStatusInterval not found?")
     }
 }
 
