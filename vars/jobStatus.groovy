@@ -6,6 +6,7 @@
  *
  */
 
+@grooy.transform.Field
 jobStatusInternal = [:]
 
 def var_check() {
