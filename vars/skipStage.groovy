@@ -420,6 +420,18 @@ boolean call(Map config = [:]) {
         case "Bullseye Report on EL 8":
             return env.BULLSEYE == null ||
                    skip_stage_pragma('bullseye', 'true')
+        case "Functional Hardware Small TCP":
+            return ! paramsValue('CI_FUNCTIONAL_HARDWARE_SMALL_TCP', true)
+        case "Functional Hardware Medium TCP":
+            return ! paramsValue('CI_FUNCTIONAL_HARDWARE_MEDIUM_TCP', true)
+        case "Functional Hardware Large TCP":
+            return ! paramsValue('CI_FUNCTIONAL_HARDWARE_LARGE_TCP', true)
+        case "Functional Hardware Small UCX":
+            return ! paramsValue('CI_FUNCTIONAL_HARDWARE_SMALL_UCX', true)
+        case "Functional Hardware Medium UCX":
+            return ! paramsValue('CI_FUNCTIONAL_HARDWARE_MEDIUM_UCX', true)
+        case "Functional Hardware Large UCX":
+            return ! paramsValue('CI_FUNCTIONAL_HARDWARE_LARGE_UCX', true)
         default:
             println("Don't know how to skip stage \"${env.STAGE_NAME}\", not skipping")
     }
