@@ -184,6 +184,6 @@ def call(Map config = [:]) {
 	        error(env.STAGE_NAME + " failed: " + rc)
 	    }
     }
-    Map job_status = ['run_test': status]
-    return job_status
+
+    return ['run_test': status]
 }
