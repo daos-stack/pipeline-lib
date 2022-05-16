@@ -95,7 +95,7 @@ pipeline {
                     }
                     steps {
                         // jobStatus('JUNIT_failure')
-                        job_step_update(env.STAGE_NAME,
+                        job_step_update(
                             runTest(script: '''set -ex
                                            rm -f *.xml
                                            echo "<failure bla bla bla/>" > \
@@ -113,7 +113,7 @@ pipeline {
                         }
                     }
                     steps {
-                        job_step_update(env.STAGE_NAME,
+                        job_step_update(
                             runTest(script: '''set -ex
                                            rm -f *.xml
                                            echo "<error bla bla bla/>" > \
