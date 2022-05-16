@@ -44,6 +44,14 @@ def job_status_update(String name=env.STAGE_NAME,
     job_status_internal[name] = value
 }
 
+def job_step_update(value) {
+    name = env.STAGE_NAME
+    name = name.replace(' ', '_')
+    name = name.replace('.', '_')
+    job_status_internal[name] = value
+}
+
+
 
 pipeline {
     agent { label 'lightweight' }
@@ -87,7 +95,7 @@ pipeline {
                     }
                     steps {
                         // jobStatus('JUNIT_failure')
-                        job_status_update(env.STAGE_NAME,
+                        job_step_update(env.STAGE_NAME,
                             runTest(script: '''set -ex
                                            rm -f *.xml
                                            echo "<failure bla bla bla/>" > \
@@ -105,7 +113,7 @@ pipeline {
                         }
                     }
                     steps {
-                        job_status_update(env.STAGE_NAME,
+                        job_step_update(env.STAGE_NAME,
                             runTest(script: '''set -ex
                                            rm -f *.xml
                                            echo "<error bla bla bla/>" > \
