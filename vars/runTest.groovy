@@ -54,10 +54,6 @@ def call(Map config = [:]) {
     def description = config.get('description', env.STAGE_NAME)
     def flow_name = config.get('flow_name', env.STAGE_NAME)
 
-    println("#### runTest calling jobStatus")
-    jobStatus('JUNIT_failure', 'Entered runTest')
-    println("#### runTest returned from jobStatus")
-
     dir('install') {
         deleteDir()
     }
@@ -188,5 +184,6 @@ def call(Map config = [:]) {
 	        error(env.STAGE_NAME + " failed: " + rc)
 	    }
     }
-
+    Map job_status = ['run_test': status]
+    return job_status
 }
