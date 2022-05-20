@@ -36,6 +36,34 @@
  *                             Default determined by this function below.
  */
 
+String get_commit_pragma_tags(String pragma_suffix) {
+  // Get the test tags defined in the commit message with the following priority:
+  //  1) Test-tag-<stage>: <tags>
+  //  2) Test-tag: <tags>
+  //  3) Features: <feature_tags>
+  String pragma_tag
+  pragma_tag = commitPragma("Test-tag" + pragma_suffix, null)
+  if (!pragma_tag) {
+    pragma_tag = commitPragma("Test-tag", null)
+    if (!pragma_tag) {
+      pragma_tag = commitPragma("Features", null)
+      if (pragma_tag) {
+        String features = pragma_tag
+        pragma_tag = 'pr '
+        for (feature in features.split(' ')) {
+          pragma_tag += 'daily_regression,' + feature + ' '
+          /* DAOS-6468 Ideally we'd like to add this but there are too
+                      many failures in the full_regression set 
+          pragma_tag += 'full_regression,' + feature + ' '
+          */
+        }
+        pragma_tag = tag.trim()
+      }
+    }
+  }
+  return pragma_tag
+}
+
 def call(Map config = [:]) {
 
   Map result = [:]
@@ -188,71 +216,32 @@ def call(Map config = [:]) {
       config['test_tag'] = 'memcheck'
     }
 
-    // Get the test tags defined by the build parameters
-    String param_tag
-    if (startedByUser() && params.TestTag && params.TestTag != "") {
-      param_tag = params.TestTag
-
-    // Get the test tags defined by the commit pragmas with the following priority:
-    //  1) Test-tag-<stage>: <tags>
-    //  2) Test-tag: <tags>
-    //  3) Features: <feature_tags>
-    String pragma_tag
-    pragma_tag = commitPragma("Test-tag" + result['pragma_suffix'], null)
-    if (!pragma_tag) {
-      pragma_tag = commitPragma("Test-tag", null)
-      if (!pragma_tag) {
-        pragma_tag = commitPragma("Features", null)
-        if (pragma_tag) {
-          String features = pragma_tag
-          pragma_tag = 'pr '
-          for (feature in features.split(' ')) {
-            pragma_tag += 'daily_regression,' + feature + ' '
-            /* DAOS-6468 Ideally we'd like to add this but there are too
-                        many failures in the full_regression set 
-            pragma_tag += 'full_regression,' + feature + ' '
-            */
-          }
-          pragma_tag = tag.trim()
-        }
-      }
-    }
-
-    // Get the stage defined test tags
-    String stage_tag
-    stage_tag = config['test_tag']
-
-    // Determine which tests tags take precedence
+    // Determine which tests tags to use
     String tag
-    if (param_tag) {
-      // Build with parameter tags override all other tags
-      tag = param_tag.trim()
+    if (startedByUser() && params.TestTag && params.TestTag != "") {
+      // Test tags defined by the build parameters override all other tags
+      tag = params.TestTag.trim()
     } else {
-      if (startedByUser()) {
-        if (pragma_tag) {
-          // Tags defined by build pragmas have priority in user PRs
-          tag = pragma_tag.trim()
-        } else {
-          if (stage_tag) {
-            // Followed by any stage defined tags
-            tag = stage_tag.trim()
+      if (startedByTimer()) {
+        // Stage defined tags take precedence in timed builds
+        tag = config['test_tag'].trim()
+        if (!tag) {
+          // Otherwise use the default timed build tags
+          if (env.BRANCH_NAME.startsWith("weekly-testing")) {
+            tag = "full_regression"
           } else {
-            // Otherwise the default PR tag
-            tag = "pr"
+            tag = "pr daily_regression"
           }
         }
       } else {
-        if (startedByTimer()) {
-          if (stage_tag) {
-            // Stage defined tags take precedence in timed builds
-            tag = stage_tag.trim()
-          } else {
-            // Use the default timed build tags
-            if (env.BRANCH_NAME.startsWith("weekly-testing")) {
-              tag = "full_regression"
-            } else {
-              tag = "pr daily_regression"
-            }
+        // Tags defined by commit pragmas have priority in user PRs
+        tag = get_commit_pragma_tags(result['pragma_suffix'])
+        if (!tag) {
+          // Followed by stage defined tags
+          tag = config['test_tag'].trim()
+          if (!tag) {
+            // Otherwise use the default PR tag
+            tag = "pr"
           }
         }
       }
