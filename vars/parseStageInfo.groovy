@@ -195,47 +195,53 @@ def call(Map config = [:]) {
     if (startedByUser() && params.TestTag && params.TestTag != "") {
       tag = params.TestTag
     } else {
-      // Next highest priority is a stage specific Test-tag-*
-      tag = commitPragma("Test-tag" + result['pragma_suffix'], null)
-      if (!tag) {
-        // Followed by the more general Test-tag:
-        tag = commitPragma("Test-tag", null)
+      // Next highest priority is deciding if it's a timer run.
+      if (startedByTimer()) {
+        // Use any stage defined tags to avoid redifining the stage behavoir
+        tag = config['test_tag']
         if (!tag) {
-          // Next is Features:
-          tag = commitPragma("Features", null)
+          // Use fixed tags for timed runs to ensure consistent testing
+          if (env.BRANCH_NAME.startsWith("weekly-testing")) {
+            tag = "full_regression"
+          } else {
+            tag = "pr daily_regression"
+          }
+        }
+      } else {
+        // Next highest priority is a stage specific Test-tag-* commit pragma
+        tag = commitPragma("Test-tag" + result['pragma_suffix'], null)
+        if (!tag) {
+          // Followed by the more general Test-tag: commit pragma
+          tag = commitPragma("Test-tag", null)
           if (!tag) {
-            // Next is the caller's override
-            if (!(tag = config['test_tag'])) {
-              // Next is deciding if it's a timer run
-              if (startedByTimer()) {
-                if (env.BRANCH_NAME.startsWith("weekly-testing")) {
-                  tag = "full_regression"
-                } else {
-                  tag = "pr daily_regression"
-                }
-              } else {
-                // Must be a PR run
-                tag = "pr"
-                // target_branch is the branch that a PR is based on for PRs,
-                // or the branch being landed to for landings
-                String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
-                if (target_branch == "release/1.2" ||
-                    env.BRANCH_NAME == "release/2.0") {
-                  tag += " daily_regression"
+            // Next is the Features: commit pragma
+            tag = commitPragma("Features", null)
+            if (!tag) {
+              // Next is the caller's override
+              if (!(tag = config['test_tag'])) {
+                  // Must be a PR run
+                  tag = "pr"
+                  // target_branch is the branch that a PR is based on for PRs,
+                  // or the branch being landed to for landings
+                  String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
+                  if (target_branch == "release/1.2" ||
+                      env.BRANCH_NAME == "release/2.0") {
+                    tag += " daily_regression"
+                  }
                 }
               }
+            } else {
+              String tmp = tag
+              tag = 'pr '
+              for (feature in tmp.split(' ')) {
+                tag += 'daily_regression,' + feature + ' '
+                /* DAOS-6468 Ideally we'd like to add this but there are too
+                            many failures in the full_regression set 
+                tag += 'full_regression,' + feature + ' '
+                */
+              }
+              tag = tag.trim()
             }
-          } else {
-            String tmp = tag
-            tag = 'pr '
-            for (feature in tmp.split(' ')) {
-              tag += 'daily_regression,' + feature + ' '
-              /* DAOS-6468 Ideally we'd like to add this but there are too
-                           many failures in the full_regression set 
-              tag += 'full_regression,' + feature + ' '
-              */
-            }
-            tag = tag.trim()
           }
         }
       }
