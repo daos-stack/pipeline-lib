@@ -57,7 +57,6 @@ String get_commit_pragma_tags(String pragma_suffix) {
           pragma_tag += 'full_regression,' + feature + ' '
           */
         }
-        pragma_tag = tag.trim()
       }
     }
   }
@@ -220,10 +219,10 @@ def call(Map config = [:]) {
     String tag
     if (startedByUser() && params.TestTag && params.TestTag != "") {
       // Test tags defined by the build parameters override all other tags
-      tag = params.TestTag.trim()
+      tag = params.TestTag
     } else if (startedByTimer()) {
       // Stage defined tags take precedence in timed builds
-      tag = config['test_tag'].trim()
+      tag = config['test_tag']
       if (!tag) {
         // Otherwise use the default timed build tags
         if (env.BRANCH_NAME.startsWith("weekly-testing")) {
@@ -237,12 +236,15 @@ def call(Map config = [:]) {
       tag = get_commit_pragma_tags(result['pragma_suffix'])
       if (!tag) {
         // Followed by stage defined tags
-        tag = config['test_tag'].trim()
+        tag = config['test_tag']
         if (!tag) {
           // Otherwise use the default PR tag
           tag = "pr"
         }
       }
+    }
+    if (tag) {
+      tag = tag.trim()
     }
 
     // Apply the stage tag filter to the tags
