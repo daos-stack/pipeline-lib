@@ -221,33 +221,31 @@ def call(Map config = [:]) {
     if (startedByUser() && params.TestTag && params.TestTag != "") {
       // Test tags defined by the build parameters override all other tags
       tag = params.TestTag.trim()
+    } else if (startedByTimer()) {
+      // Stage defined tags take precedence in timed builds
+      tag = config['test_tag'].trim()
+      if (!tag) {
+        // Otherwise use the default timed build tags
+        if (env.BRANCH_NAME.startsWith("weekly-testing")) {
+          tag = "full_regression"
+        } else {
+          tag = "pr daily_regression"
+        }
+      }
     } else {
-      if (startedByTimer()) {
-        // Stage defined tags take precedence in timed builds
+      // Tags defined by commit pragmas have priority in user PRs
+      tag = get_commit_pragma_tags(result['pragma_suffix'])
+      if (!tag) {
+        // Followed by stage defined tags
         tag = config['test_tag'].trim()
         if (!tag) {
-          // Otherwise use the default timed build tags
-          if (env.BRANCH_NAME.startsWith("weekly-testing")) {
-            tag = "full_regression"
-          } else {
-            tag = "pr daily_regression"
-          }
-        }
-      } else {
-        // Tags defined by commit pragmas have priority in user PRs
-        tag = get_commit_pragma_tags(result['pragma_suffix'])
-        if (!tag) {
-          // Followed by stage defined tags
-          tag = config['test_tag'].trim()
-          if (!tag) {
-            // Otherwise use the default PR tag
-            tag = "pr"
-          }
+          // Otherwise use the default PR tag
+          tag = "pr"
         }
       }
     }
 
-    // Aplly the stage tag filter to the tags
+    // Apply the stage tag filter to the tags
     result['test_tag'] = ""
     for (atag in tag.split(' ')) {
       result['test_tag'] += atag + ',' + cluster_size + ' '
