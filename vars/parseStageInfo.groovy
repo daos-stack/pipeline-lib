@@ -161,7 +161,7 @@ def call(Map config = [:]) {
   // Unless otherwise specified, all tests will only use one node.
   result['node_count'] = 1
 
-  String cluster_size = ""
+  String cluster_size = ''
   if (stage_name.contains('Functional')) {
     result['test'] = 'Functional'
     result['node_count'] = 9
@@ -190,38 +190,38 @@ def call(Map config = [:]) {
 
     String tag
     // Highest priority is TestTag parameter but only if ForceRun
-    // parameter was given (to support "Run with Parameters" for doing
+    // parameter was given (to support 'Run with Parameters' for doing
     // weekly run maintenance)
-    if (startedByUser() && params.TestTag && params.TestTag != "") {
+    if (startedByUser() && params.TestTag && params.TestTag != '') {
       tag = params.TestTag
     } else {
       // Next highest priority is a stage specific Test-tag-*
-      tag = commitPragma("Test-tag" + result['pragma_suffix'], null)
+      tag = commitPragma('Test-tag' + result['pragma_suffix'], null)
       if (!tag) {
         // Followed by the more general Test-tag:
-        tag = commitPragma("Test-tag", null)
+        tag = commitPragma('Test-tag', null)
         if (!tag) {
           // Next is Features:
-          tag = commitPragma("Features", null)
+          tag = commitPragma('Features', null)
           if (!tag) {
             // Next is the caller's override
             if (!(tag = config['test_tag'])) {
               // Next is deciding if it's a timer run
               if (startedByTimer()) {
-                if (env.BRANCH_NAME.startsWith("weekly-testing")) {
-                  tag = "full_regression"
+                if (env.BRANCH_NAME.startsWith('weekly-testing')) {
+                  tag = 'full_regression'
                 } else {
-                  tag = "pr daily_regression"
+                  tag = 'pr daily_regression'
                 }
               } else {
                 // Must be a PR run
-                tag = "pr"
+                tag = 'pr'
                 // target_branch is the branch that a PR is based on for PRs,
                 // or the branch being landed to for landings
                 String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
-                if (target_branch == "release/1.2" ||
-                    env.BRANCH_NAME == "release/2.0") {
-                  tag += " daily_regression"
+                if (target_branch == 'release/1.2' ||
+                    env.BRANCH_NAME == 'release/2.0') {
+                  tag += ' daily_regression'
                 }
               }
             }
@@ -241,7 +241,7 @@ def call(Map config = [:]) {
       }
     }
 
-    result['test_tag'] = ""
+    result['test_tag'] = ''
     for (atag in tag.split(' ')) {
       result['test_tag'] += atag + ',' + cluster_size + ' '
     }
@@ -249,28 +249,28 @@ def call(Map config = [:]) {
 
     String repeat
     // Highest priority is TestRepeat parameter
-    if (startedByUser() && params.TestRepeat && params.TestRepeat != "") {
+    if (params.TestRepeat && params.TestRepeat != '') {
       repeat = params.TestRepeat
     } else {
       // Next highest priority is a stage specific Test-repeat-* then the general Test-repeat
       repeat = cachedCommitPragma(
-        "Test-repeat" + result['pragma_suffix'], cachedCommitPragma("Test-repeat", null))
+        'Test-repeat' + result['pragma_suffix'], cachedCommitPragma('Test-repeat', null))
     }
     if (repeat) {
-      result['ftest_arg'] += " --repeat=" + repeat
+      result['ftest_arg'] += ' --repeat=' + repeat
     }
 
     String provider
     // Highest priority is TestProvider parameter
-    if (startedByUser() && params.TestProvider && params.TestProvider != "") {
+    if (params.TestProvider && params.TestProvider != '') {
       provider = params.TestProvider
     } else {
       // Next highest priority is a stage specific Test-provider-* then the general Test-provider
       provider = cachedCommitPragma(
-        "Test-provider" + result['pragma_suffix'], cachedCommitPragma("Test-provider", null))
+        'Test-provider' + result['pragma_suffix'], cachedCommitPragma('Test-provider', null))
     }
     if (provider) {
-      result['ftest_arg'] += " --provider='" + provider + "'"
+      result['ftest_arg'] += ' --provider=' + "'" + provider + "'"
     }
 
     if (result['ftest_tag']) {
