@@ -9,7 +9,7 @@
  * result['compiler']      Known compilers are 'gcc', 'icc', clang, and 'covc'.
  *                         Default is 'gcc'
  *
- * result['target']        Known targets are 'centos7','centos8','leap15',
+ * result['target']        Known targets are 'centos7','centos8','el8', 'leap15',
  *                         'ubuntu18.04', 'ubuntu20.04'.  Default is 'centos7'
  *
  * result['target_prefix'] Target prefix to use for the build if present.
@@ -59,8 +59,16 @@ def call(Map config = [:]) {
       result['target'] = 'centos8.3'
       result['distro_version'] = cachedCommitPragma('EL8.3-version', '8.3')
       new_ci_target = cachedCommitPragma('EL8.3-target', result['target'])
+    } else if (stage_name.contains('EL 8.4')) {
+      result['target'] = 'el8.4'
+      result['distro_version'] = cachedCommitPragma('EL8.4-version', '8.4')
+      new_ci_target = cachedCommitPragma('EL8.4-target', result['target'])
     } else if (stage_name.contains('CentOS 8')) {
       result['target'] = 'centos8'
+      result['distro_version'] = cachedCommitPragma('EL8-version', '8')
+      new_ci_target = cachedCommitPragma('EL8-target', result['target'])
+    } else if (stage_name.contains('EL 8')) {
+      result['target'] = 'el8'
       result['distro_version'] = cachedCommitPragma('EL8-version', '8')
       new_ci_target = cachedCommitPragma('EL8-target', result['target'])
     } else if (stage_name.contains('Leap 15')) {
@@ -93,7 +101,10 @@ def call(Map config = [:]) {
   }
 
   if (result['ci_target'].startsWith('el') ||
-      result['ci_target'].startsWith('centos')) {
+      result['ci_target'].startsWith('centos') ||
+      result['ci_target'].startsWith('rocky') ||
+      result['ci_target'].startsWith('rhel') ||
+      result['ci_target'].startsWith('almalinux')) {
     result['java_pkg'] = 'java-1.8.0-openjdk'
   } else if (result['ci_target'].startsWith('ubuntu')) {
     result['java_pkg'] = 'openjdk-8-jdk'
@@ -160,14 +171,14 @@ def call(Map config = [:]) {
     if (stage_name.contains('Hardware')) {
       cluster_size = 'hw,large'
       result['pragma_suffix'] = '-hw-large'
-      result['ftest_arg'] = '--nvme=auto:Optane'
+      result['ftest_arg'] = '--nvme=auto:-3DNAND'
       if (stage_name.contains('Small')) {
         result['node_count'] = 3
         cluster_size = 'hw,small'
         result['pragma_suffix'] = '-hw-small'
       } else if (stage_name.contains('Medium')) {
         result['node_count'] = 5
-        cluster_size = 'hw,medium,ib2'
+        cluster_size = 'hw,medium'
         result['pragma_suffix'] = '-hw-medium'
       }
     }
@@ -205,10 +216,11 @@ def call(Map config = [:]) {
               } else {
                 // Must be a PR run
                 tag = "pr"
-
+                // target_branch is the branch that a PR is based on for PRs,
+                // or the branch being landed to for landings
                 String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
-                if (target_branch == "release/1.2") {
-                  echo "Updating tag to inclue daily_regression for release/1.2"
+                if (target_branch == "release/1.2" ||
+                    env.BRANCH_NAME == "release/2.0") {
                   tag += " daily_regression"
                 }
               }

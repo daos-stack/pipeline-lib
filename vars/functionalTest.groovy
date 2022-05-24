@@ -43,7 +43,7 @@
    *                             stage.
    *
    * config['target']            Target distribution, such as 'centos7',
-   *                             'leap15'.  Default based on parsing
+   *                             'el8', 'leap15'.  Default based on parsing
    *                             environment variables for the stage.
    *
    * config['test_rpms']         Set to true to test RPMs being built.
@@ -86,15 +86,6 @@ def call(Map config = [:]) {
   params['ftest_arg'] = stage_info['ftest_arg']
   params['context'] = context
   params['description'] = description
-
-  sh label: "Install Launchable",
-     script: "pip3 install --user --upgrade launchable~=1.0"
-
-  withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
-     sh label: "Send build data",
-        script: '''export PATH=$PATH:$HOME/.local/bin
-                   launchable record build --name ${BUILD_TAG//%2F/-} --source src=.'''
-  }
 
   if (config.get('test_function', "runTestFunctional") ==
       "runTestFunctionalV2") {

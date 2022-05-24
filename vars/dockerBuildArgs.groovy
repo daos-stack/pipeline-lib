@@ -127,7 +127,11 @@ String call(Map config = [:]) {
         if (daos_type == 'LOCAL') {
           daos_arg = 'EL7'
         }
-      } else if (stage_info['target'] == 'centos8') {
+      } else if (stage_info['target'] == 'centos8' ||
+                 stage_info['target'] == 'el8' ||
+                 stage_info['target'] == 'rocky8'  ||
+                 stage_info['target'] == 'almalinux8' ||
+                 stage_info['target'] == 'rhel8') {
         repo_alias = 'EL_8'
         if (daos_type == 'LOCAL') {
           daos_arg = 'EL8'
@@ -171,6 +175,9 @@ String call(Map config = [:]) {
           ret_str += " --build-arg REPO_${dist_arg}=" + dist_repo
         }
       }
+    }
+    if (env.REPO_FILE_URL) {
+        ret_str += ' --build-arg REPO_FILE_URL="' + env.REPO_FILE_URL + '"'
     }
     if (env.HTTP_PROXY) {
       ret_str += ' --build-arg HTTP_PROXY="' + env.HTTP_PROXY + '"'

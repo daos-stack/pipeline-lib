@@ -78,13 +78,9 @@ boolean skip_ftest(String distro, String target_branch) {
 }
 
 boolean skip_ftest_valgrind(String distro, String target_branch) {
-    if (! skip_stage_pragma('func-test-vm-valgrind', 'true')) {
-        return false
-    }
-
-    return skip_ftest(distro, target_branch) ||
-           is_pr() ||
-           target_branch.startsWith('weekly-testing')
+    // Check if the default for skipping this stage been overriden
+    // otherwise always skip this stage (DAOS-10585)
+    return ! run_default_skipped_stage('func-test-vm-valgrind')
 }
 
 boolean skip_ftest_hw(String size, String target_branch) {
@@ -116,11 +112,11 @@ boolean skip_if_unstable() {
     return currentBuild.currentResult == 'UNSTABLE'
 }
 
-boolean skip_build_on_centos_gcc(String target_branch, String version) {
+boolean skip_build_on_el_gcc(String target_branch, String version) {
     return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
-           skip_stage_pragma('build-centos' + version + '-gcc') ||
+           skip_stage_pragma('build-el' + version + '-gcc') ||
            (docOnlyChange(target_branch) &&
-            prRepos('centos' + version) == '') ||
+            prRepos('el' + version) == '') ||
            quickFunctional()
 }
 
@@ -156,35 +152,44 @@ boolean call(Map config = [:]) {
             // always having RPMs in it
             return (env.BRANCH_NAME != target_branch) &&
                    skip_stage_pragma('build') ||
-                   rpmTestVersion() != ''
+                   rpmTestVersion() != '' ||
+                   (quickFunctional() &&
+                    cachedCommitPragma('PR-repos').trim().contains("daos@"))
         case "Build RPM on CentOS 7":
             return paramsValue('CI_RPM_centos7_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
+                    prRepos('centos7').contains('daos@') ||
                    skip_stage_pragma('build-centos7-rpm')
+        case "Build RPM on EL 8":
         case "Build RPM on CentOS 8":
-            return paramsValue('CI_RPM_centos8_NOBUILD', false) ||
+            return paramsValue('CI_RPM_el8_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
-                    prRepos('centos8') == '') ||
-                   skip_stage_pragma('build-centos8-rpm')
+                    prRepos('el8') == '') ||
+                   prRepos('el8').contains('daos@') ||
+                   skip_stage_pragma('build-el8-rpm')
         case "Build RPM on Leap 15":
             return paramsValue('CI_RPM_leap15_NOBUILD', false) ||
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
+                   prRepos('leap15').contains('daos@') ||
                    skip_stage_pragma('build-leap15-rpm')
         case "Build DEB on Ubuntu 20.04":
             return paramsValue('CI_RPM_ubuntu20_NOBUILD', false) ||
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
+                   prRepos('ubuntu20').contains('daos@') ||
                    skip_stage_pragma('build-ubuntu20-rpm')
         case "Build on CentOS 8":
-            return skip_build_on_centos_gcc(target_branch, '8')
+        case "Build on EL 8":
+            return skip_build_on_el_gcc(target_branch, '8')
         case "Build on CentOS 7 Bullseye":
             return skip_build_bullseye(target_branch, 'centos7')
         case "Build on CentOS 8 Bullseye":
-            return skip_build_bullseye(target_branch, 'centos8')
+        case "Build on EL 8 Bullseye":
+            return skip_build_bullseye(target_branch, 'el8')
         case "Build on CentOS 7 debug":
             if (run_default_skipped_stage('build-centos7-gcc-debug')) {
                 return false
@@ -192,12 +197,13 @@ boolean call(Map config = [:]) {
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
-                   quickBuild() 
+                   quickBuild()
         case "Build on CentOS 8 debug":
+        case "Build on EL 8 debug":
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-centos7-gcc-debug') ||
                    (docOnlyChange(target_branch) &&
-                    prRepos('centos8') == '') ||
+                    prRepos('el8') == '') ||
                    quickBuild()
         case "Build on CentOS 7 release":
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
@@ -210,12 +216,13 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build-centos7-gcc', 'false') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
-                   quickBuild()
+                   quickFunctional()
         case "Build on CentOS 8 release":
+        case "Build on EL 8 release":
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
-                   skip_stage_pragma('build-centos8-gcc-release', 'true') ||
+                   skip_stage_pragma('build-el8-gcc-release', 'true') ||
                    (docOnlyChange(target_branch) &&
-                    prRepos('centos8') == '') ||
+                    prRepos('el8') == '') ||
                    quickBuild()
         case "Build on CentOS 7 with Clang":
         case "Build on CentOS 7 with Clang debug":
@@ -228,13 +235,15 @@ boolean call(Map config = [:]) {
                     prRepos('centos7') == '')
         case "Build on CentOS 8 with Clang":
         case "Build on CentOS 8 with Clang debug":
-            if (run_default_skipped_stage('build-centos8-clang-debug')) {
+        case "Build on EL 8 with Clang":
+        case "Build on EL 8 with Clang debug":
+            if (run_default_skipped_stage('build-el8-clang-debug')) {
                 return false
             }
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_build_on_landing_branch(target_branch) ||
                    (docOnlyChange(target_branch) &&
-                    prRepos('centos8') == '')
+                    prRepos('el8') == '')
         case "Build on Ubuntu 20.04":
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_build_on_landing_branch(target_branch) ||
@@ -246,10 +255,11 @@ boolean call(Map config = [:]) {
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '')
         case "Build on CentOS 8":
+        case "Build on EL 8":
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
-                   skip_stage_pragma('build-centos8-gcc-dev') ||
+                   skip_stage_pragma('build-el8-gcc-dev') ||
                    (docOnlyChange(target_branch) &&
-                    prRepos('centos8') == '') ||
+                    prRepos('el8') == '') ||
                    quickBuild()
         case "Build on Ubuntu 20.04 with Clang":
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
@@ -277,20 +287,24 @@ boolean call(Map config = [:]) {
                     skip_stage_pragma('build') ||
                     rpmTestVersion() != '' ||
                     docOnlyChange(target_branch) ||
-                    skip_build_on_centos_gcc(target_branch, '8') ||
+                    skip_build_on_el_gcc(target_branch, '8') ||
                     skip_stage_pragma('unit-tests')
         case "NLT":
         case "NLT on CentOS 8":
+        case "NLT on EL 8":
             return skip_stage_pragma('nlt')
         case "Unit Test Bullseye":
         case "Unit Test Bullseye on CentOS 8":
+        case "Unit Test Bullseye on EL 8":
             return skip_stage_pragma('bullseye', 'true')
         case "Unit Test with memcheck on CentOS 8":
+        case "Unit Test with memcheck on EL 8":
         case "Unit Test with memcheck":
             return ! paramsValue('CI_UNIT_TEST_MEMCHECK', true) ||
                    skip_stage_pragma('unit-test-memcheck')
         case "Unit Test":
         case "Unit Test on CentOS 8":
+        case "Unit Test on EL 8":
             return ! paramsValue('CI_UNIT_TEST', true) ||
                    skip_stage_pragma('unit-test') ||
                    skip_stage_pragma('run_test')
@@ -308,6 +322,7 @@ boolean call(Map config = [:]) {
                    ! env.BRANCH_NAME.startsWith('weekly-testing')
         case "Coverity on CentOS 7":
         case "Coverity on CentOS 8":
+        case "Coverity on EL 8":
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    rpmTestVersion() != '' ||
                    skip_stage_pragma('coverity-test', 'true') ||
@@ -319,8 +334,10 @@ boolean call(Map config = [:]) {
         case "Functional on CentOS 7 with Valgrind":
             return skip_ftest_valgrind('el7', target_branch)
         case "Functional on CentOS 8 with Valgrind":
+        case "Functional on EL 8 with Valgrind":
             return skip_ftest_valgrind('el8', target_branch)
         case "Functional on CentOS 8":
+        case "Functional on EL 8":
             return skip_ftest('el8', target_branch)
         case "Functional on Leap 15":
             return skip_ftest('leap15', target_branch)
@@ -329,6 +346,8 @@ boolean call(Map config = [:]) {
             skip_ftest('ubuntu20', target_branch) */
             return true
         case "Fault injection testing":
+        case "Fault injection testing on CentOS 8":
+        case "Fault injection testing on EL 8":
             return skip_stage_pragma('fault-injection-test') ||
                    quickFunctional() ||
                    docOnlyChange(target_branch) ||
@@ -345,7 +364,7 @@ boolean call(Map config = [:]) {
                    (quickFunctional() &&
                     ! run_default_skipped_stage('test-centos-7-rpms'))
         case "Test CentOS 8.3.2011 RPMs":
-            return ! paramsValue('CI_RPMS_el8.3.2011_TEST', true) ||
+            return ! paramsValue('CI_RPMS_centos8.3.2011_TEST', true) ||
                    target_branch == 'weekly-testing' ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
@@ -354,14 +373,15 @@ boolean call(Map config = [:]) {
                    (quickFunctional() &&
                     ! run_default_skipped_stage('test-centos-8.3-rpms'))
         case "Test CentOS 8.4.2105 RPMs":
+        case "Test EL 8.4 RPMs":
             return ! paramsValue('CI_RPMS_el8.4.2105_TEST', true) ||
                    target_branch == 'weekly-testing' ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
-                   skip_stage_pragma('test-centos-8.4-rpms') ||
+                   skip_stage_pragma('test-el-8.4-rpms') ||
                    docOnlyChange(target_branch) ||
                    (quickFunctional() &&
-                    ! run_default_skipped_stage('test-centos-8.4-rpms'))
+                    ! run_default_skipped_stage('test-el-8.4-rpms'))
         case "Test Leap 15 RPMs":
         case "Test Leap 15.2 RPMs":
             // Skip by default as it doesn't pass with Leap15.3 due to
@@ -371,7 +391,8 @@ boolean call(Map config = [:]) {
         case "Scan CentOS 7 RPMs":
             return skip_scan_rpms('centos-7', target_branch)
         case "Scan CentOS 8 RPMs":
-            return skip_scan_rpms('centos-8', target_branch)
+        case "Scan EL 8 RPMs":
+            return skip_scan_rpms('el-8', target_branch)
         case "Scan Leap 15 RPMs":
             return skip_scan_rpms('leap-15', target_branch)
         case "Test Hardware":
@@ -396,6 +417,7 @@ boolean call(Map config = [:]) {
             return skip_ftest_hw('large', target_branch)
         case "Bullseye Report":
         case "Bullseye Report on CentOS 8":
+        case "Bullseye Report on EL 8":
             return env.BULLSEYE == null ||
                    skip_stage_pragma('bullseye', 'true')
         default:

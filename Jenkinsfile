@@ -34,6 +34,14 @@ pipeline {
     }
 
     stages {
+        stage('Get Commit Message') {
+            steps {
+                script {
+                    env.COMMIT_MESSAGE = sh(script: 'git show -s --format=%B',
+                                            returnStdout: true).trim()
+                }
+            }
+        }
         stage('Cancel Previous Builds') {
             when { changeRequest() }
             steps {
@@ -44,10 +52,9 @@ pipeline {
             parallel {
                 stage('grep JUnit results tests failure case') {
                     agent {
-                        dockerfile {
-                            filename 'docker/Dockerfile.centos.7'
+                        docker {
+                            image 'rockylinux:8'
                             label 'docker_runner'
-                            additionalBuildArgs  '--build-arg UID=$(id -u)'
                         }
                     }
                     steps {
@@ -62,10 +69,9 @@ pipeline {
                 } // stage('grep JUnit results tests failure case')
                 stage('grep JUnit results tests error case') {
                     agent {
-                        dockerfile {
-                            filename 'docker/Dockerfile.centos.7'
+                        docker {
+                            image 'rockylinux:8'
                             label 'docker_runner'
-                            additionalBuildArgs  '--build-arg UID=$(id -u)'
                         }
                     }
                     steps {
@@ -85,15 +91,14 @@ pipeline {
                     }
                     agent {
                         dockerfile {
-                            filename 'docker/Dockerfile.centos.7'
+                            filename 'docker/Dockerfile.el.8'
                             label 'docker_runner'
-                            additionalBuildArgs dockerBuildArgs(cachebust: false, add_repos: false)
                         }
                     }
                     steps {
                         // Populate an artifact directory
                         copyArtifacts projectName: '/daos-stack/libfabric/master',
-                                      filter: 'artifacts/centos8/**',
+                                      filter: 'artifacts/el8/**',
                                       target: 'artifact'
                         publishToRepository(
                             product: 'zzz_pl-' + env.BRANCH_NAME + '_' +
@@ -101,7 +106,7 @@ pipeline {
                             format: 'yum',
                             maturity: 'test',
                             tech: 'el-8',
-                            repo_dir: 'artifact/artifacts/centos8',
+                            repo_dir: 'artifact/artifacts/el8',
                             download_dir: 'artifact/download',
                             test: true)
                     }
@@ -125,7 +130,7 @@ pipeline {
                     }
                     agent {
                         dockerfile {
-                            filename 'docker/Dockerfile.centos.7'
+                            filename 'docker/Dockerfile.el.8'
                             label 'docker_runner'
                             additionalBuildArgs dockerBuildArgs(cachebust: false, add_repos: false)
                         }
@@ -167,12 +172,37 @@ pipeline {
                         label 'ci_vm1'
                     }
                     steps {
+                        // remove the ci/ folder so that provisionNodesV1 is used
+                        fileOperations([folderDeleteOperation(folderPath: 'ci')])
                         provisionNodes NODELIST: env.NODELIST,
                                        distro: 'el7',
                                        profile: 'daos_ci',
                                        node_count: '1',
                                        snapshot: true,
                                        inst_repos: "daos@release/0.9"
+                        runTest script: '''NODE=${NODELIST%%,*}
+                                           ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
+                                           yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
+                                junit_files: null,
+                                failure_artifacts: env.STAGE_NAME
+                    }
+                    // runTest handles SCM notification via stepResult
+                } //stage('provisionNodes with release/0.9 Repo')
+                stage('provisionNodes with release/2.0 Repo') {
+                    when {
+                        beforeAgent true
+                        expression { env.NO_CI_TESTING != "true" }
+                    }
+                    agent {
+                        label 'ci_vm1'
+                    }
+                    steps {
+                        provisionNodes NODELIST: env.NODELIST,
+                                       distro: 'el8',
+                                       profile: 'daos_ci',
+                                       node_count: '1',
+                                       snapshot: true,
+                                       inst_repos: "daos@release/2.0"
                         runTest script: '''NODE=${NODELIST%%,*}
                                            ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
                                            yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
@@ -191,21 +221,20 @@ pipeline {
                     }
                     steps {
                         provisionNodes NODELIST: env.NODELIST,
-                                       distro: 'el7',
+                                       distro: 'el8',
                                        profile: 'daos_ci',
                                        node_count: 1,
                                        snapshot: true,
                                        inst_repos: "daos@master"
                         runTest script: '''NODE=${NODELIST%%,*}
                                            ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
-                                           yum --disablerepo=\\* \
-                                               --enablerepo=build\\* makecache"''',
+                                           dnf makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('provisionNodes with master Repo')
-                stage('provisionNodes with slurm EL7') {
+                stage('provisionNodes with slurm EL8') {
                     when {
                         beforeAgent true
                         expression { env.NO_CI_TESTING != "true" }
@@ -215,7 +244,7 @@ pipeline {
                     }
                     steps {
                         provisionNodes NODELIST: env.NODELIST,
-                                       distro: 'el7',
+                                       distro: 'el8',
                                        profile: 'daos_ci',
                                        node_count: 1,
                                        snapshot: true,
@@ -229,13 +258,11 @@ pipeline {
                                 failure_artifacts: env.STAGE_NAME
                     }
                     // runTest handles SCM notification via stepResult
-                } //stage('provisionNodes with slurm EL7')
+                } //stage('provisionNodes with slurm EL8')
                 stage('provisionNodes with slurm Leap15') {
                     when {
                         beforeAgent true
-                        allOf {
-                            expression { env.NO_CI_TESTING != "true" }
-                        }
+                        expression { env.NO_CI_TESTING != "true" }
                     }
                     agent {
                         label 'ci_vm1'
@@ -260,7 +287,7 @@ pipeline {
                         script {
                             stages = ["Functional on Leap 15",
                                       "Functional on CentOS 7",
-                                      "Functional on CentOS 8",
+                                      "Functional on EL 8",
                                       "Functional Hardware Small",
                                       "Functional Hardware Medium",
                                       "Functional Hardware Large"]
@@ -284,7 +311,7 @@ pipeline {
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         // Useful for debugging since Jenkins'
                                         // assert() is pretty lame
-                                        //println('assert(' + skipStage(commit_msg: ' + cm.stripIndent() +') == ' + commit.skips[i] + ')'
+                                        //println('For stage: ' + stage + ', assert(skipStage(commit_msg: ' + cm.stripIndent() + ') == ' + commit.skips[i] + ')')
                                         assert(skipStage(commit_msg: cm.stripIndent()) == commit.skips[i])
                                         i++
                                     }
@@ -307,7 +334,7 @@ pipeline {
                                       [name: 'Fake CentOS 7 Functional Hardware Small stage',
                                        tag: 'hw,small'],
                                       [name: 'Fake CentOS 7 Functional Hardware Medium stage',
-                                       tag: 'hw,medium,ib2'],
+                                       tag: 'hw,medium'],
                                       [name: 'Fake CentOS 7 Functional Hardware Large stage',
                                        tag: 'hw,large']]
                             commits = [[tags: [[tag: "Test-tag", value: 'datamover']],
