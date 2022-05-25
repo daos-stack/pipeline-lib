@@ -89,7 +89,6 @@ pipeline {
                         }
                     }
                     steps {
-                        // jobStatus('JUNIT_failure')
                         job_step_update(
                             runTest(script: '''set -ex
                                            rm -f *.xml
@@ -417,7 +416,7 @@ pipeline {
                         }
                         job_status_update()
                     } // steps
-                } // stage ('Commit Pragma tests') */
+                } // stage ('Commit Pragma tests')
             } // parallel
         } // stage('Test')
     }
