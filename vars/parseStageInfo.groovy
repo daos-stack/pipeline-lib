@@ -52,34 +52,28 @@ String get_build_params_tags(String stage_param_key) {
 }
 
 String get_commit_pragma_tags(String pragma_suffix) {
-  // Get the test tags defined in the commit message with the following priority:
+  // Get the test tags defined in the commit message
   String pragma_tag
 
-  // First use the stage-specific Test-tag-<stage>: defined tags if specified in the commit message
-  pragma_tag = commitPragma("Test-tag" + pragma_suffix, null)
+  // Use the tags defined by the stage-specific 'Test-tag-<stage>:' commit message pragma.  If those
+  // are not specified use the tags defined by the general 'Test-tag:' commit message pragma.
+  pragma_tag = commitPragma("Test-tag" + pragma_suffix, commitPragma("Test-tag", null))
   if (pragma_tag) {
     return pragma_tag
   }
 
-  // Next use the general Test-tag: defined tags if specified in the commit message
-  pragma_tag = commitPragma("Test-tag", null)
-  if (pragma_tag) {
-    return pragma_tag
-  }
-
-  // Lastly use Features: to define the tags if specified in the commit message
+  // If neither of the 'Test-tag*:' commit message pragmas are specified, use the 'Features:'
+  // commit message pragma to define the tags to use.
   pragma_tag = commitPragma("Features", null)
   if (pragma_tag) {
     String features = pragma_tag
-    // Features extend the standard pr testing to include tests run in daily or weekly builds that
-    // test the specified feature.
-    pragma_tag = 'pr '
+    // Features extend the standard pr testing tags to include tests run in daily or weekly builds
+    // that test the specified feature.
+    pragma_tag = 'pr'
     for (feature in features.split(' ')) {
-      pragma_tag += 'daily_regression,' + feature + ' '
-      /* DAOS-6468 Ideally we'd like to add this but there are too
-                  many failures in the full_regression set 
-      pragma_tag += 'full_regression,' + feature + ' '
-      */
+      pragma_tag += ' daily_regression,' + feature
+      // DAOS-6468 Eventually add this when there are no failures in the full_regression set
+      // pragma_tag += ' full_regression,' + feature
     }
   }
   return pragma_tag
@@ -318,6 +312,7 @@ def call(Map config = [:]) {
       key, value -> result['ftest_arg'] += ' ' + $key + '=' + "'" + $value + "'"
     }
     result['ftest_arg'] = result['ftest_arg'].trim()
+    println "ftest_arg: " + result['ftest_arg']
 
     // if (stage_name.contains('Functional'))
   } else if (stage_name.contains('Storage')) {
