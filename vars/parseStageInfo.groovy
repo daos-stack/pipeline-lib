@@ -205,9 +205,21 @@ def call(Map config = [:]) {
   println 'DEBUG: stage_name = ' + stage_name
 
   Map ftest_args = [:]
+
+  println 'DEBUG: assigned ftest_args'
+
   String cluster_size = ''
+
+  println 'DEBUG: assigned cluster_size'
+
   String param_key = ''
+
+  println 'DEBUG: assigned param_key'
+
   if (stage_name.contains('Functional')) {
+
+    println 'DEBUG: Functional'
+
     result['test'] = 'Functional'
     result['node_count'] = 9
     cluster_size = '-hw'
@@ -215,9 +227,13 @@ def call(Map config = [:]) {
     if (stage_name.contains('Hardware')) {
       cluster_size = 'hw,large'
       result['pragma_suffix'] = '-hw-large'
-      println 'DEBUG: pragma_suffix = ' + result['pragma_suffix']
+
+      println 'DEBUG: before ftest_args[--nvme] assignment'
+
       ftest_args['--nvme'] = 'auto:-3DNAND'
-      println 'DEBUG: nvme = ' + ftest_args['--nvme']
+
+      println 'DEBUG: after ftest_args[--nvme] assignment'
+
       if (stage_name.contains('Small')) {
         result['node_count'] = 3
         cluster_size = 'hw,small'
@@ -227,7 +243,9 @@ def call(Map config = [:]) {
         cluster_size = 'hw,medium'
         result['pragma_suffix'] = '-hw-medium'
       }
+
       println 'DEBUG: stage_name.contains(TCP)'
+
       if (stage_name.contains('TCP')) {
         param_key = 'tcp'
         result['pragma_suffix'] += '-tcp'
