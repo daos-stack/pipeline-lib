@@ -215,7 +215,9 @@ def call(Map config = [:]) {
     if (stage_name.contains('Hardware')) {
       cluster_size = 'hw,large'
       result['pragma_suffix'] = '-hw-large'
+      println 'DEBUG: pragma_suffix = ' + result['pragma_suffix']
       ftest_args['--nvme'] = 'auto:-3DNAND'
+      println 'DEBUG: nvme = ' + ftest_args['--nvme']
       if (stage_name.contains('Small')) {
         result['node_count'] = 3
         cluster_size = 'hw,small'
@@ -225,6 +227,7 @@ def call(Map config = [:]) {
         cluster_size = 'hw,medium'
         result['pragma_suffix'] = '-hw-medium'
       }
+      println 'DEBUG: stage_name.contains(TCP)'
       if (stage_name.contains('TCP')) {
         param_key = 'tcp'
         result['pragma_suffix'] += '-tcp'
