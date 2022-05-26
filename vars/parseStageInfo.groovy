@@ -36,6 +36,33 @@
  *                             Default determined by this function below.
  */
 
+String get_commit_pragma_tags(String pragma_suffix) {
+  // Get the test tags defined in the commit message with the following priority:
+  //  1) Test-tag-<stage>: <tags>
+  //  2) Test-tag: <tags>
+  //  3) Features: <feature_tags>
+  String pragma_tag
+  pragma_tag = commitPragma("Test-tag" + pragma_suffix, null)
+  if (!pragma_tag) {
+    pragma_tag = commitPragma("Test-tag", null)
+    if (!pragma_tag) {
+      pragma_tag = commitPragma("Features", null)
+      if (pragma_tag) {
+        String features = pragma_tag
+        pragma_tag = 'pr '
+        for (feature in features.split(' ')) {
+          pragma_tag += 'daily_regression,' + feature + ' '
+          /* DAOS-6468 Ideally we'd like to add this but there are too
+                      many failures in the full_regression set 
+          pragma_tag += 'full_regression,' + feature + ' '
+          */
+        }
+      }
+    }
+  }
+  return pragma_tag
+}
+
 def call(Map config = [:]) {
 
   Map result = [:]
@@ -188,59 +215,39 @@ def call(Map config = [:]) {
       config['test_tag'] = 'memcheck'
     }
 
+    // Determine which tests tags to use
     String tag
-    // Highest priority is TestTag parameter but only if ForceRun
-    // parameter was given (to support "Run with Parameters" for doing
-    // weekly run maintenance)
     if (startedByUser() && params.TestTag && params.TestTag != "") {
+      // Test tags defined by the build parameters override all other tags
       tag = params.TestTag
-    } else {
-      // Next highest priority is a stage specific Test-tag-*
-      tag = commitPragma("Test-tag" + result['pragma_suffix'], null)
+    } else if (startedByTimer()) {
+      // Stage defined tags take precedence in timed builds
+      tag = config['test_tag']
       if (!tag) {
-        // Followed by the more general Test-tag:
-        tag = commitPragma("Test-tag", null)
+        // Otherwise use the default timed build tags
+        if (env.BRANCH_NAME.startsWith("weekly-testing")) {
+          tag = "full_regression"
+        } else {
+          tag = "pr daily_regression"
+        }
+      }
+    } else {
+      // Tags defined by commit pragmas have priority in user PRs
+      tag = get_commit_pragma_tags(result['pragma_suffix'])
+      if (!tag) {
+        // Followed by stage defined tags
+        tag = config['test_tag']
         if (!tag) {
-          // Next is Features:
-          tag = commitPragma("Features", null)
-          if (!tag) {
-            // Next is the caller's override
-            if (!(tag = config['test_tag'])) {
-              // Next is deciding if it's a timer run
-              if (startedByTimer()) {
-                if (env.BRANCH_NAME.startsWith("weekly-testing")) {
-                  tag = "full_regression"
-                } else {
-                  tag = "pr daily_regression"
-                }
-              } else {
-                // Must be a PR run
-                tag = "pr"
-                // target_branch is the branch that a PR is based on for PRs,
-                // or the branch being landed to for landings
-                String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
-                if (target_branch == "release/1.2" ||
-                    env.BRANCH_NAME == "release/2.0") {
-                  tag += " daily_regression"
-                }
-              }
-            }
-          } else {
-            String tmp = tag
-            tag = 'pr '
-            for (feature in tmp.split(' ')) {
-              tag += 'daily_regression,' + feature + ' '
-              /* DAOS-6468 Ideally we'd like to add this but there are too
-                           many failures in the full_regression set 
-              tag += 'full_regression,' + feature + ' '
-              */
-            }
-            tag = tag.trim()
-          }
+          // Otherwise use the default PR tag
+          tag = "pr"
         }
       }
     }
+    if (tag) {
+      tag = tag.trim()
+    }
 
+    // Apply the stage tag filter to the tags
     result['test_tag'] = ""
     for (atag in tag.split(' ')) {
       result['test_tag'] += atag + ',' + cluster_size + ' '
