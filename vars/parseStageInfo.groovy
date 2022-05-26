@@ -36,19 +36,20 @@
  *                             Default determined by this function below.
  */
 
-String get_build_params_tags(String stage_param_key) {
+String get_build_params_tags(String param_key) {
   // Get the tags defined by the build parameter entry for this stage
-  String params_tags
   if (startedByUser()) {
-    if (stage_param_key == 'tcp' && params.TestTagTCP && params.TestTagTCP != '') {
-      params_tags = params.TestTagTCP
-    } else if (stage_param_key == 'ucx' && params.TestTagUCX && params.TestTagUCX != '') {
-      params_tags = params.TestTagUCX
-    } else if (params.TestTag && params.TestTag != '') {
-      params_tags = params.TestTag
+    if (param_key && param_key == 'tcp' && params.TestTagTCP && params.TestTagTCP != '') {
+      return params.TestTagTCP
+    }
+    if (param_key && param_key == 'ucx' && params.TestTagUCX && params.TestTagUCX != '') {
+      return params.TestTagUCX
+    }
+    if (params.TestTag && params.TestTag != '') {
+      return params.TestTag
     }
   }
-  return params_tags
+  return ''
 }
 
 String get_commit_pragma_tags(String pragma_suffix) {
@@ -64,9 +65,8 @@ String get_commit_pragma_tags(String pragma_suffix) {
 
   // If neither of the 'Test-tag*:' commit message pragmas are specified, use the 'Features:'
   // commit message pragma to define the tags to use.
-  pragma_tag = commitPragma("Features", null)
-  if (pragma_tag) {
-    String features = pragma_tag
+  String features = commitPragma("Features", null)
+  if (features) {
     // Features extend the standard pr testing tags to include tests run in daily or weekly builds
     // that test the specified feature.
     pragma_tag = 'pr'
@@ -206,7 +206,7 @@ def call(Map config = [:]) {
 
   Map ftest_args = [:]
   String cluster_size = ''
-  String stage_param_key = ''
+  String param_key = ''
   if (stage_name.contains('Functional')) {
     result['test'] = 'Functional'
     result['node_count'] = 9
@@ -226,11 +226,11 @@ def call(Map config = [:]) {
         result['pragma_suffix'] = '-hw-medium'
       }
       if (stage_name.contains('TCP')) {
-        stage_param_key = 'tcp'
+        param_key = 'tcp'
         result['pragma_suffix'] += '-tcp'
         ftest_args['--provider'] = 'ofi+tcp'
       } else (stage_name.contains('UCX')) {
-        stage_param_key = 'ucx'
+        param_key = 'ucx'
         result['pragma_suffix'] += '-ucx'
         ftest_args['--provider'] = 'ucx+dc_x'
       }
@@ -244,7 +244,7 @@ def call(Map config = [:]) {
     // Determine which tests tags to use
     String tag
     // Test tags defined by the build parameters override all other tags
-    tag = get_build_params_tags(stage_param_key)
+    tag = get_build_params_tags(param_key)
     if (!tag) {
       if (startedByTimer()) {
         // Stage defined tags take precedence in timed builds
@@ -252,7 +252,7 @@ def call(Map config = [:]) {
         if (!tag) {
           // Otherwise use the default timed build tags
           tag = "pr daily_regression"
-          if (env.CHANGE_TARGET.startsWith("weekly-testing") && stage_param_key == '') {
+          if (env.CHANGE_TARGET.startsWith("weekly-testing") && !param_key) {
             tag = "full_regression"
           }
         }
