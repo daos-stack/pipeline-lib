@@ -202,6 +202,8 @@ def call(Map config = [:]) {
   // Unless otherwise specified, all tests will only use one node.
   result['node_count'] = 1
 
+  println 'DEBUG: stage_name = ' + stage_name
+
   Map ftest_args = [:]
   String cluster_size = ''
   String param_key = ''
@@ -239,6 +241,8 @@ def call(Map config = [:]) {
       config['test_tag'] = 'memcheck'
     }
 
+    println 'DEBUG: param_key = ' + param_key
+
     // Determine which tests tags to use
     String tag
     // Test tags defined by the build parameters override all other tags
@@ -272,6 +276,8 @@ def call(Map config = [:]) {
     if (tag) {
       tag = tag.trim()
     }
+
+    println 'DEBUG: tag = ' + tag
 
     // Apply the stage tag filter to the tags
     result['test_tag'] = ""
@@ -321,6 +327,8 @@ def call(Map config = [:]) {
     if (result['ftest_arg']) {
       result['ftest_arg'] = result['ftest_arg'].trim()
     }
+
+    println 'DEBUG: ftest_arg = ' + result['ftest_arg']
 
     // if (stage_name.contains('Functional'))
   } else if (stage_name.contains('Storage')) {
