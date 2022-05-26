@@ -38,16 +38,14 @@
 
 String get_build_params_tags(String param_key) {
   // Get the tags defined by the build parameter entry for this stage
-  if (startedByUser()) {
-    if (param_key && param_key == 'tcp' && params.TestTagTCP && params.TestTagTCP != '') {
-      return params.TestTagTCP
-    }
-    if (param_key && param_key == 'ucx' && params.TestTagUCX && params.TestTagUCX != '') {
-      return params.TestTagUCX
-    }
-    if (params.TestTag && params.TestTag != '') {
-      return params.TestTag
-    }
+  if (param_key && param_key == 'tcp' && params.TestTagTCP && params.TestTagTCP != '') {
+    return params.TestTagTCP
+  }
+  if (param_key && param_key == 'ucx' && params.TestTagUCX && params.TestTagUCX != '') {
+    return params.TestTagUCX
+  }
+  if (params.TestTag && params.TestTag != '') {
+    return params.TestTag
   }
   return ''
 }
@@ -244,7 +242,9 @@ def call(Map config = [:]) {
     // Determine which tests tags to use
     String tag
     // Test tags defined by the build parameters override all other tags
-    tag = get_build_params_tags(param_key)
+    if (startedByUser()) {
+      tag = get_build_params_tags(param_key)
+    }
     if (!tag) {
       if (startedByTimer()) {
         // Stage defined tags take precedence in timed builds
