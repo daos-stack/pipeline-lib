@@ -308,9 +308,7 @@ def call(Map config = [:]) {
 
     // Assemble the ftest arguments
     result['ftest_arg'] = ''
-    ftest_args.each {
-      key, value -> result['ftest_arg'] += ' ' + $key + '=' + "'" + $value + "'"
-    }
+    ftest_args.each { key, value -> result['ftest_arg'] += " ${key}=\'${value}\'" }
     result['ftest_arg'] = result['ftest_arg'].trim()
     println "ftest_arg: " + result['ftest_arg']
 
