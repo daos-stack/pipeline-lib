@@ -210,6 +210,7 @@ def call(Map config = [:]) {
   // Unless otherwise specified, all tests will only use one node.
   result['node_count'] = 1
 
+  Map ftest_args = [:]
   String cluster_size = ''
   String stage_param_key = ''
   if (stage_name.contains('Functional')) {
@@ -217,11 +218,10 @@ def call(Map config = [:]) {
     result['node_count'] = 9
     cluster_size = '-hw'
     result['pragma_suffix'] = '-vm'
-    result['ftest_arg'] = ''
     if (stage_name.contains('Hardware')) {
       cluster_size = 'hw,large'
       result['pragma_suffix'] = '-hw-large'
-      result['ftest_arg'] = '--nvme=auto:-3DNAND'
+      ftest_args['--nvme'] = 'auto:-3DNAND'
       if (stage_name.contains('Small')) {
         result['node_count'] = 3
         cluster_size = 'hw,small'
@@ -233,8 +233,12 @@ def call(Map config = [:]) {
       }
       if (stage_name.contains('TCP')) {
         stage_param_key = 'tcp'
+        result['pragma_suffix'] += '-tcp'
+        ftest_args['--provider'] = 'ofi+tcp'
       } else (stage_name.contains('UCX')) {
         stage_param_key = 'ucx'
+        result['pragma_suffix'] += '-ucx'
+        ftest_args['--provider'] = 'ucx+dc_x'
       }
     }
     if (stage_name.contains('with Valgrind')) {
@@ -282,35 +286,38 @@ def call(Map config = [:]) {
     }
     result['test_tag'] = result['test_tag'].trim()
 
-    String repeat
+    // launch.py --repeat argument
     // Highest priority is TestRepeat parameter
     if (params.TestRepeat && params.TestRepeat != '') {
-      repeat = params.TestRepeat
+      ftest_args['--repeat'] = params.TestRepeat
     } else {
       // Next highest priority is a stage specific Test-repeat-* then the general Test-repeat
-      repeat = cachedCommitPragma(
+      String repeat = cachedCommitPragma(
         'Test-repeat' + result['pragma_suffix'], cachedCommitPragma('Test-repeat', null))
-    }
-    if (repeat) {
-      result['ftest_arg'] += ' --repeat=' + repeat
+      if (repeat) {
+        ftest_args['--repeat'] = repeat
+      }
     }
 
-    String provider
+    // launch.py --provider argument
     // Highest priority is TestProvider parameter
     if (params.TestProvider && params.TestProvider != '') {
-      provider = params.TestProvider
+      ftest_args['--provider'] = params.TestProvider
     } else {
       // Next highest priority is a stage specific Test-provider-* then the general Test-provider
-      provider = cachedCommitPragma(
+      String provider = cachedCommitPragma(
         'Test-provider' + result['pragma_suffix'], cachedCommitPragma('Test-provider', null))
-    }
-    if (provider) {
-      result['ftest_arg'] += ' --provider=' + "'" + provider + "'"
+      if (provider) {
+        ftest_args['--provider'] = provider
+      }
     }
 
-    if (result['ftest_tag']) {
-      result['ftest_tag'] = result['ftest_tag'].trim()
+    // Assemble the ftest arguments
+    result['ftest_arg'] = ''
+    ftest_args.each {
+      key, value -> result['ftest_arg'] += ' ' + $key + '=' + "'" + $value + "'"
     }
+    result['ftest_arg'] = result['ftest_arg'].trim()
 
     // if (stage_name.contains('Functional'))
   } else if (stage_name.contains('Storage')) {
