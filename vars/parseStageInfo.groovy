@@ -308,9 +308,19 @@ def call(Map config = [:]) {
 
     // Assemble the ftest arguments
     result['ftest_arg'] = ''
-    ftest_args.each { key, value -> result['ftest_arg'] += " ${key}=\'${value}\'" }
-    result['ftest_arg'] = result['ftest_arg'].trim()
-    println "ftest_arg: " + result['ftest_arg']
+    // ftest_args.each { key, value -> result['ftest_arg'] += " ${key}=\'${value}\'" }
+    if (ftest_args['--nvme']) {
+      result['ftest_arg'] += ' --nvme=' + ftest_args['--nvme']
+    }
+    if (ftest_args['--repeat']) {
+      result['ftest_arg'] += ' --repeat=' + ftest_args['--repeat']
+    }
+    if (ftest_args['--provider']) {
+      result['ftest_arg'] += ' --provider=\'' + ftest_args['--provider'] + '\''
+    }
+    if (result['ftest_arg']) {
+      result['ftest_arg'] = result['ftest_arg'].trim()
+    }
 
     // if (stage_name.contains('Functional'))
   } else if (stage_name.contains('Storage')) {
