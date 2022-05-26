@@ -80,6 +80,13 @@ String get_commit_pragma_tags(String pragma_suffix) {
 def call(Map config = [:]) {
 
   Map result = [:]
+
+  println 'DEBUG: before assigning ftest_args'
+
+  Map ftest_args = [:]
+
+  println 'DEBUG: after assigning ftest_args'
+
   String stage_name = ''
   if (env.STAGE_NAME) {
     stage_name = env.STAGE_NAME
@@ -203,10 +210,6 @@ def call(Map config = [:]) {
   result['node_count'] = 1
 
   println 'DEBUG: stage_name = ' + stage_name
-
-  Map ftest_args = [:]
-
-  println 'DEBUG: assigned ftest_args'
 
   String cluster_size = ''
 
