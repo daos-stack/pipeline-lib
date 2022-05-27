@@ -303,7 +303,7 @@ def call(Map config = [:]) {
       result['ftest_arg'] += ' --repeat=' + ftest_arg_repeat
     }
     if (ftest_arg_provider) {
-      result['ftest_arg'] += ' --provider=' + "'" + ftest_arg_provider + "'"
+      result['ftest_arg'] += ' --provider=' +  ftest_arg_provider
     }
     if (result['ftest_tag']) {
       result['ftest_tag'] = result['ftest_tag'].trim()
