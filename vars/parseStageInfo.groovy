@@ -37,16 +37,14 @@
 
 String get_build_params_tags(String param_key) {
   // Get the tags defined by the build parameter entry for this stage
-  if (startedByUser()) {
-    if (param_key && param_key == 'tcp' && params.TestTagTCP && params.TestTagTCP != '') {
-      return params.TestTagTCP
-    }
-    if (param_key && param_key == 'ucx' && params.TestTagUCX && params.TestTagUCX != '') {
-      return params.TestTagUCX
-    }
-    if (params.TestTag && params.TestTag != '') {
-      return params.TestTag
-    }
+  if (param_key == 'tcp' && params.TestTagTCP && params.TestTagTCP != '') {
+    return params.TestTagTCP
+  }
+  if (param_key == 'ucx' && params.TestTagUCX && params.TestTagUCX != '') {
+    return params.TestTagUCX
+  }
+  if (params.TestTag && params.TestTag != '') {
+    return params.TestTag
   }
   return ''
 }
@@ -207,6 +205,7 @@ def call(Map config = [:]) {
   String ftest_arg_nvme = ''
   String ftest_arg_repeat = ''
   String ftest_arg_provider = ''
+  String param_key = ''
   if (stage_name.contains('Functional')) {
     result['test'] = 'Functional'
     result['node_count'] = 9
@@ -227,8 +226,10 @@ def call(Map config = [:]) {
       }
       if (stage_name.contains('TCP')) {
         ftest_arg_provider = 'ofi+tcp'
+        param_key = 'tcp'
       } else if (stage_name.contains('UCX')) {
         ftest_arg_provider = 'ucx+dc_x'
+        param_key = 'ucx'
       }
     }
     if (stage_name.contains('with Valgrind')) {
@@ -239,21 +240,21 @@ def call(Map config = [:]) {
 
     // Determine which tests tags to use
     String tag
-    if (startedByUser() && params.TestTag && params.TestTag != "") {
+    if (startedByUser()) {
       // Test tags defined by the build parameters override all other tags
-      tag = params.TestTag
-    } else if (startedByTimer()) {
+      tag = get_build_params_tags(param_key)
+    }
+    if (!tag && startedByTimer()) {
       // Stage defined tags take precedence in timed builds
       tag = config['test_tag']
       if (!tag) {
         // Otherwise use the default timed build tags
-        if (env.BRANCH_NAME.startsWith("weekly-testing")) {
+        tag = "pr daily_regression"
+        if (env.BRANCH_NAME.startsWith("weekly-testing") && !param_key) {
           tag = "full_regression"
-        } else {
-          tag = "pr daily_regression"
         }
       }
-    } else {
+    } else if (!tag) {
       // Tags defined by commit pragmas have priority in user PRs
       tag = get_commit_pragma_tags(result['pragma_suffix'])
       if (!tag) {
