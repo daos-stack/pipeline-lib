@@ -7,7 +7,7 @@
  *
  */
 
-def call(Map config = [:]) {
+Map call(Map config = [:]) {
   /**
    * runTest step method
    *

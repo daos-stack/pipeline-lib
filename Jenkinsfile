@@ -1,4 +1,5 @@
 #!/usr/bin/env groovy
+// groovylint-disable DuplicateStringLiteral, NestedBlockDepth
 /* Copyright (C) 2019-2022 Intel Corporation
  * All rights reserved.
  *
@@ -16,37 +17,40 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 //@Library(value="pipeline-lib@my_branch_name") _
+@Library(value="pipeline-lib@corci-1200") _
 
-job_status_internal = [:]
+jobStatusInternal = [:]
 
-def job_status_write() {
+void jobStatusWrite() {
     if (!env.DAOS_STACK_JOB_STATUS_DIR) {
         return
     }
-    String job_name = env.JOB_NAME.replace('/', '_')
-    job_name += '_' + env.BUILD_NUMBER
-    String file_name = env.DAOS_STACK_JOB_STATUS_DIR + '/' + job_name
+    String jobName = env.JOB_NAME.replace('/', '_')
+    jobName += '_' + env.BUILD_NUMBER
+    String fileName = env.DAOS_STACK_JOB_STATUS_DIR + '/' + jobName
 
-    String job_status_text = writeYaml data: job_status_internal,
-                                       returnText: true
+    String jobStatusText = writeYaml data: jobStatusInternal,
+                                           returnText: true
 
     // Need to use shell script for creating files that are not
     // in the workspace.
-    sh label: "Write jenkins_job_status ${file_name}",
-       script: "echo \"${job_status_text}\" >> ${file_name}"
+    sh label: "Write jenkins_job_status ${fileName}",
+       script: "echo \"${jobStatusText}\" >> ${fileName}"
 }
 
-def job_status_update(String name=env.STAGE_NAME,
+ // groovylint-disable MethodParameterTypeRequired, NoDEF
+ void jobStatusUpdate(String name=env.STAGE_NAME,
                       value=currentBuild.currentResult) {
-    name = name.replace(' ', '_')
-    name = name.replace('.', '_')
-    job_status_internal[name] = value
+    String key = name.replace(' ', '_')
+    key = key.replace('.', '_')
+    jobStatusInternal[key] = value
 }
 
-def job_step_update(value) {
+void jobStepUpdate(value) {
     // Wrapper around a pipeline step to obtain a status.
-    job_status_update(env.STAGE_NAME, value)
+    jobStatusUpdate(env.STAGE_NAME, value)
 }
+// groovylint-enable MethodParameterTypeRequired, NoDef
 
 pipeline {
     agent { label 'lightweight' }
@@ -89,7 +93,7 @@ pipeline {
                         }
                     }
                     steps {
-                        job_step_update(
+                        jobStepUpdate(
                             runTest(script: '''set -ex
                                            rm -f *.xml
                                            echo "<failure bla bla bla/>" > \
@@ -107,7 +111,7 @@ pipeline {
                         }
                     }
                     steps {
-                        job_step_update(
+                        jobStepUpdate(
                             runTest(script: '''set -ex
                                            rm -f *.xml
                                            echo "<error bla bla bla/>" > \
@@ -155,7 +159,7 @@ pipeline {
                                       status: 'SUCCESS'
                         }
                         cleanup {
-                            job_status_update()
+                            jobStatusUpdate()
                         }
                     }
                 } //stage('publishToRepository RPM tests')
@@ -198,7 +202,7 @@ pipeline {
                                       status: 'SUCCESS'
                         }
                         cleanup {
-                            job_status_update()
+                            jobStatusUpdate()
                         }
                     }
                 } //stage('publishToRepository DEB tests')
@@ -224,7 +228,7 @@ pipeline {
                                            yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
-                        job_status_update()
+                        jobStatusUpdate()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with release/0.9 Repo')
@@ -248,7 +252,7 @@ pipeline {
                                            yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
-                        job_status_update()
+                        jobStatusUpdate()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with release/0.9 Repo')
@@ -272,7 +276,7 @@ pipeline {
                                            dnf makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
-                        job_status_update()
+                        jobStatusUpdate()
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('provisionNodes with master Repo')
@@ -298,7 +302,7 @@ pipeline {
                                            which scontrol"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
-                        job_status_update()
+                        jobStatusUpdate()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with slurm EL8')
@@ -322,7 +326,7 @@ pipeline {
                                            which scontrol"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
-                        job_status_update()
+                        jobStatusUpdate()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes_with_slurm_leap15')
@@ -414,7 +418,7 @@ pipeline {
                                 }
                             }
                         }
-                        job_status_update()
+                        jobStatusUpdate()
                     } // steps
                 } // stage ('Commit Pragma tests')
             } // parallel
@@ -422,8 +426,8 @@ pipeline {
     }
     post {
         always {
-            job_status_update('final_status')
-            job_status_write()
+            jobStatusUpdate('final_status')
+            jobStatusWrite()
         }
     } // post
 }
