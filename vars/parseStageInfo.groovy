@@ -309,6 +309,13 @@ def call(Map config = [:]) {
       result['ftest_tag'] = result['ftest_tag'].trim()
     }
 
+    // Assemble the stage test tags - add the cluster size to each tag group
+    result['test_tag'] = ''
+    for (group in tag.split(' ')) {
+      result['test_tag'] += group + ',' + cluster_size + ' '
+    }
+    result['test_tag'] = result['test_tag'].trim()
+
     // if (stage_name.contains('Functional'))
   } else if (stage_name.contains('Storage')) {
     if (env.NODELIST) {
