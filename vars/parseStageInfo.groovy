@@ -36,21 +36,21 @@
  *                             Default determined by this function below.
  */
 
-String get_build_params_tags(String param_key) {
-  // Get the tags defined by the build parameter entry for this stage
-  String pragma_tag
+// String get_build_params_tags(String param_key) {
+//   // Get the tags defined by the build parameter entry for this stage
+//   String pragma_tag
 
-  // if (param_key && param_key == 'tcp' && params.TestTagTCP && params.TestTagTCP != '') {
-  //   return params.TestTagTCP
-  // }
-  // if (param_key && param_key == 'ucx' && params.TestTagUCX && params.TestTagUCX != '') {
-  //   return params.TestTagUCX
-  // }
-  if (params.TestTag && params.TestTag != '') {
-    pragma_tag = params.TestTag
-  }
-  return pragma_tag
-}
+//   // if (param_key && param_key == 'tcp' && params.TestTagTCP && params.TestTagTCP != '') {
+//   //   return params.TestTagTCP
+//   // }
+//   // if (param_key && param_key == 'ucx' && params.TestTagUCX && params.TestTagUCX != '') {
+//   //   return params.TestTagUCX
+//   // }
+//   if (params.TestTag && params.TestTag != '') {
+//     pragma_tag = params.TestTag
+//   }
+//   return pragma_tag
+// }
 
 String get_commit_pragma_tags(String pragma_suffix) {
   // Get the test tags defined in the commit message
@@ -268,10 +268,10 @@ def call(Map config = [:]) {
 
     // Determine which tests tags to use
     String tag
-    // Test tags defined by the build parameters override all other tags
-    if (startedByUser()) {
-      tag = get_build_params_tags(param_key)
-    }
+    // // Test tags defined by the build parameters override all other tags
+    // if (startedByUser()) {
+    //   tag = get_build_params_tags(param_key)
+    // }
     if (!tag) {
       if (startedByTimer()) {
         // Stage defined tags take precedence in timed builds
@@ -284,8 +284,8 @@ def call(Map config = [:]) {
           }
         }
       } else {
-        // Tags defined by commit pragmas have priority in user PRs
-        tag = get_commit_pragma_tags(result['pragma_suffix'])
+        // // Tags defined by commit pragmas have priority in user PRs
+        // tag = get_commit_pragma_tags(result['pragma_suffix'])
         if (!tag) {
           // Followed by stage defined tags
           tag = config['test_tag']
