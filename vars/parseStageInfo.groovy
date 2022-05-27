@@ -52,32 +52,32 @@
 //   return pragma_tag
 // }
 
-String get_commit_pragma_tags(String pragma_suffix) {
-  // Get the test tags defined in the commit message
-  String pragma_tag
+// String get_commit_pragma_tags(String pragma_suffix) {
+//   // Get the test tags defined in the commit message
+//   String pragma_tag
 
-  // Use the tags defined by the stage-specific 'Test-tag-<stage>:' commit message pragma.  If those
-  // are not specified use the tags defined by the general 'Test-tag:' commit message pragma.
-  pragma_tag = commitPragma("Test-tag" + pragma_suffix, commitPragma("Test-tag", null))
-  if (pragma_tag) {
-    return pragma_tag
-  }
+//   // Use the tags defined by the stage-specific 'Test-tag-<stage>:' commit message pragma.  If those
+//   // are not specified use the tags defined by the general 'Test-tag:' commit message pragma.
+//   pragma_tag = commitPragma("Test-tag" + pragma_suffix, commitPragma("Test-tag", null))
+//   if (pragma_tag) {
+//     return pragma_tag
+//   }
 
-  // If neither of the 'Test-tag*:' commit message pragmas are specified, use the 'Features:'
-  // commit message pragma to define the tags to use.
-  String features = commitPragma("Features", null)
-  if (features) {
-    // Features extend the standard pr testing tags to include tests run in daily or weekly builds
-    // that test the specified feature.
-    pragma_tag = 'pr'
-    for (feature in features.split(' ')) {
-      pragma_tag += ' daily_regression,' + feature
-      // DAOS-6468 Eventually add this when there are no failures in the full_regression set
-      // pragma_tag += ' full_regression,' + feature
-    }
-  }
-  return pragma_tag
-}
+//   // If neither of the 'Test-tag*:' commit message pragmas are specified, use the 'Features:'
+//   // commit message pragma to define the tags to use.
+//   String features = commitPragma("Features", null)
+//   if (features) {
+//     // Features extend the standard pr testing tags to include tests run in daily or weekly builds
+//     // that test the specified feature.
+//     pragma_tag = 'pr'
+//     for (feature in features.split(' ')) {
+//       pragma_tag += ' daily_regression,' + feature
+//       // DAOS-6468 Eventually add this when there are no failures in the full_regression set
+//       // pragma_tag += ' full_regression,' + feature
+//     }
+//   }
+//   return pragma_tag
+// }
 
 def call(Map config = [:]) {
 
