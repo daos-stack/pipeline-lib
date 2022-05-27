@@ -38,12 +38,12 @@
 
 String get_build_params_tags(String param_key) {
   // Get the tags defined by the build parameter entry for this stage
-  if (param_key && param_key == 'tcp' && params.TestTagTCP && params.TestTagTCP != '') {
-    return params.TestTagTCP
-  }
-  if (param_key && param_key == 'ucx' && params.TestTagUCX && params.TestTagUCX != '') {
-    return params.TestTagUCX
-  }
+  // if (param_key && param_key == 'tcp' && params.TestTagTCP && params.TestTagTCP != '') {
+  //   return params.TestTagTCP
+  // }
+  // if (param_key && param_key == 'ucx' && params.TestTagUCX && params.TestTagUCX != '') {
+  //   return params.TestTagUCX
+  // }
   if (params.TestTag && params.TestTag != '') {
     return params.TestTag
   }
