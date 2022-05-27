@@ -38,6 +38,8 @@
 
 String get_build_params_tags(String param_key) {
   // Get the tags defined by the build parameter entry for this stage
+  String pragma_tag
+
   // if (param_key && param_key == 'tcp' && params.TestTagTCP && params.TestTagTCP != '') {
   //   return params.TestTagTCP
   // }
@@ -45,9 +47,9 @@ String get_build_params_tags(String param_key) {
   //   return params.TestTagUCX
   // }
   if (params.TestTag && params.TestTag != '') {
-    return params.TestTag
+    pragma_tag = params.TestTag
   }
-  return ''
+  return pragma_tag
 }
 
 String get_commit_pragma_tags(String pragma_suffix) {
@@ -80,13 +82,6 @@ String get_commit_pragma_tags(String pragma_suffix) {
 def call(Map config = [:]) {
 
   Map result = [:]
-
-  println 'DEBUG: before assigning ftest_args'
-
-  Map ftest_args = [:]
-
-  println 'DEBUG: after assigning ftest_args'
-
   String stage_name = ''
   if (env.STAGE_NAME) {
     stage_name = env.STAGE_NAME
@@ -218,6 +213,10 @@ def call(Map config = [:]) {
   String param_key = ''
 
   println 'DEBUG: assigned param_key'
+
+  Map ftest_args = [:]
+
+  println 'DEBUG: assigned ftest_args'
 
   if (stage_name.contains('Functional')) {
 
