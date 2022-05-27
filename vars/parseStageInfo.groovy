@@ -29,55 +29,38 @@
  * config['compiler']
  * config['target']
  * config['target_prefix']
-
  * @param config Map of parameters passed
  *
  * config['test_tag']          Avocado tag to test.
  *                             Default determined by this function below.
  */
 
-// String get_build_params_tags(String param_key) {
-//   // Get the tags defined by the build parameter entry for this stage
-//   String pragma_tag
-
-//   // if (param_key && param_key == 'tcp' && params.TestTagTCP && params.TestTagTCP != '') {
-//   //   return params.TestTagTCP
-//   // }
-//   // if (param_key && param_key == 'ucx' && params.TestTagUCX && params.TestTagUCX != '') {
-//   //   return params.TestTagUCX
-//   // }
-//   if (params.TestTag && params.TestTag != '') {
-//     pragma_tag = params.TestTag
-//   }
-//   return pragma_tag
-// }
-
-// String get_commit_pragma_tags(String pragma_suffix) {
-//   // Get the test tags defined in the commit message
-//   String pragma_tag
-
-//   // Use the tags defined by the stage-specific 'Test-tag-<stage>:' commit message pragma.  If those
-//   // are not specified use the tags defined by the general 'Test-tag:' commit message pragma.
-//   pragma_tag = commitPragma("Test-tag" + pragma_suffix, commitPragma("Test-tag", null))
-//   if (pragma_tag) {
-//     return pragma_tag
-//   }
-
-//   // If neither of the 'Test-tag*:' commit message pragmas are specified, use the 'Features:'
-//   // commit message pragma to define the tags to use.
-//   String features = commitPragma("Features", null)
-//   if (features) {
-//     // Features extend the standard pr testing tags to include tests run in daily or weekly builds
-//     // that test the specified feature.
-//     pragma_tag = 'pr'
-//     for (feature in features.split(' ')) {
-//       pragma_tag += ' daily_regression,' + feature
-//       // DAOS-6468 Eventually add this when there are no failures in the full_regression set
-//       // pragma_tag += ' full_regression,' + feature
-//     }
-//   }
-//   return pragma_tag
-// }
+String get_commit_pragma_tags(String pragma_suffix) {
+  // Get the test tags defined in the commit message with the following priority:
+  //  1) Test-tag-<stage>: <tags>
+  //  2) Test-tag: <tags>
+  //  3) Features: <feature_tags>
+  String pragma_tag
+  pragma_tag = commitPragma("Test-tag" + pragma_suffix, null)
+  if (!pragma_tag) {
+    pragma_tag = commitPragma("Test-tag", null)
+    if (!pragma_tag) {
+      pragma_tag = commitPragma("Features", null)
+      if (pragma_tag) {
+        String features = pragma_tag
+        pragma_tag = 'pr '
+        for (feature in features.split(' ')) {
+          pragma_tag += 'daily_regression,' + feature + ' '
+          /* DAOS-6468 Ideally we'd like to add this but there are too
+                      many failures in the full_regression set 
+          pragma_tag += 'full_regression,' + feature + ' '
+          */
+        }
+      }
+    }
+  }
+  return pragma_tag
+}
 
 def call(Map config = [:]) {
 
@@ -204,24 +187,11 @@ def call(Map config = [:]) {
   // Unless otherwise specified, all tests will only use one node.
   result['node_count'] = 1
 
-  println 'DEBUG: stage_name = ' + stage_name
-
   String cluster_size = ''
-
-  println 'DEBUG: assigned cluster_size'
-
-  String param_key = ''
-
-  println 'DEBUG: assigned param_key'
-
-  Map ftest_args = [:]
-
-  println 'DEBUG: assigned ftest_args'
-
+  String ftest_arg_nvme = ''
+  String ftest_arg_repeat = ''
+  String ftest_arg_provider = ''
   if (stage_name.contains('Functional')) {
-
-    println 'DEBUG: Functional'
-
     result['test'] = 'Functional'
     result['node_count'] = 9
     cluster_size = '-hw'
@@ -229,13 +199,7 @@ def call(Map config = [:]) {
     if (stage_name.contains('Hardware')) {
       cluster_size = 'hw,large'
       result['pragma_suffix'] = '-hw-large'
-
-      println 'DEBUG: before ftest_args[--nvme] assignment'
-
-      ftest_args['--nvme'] = 'auto:-3DNAND'
-
-      println 'DEBUG: after ftest_args[--nvme] assignment'
-
+      ftest_arg_nvme = 'auto:-3DNAND'
       if (stage_name.contains('Small')) {
         result['node_count'] = 3
         cluster_size = 'hw,small'
@@ -245,17 +209,10 @@ def call(Map config = [:]) {
         cluster_size = 'hw,medium'
         result['pragma_suffix'] = '-hw-medium'
       }
-
-      println 'DEBUG: stage_name.contains(TCP)'
-
       if (stage_name.contains('TCP')) {
-        param_key = 'tcp'
-        result['pragma_suffix'] += '-tcp'
-        ftest_args['--provider'] = 'ofi+tcp'
-      } else (stage_name.contains('UCX')) {
-        param_key = 'ucx'
-        result['pragma_suffix'] += '-ucx'
-        ftest_args['--provider'] = 'ucx+dc_x'
+        ftest_arg_provider = 'ofi+tcp'
+      } else if (stage_name.contains('UCX')) {
+        ftest_arg_provider = 'ucx+dc_x'
       }
     }
     if (stage_name.contains('with Valgrind')) {
@@ -264,35 +221,31 @@ def call(Map config = [:]) {
       config['test_tag'] = 'memcheck'
     }
 
-    println 'DEBUG: param_key = ' + param_key
-
     // Determine which tests tags to use
     String tag
-    // // Test tags defined by the build parameters override all other tags
-    // if (startedByUser()) {
-    //   tag = get_build_params_tags(param_key)
-    // }
-    if (!tag) {
-      if (startedByTimer()) {
-        // Stage defined tags take precedence in timed builds
+    if (startedByUser() && params.TestTag && params.TestTag != "") {
+      // Test tags defined by the build parameters override all other tags
+      tag = params.TestTag
+    } else if (startedByTimer()) {
+      // Stage defined tags take precedence in timed builds
+      tag = config['test_tag']
+      if (!tag) {
+        // Otherwise use the default timed build tags
+        if (env.BRANCH_NAME.startsWith("weekly-testing")) {
+          tag = "full_regression"
+        } else {
+          tag = "pr daily_regression"
+        }
+      }
+    } else {
+      // Tags defined by commit pragmas have priority in user PRs
+      tag = get_commit_pragma_tags(result['pragma_suffix'])
+      if (!tag) {
+        // Followed by stage defined tags
         tag = config['test_tag']
         if (!tag) {
-          // Otherwise use the default timed build tags
-          tag = "pr daily_regression"
-          if (env.CHANGE_TARGET.startsWith("weekly-testing") && !param_key) {
-            tag = "full_regression"
-          }
-        }
-      } else {
-        // // Tags defined by commit pragmas have priority in user PRs
-        // tag = get_commit_pragma_tags(result['pragma_suffix'])
-        if (!tag) {
-          // Followed by stage defined tags
-          tag = config['test_tag']
-          if (!tag) {
-            // Otherwise use the default PR tag
-            tag = "pr"
-          }
+          // Otherwise use the default PR tag
+          tag = "pr"
         }
       }
     }
@@ -300,58 +253,44 @@ def call(Map config = [:]) {
       tag = tag.trim()
     }
 
-    println 'DEBUG: tag = ' + tag
-
-    // Apply the stage tag filter to the tags
-    result['test_tag'] = ""
-    for (atag in tag.split(' ')) {
-      result['test_tag'] += atag + ',' + cluster_size + ' '
-    }
-    result['test_tag'] = result['test_tag'].trim()
-
-    // launch.py --repeat argument
-    // Highest priority is TestRepeat parameter
+    // Highest repeat ftest argument priority is TestRepeat parameter
     if (params.TestRepeat && params.TestRepeat != '') {
-      ftest_args['--repeat'] = params.TestRepeat
+      ftest_arg_repeat = params.TestRepeat
     } else {
       // Next highest priority is a stage specific Test-repeat-* then the general Test-repeat
       String repeat = cachedCommitPragma(
         'Test-repeat' + result['pragma_suffix'], cachedCommitPragma('Test-repeat', null))
       if (repeat) {
-        ftest_args['--repeat'] = repeat
+        ftest_arg_repeat = repeat
       }
     }
 
-    // launch.py --provider argument
-    // Highest priority is TestProvider parameter
+    // Highest provider ftest argument priority is TestProvider parameter
     if (params.TestProvider && params.TestProvider != '') {
-      ftest_args['--provider'] = params.TestProvider
+      ftest_arg_provider = params.TestProvider
     } else {
       // Next highest priority is a stage specific Test-provider-* then the general Test-provider
       String provider = cachedCommitPragma(
         'Test-provider' + result['pragma_suffix'], cachedCommitPragma('Test-provider', null))
       if (provider) {
-        ftest_args['--provider'] = provider
+        ftest_arg_provider = provider
       }
     }
 
-    // Assemble the ftest arguments
+    // Assemble the ftest args
     result['ftest_arg'] = ''
-    // ftest_args.each { key, value -> result['ftest_arg'] += " ${key}=\'${value}\'" }
-    if (ftest_args['--nvme']) {
-      result['ftest_arg'] += ' --nvme=' + ftest_args['--nvme']
+    if (ftest_arg_nvme) {
+      result['ftest_arg'] += ' --nvme=' + ftest_arg_nvme
     }
-    if (ftest_args['--repeat']) {
-      result['ftest_arg'] += ' --repeat=' + ftest_args['--repeat']
+    if (ftest_arg_repeat) {
+      result['ftest_arg'] += ' --repeat=' + ftest_arg_repeat
     }
-    if (ftest_args['--provider']) {
-      result['ftest_arg'] += ' --provider=\'' + ftest_args['--provider'] + '\''
+    if (ftest_arg_provider) {
+      result['ftest_arg'] += ' --provider=' + "'" + ftest_arg_provider + "'"
     }
-    if (result['ftest_arg']) {
-      result['ftest_arg'] = result['ftest_arg'].trim()
+    if (result['ftest_tag']) {
+      result['ftest_tag'] = result['ftest_tag'].trim()
     }
-
-    println 'DEBUG: ftest_arg = ' + result['ftest_arg']
 
     // if (stage_name.contains('Functional'))
   } else if (stage_name.contains('Storage')) {
