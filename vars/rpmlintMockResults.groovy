@@ -51,7 +51,7 @@ void call(String config, Boolean allow_errors=false, Boolean skip_rpmlint=false)
                                   fi
                                   rpmlint --ignore-unused-rpmlintrc "${rpmlint_args[@]}" ''' +
                                  '$(ls /var/lib/mock/' + config + '/result/*.rpm | ' +
-                                  'grep -v -e -debuginfo) || exit 0',
+                                  'grep -v -e -debuginfo -e debugsource) || exit 0',
                        returnStdout: true).trim()
 
     int result = sh(label: 'Analyze rpmlint output',
