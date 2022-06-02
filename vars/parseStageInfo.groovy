@@ -69,8 +69,7 @@ String get_commit_pragma_tags(String pragma_suffix) {
     pragma_tag = 'pr'
     for (feature in features.split(' ')) {
       pragma_tag += ' daily_regression,' + feature
-      // DAOS-6468 Eventually add this when there are no failures in the full_regression set
-      // pragma_tag += ' full_regression,' + feature
+      pragma_tag += ' full_regression,' + feature
     }
   }
   return pragma_tag
