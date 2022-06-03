@@ -1,5 +1,6 @@
 #!/usr/bin/env groovy
-// groovylint-disable DuplicateStringLiteral, NestedBlockDepth
+// groovylint-disable CompileStatic, DuplicateStringLiteral, NestedBlockDepth
+// groovylint-disable VariableName
 /* Copyright (C) 2019-2022 Intel Corporation
  * All rights reserved.
  *
@@ -37,18 +38,16 @@ void job_status_write() {
        script: "echo \"${job_status_text}\" >> ${fileName}"
 }
 
- // groovylint-disable MethodParameterTypeRequired, NoDEF
- void job_status_update(String name=env.STAGE_NAME,
-                        value=currentBuild.currentResult) {
+void job_status_update(String name=env.STAGE_NAME,
+                       Def value=currentBuild.currentResult) {
     String key = name.replaceAll('[ .]', '_')
     job_status_internal[key] = value
 }
 
-void job_step_update(value) {
+void job_step_update(Def value) {
     // Wrapper around a pipeline step to obtain a status.
     job_status_update(env.STAGE_NAME, value)
 }
-// groovylint-enable MethodParameterTypeRequired, NoDef
 
 pipeline {
     agent { label 'lightweight' }
