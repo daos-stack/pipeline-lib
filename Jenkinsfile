@@ -38,13 +38,16 @@ void job_status_write() {
        script: "echo \"${job_status_text}\" >> ${fileName}"
 }
 
+// groovylint-disable-next-line MethodParameterTypeRequired
 void job_status_update(String name=env.STAGE_NAME,
-                       Def value=currentBuild.currentResult) {
+                       // groovylint-disable-next-line NoDef
+                       def value=currentBuild.currentResult) {
     String key = name.replaceAll('[ .]', '_')
     job_status_internal[key] = value
 }
 
-void job_step_update(Def value) {
+// groovylint-disable-next-line MethodParameterTypeRequired, NoDef
+void job_step_update(def value) {
     // Wrapper around a pipeline step to obtain a status.
     job_status_update(env.STAGE_NAME, value)
 }
