@@ -18,9 +18,9 @@
 // is landed, both PR branches can be deleted.
 //@Library(value="pipeline-lib@my_branch_name") _
 
-jobStatusInternal = [:]
+job_status_internal = [:]
 
-void jobStatusWrite() {
+void job_status_write() {
     if (!env.DAOS_STACK_JOB_STATUS_DIR) {
         return
     }
@@ -28,26 +28,25 @@ void jobStatusWrite() {
     jobName += '_' + env.BUILD_NUMBER
     String fileName = env.DAOS_STACK_JOB_STATUS_DIR + '/' + jobName
 
-    String jobStatusText = writeYaml data: jobStatusInternal,
-                                           returnText: true
+    String job_status_text = writeYaml data: job_status_internal,
+                                       returnText: true
 
     // Need to use shell script for creating files that are not
     // in the workspace.
     sh label: "Write jenkins_job_status ${fileName}",
-       script: "echo \"${jobStatusText}\" >> ${fileName}"
+       script: "echo \"${job_status_text}\" >> ${fileName}"
 }
 
  // groovylint-disable MethodParameterTypeRequired, NoDEF
- void jobStatusUpdate(String name=env.STAGE_NAME,
-                      value=currentBuild.currentResult) {
-    String key = name.replace(' ', '_')
-    key = key.replace('.', '_')
-    jobStatusInternal[key] = value
+ void job_status_update(String name=env.STAGE_NAME,
+                        value=currentBuild.currentResult) {
+    String key = name.replaceAll([ .], '_')
+    job_status_internal[key] = value
 }
 
-void jobStepUpdate(value) {
+void job_step_update(value) {
     // Wrapper around a pipeline step to obtain a status.
-    jobStatusUpdate(env.STAGE_NAME, value)
+    job_status_update(env.STAGE_NAME, value)
 }
 // groovylint-enable MethodParameterTypeRequired, NoDef
 
@@ -92,7 +91,7 @@ pipeline {
                         }
                     }
                     steps {
-                        jobStepUpdate(
+                        job_step_update(
                             runTest(script: '''set -ex
                                            rm -f *.xml
                                            echo "<failure bla bla bla/>" > \
@@ -110,7 +109,7 @@ pipeline {
                         }
                     }
                     steps {
-                        jobStepUpdate(
+                        job_step_update(
                             runTest(script: '''set -ex
                                            rm -f *.xml
                                            echo "<error bla bla bla/>" > \
@@ -158,7 +157,7 @@ pipeline {
                                       status: 'SUCCESS'
                         }
                         cleanup {
-                            jobStatusUpdate()
+                            job_status_update()
                         }
                     }
                 } //stage('publishToRepository RPM tests')
@@ -201,7 +200,7 @@ pipeline {
                                       status: 'SUCCESS'
                         }
                         cleanup {
-                            jobStatusUpdate()
+                            job_status_update()
                         }
                     }
                 } //stage('publishToRepository DEB tests')
@@ -227,7 +226,7 @@ pipeline {
                                            yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
-                        jobStatusUpdate()
+                        job_status_update()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with release/0.9 Repo')
@@ -251,7 +250,7 @@ pipeline {
                                            yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
-                        jobStatusUpdate()
+                        job_status_update()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with release/0.9 Repo')
@@ -275,7 +274,7 @@ pipeline {
                                            dnf makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
-                        jobStatusUpdate()
+                        job_status_update()
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('provisionNodes with master Repo')
@@ -301,7 +300,7 @@ pipeline {
                                            which scontrol"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
-                        jobStatusUpdate()
+                        job_status_update()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with slurm EL8')
@@ -325,7 +324,7 @@ pipeline {
                                            which scontrol"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
-                        jobStatusUpdate()
+                        job_status_update()
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes_with_slurm_leap15')
@@ -417,7 +416,7 @@ pipeline {
                                 }
                             }
                         }
-                        jobStatusUpdate()
+                        job_status_update()
                     } // steps
                 } // stage ('Commit Pragma tests')
             } // parallel
@@ -425,8 +424,8 @@ pipeline {
     }
     post {
         always {
-            jobStatusUpdate('final_status')
-            jobStatusWrite()
+            job_status_update('final_status')
+            job_status_write()
         }
     } // post
 }
