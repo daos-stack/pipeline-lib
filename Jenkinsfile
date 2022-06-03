@@ -40,7 +40,7 @@ void job_status_write() {
  // groovylint-disable MethodParameterTypeRequired, NoDEF
  void job_status_update(String name=env.STAGE_NAME,
                         value=currentBuild.currentResult) {
-    String key = name.replaceAll([ .], '_')
+    String key = name.replaceAll('[ .]', '_')
     job_status_internal[key] = value
 }
 
