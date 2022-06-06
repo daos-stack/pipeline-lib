@@ -226,9 +226,11 @@ def call(Map config = [:]) {
       if (stage_name.contains('TCP')) {
         ftest_arg_provider = 'ofi+tcp'
         param_key = 'tcp'
+        result['pragma_suffix'] += "-tcp"
       } else if (stage_name.contains('UCX')) {
         ftest_arg_provider = 'ucx+dc_x'
         param_key = 'ucx'
+        result['pragma_suffix'] += "-ucx"
       }
     }
     if (stage_name.contains('with Valgrind')) {
