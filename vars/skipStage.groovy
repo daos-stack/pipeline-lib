@@ -85,7 +85,7 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
 
 boolean skip_ftest_hw(String size, String target_branch) {
     return env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
-           ! paramsValue('CI_' + size + '_TEST', true) ||
+           ! paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-hw-test-' + size) ||
            ! testsInStage() ||
@@ -421,17 +421,17 @@ boolean call(Map config = [:]) {
             return env.BULLSEYE == null ||
                    skip_stage_pragma('bullseye', 'true')
         case 'Functional Hardware Small TCP':
-            return !paramsValue('CI_FUNCTIONAL_HARDWARE_SMALL_TCP', true)
+            return skip_ftest_hw('small-tcp', target_branch)
         case 'Functional Hardware Medium TCP':
-            return !paramsValue('CI_FUNCTIONAL_HARDWARE_MEDIUM_TCP', true)
+            return skip_ftest_hw('medium-tcp', target_branch)
         case 'Functional Hardware Large TCP':
-            return !paramsValue('CI_FUNCTIONAL_HARDWARE_LARGE_TCP', true)
+            return skip_ftest_hw('large-tcp', target_branch)
         case 'Functional Hardware Small UCX':
-            return !paramsValue('CI_FUNCTIONAL_HARDWARE_SMALL_UCX', true)
+            return skip_ftest_hw('small-ucx', target_branch)
         case 'Functional Hardware Medium UCX':
-            return !paramsValue('CI_FUNCTIONAL_HARDWARE_MEDIUM_UCX', true)
+            return skip_ftest_hw('medium-ucx', target_branch)
         case 'Functional Hardware Large UCX':
-            return !paramsValue('CI_FUNCTIONAL_HARDWARE_LARGE_UCX', true)
+            return skip_ftest_hw('large-ucx', target_branch)
         default:
             println("Don't know how to skip stage \"${env.STAGE_NAME}\", not skipping")
     }
