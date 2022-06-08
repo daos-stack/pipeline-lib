@@ -229,7 +229,7 @@ pipeline {
                                        inst_repos: "daos@master"
                         runTest script: '''NODE=${NODELIST%%,*}
                                            ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
-                                           dnf makecache"''',
+                                           dnf -y makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
                     }
