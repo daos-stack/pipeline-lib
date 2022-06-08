@@ -1,6 +1,4 @@
 #!/usr/bin/env groovy
-// groovylint-disable CompileStatic, DuplicateStringLiteral, NestedBlockDepth
-// groovylint-disable VariableName
 /* Copyright (C) 2019-2022 Intel Corporation
  * All rights reserved.
  *
