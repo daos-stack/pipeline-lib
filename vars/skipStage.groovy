@@ -85,7 +85,7 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
 
 boolean skip_ftest_hw(String size, String target_branch) {
     return env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
-           ! paramsValue('CI_' + size + '_TEST', true) ||
+           ! paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-hw-test-' + size) ||
            ! testsInStage() ||
@@ -420,6 +420,18 @@ boolean call(Map config = [:]) {
         case "Bullseye Report on EL 8":
             return env.BULLSEYE == null ||
                    skip_stage_pragma('bullseye', 'true')
+        case 'Functional Hardware Small TCP':
+            return skip_ftest_hw('small-tcp', target_branch)
+        case 'Functional Hardware Medium TCP':
+            return skip_ftest_hw('medium-tcp', target_branch)
+        case 'Functional Hardware Large TCP':
+            return skip_ftest_hw('large-tcp', target_branch)
+        case 'Functional Hardware Small UCX':
+            return skip_ftest_hw('small-ucx', target_branch)
+        case 'Functional Hardware Medium UCX':
+            return skip_ftest_hw('medium-ucx', target_branch)
+        case 'Functional Hardware Large UCX':
+            return skip_ftest_hw('large-ucx', target_branch)
         default:
             println("Don't know how to skip stage \"${env.STAGE_NAME}\", not skipping")
     }

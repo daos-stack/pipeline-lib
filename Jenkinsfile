@@ -228,7 +228,7 @@ pipeline {
                                        inst_repos: "daos@master"
                         runTest script: '''NODE=${NODELIST%%,*}
                                            ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
-                                           dnf makecache"''',
+                                           dnf -y makecache"''',
                                 junit_files: null,
                                 failure_artifacts: env.STAGE_NAME
                     }
@@ -340,12 +340,18 @@ pipeline {
                             commits = [[tags: [[tag: "Test-tag", value: 'datamover']],
                                        tag_template: '@commits.value@,@stages.tag@'],
                                        [tags: [[tag: "Features", value: 'datamover']],
-                                        tag_template: 'pr,@stages.tag@ daily_regression,@commits.value@,@stages.tag@'],
+                                        tag_template: 'pr,@stages.tag@ ' +
+                                                      'daily_regression,@commits.value@,@stages.tag@ ' +
+                                                      'full_regression,@commits.value@,@stages.tag@'],
                                        [tags: [[tag: "Test-tag", value: 'datamover'],
                                                [tag: "Features", value: 'foobar']],
                                         tag_template: '@commits.value@,@stages.tag@'],
                                        [tags: [[tag: "Features", value: 'datamover foobar']],
-                                        tag_template: 'pr,@stages.tag@ daily_regression,datamover,@stages.tag@ daily_regression,foobar,@stages.tag@'],
+                                        tag_template: 'pr,@stages.tag@ ' +
+                                                      'daily_regression,datamover,@stages.tag@ ' +
+                                                      'full_regression,datamover,@stages.tag@ ' +
+                                                      'daily_regression,foobar,@stages.tag@ ' +
+                                                      'full_regression,foobar,@stages.tag@'],
                                        [tags: [[tag: "Test-tag", value: 'datamover foobar']],
                                         tag_template: 'datamover,@stages.tag@ foobar,@stages.tag@']]
                             commits.each { commit ->
@@ -364,7 +370,7 @@ pipeline {
                                         cmp = cmp.replace('@stages.tag@', stage.tag)
                                         // Useful for debugging since Jenkins'
                                         // assert() is pretty lame
-                                        //println('assert(' + parseStageInfo()['test_tag'] + " == ${cmp})")
+                                        // println('assert(' + parseStageInfo()['test_tag'] + " == ${cmp})")
                                         assert(parseStageInfo()['test_tag'] == cmp)
                                     }
                                 }
