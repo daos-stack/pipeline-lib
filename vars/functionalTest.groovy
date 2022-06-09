@@ -62,11 +62,17 @@ def call(Map config = [:]) {
  
   Map stage_info = parseStageInfo(config)
 
+  // Install any additional rpms required for this stage
+  String stage_inst_rpms = config.get('inst_rpms', '')
+  if (stage_info['stage_rpms']) {
+    stage_inst_rpms = stage_info['stage_rpms'] + ' ' + stage_inst_rpms
+  }
+
   provisionNodes NODELIST: nodelist,
                  node_count: stage_info['node_count'],
                  distro: (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
                  inst_repos: config.get('inst_repos', ''),
-                 inst_rpms: config.get('inst_rpms', '')
+                 inst_rpms: stage_inst_rpms
 
   List stashes = []
   if (config['stashes']) {

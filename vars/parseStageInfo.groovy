@@ -317,6 +317,12 @@ def call(Map config = [:]) {
     }
     result['test_tag'] = result['test_tag'].trim()
 
+    // Determine any additional rpms needed for this stage
+    result['stage_rpms'] = ''
+    if (ftest_arg_provider && ftest_arg_provider.contains('ucx')) {
+      result['stage_rpms'] = 'mercury-ucx'
+    }
+
     // if (stage_name.contains('Functional'))
   } else if (stage_name.contains('Storage')) {
     if (env.NODELIST) {
