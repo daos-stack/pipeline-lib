@@ -12,7 +12,7 @@
 
 boolean call() {
     if (env.BRANCH_NAME.startsWith('weekly-testing') ||
-        env.CHANGE_TARGET.startsWith('weekly-testing')) {
+        (env.CHANGE_TARGET && env.CHANGE_TARGET.startsWith('weekly-testing'))) {
         /* This doesn't actually work on weekly-testing branches due to a lack
          * src/test/ftest/launch.py (and friends).  We could probably just
          * check that out from the branch we are testing against (i.e. master,
