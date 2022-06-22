@@ -135,7 +135,19 @@ def call(Map config = [:]) {
         set_cwd = "cd ${config_target}\n"
     }
 
-    def scons_exe = 'scons'
+    String scons_exe = 'scons'
+    int sctest = sh label: 'probe for scons command',
+                    script: 'command -v scons',
+                    returnStatus: true
+    if (sctest != 0) {
+        sctest = sh label: 'probe for scons-3 command',
+                    script: 'command -v scons-3',
+                    returnStatus: true
+        if (sctest == 0) {
+            scons_exe = 'scons-3'
+        }
+    }
+
     def scons_args = ''
     if (config['parallel_build'] && config['parallel_build'] == true) {
         String procs = num_proc()
