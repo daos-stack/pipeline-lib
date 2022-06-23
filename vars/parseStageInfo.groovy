@@ -35,14 +35,8 @@
  *                             Default determined by this function below.
  */
 
-String get_build_params_tags(String param_key) {
+String get_build_params_tags() {
   // Get the tags defined by the build parameter entry for this stage
-  if (param_key == 'tcp' && params.TestTagTCP && params.TestTagTCP != '') {
-    return params.TestTagTCP
-  }
-  if (param_key == 'ucx' && params.TestTagUCX && params.TestTagUCX != '') {
-    return params.TestTagUCX
-  }
   if (params.TestTag && params.TestTag != '') {
     return params.TestTag
   }
@@ -204,7 +198,6 @@ def call(Map config = [:]) {
   String ftest_arg_nvme = ''
   String ftest_arg_repeat = ''
   String ftest_arg_provider = ''
-  String param_key = ''
   if (stage_name.contains('Functional')) {
     result['test'] = 'Functional'
     result['node_count'] = 9
@@ -223,15 +216,6 @@ def call(Map config = [:]) {
         cluster_size = 'hw,medium'
         result['pragma_suffix'] = '-hw-medium'
       }
-      if (stage_name.contains('TCP')) {
-        ftest_arg_provider = 'ofi+tcp'
-        param_key = 'tcp'
-        result['pragma_suffix'] += "-tcp"
-      } else if (stage_name.contains('UCX')) {
-        ftest_arg_provider = 'ucx+dc_x'
-        param_key = 'ucx'
-        result['pragma_suffix'] += "-ucx"
-      }
     }
     if (stage_name.contains('with Valgrind')) {
       result['pragma_suffix'] = '-valgrind'
@@ -243,7 +227,7 @@ def call(Map config = [:]) {
     String tag
     if (startedByUser()) {
       // Test tags defined by the build parameters override all other tags
-      tag = get_build_params_tags(param_key)
+      tag = get_build_params_tags()
     }
     if (!tag && startedByTimer()) {
       // Stage defined tags take precedence in timed builds
@@ -251,7 +235,7 @@ def call(Map config = [:]) {
       if (!tag) {
         // Otherwise use the default timed build tags
         tag = "pr daily_regression"
-        if (env.BRANCH_NAME.startsWith("weekly-testing") && !param_key) {
+        if (env.BRANCH_NAME.startsWith("weekly-testing")) {
           tag = "full_regression"
         }
       }
