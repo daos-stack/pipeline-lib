@@ -102,6 +102,7 @@ boolean skip_if_unstable() {
         cachedCommitPragma('Allow-unstable-test').toLowerCase() == 'true' ||
         env.BRANCH_NAME == 'master' ||
         env.BRANCH_NAME.startsWith("weekly-testing") ||
+        env.BRANCH_NAME.startsWith("provider-testing") ||
         env.BRANCH_NAME.startsWith("release/")) {
         return false
     }
@@ -316,6 +317,9 @@ boolean call(Map config = [:]) {
                    (env.BRANCH_NAME.startsWith('weekly-testing') &&
                     ! startedByTimer() &&
                     ! startedByUser()) ||
+                   (env.BRANCH_NAME.startsWith('provider-testing') &&
+                    ! startedByTimer() &&
+                    ! startedByUser()) ||
                    skip_if_unstable()
         case "Test on CentOS 7 [in] Vagrant":
             return skip_stage_pragma('vagrant-test', 'true') &&
@@ -405,6 +409,9 @@ boolean call(Map config = [:]) {
                    (env.BRANCH_NAME.startsWith('weekly-testing') &&
                     ! startedByTimer() &&
                     ! startedByUser()) ||
+                   (env.BRANCH_NAME.startsWith('provider-testing') &&
+                    ! startedByTimer() &&
+                    ! startedByUser()) ||
                    skip_if_unstable()
         case "Functional_Hardware_Small":
         case "Functional Hardware Small":
@@ -420,18 +427,6 @@ boolean call(Map config = [:]) {
         case "Bullseye Report on EL 8":
             return env.BULLSEYE == null ||
                    skip_stage_pragma('bullseye', 'true')
-        case 'Functional Hardware Small TCP':
-            return skip_ftest_hw('small-tcp', target_branch)
-        case 'Functional Hardware Medium TCP':
-            return skip_ftest_hw('medium-tcp', target_branch)
-        case 'Functional Hardware Large TCP':
-            return skip_ftest_hw('large-tcp', target_branch)
-        case 'Functional Hardware Small UCX':
-            return skip_ftest_hw('small-ucx', target_branch)
-        case 'Functional Hardware Medium UCX':
-            return skip_ftest_hw('medium-ucx', target_branch)
-        case 'Functional Hardware Large UCX':
-            return skip_ftest_hw('large-ucx', target_branch)
         default:
             println("Don't know how to skip stage \"${env.STAGE_NAME}\", not skipping")
     }
