@@ -671,6 +671,7 @@ void call(Map pipeline_args) {
                               parameters: [string(name: 'TestTag', value: 'load_mpi test_core_files'),
                                            string(name: 'CI_RPM_TEST_VERSION',
                                                   value: daosLatestVersion(env.TEST_BRANCH)),
+                                           string(name: 'BuildPriority', value: '2'),
                                            booleanParam(name: 'CI_FI_el8_TEST', value: false),
                                            booleanParam(name: 'CI_FUNCTIONAL_el7_TEST', value: true),
                                            booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
