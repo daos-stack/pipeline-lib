@@ -662,28 +662,32 @@ void call(Map pipeline_args) {
                                    'release/2.0'
                         }
                     }
-                    steps {
-                        // TODO: find out what the / escape is.  I've already tried both %2F and %252F
-                        //       https://issues.jenkins.io/browse/JENKINS-68857
-                        build job: 'daos-stack/daos/' + cachedCommitPragma('Test-' + env.TEST_BRANCH + '-PR',
-                                                                           env.TEST_BRANCH.replaceAll('/',
-                                                                                                      '%252F')),
-                              parameters: [string(name: 'TestTag', value: 'load_mpi test_core_files'),
-                                           string(name: 'CI_RPM_TEST_VERSION',
-                                                  value: daosLatestVersion(env.TEST_BRANCH)),
-                                           string(name: 'BuildPriority', value: '2'),
-                                           booleanParam(name: 'CI_FI_el8_TEST', value: false),
-                                           booleanParam(name: 'CI_FUNCTIONAL_el7_TEST', value: true),
-                                           booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
-                                           booleanParam(name: 'CI_FUNCTIONAL_el8_TEST', value: true),
-                                           booleanParam(name: 'CI_FUNCTIONAL_leap15_TEST', value: true),
-                                           booleanParam(name: 'CI_SCAN_RPMS_el7_TEST', value: false),
-                                           booleanParam(name: 'CI_RPMS_el7_TEST', value: true),
-                                           booleanParam(name: 'CI_small_TEST', value: true),
-                                           booleanParam(name: 'CI_medium_TEST', value: false),
-                                           booleanParam(name: 'CI_large_TEST', value: false),
-                                          ]
-                    } //steps
+                    stages {
+                        stage('Test Packages') {
+                            steps {
+                                // TODO: find out what the / escape is.  I've already tried both %2F and %252F
+                                //       https://issues.jenkins.io/browse/JENKINS-68857
+                                build job: 'daos-stack/daos/' + cachedCommitPragma('Test-' + env.TEST_BRANCH + '-PR',
+                                                                                   env.TEST_BRANCH.replaceAll('/',
+                                                                                                              '%252F')),
+                                      parameters: [string(name: 'TestTag', value: 'load_mpi test_core_files'),
+                                                   string(name: 'CI_RPM_TEST_VERSION',
+                                                          value: daosLatestVersion(env.TEST_BRANCH)),
+                                                   string(name: 'BuildPriority', value: '2'),
+                                                   booleanParam(name: 'CI_FI_el8_TEST', value: false),
+                                                   booleanParam(name: 'CI_FUNCTIONAL_el7_TEST', value: true),
+                                                   booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
+                                                   booleanParam(name: 'CI_FUNCTIONAL_el8_TEST', value: true),
+                                                   booleanParam(name: 'CI_FUNCTIONAL_leap15_TEST', value: true),
+                                                   booleanParam(name: 'CI_SCAN_RPMS_el7_TEST', value: false),
+                                                   booleanParam(name: 'CI_RPMS_el7_TEST', value: true),
+                                                   booleanParam(name: 'CI_small_TEST', value: true),
+                                                   booleanParam(name: 'CI_medium_TEST', value: false),
+                                                   booleanParam(name: 'CI_large_TEST', value: false),
+                                                  ]
+                            } //steps
+                        } // stage('Test Packages')
+                    } // stages
                 } // matrix
             } // stage('Test')
         } // stages
