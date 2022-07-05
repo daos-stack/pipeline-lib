@@ -665,6 +665,8 @@ void call(Map pipeline_args) {
                     stages {
                         stage('Test Packages') {
                             steps {
+                                sh label: 'Get env.',
+                                   script: 'env'
                                 // TODO: find out what the / escape is.  I've already tried both %2F and %252F
                                 //       https://issues.jenkins.io/browse/JENKINS-68857
                                 build job: 'daos-stack/daos/' + cachedCommitPragma('Test-' + env.TEST_BRANCH + '-PR',
@@ -684,6 +686,7 @@ void call(Map pipeline_args) {
                                                    booleanParam(name: 'CI_small_TEST', value: true),
                                                    booleanParam(name: 'CI_medium_TEST', value: false),
                                                    booleanParam(name: 'CI_large_TEST', value: false),
+                                                   booleanParam(name: 'CI_PR_REPOS', value: 'fuse@PR-10:7')
                                                   ]
                             } //steps
                         } // stage('Test Packages')
