@@ -686,7 +686,9 @@ void call(Map pipeline_args) {
                                                    booleanParam(name: 'CI_small_TEST', value: true),
                                                    booleanParam(name: 'CI_medium_TEST', value: false),
                                                    booleanParam(name: 'CI_large_TEST', value: false),
-                                                   booleanParam(name: 'CI_PR_REPOS', value: 'fuse@PR-10:7')
+                                                   string(name: 'CI_PR_REPOS',
+                                                          value: env.JOB_NAME.split('/')[1] + '@' +
+                                                                 env.BRANCH_NAME + ':' + env.BUILD_ID)
                                                   ]
                             } //steps
                         } // stage('Test Packages')
