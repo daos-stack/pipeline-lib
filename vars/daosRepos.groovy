@@ -1,3 +1,4 @@
+/* groovylint-disable VariableName */
 // vars/daosRepos.groovy
 
 /**
@@ -14,16 +15,17 @@ String daos_repo() {
 
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
 
-    if (target_branch.startsWith("weekly-testing") ||
-        target_branch.startsWith("provider-testing")) {
-        return ""
+    if (target_branch.startsWith('weekly-testing') ||
+        target_branch.startsWith('provider-testing')) {
+        return ''
     }
 
+    /* groovylint-disable-next-line IfStatementCouldBeTernary */
     if (rpmTestVersion() == '') {
         return "daos@${env.BRANCH_NAME}:${env.BUILD_NUMBER}"
     }
 
-    return ""
+    return ''
 }
 
 String call() {
@@ -33,8 +35,9 @@ String call() {
 String call(String distro) {
 
     String pr_repos = prRepos(distro)
+    println("pr_repos: ${pr_repos}")
 
-    if (! pr_repos.contains('daos@')) {
+    if (!pr_repos.contains('daos@')) {
         pr_repos += ' ' + daos_repo()
     }
 
