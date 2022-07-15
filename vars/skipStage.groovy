@@ -1,3 +1,6 @@
+/* groovylint-disable DuplicateListLiteral, DuplicateMapLiteral
+   groovylint-disable DuplicateNumberLiteral, DuplicateStringLiteral
+   groovylint-disable ParameterName, VariableName */
 // vars/skipStage.groovy
 
 /**
@@ -9,6 +12,34 @@
 /**
  * Method to return true or false if a commit pragma says to skip a stage
  */
+
+// Determine if this is a restarted job and if it succeeded on the
+// previous run.
+boolean already_passed() {
+    String restart_cause = 'org.jenkinsci.plugins.pipeline.modeldefinition.' +
+                   'causes.RestartDeclarativePipelineCause'
+
+    restarted = currentBuild.getBuildCauses().any { cause ->
+        cause._class == restart_cause }
+    if (!restarted) {
+        return false
+    }
+    String my_build = "/${env.BUILD_NUMBER}/"
+    String old_build = "/${env.BUILD_NUMBER.toInteger() - 1}/"
+
+    String old_job = env.BUILD_URL.replace(my_build, old_build)
+    String art_url = old_job + 'artifact/' + stageStatusFilename()
+
+    def response = httpRequest url: art_url,
+                               acceptType: 'TEXT_PLAIN',
+                               httpMode: 'GET',
+                               validResponseCodes: '100:599'
+
+    if (response.status == 200 && response.content == 'SUCCESS') {
+        return true
+    }
+    return false
+}
 
 // Determine if a stage has been specified to skip with a commit pragma
 String skip_stage_pragma(String stage, String def_val='false') {
@@ -41,6 +72,9 @@ boolean is_pr() {
 }
 
 boolean skip_scan_rpms(String distro, String target_branch) {
+    if (already_passed()) {
+        return true
+    }
     return target_branch == 'weekly-testing' ||
            skip_stage_pragma('scan-rpms', 'true') ||
            (distro == 'centos-7' &&
@@ -56,6 +90,9 @@ boolean skip_ftest(String distro, String target_branch) {
     // must be checked first before parameters are checked
     // because the defaults are based on which branch
     // is being run.
+    if (already_passed()) {
+        return true
+    }
     if (run_default_skipped_stage('func-test-' + distro) ||
         run_default_skipped_stage('func-test-vm-all')) {
         // Forced to run due to a (Skip) pragma set to false
@@ -80,10 +117,16 @@ boolean skip_ftest(String distro, String target_branch) {
 boolean skip_ftest_valgrind(String distro, String target_branch) {
     // Check if the default for skipping this stage been overriden
     // otherwise always skip this stage (DAOS-10585)
+    if (already_passed()) {
+        return true
+    }
     return ! run_default_skipped_stage('func-test-vm-valgrind')
 }
 
 boolean skip_ftest_hw(String size, String target_branch) {
+    if (already_passed()) {
+        return true
+    }
     return env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
            ! paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
            skip_stage_pragma('func-test') ||
@@ -128,7 +171,6 @@ boolean skip_build_bullseye(String target_branch, String distro) {
                    (docOnlyChange(target_branch) &&
                     prRepos(distro) == '') ||
                    quickFunctional()
-
 }
 
 boolean call(Map config = [:]) {
@@ -293,19 +335,31 @@ boolean call(Map config = [:]) {
         case "NLT":
         case "NLT on CentOS 8":
         case "NLT on EL 8":
+            if (already_passed()) {
+                return true
+            }
             return skip_stage_pragma('nlt')
         case "Unit Test Bullseye":
         case "Unit Test Bullseye on CentOS 8":
         case "Unit Test Bullseye on EL 8":
+            if (already_passed()) {
+                return true
+            }
             return skip_stage_pragma('bullseye', 'true')
         case "Unit Test with memcheck on CentOS 8":
         case "Unit Test with memcheck on EL 8":
         case "Unit Test with memcheck":
+            if (already_passed()) {
+                return true
+            }
             return ! paramsValue('CI_UNIT_TEST_MEMCHECK', true) ||
                    skip_stage_pragma('unit-test-memcheck')
         case "Unit Test":
         case "Unit Test on CentOS 8":
         case "Unit Test on EL 8":
+            if (already_passed()) {
+                return true
+            }
             return ! paramsValue('CI_UNIT_TEST', true) ||
                    skip_stage_pragma('unit-test') ||
                    skip_stage_pragma('run_test')
@@ -322,6 +376,9 @@ boolean call(Map config = [:]) {
                     ! startedByUser()) ||
                    skip_if_unstable()
         case "Test on CentOS 7 [in] Vagrant":
+            if (already_passed()) {
+                return true
+            }
             return skip_stage_pragma('vagrant-test', 'true') &&
                    ! env.BRANCH_NAME.startsWith('weekly-testing')
         case "Coverity on CentOS 7":
@@ -352,12 +409,18 @@ boolean call(Map config = [:]) {
         case "Fault injection testing":
         case "Fault injection testing on CentOS 8":
         case "Fault injection testing on EL 8":
+            if (already_passed()) {
+                return true
+            }
             return skip_stage_pragma('fault-injection-test') ||
                    quickFunctional() ||
                    docOnlyChange(target_branch) ||
                    skip_stage_pragma('func-test') ||
                    skip_stage_pragma('func-test-vm')
         case "Test CentOS 7 RPMs":
+            if (already_passed()) {
+                return true
+            }
             return ! paramsValue('CI_RPMS_el7_TEST', true) ||
                    target_branch == 'weekly-testing' ||
                    skip_stage_pragma('test') ||
@@ -368,6 +431,9 @@ boolean call(Map config = [:]) {
                    (quickFunctional() &&
                     ! run_default_skipped_stage('test-centos-7-rpms'))
         case "Test CentOS 8.3.2011 RPMs":
+            if (already_passed()) {
+                return true
+            }
             return ! paramsValue('CI_RPMS_centos8.3.2011_TEST', true) ||
                    target_branch == 'weekly-testing' ||
                    skip_stage_pragma('test') ||
@@ -378,6 +444,9 @@ boolean call(Map config = [:]) {
                     ! run_default_skipped_stage('test-centos-8.3-rpms'))
         case "Test CentOS 8.4.2105 RPMs":
         case "Test EL 8.4 RPMs":
+            if (already_passed()) {
+                return true
+            }
             return ! paramsValue('CI_RPMS_el8.4.2105_TEST', true) ||
                    target_branch == 'weekly-testing' ||
                    skip_stage_pragma('test') ||
@@ -390,6 +459,9 @@ boolean call(Map config = [:]) {
         case "Test Leap 15.2 RPMs":
             // Skip by default as it doesn't pass with Leap15.3 due to
             // requiring a newer glibc
+            if (already_passed()) {
+                return true
+            }
             return ! paramsValue('CI_RPMS_leap15_TEST', true) ||
                    skip_stage_pragma('test-leap-15-rpms', 'true')
         case "Scan CentOS 7 RPMs":
