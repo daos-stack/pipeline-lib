@@ -145,6 +145,7 @@ def call(Map config = [:]) {
                       'INST_REPOS="' + inst_repos + '" ' +
                       'INST_RPMS="' + inst_rpms + '" ' +
                       'GPG_KEY_URLS="' + gpg_key_urls.join(' ') + '" ' +
+                      'TIMED_JOB=' + startedByTimer() + ' ' +
                       'ci/provisioning/post_provision_config.sh'
   new_config['post_restore'] = provision_script
   try {
