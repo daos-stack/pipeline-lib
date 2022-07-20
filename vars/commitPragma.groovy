@@ -31,12 +31,12 @@ String call(String name, String def_val = null) {
             [(pair.first()): pair.last()]
         }
 
-        if (pragmas[name]) {
-            return pragmas[name]
+        if (pragmas[name.toLowerCase()]) {
+            return pragmas[name.toLowerCase()]
         } else if (def_val) {
             return def_val
         }
-    } else {
-        return commitPragmaTrusted(name, def_val)
+        return ''
     }
+    return commitPragmaTrusted(name, def_val)
 }
