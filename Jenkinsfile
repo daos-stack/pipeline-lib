@@ -16,6 +16,7 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 //@Library(value="pipeline-lib@my_branch_name") _
+@Library(value="pipeline-lib@sre-368-alt") _
 
 pipeline {
     agent { label 'lightweight' }
@@ -39,6 +40,8 @@ pipeline {
                 script {
                     env.COMMIT_MESSAGE = sh(script: 'git show -s --format=%B',
                                             returnStdout: true).trim()
+                 sh label: 'Diagnose ENVs',
+                    script: 'export'
                 }
             }
         }

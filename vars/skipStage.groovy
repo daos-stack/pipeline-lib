@@ -16,27 +16,67 @@
 // Determine if this is a restarted job and if it succeeded on the
 // previous run.
 boolean already_passed() {
+    // Lookup to see if restarted
     String restart_cause = 'org.jenkinsci.plugins.pipeline.modeldefinition.' +
                    'causes.RestartDeclarativePipelineCause'
 
-    restarted = currentBuild.getBuildCauses().any { cause ->
+    def restarted = currentBuild.getBuildCauses().any { cause ->
         cause._class == restart_cause }
     if (!restarted) {
         return false
     }
-    String my_build = "/${env.BUILD_NUMBER}/"
-    String old_build = "/${env.BUILD_NUMBER.toInteger() - 1}/"
 
-    String old_job = env.BUILD_URL.replace(my_build, old_build)
-    String art_url = old_job + 'artifact/' + stageStatusFilename()
+    // Make sure a previous check has been removed.
+    String status_file = stageStatusFilename()
+    if (fileExists(status_file)) {
+        fileOperations([fileDeleteOperation(includes: status_file)])
+    }
 
-    def response = httpRequest url: art_url,
-                               acceptType: 'TEXT_PLAIN',
-                               httpMode: 'GET',
-                               validResponseCodes: '100:599'
+    String old_build = "${env.BUILD_NUMBER.toInteger() - 1}"
 
-    if (response.status == 200 && response.content == 'SUCCESS') {
-        return true
+    // First try looking up using copyArtifacts, which requires
+    // that the Jenkinsfile give permission for the copy.
+    try {
+        copyArtifacts projectName: env.JOB_NAME,
+                      optional: false,
+                      filter: status_file,
+                      selector: specific(old_build)
+        try {
+            String stage_status = readFile(file: status_file)
+            println("stage ${env.STAGE_NAME} status '${stage_status}'")
+            if (stage_status == 'SUCCESS') {
+                return true
+            }
+        } catch (java.nio.file.NoSuchFileException e) {
+            // This should not ever fail, so just collecting diagnostics
+            // if the code ever gets here.
+            println("readFile failed! ${e}")
+            sh label: 'Diagnostic for readFile failure',
+               script: 'ls -l *.status',
+               returnStatus: true
+            if (fileExists(status_file)) {
+                println("fileExists found ${status_file}")
+            }
+        }
+    } catch (hudson.AbortException e) {
+        println("Informational: copyArtifact could not get artifact ${e}")
+
+        // Try using httpRequests, which does not require a modified
+        // Jenkinsfile, but makes assumptions on where Jenkins is
+        // currently storing the artifacts for a job.
+        String my_build = "/${env.BUILD_NUMBER}/"
+        String prev_build = "/${old_build}/"
+        String old_job = env.BUILD_URL.replace(my_build, prev_build)
+        String art_url = old_job + 'artifact/' + status_file
+
+        def response = httpRequest url: art_url,
+                                   acceptType: 'TEXT_PLAIN',
+                                   httpMode: 'GET',
+                                   validResponseCodes: '100:599'
+
+        if (response.status == 200 && response.content == 'SUCCESS') {
+            return true
+        }
     }
     return false
 }
