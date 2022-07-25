@@ -15,5 +15,9 @@ String urlEncode() {
    */
 
 String call(Map config= [:]) {
-    return urlEncode() + ".status"
+    String directory = 'stage_status'
+    if (!fileExists(directory)) {
+        fileOperations([folderCreateOperation(directory)])
+    }
+    return directory + '/' + urlEncode() + ".status"
 }
