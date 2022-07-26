@@ -135,18 +135,11 @@ def call(Map config = [:]) {
         set_cwd = "cd ${config_target}\n"
     }
 
-    String scons_exe = 'scons'
-    int sctest = sh label: 'probe for scons command',
-                    script: 'command -v scons',
-                    returnStatus: true
-    if (sctest != 0) {
-        sctest = sh label: 'probe for scons-3 command',
-                    script: 'command -v scons-3',
-                    returnStatus: true
-        if (sctest == 0) {
-            scons_exe = 'scons-3'
-        }
-    }
+    // probe for traditional scons image name first
+    // then try for el-8 distro provided scons image name
+    String scons_exe = sh(label: 'probe for scons command',
+                          script: 'command -v scons || command -v scons-3',
+                          returnStdout: true
 
     def scons_args = ''
     if (config['parallel_build'] && config['parallel_build'] == true) {
