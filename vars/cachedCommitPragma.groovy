@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral, ParameterName, VariableName */
 // vars/cachedCommitPragma.groovy
 
 /**
@@ -12,9 +13,10 @@
 
 import groovy.transform.Field
 
-@Field static commit_pragma_cache = [:]
+/* groovylint-disable-next-line CompileStatic */
+@Field static Map commit_pragma_cache = [:]
 
-def call(Map config = [:]) {
+String call(Map config = [:]) {
     if (config['clear']) {
         commit_pragma_cache.clear()
         return
@@ -26,22 +28,24 @@ def call(Map config = [:]) {
     return cachedCommitPragma(config['pragma'], config['def_val'])
 }
 
-def call(String name, String def_val = null) {
-    name = name.toLowerCase()
+String call(String name, String def_val = null) {
+    String _name = name.toLowerCase()
+    String _def_val
+
     if (def_val) {
-        def_val = def_val.toLowerCase()
+        _def_val = def_val.toLowerCase()
     }
 
-    if (!commit_pragma_cache[name]) {
-        commit_pragma_cache[name] = commitPragma(name)
+    /* groovylint-disable-next-line CouldBeElvis */
+    if (!commit_pragma_cache[_name]) {
+        commit_pragma_cache[_name] = commitPragma(_name)
     }
 
-    if (commit_pragma_cache[name]) {
-       return commit_pragma_cache[name]
-    } else if (def_val) {
-        return def_val
+    if (commit_pragma_cache[_name]) {
+        return commit_pragma_cache[_name]
+    } else if (_def_val) {
+        return _def_val
     }
-    
-    return ""
 
+    return ''
 }
