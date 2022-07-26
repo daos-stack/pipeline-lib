@@ -10,8 +10,15 @@ String urlEncode() {
   /**
    * stageStatusFilename step method
    *
+   * This does not create the file, it is so the methods
+   * that create / fetch / read the STAGE status file all use
+   * the same name and it is properly URLEncoded.
+   *
+   * It does make sure that the directory for the stage
+   * status file exists.
+   *
    * @param config Map of parameters passed, Unused
-   * returns: String with Url Encoded filename for stage name status.
+   * returns: String with Url Encoded pathname for the stage status.
    */
 
 String call(Map config= [:]) {

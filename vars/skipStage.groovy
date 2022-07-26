@@ -43,10 +43,12 @@ boolean already_passed() {
                       selector: specific(old_build)
         try {
             String stage_status = readFile(file: status_file)
-            println("stage ${env.STAGE_NAME} status '${stage_status}'")
             if (stage_status == 'SUCCESS') {
                 return true
             }
+            println("Previous run this stage ended with status " +
+                    "'${stage_status}', so re-running")
+
         } catch (java.nio.file.NoSuchFileException e) {
             // This should not ever fail, so just collecting diagnostics
             // if the code ever gets here.
@@ -64,6 +66,8 @@ boolean already_passed() {
         // Try using httpRequests, which does not require a modified
         // Jenkinsfile, but makes assumptions on where Jenkins is
         // currently storing the artifacts for a job.
+        // This is for transitioning until all Jenkinsfiles are allowing
+        // artifacts to be copied and then can be removed.
         String my_build = "/${env.BUILD_NUMBER}/"
         String prev_build = "/${old_build}/"
         String old_job = env.BUILD_URL.replace(my_build, prev_build)
@@ -112,10 +116,8 @@ boolean is_pr() {
 }
 
 boolean skip_scan_rpms(String distro, String target_branch) {
-    if (already_passed()) {
-        return true
-    }
-    return target_branch == 'weekly-testing' ||
+    return already_passed() ||
+           target_branch == 'weekly-testing' ||
            skip_stage_pragma('scan-rpms', 'true') ||
            (distro == 'centos-7' &&
             (! paramsValue('CI_SCAN_RPMS_el7_TEST', true)) ||
@@ -157,24 +159,20 @@ boolean skip_ftest(String distro, String target_branch) {
 boolean skip_ftest_valgrind(String distro, String target_branch) {
     // Check if the default for skipping this stage been overriden
     // otherwise always skip this stage (DAOS-10585)
-    if (already_passed()) {
-        return true
-    }
-    return ! run_default_skipped_stage('func-test-vm-valgrind')
+    return already_passed() ||
+           !run_default_skipped_stage('func-test-vm-valgrind')
 }
 
 boolean skip_ftest_hw(String size, String target_branch) {
-    if (already_passed()) {
-        return true
-    }
-    return env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
-           ! paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
+    return already_passed() ||
+           env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
+           !paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-hw-test-' + size) ||
-           ! testsInStage() ||
+           !testsInStage() ||
            ((env.BRANCH_NAME == 'master' ||
              env.BRANCH_NAME.startsWith('release/')) &&
-            ! (startedByTimer() || startedByUser())) ||
+            !(startedByTimer() || startedByUser())) ||
            cachedCommitPragma('Run-daily-stages') == 'true' ||
            (docOnlyChange(target_branch) &&
             prRepos(hwDistroTarget(size)) == '')
@@ -372,25 +370,26 @@ boolean call(Map config = [:]) {
                     docOnlyChange(target_branch) ||
                     skip_build_on_el_gcc(target_branch, '8') ||
                     skip_stage_pragma('unit-tests')
-        case "NLT":
-        case "NLT on CentOS 8":
-        case "NLT on EL 8":
-            return skip_stage_pragma('nlt') || already_passed()
-        case "Unit Test Bullseye":
-        case "Unit Test Bullseye on CentOS 8":
-        case "Unit Test Bullseye on EL 8":
+        case 'NLT':
+        case 'NLT on CentOS 8':
+        case 'NLT on EL 8':
+            return skip_stage_pragma('nlt') ||
+                   already_passed()
+        case 'Unit Test Bullseye':
+        case 'Unit Test Bullseye on CentOS 8':
+        case 'Unit Test Bullseye on EL 8':
             return skip_stage_pragma('bullseye', 'true') ||
                    already_passed()
-        case "Unit Test with memcheck on CentOS 8":
-        case "Unit Test with memcheck on EL 8":
-        case "Unit Test with memcheck":
-            return ! paramsValue('CI_UNIT_TEST_MEMCHECK', true) ||
+        case 'Unit Test with memcheck on CentOS 8':
+        case 'Unit Test with memcheck on EL 8':
+        case 'Unit Test with memcheck':
+            return !paramsValue('CI_UNIT_TEST_MEMCHECK', true) ||
                    skip_stage_pragma('unit-test-memcheck') ||
                    already_passed()
-        case "Unit Test":
-        case "Unit Test on CentOS 8":
-        case "Unit Test on EL 8":
-            return ! paramsValue('CI_UNIT_TEST', true) ||
+        case 'Unit Test':
+        case 'Unit Test on CentOS 8':
+        case 'Unit Test on EL 8':
+            return !paramsValue('CI_UNIT_TEST', true) ||
                    skip_stage_pragma('unit-test') ||
                    skip_stage_pragma('run_test') ||
                    already_passed()
