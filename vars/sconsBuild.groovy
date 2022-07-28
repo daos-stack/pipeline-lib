@@ -140,6 +140,7 @@ def call(Map config = [:]) {
     String scons_exe = sh label: 'probe for scons command',
                           script: 'command -v scons || command -v scons-3',
                           returnStdout: true
+    scons_exe.trim()
 
     def scons_args = ''
     if (config['parallel_build'] && config['parallel_build'] == true) {
