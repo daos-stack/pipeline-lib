@@ -137,7 +137,7 @@ def call(Map config = [:]) {
 
     // probe for traditional scons image name first
     // then try for el-8 distro provided scons image name
-    String scons_exe = sh(label: 'probe for scons command',
+    String scons_exe = sh label: 'probe for scons command',
                           script: 'command -v scons || command -v scons-3',
                           returnStdout: true
 
