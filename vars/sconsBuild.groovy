@@ -137,11 +137,9 @@ def call(Map config = [:]) {
 
     // probe for traditional scons image name first
     // then try for el-8 distro provided scons image name
-    String scons_exe = sh label: 'probe for scons command',
+    String scons_exe = sh(label: 'probe for scons command',
                           script: 'command -v scons || command -v scons-3',
-                          returnStdout: true
-    scons_exe.trim()
-    println("scons_exe is -${scons_exe}")
+                          returnStdout: true).trim()
 
     def scons_args = ''
     if (config['parallel_build'] && config['parallel_build'] == true) {
@@ -280,7 +278,6 @@ def call(Map config = [:]) {
     def full_script = "#!/bin/bash\nset -ex\n" +
                       set_cwd + prebuild + prefix_1 + script
     int rc = 0
-    println("full script=-${full_script}-")
     rc = sh(script: full_script, label: env.STAGE_NAME, returnStatus: true)
     // All of this really should be done in the post section of the main
     // Jenkinsfile but it cannot due to
