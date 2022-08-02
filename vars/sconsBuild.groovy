@@ -135,7 +135,12 @@ def call(Map config = [:]) {
         set_cwd = "cd ${config_target}\n"
     }
 
-    def scons_exe = 'scons'
+    // probe for traditional scons image name first
+    // then try for el-8 distro provided scons image name
+    String scons_exe = sh(label: 'probe for scons command',
+                          script: 'command -v scons || command -v scons-3',
+                          returnStdout: true).trim()
+
     def scons_args = ''
     if (config['parallel_build'] && config['parallel_build'] == true) {
         String procs = num_proc()
