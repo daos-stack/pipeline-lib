@@ -1,3 +1,6 @@
+/* groovylint-disable DuplicateListLiteral, DuplicateMapLiteral
+   groovylint-disable DuplicateNumberLiteral, DuplicateStringLiteral
+   groovylint-disable ParameterName, VariableName */
 // vars/skipStage.groovy
 
 /**
@@ -9,6 +12,78 @@
 /**
  * Method to return true or false if a commit pragma says to skip a stage
  */
+
+// Determine if this is a restarted job and if it succeeded on the
+// previous run.
+boolean already_passed() {
+    // Lookup to see if restarted
+    String restart_cause = 'org.jenkinsci.plugins.pipeline.modeldefinition.' +
+                   'causes.RestartDeclarativePipelineCause'
+
+    def restarted = currentBuild.getBuildCauses().any { cause ->
+        cause._class == restart_cause }
+    if (!restarted) {
+        return false
+    }
+
+    // Make sure a previous check has been removed.
+    String status_file = stageStatusFilename()
+    if (fileExists(status_file)) {
+        fileOperations([fileDeleteOperation(includes: status_file)])
+    }
+
+    String old_build = "${env.BUILD_NUMBER.toInteger() - 1}"
+
+    // First try looking up using copyArtifacts, which requires
+    // that the Jenkinsfile give permission for the copy.
+    try {
+        copyArtifacts projectName: env.JOB_NAME,
+                      optional: false,
+                      filter: status_file,
+                      selector: specific(old_build)
+        try {
+            String stage_status = readFile(file: status_file)
+            if (stage_status == 'SUCCESS') {
+                return true
+            }
+            println("Previous run this stage ended with status " +
+                    "'${stage_status}', so re-running")
+
+        } catch (java.nio.file.NoSuchFileException e) {
+            // This should not ever fail, so just collecting diagnostics
+            // if the code ever gets here.
+            println("readFile failed! ${e}")
+            sh label: 'Diagnostic for readFile failure',
+               script: 'ls -l *.status',
+               returnStatus: true
+            if (fileExists(status_file)) {
+                println("fileExists found ${status_file}")
+            }
+        }
+    } catch (hudson.AbortException e) {
+        println("Informational: copyArtifact could not get artifact ${e}")
+
+        // Try using httpRequests, which does not require a modified
+        // Jenkinsfile, but makes assumptions on where Jenkins is
+        // currently storing the artifacts for a job.
+        // This is for transitioning until all Jenkinsfiles are allowing
+        // artifacts to be copied and then can be removed.
+        String my_build = "/${env.BUILD_NUMBER}/"
+        String prev_build = "/${old_build}/"
+        String old_job = env.BUILD_URL.replace(my_build, prev_build)
+        String art_url = old_job + 'artifact/' + status_file
+
+        def response = httpRequest url: art_url,
+                                   acceptType: 'TEXT_PLAIN',
+                                   httpMode: 'GET',
+                                   validResponseCodes: '100:599'
+
+        if (response.status == 200 && response.content == 'SUCCESS') {
+            return true
+        }
+    }
+    return false
+}
 
 // Determine if a stage has been specified to skip with a commit pragma
 String skip_stage_pragma(String stage, String def_val='false') {
@@ -41,7 +116,8 @@ boolean is_pr() {
 }
 
 boolean skip_scan_rpms(String distro, String target_branch) {
-    return target_branch == 'weekly-testing' ||
+    return already_passed() ||
+           target_branch == 'weekly-testing' ||
            skip_stage_pragma('scan-rpms', 'true') ||
            (distro == 'centos-7' &&
             (! paramsValue('CI_SCAN_RPMS_el7_TEST', true)) ||
@@ -56,6 +132,9 @@ boolean skip_ftest(String distro, String target_branch) {
     // must be checked first before parameters are checked
     // because the defaults are based on which branch
     // is being run.
+    if (already_passed()) {
+        return true
+    }
     if (run_default_skipped_stage('func-test-' + distro) ||
         run_default_skipped_stage('func-test-vm-all')) {
         // Forced to run due to a (Skip) pragma set to false
@@ -80,18 +159,20 @@ boolean skip_ftest(String distro, String target_branch) {
 boolean skip_ftest_valgrind(String distro, String target_branch) {
     // Check if the default for skipping this stage been overriden
     // otherwise always skip this stage (DAOS-10585)
-    return ! run_default_skipped_stage('func-test-vm-valgrind')
+    return already_passed() ||
+           !run_default_skipped_stage('func-test-vm-valgrind')
 }
 
 boolean skip_ftest_hw(String size, String target_branch) {
-    return env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
-           ! paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
+    return already_passed() ||
+           env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
+           !paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-hw-test-' + size) ||
-           ! testsInStage() ||
+           !testsInStage() ||
            ((env.BRANCH_NAME == 'master' ||
              env.BRANCH_NAME.startsWith('release/')) &&
-            ! (startedByTimer() || startedByUser())) ||
+            !(startedByTimer() || startedByUser())) ||
            cachedCommitPragma('Run-daily-stages') == 'true' ||
            (docOnlyChange(target_branch) &&
             prRepos(hwDistroTarget(size)) == '')
@@ -128,7 +209,6 @@ boolean skip_build_bullseye(String target_branch, String distro) {
                    (docOnlyChange(target_branch) &&
                     prRepos(distro) == '') ||
                    quickFunctional()
-
 }
 
 boolean call(Map config = [:]) {
@@ -290,25 +370,29 @@ boolean call(Map config = [:]) {
                     docOnlyChange(target_branch) ||
                     skip_build_on_el_gcc(target_branch, '8') ||
                     skip_stage_pragma('unit-tests')
-        case "NLT":
-        case "NLT on CentOS 8":
-        case "NLT on EL 8":
-            return skip_stage_pragma('nlt')
-        case "Unit Test Bullseye":
-        case "Unit Test Bullseye on CentOS 8":
-        case "Unit Test Bullseye on EL 8":
-            return skip_stage_pragma('bullseye', 'true')
-        case "Unit Test with memcheck on CentOS 8":
-        case "Unit Test with memcheck on EL 8":
-        case "Unit Test with memcheck":
-            return ! paramsValue('CI_UNIT_TEST_MEMCHECK', true) ||
-                   skip_stage_pragma('unit-test-memcheck')
-        case "Unit Test":
-        case "Unit Test on CentOS 8":
-        case "Unit Test on EL 8":
-            return ! paramsValue('CI_UNIT_TEST', true) ||
+        case 'NLT':
+        case 'NLT on CentOS 8':
+        case 'NLT on EL 8':
+            return skip_stage_pragma('nlt') ||
+                   already_passed()
+        case 'Unit Test Bullseye':
+        case 'Unit Test Bullseye on CentOS 8':
+        case 'Unit Test Bullseye on EL 8':
+            return skip_stage_pragma('bullseye', 'true') ||
+                   already_passed()
+        case 'Unit Test with memcheck on CentOS 8':
+        case 'Unit Test with memcheck on EL 8':
+        case 'Unit Test with memcheck':
+            return !paramsValue('CI_UNIT_TEST_MEMCHECK', true) ||
+                   skip_stage_pragma('unit-test-memcheck') ||
+                   already_passed()
+        case 'Unit Test':
+        case 'Unit Test on CentOS 8':
+        case 'Unit Test on EL 8':
+            return !paramsValue('CI_UNIT_TEST', true) ||
                    skip_stage_pragma('unit-test') ||
-                   skip_stage_pragma('run_test')
+                   skip_stage_pragma('run_test') ||
+                   already_passed()
         case "Test":
             return env.NO_CI_TESTING == 'true' ||
                    (skip_stage_pragma('build') &&
@@ -323,7 +407,8 @@ boolean call(Map config = [:]) {
                    skip_if_unstable()
         case "Test on CentOS 7 [in] Vagrant":
             return skip_stage_pragma('vagrant-test', 'true') &&
-                   ! env.BRANCH_NAME.startsWith('weekly-testing')
+                   ! env.BRANCH_NAME.startsWith('weekly-testing') ||
+                   already_passed()
         case "Coverity on CentOS 7":
         case "Coverity on CentOS 8":
         case "Coverity on EL 8":
@@ -356,7 +441,8 @@ boolean call(Map config = [:]) {
                    quickFunctional() ||
                    docOnlyChange(target_branch) ||
                    skip_stage_pragma('func-test') ||
-                   skip_stage_pragma('func-test-vm')
+                   skip_stage_pragma('func-test-vm') ||
+                   already_passed()
         case "Test CentOS 7 RPMs":
             return ! paramsValue('CI_RPMS_el7_TEST', true) ||
                    target_branch == 'weekly-testing' ||
@@ -366,7 +452,8 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('test-centos-7-rpms') ||
                    docOnlyChange(target_branch) ||
                    (quickFunctional() &&
-                    ! run_default_skipped_stage('test-centos-7-rpms'))
+                    ! run_default_skipped_stage('test-centos-7-rpms')) ||
+                   already_passed()
         case "Test CentOS 8.3.2011 RPMs":
             return ! paramsValue('CI_RPMS_centos8.3.2011_TEST', true) ||
                    target_branch == 'weekly-testing' ||
@@ -375,7 +462,8 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('test-centos-8.3-rpms') ||
                    docOnlyChange(target_branch) ||
                    (quickFunctional() &&
-                    ! run_default_skipped_stage('test-centos-8.3-rpms'))
+                    ! run_default_skipped_stage('test-centos-8.3-rpms')) ||
+                   already_passed()
         case "Test CentOS 8.4.2105 RPMs":
         case "Test EL 8.4 RPMs":
             return ! paramsValue('CI_RPMS_el8.4.2105_TEST', true) ||
@@ -385,13 +473,15 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('test-el-8.4-rpms') ||
                    docOnlyChange(target_branch) ||
                    (quickFunctional() &&
-                    ! run_default_skipped_stage('test-el-8.4-rpms'))
+                    ! run_default_skipped_stage('test-el-8.4-rpms')) ||
+                   already_passed()
         case "Test Leap 15 RPMs":
         case "Test Leap 15.2 RPMs":
             // Skip by default as it doesn't pass with Leap15.3 due to
             // requiring a newer glibc
             return ! paramsValue('CI_RPMS_leap15_TEST', true) ||
-                   skip_stage_pragma('test-leap-15-rpms', 'true')
+                   skip_stage_pragma('test-leap-15-rpms', 'true') ||
+                   already_passed()
         case "Scan CentOS 7 RPMs":
             return skip_scan_rpms('centos-7', target_branch)
         case "Scan CentOS 8 RPMs":

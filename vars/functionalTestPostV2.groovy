@@ -23,7 +23,8 @@ def call(Map config = [:]) {
                    script: always_script,
                    returnStatus: true
 
-    String artifacts = config.get('artifacts', env.STAGE_NAME + '/**')
+    String artifacts = stageStatusFilename() + ',' +
+           config.get('artifacts', env.STAGE_NAME + '/**')
     archiveArtifacts artifacts: artifacts
 
     String junit_results = config.get('testResults',
