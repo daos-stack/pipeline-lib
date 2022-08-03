@@ -96,8 +96,8 @@ def call(Map config = [:]) {
       distro_type = 'ubuntu'
   }
 
-  String inst_rpms = config.get('inst_rpms', '')
-  String inst_repos = config.get('inst_repos','')
+  String inst_rpms = config.get('inst_rpms', '').replaceAll("[\r\n]+", "")
+  String inst_repos = config.get('inst_repos','').replaceAll("[\r\n]+", "")
 
   List gpg_key_urls = []
   if (env.DAOS_STACK_REPO_SUPPORT != null) {
