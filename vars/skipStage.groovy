@@ -223,7 +223,8 @@ boolean call(Map config = [:]) {
             return docOnlyChange(target_branch) ||
                    target_branch == 'weekly-testing' ||
                    rpmTestVersion() != '' ||
-                   quickBuild()
+                   quickBuild() ||
+                   startedByTimer()
         case "checkpatch":
             return skip_stage_pragma('checkpatch')
         case "Python Bandit check":
@@ -241,6 +242,7 @@ boolean call(Map config = [:]) {
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
                     prRepos('centos7').contains('daos@') ||
+                   startedByTimer() ||
                    skip_stage_pragma('build-centos7-rpm')
         case "Build RPM on EL 8":
         case "Build RPM on CentOS 8":
@@ -248,6 +250,7 @@ boolean call(Map config = [:]) {
                    (docOnlyChange(target_branch) &&
                     prRepos('el8') == '') ||
                    prRepos('el8').contains('daos@') ||
+                   startedByTimer() ||
                    skip_stage_pragma('build-el8-rpm')
         case "Build RPM on Leap 15":
             return paramsValue('CI_RPM_leap15_NOBUILD', false) ||
@@ -255,6 +258,7 @@ boolean call(Map config = [:]) {
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
                    prRepos('leap15').contains('daos@') ||
+                   startedByTimer() ||
                    skip_stage_pragma('build-leap15-rpm')
         case "Build DEB on Ubuntu 20.04":
             return paramsValue('CI_RPM_ubuntu20_NOBUILD', false) ||
@@ -262,6 +266,7 @@ boolean call(Map config = [:]) {
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
                    prRepos('ubuntu20').contains('daos@') ||
+                   startedByTimer() ||
                    skip_stage_pragma('build-ubuntu20-rpm')
         case "Build on CentOS 8":
         case "Build on EL 8":

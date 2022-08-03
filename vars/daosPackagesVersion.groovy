@@ -58,8 +58,10 @@ String call(String distro, String next_version) {
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
 
     if (target_branch.startsWith("weekly-testing") ||
-        target_branch.startsWith("provider-testing")) {
-        // weekly-test just wants the latest for the branch
+        target_branch.startsWith("provider-testing") ||
+        startedByTimer()) {
+        // weekly-test, provider-testing and timed builds just wants the latest
+        // for the branch
         if (rpm_version_cache != "" && rpm_version_cache != "locked") {
             return rpm_version_cache + rpm_dist(distro)
         }
