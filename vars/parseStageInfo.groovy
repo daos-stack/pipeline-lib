@@ -215,6 +215,10 @@ def call(Map config = [:]) {
         result['node_count'] = 5
         cluster_size = 'hw,medium'
         result['pragma_suffix'] = '-hw-medium'
+      } else if (stage_name.contains('Xlarge')) {
+        result['node_count'] = 24
+        cluster_size = 'hw,xlarge'
+        result['pragma_suffix'] = '-hw-xlarge'
       }
     }
     if (stage_name.contains('with Valgrind')) {
