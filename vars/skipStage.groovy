@@ -399,13 +399,9 @@ boolean call(Map config = [:]) {
                    (skip_stage_pragma('build') &&
                     rpmTestVersion() == '') ||
                    skip_stage_pragma('test') ||
-                   (env.BRANCH_NAME.startsWith('weekly-testing') &&
-                    ! startedByTimer() &&
-                    ! startedByUser()) ||
-                   (env.BRANCH_NAME.startsWith('provider-testing') &&
-                    ! startedByTimer() &&
-                    ! startedByUser()) ||
-                   (env.BRANCH_NAME.startsWith('soak-testing') &&
+                   ((env.BRANCH_NAME.startsWith('weekly-testing') ||
+                    env.BRANCH_NAME.startsWith('provider-testing') ||
+                    env.BRANCH_NAME.startsWith('soak-testing')) &&
                     ! startedByTimer() &&
                     ! startedByUser()) ||
                    skip_if_unstable()
@@ -500,13 +496,9 @@ boolean call(Map config = [:]) {
                    (skip_stage_pragma('build') &&
                     rpmTestVersion() == '') ||
                    skip_stage_pragma('test') ||
-                   (env.BRANCH_NAME.startsWith('weekly-testing') &&
-                    ! startedByTimer() &&
-                    ! startedByUser()) ||
-                   (env.BRANCH_NAME.startsWith('provider-testing') &&
-                    ! startedByTimer() &&
-                    ! startedByUser()) ||
-                   (env.BRANCH_NAME.startsWith('soak-testing') &&
+                   ((env.BRANCH_NAME.startsWith('weekly-testing') ||
+                    env.BRANCH_NAME.startsWith('provider-testing') ||
+                    env.BRANCH_NAME.startsWith('soak-testing')) &&
                     ! startedByTimer() &&
                     ! startedByUser()) ||
                    skip_if_unstable()
