@@ -1,3 +1,4 @@
+/* groovylint-disable VariableName */
 // vars/unitPackages.groovy
 
 /**

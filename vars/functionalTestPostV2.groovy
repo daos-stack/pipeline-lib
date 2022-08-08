@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral, VariableName */
 // vars/functionalTestPostV2.groovy
 
   /**
@@ -15,17 +16,15 @@
    *                               Default env.STAGE_NAME subdirectories
    */
 
-def call(Map config = [:]) {
+void call(Map config = [:]) {
 
     String always_script = config.get('always_script',
                                       'ci/functional/job_cleanup.sh')
-    String rc = sh label: "Job Cleanup",
-                   script: always_script,
-                   returnStatus: true
+    sh(label: 'Job Cleanup', script: always_script, returnStatus: true)
 
     String artifacts = stageStatusFilename() + ',' +
            config.get('artifacts', env.STAGE_NAME + '/**')
-    archiveArtifacts artifacts: artifacts
+    archiveArtifacts(artifacts: artifacts)
 
     String junit_results = config.get('testResults',
                                       env.STAGE_NAME + '/*/*/results.xml, ' +
@@ -34,6 +33,18 @@ def call(Map config = [:]) {
                                       env.STAGE_NAME + '/*/*/test-results/*/data/*_results.xml, ' +
                                       env.STAGE_NAME + '/*/*/*/test-results/*/data/*_results.xml')
 
-    junit testResults: junit_results
+    junit(testResults: junit_results)
 
+    sh(label: 'Install Launchable',
+       script: 'pip3 install --user --upgrade launchable~=1.0')
+
+    withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
+        sh(label: 'Submit test results to Launchable',
+           /* groovylint-disable-next-line GStringExpressionWithinString */
+           script: 'if ls -l "' + env.STAGE_NAME + '''"/*/*/xunit1_results.xml 2>/dev/null; then
+                        export PATH=$PATH:$HOME/.local/bin
+                        launchable record tests --build ${BUILD_TAG//%2F/-} pytest ''' +
+                                   '"' + env.STAGE_NAME + '''"/*/*/xunit1_results.xml
+                    fi''')
+    }
 }

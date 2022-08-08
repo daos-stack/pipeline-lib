@@ -47,6 +47,8 @@ if ! retry_cmd 2400 clush -B -S -l root -w "$NODESTRING" \
            COMMIT_MESSAGE=\"${COMMIT_MESSAGE-}\"
            REPO_FILE_URL=\"$REPO_FILE_URL\"
            ARTIFACTORY_URL=\"${ARTIFACTORY_URL:-}\"
+           CI_RPM_TEST_VERSION=\"${CI_RPM_TEST_VERSION:-}\"
+           CI_PR_REPOS=\"${CI_PR_REPOS:-}\"
            BRANCH_NAME=\"${BRANCH_NAME:-}\"
            CHANGE_TARGET=\"${CHANGE_TARGET:-}\"
            $(cat ci/stacktrace.sh)
