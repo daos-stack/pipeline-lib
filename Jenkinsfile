@@ -451,8 +451,7 @@ pipeline {
                                                 sed -i -e '/^\\/\\/@Library/s/^\\/\\///' """ +
                                                       "-e '/^@Library/s/-lib@.*/-lib@" +
                                                     env.CHANGE_BRANCH.replaceAll('\\/', '\\\\/') +
-                                                    "\") _/' Jenkinsfile" +
-                                                '''head -70 Jenkinsfile
+                                                    "\") _/' Jenkinsfile" + '''
                                                 if [ -n "$(git status -s)" ]; then
                                                     git commit -m 'Update pipeline-lib branch to self' Jenkinsfile
                                                 fi
