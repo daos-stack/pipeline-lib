@@ -102,7 +102,7 @@ pipeline {
                     steps {
                         runTest script: '''set -ex
                                            rm -f *.xml
-                                           echo "<errorDetails bla bla bla/>" > \
+                                           echo "<errorDetails>bla bla bla</errorDetails>" > \
                                              pipeline-test-error.xml''',
                             junit_files: "*.xml non-exist*.xml",
                             failure_artifacts: env.STAGE_NAME
