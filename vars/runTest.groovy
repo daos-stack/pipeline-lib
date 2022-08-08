@@ -131,12 +131,12 @@ def call(Map config = [:]) {
             if (filesList) {
                 String junit_xml = filesList.collect{"'" + it + "'"}.join(' ')
                 if (sh(label: 'Check junit xml files for errors',
-                       script: 'grep "<error.* " ' + junit_xml,
+                       script: 'grep -E "<error( |Details>|StackTrace>)" ' + junit_xml,
                        returnStatus: true) == 0) {
                     status = 'FAILURE'
                     println 'Found at least one error in the Junit files.'
                 } else if (sh(label: 'Check junit xml files for failures',
-                              script: 'grep -E "<error( |Details>|StackTrace>)" ' + junit_xml,
+                              script: 'grep "<failure " ' + junit_xml,
                               returnStatus: true) == 0) {
                     status = 'UNSTABLE'
                     println 'Found at least one failure in the junit files.'
