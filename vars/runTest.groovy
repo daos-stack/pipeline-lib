@@ -50,9 +50,9 @@ def call(Map config = [:]) {
     // github expectations at the same time to also include any Matrix
     // environment variables.
 
-    def context = config.get('context', 'test/' + env.STAGE_NAME)
-    def description = config.get('description', env.STAGE_NAME)
-    def flow_name = config.get('flow_name', env.STAGE_NAME)
+    String context = config.get('context', 'test/' + env.STAGE_NAME)
+    String description = config.get('description', env.STAGE_NAME)
+    String flow_name = config.get('flow_name', env.STAGE_NAME)
 
     dir('install') {
         deleteDir()
@@ -63,39 +63,39 @@ def call(Map config = [:]) {
         }
     }
 
-    def ignore_failure = false
+    boolean ignore_failure = false
     if (config['ignore_failure']) {
         ignore_failure = true
     }
 
     scmNotify description: description,
               context: context,
-              status: "PENDING"
+              status: 'PENDING'
 
     // We really shouldn't even get here if $NO_CI_TESTING is true as the
     // when{} block for the stage should skip it entirely.  But we'll leave
     // this for historical purposes
-    def script = '''skipped=false
-                    if [ "''' + env.NO_CI_TESTING + '''" == 'true' ]; then
-                        skipped=true
-                    fi
-                    if git show -s --format=%B | grep "^Skip-test: true"; then
-                        skipped=true
-                    fi
-                    if ${skipped}; then
-                        # cart
-                        testdir1="install/Linux/TESTING/testLogs"
-                        testdir2="${testdir1}_valgrind"
-                        # daos
-                        testdir3="src/tests/ftest/avocado/job-results"
-                        mkdir -p "${testdir1}"
-                        mkdir -p "${testdir2}"
-                        mkdir -p "${testdir3}"
-                        touch "${testdir1}/skipped_tests"
-                        touch "${testdir2}/skipped_tests"
-                        touch "${testdir3}/skipped_tests"
-                        exit 0
-                    fi\n''' + config['script']
+    String script = '''skipped=false
+                       if [ "''' + env.NO_CI_TESTING + '''" == 'true' ]; then
+                           skipped=true
+                       fi
+                       if git show -s --format=%B | grep "^Skip-test: true"; then
+                           skipped=true
+                       fi
+                       if ${skipped}; then
+                           # cart
+                           testdir1="install/Linux/TESTING/testLogs"
+                           testdir2="${testdir1}_valgrind"
+                           # daos
+                           testdir3="src/tests/ftest/avocado/job-results"
+                           mkdir -p "${testdir1}"
+                           mkdir -p "${testdir2}"
+                           mkdir -p "${testdir3}"
+                           touch "${testdir1}/skipped_tests"
+                           touch "${testdir2}/skipped_tests"
+                           touch "${testdir3}/skipped_tests"
+                           exit 0
+                       fi\n''' + config['script']
     if (config['failure_artifacts']) {
         script += '''\nset +x\necho -n "Test artifacts can be found at: "
                      echo "${JOB_URL%/job/*}/view/change-requests/job/$BRANCH_NAME/$BUILD_ID/artifact/''' +
@@ -108,7 +108,7 @@ def call(Map config = [:]) {
     rc = sh(script: script, label: flow_name, returnStatus: true)
 
     if (cb_result != currentBuild.result) {
-      println "The runTest script changed build result to " +
+      println 'The runTest script changed build result to ' +
               "${currentBuild.result}."
     }
 
@@ -117,14 +117,14 @@ def call(Map config = [:]) {
     // https://issues.jenkins-ci.org/browse/JENKINS-39203
     // Once that is fixed all of the below should be pushed up into the
     // Jenkinsfile post { stable/unstable/failure/etc. }
-    def status = "SUCCESS"
+    String status = 'SUCCESS'
     if (rc != 0) {
-        status = "FAILURE"
+        status = 'FAILURE'
     } else if (rc == 0) {
-        def test_failure = false
-        def test_error = false
+        boolean test_failure = false
+        boolean test_error = false
         if (config['junit_files']) {
-            def filesList = []
+            List filesList = []
             config['junit_files'].split().each {
                 filesList.addAll(findFiles(glob: it))
             }
@@ -133,17 +133,17 @@ def call(Map config = [:]) {
                 if (sh(label: 'Check junit xml files for errors',
                        script: 'grep "<error " ' + junit_xml,
                        returnStatus: true) == 0) {
-                    status = "FAILURE"
-                    println "Found at least one error in the Junit files."
+                    status = 'FAILURE'
+                    println 'Found at least one error in the Junit files.'
                 } else if (sh(label: 'Check junit xml files for failures',
                               script: 'grep "<failure " ' + junit_xml,
                               returnStatus: true) == 0) {
-                    status = "UNSTABLE"
-                    println "Found at least one failure in the junit files."
+                    status = 'UNSTABLE'
+                    println 'Found at least one failure in the junit files.'
                 }
-                if (junit_xml.indexOf("pipeline-test-failure.xml") > -1) {
+                if (junit_xml.indexOf('pipeline-test-failure.xml') > -1) {
                     test_failure = true
-                } else if (junit_xml.indexOf("pipeline-test-error.xml") > -1) {
+                } else if (junit_xml.indexOf('pipeline-test-error.xml') > -1) {
                     test_error = true
                 }
             }
@@ -152,17 +152,17 @@ def call(Map config = [:]) {
         if (test_failure || test_error) {
             def expected_status
             if (test_failure) {
-                expected_status = "UNSTABLE"
+                expected_status = 'UNSTABLE'
             } else if (test_error) {
-                expected_status = "FAILURE"
+                expected_status = 'FAILURE'
             }
             if (status == expected_status) {
                 echo "Expected status ${status} found"
-                status = "SUCCESS"
+                status = 'SUCCESS'
             } else {
                 // and fail the step if it's not
                 echo "Expected status ${expected_status} not found.  status == ${status}"
-                status = "UNSTABLE"
+                status = 'UNSTABLE'
             }
         }
     }
@@ -178,10 +178,10 @@ def call(Map config = [:]) {
         if (ignore_failure) {
             catchError(stageResult: 'UNSTABLE',
                        buildResult: 'SUCCESS') {
-                error(env.STAGE_NAME + " failed: " + rc)
+                error(env.STAGE_NAME + ' failed: ' + rc)
             }
 	    } else {
-	        error(env.STAGE_NAME + " failed: " + rc)
+	        error(env.STAGE_NAME + ' failed: ' + rc)
 	    }
     }
 
