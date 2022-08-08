@@ -15,6 +15,11 @@ distro_custom() {
     dnf -y install python3-avocado{,-plugins-{output-html,varianter-yaml-to-mux}} \
                    clustershell
 
+    # for Launchable's pip install
+    dnf -y install python3-setuptools.noarch
+
+    #find /localhome/lcl_builder/.local/lib/python3.6/site-packages -type d
+
     # New Rocky images don't have debuginfo baked into them
     if ! dnf --enablerepo=\*-debuginfo repolist 2>/dev/null | grep -e -debuginfo; then
         if [ "$(lsb_release -s -i)" = "Rocky" ]; then
