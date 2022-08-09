@@ -48,14 +48,13 @@
 /* groovylint-disable-next-line CompileStatic, UnusedVariable */
 Map foo = [:]
 
+String test_branch(String target) {
+    return 'ci-' + JOB_NAME.replaceAll('/', '-') +
+            '-' + target.replaceAll('/', '-')
+}
+
 /* groovylint-disable-next-line MethodSize, ParameterName */
 void call(Map pipeline_args) {
-    // Map of targets to Dockerfiles for the matrix
-    Map dockerfile_map = ['centos7': 'Dockerfile.mockbuild',
-                          'el8': 'Dockerfile.mockbuild',
-                          'leap15': 'Dockerfile.mockbuild',
-                          'ubuntu20.04': 'Dockerfile.ubuntu.20.04']
-
     /* groovylint-disable-next-line CouldBeElvis */
     if (!pipeline_args) {
         /* groovylint-disable-next-line ParameterReassignment */
@@ -391,8 +390,8 @@ void call(Map pipeline_args) {
                             sh label: 'Build package',
                                script: '''rm -rf artifacts/el8/
                                           mkdir -p artifacts/el8/
-                                          make CHROOT_NAME="rocky+epel-8-x86_64" ''' +
-                                              'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + ' ' +
+                                           make CHROOT_NAME="rocky+epel-8-x86_64" ''' +
+                                               'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + ' ' +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
                         }
@@ -647,89 +646,126 @@ void call(Map pipeline_args) {
             stage('Test') {
                 when {
                     beforeAgent true
-                    expression { !skipStage() }
+                    expression {
+                        currentBuild.currentResult == 'SUCCESS' && !skipStage()
+                    }
                 }
                 matrix {
                     axes {
                         axis {
-                            name 'TARGET'
-                            values 'centos7',
-                                   'el8',
-                                   'leap15'
-                                   // 'ubuntu20.04' not quite ready for ubuntu yet  release/2.* branches fail to build
-                        }
-                        axis {
-                            name 'BRANCH'
+                            name 'TEST_BRANCH'
                             values 'master',
                                    'release/2.2',
                                    'release/2.0'
                         }
                     }
-                    when {
-                        beforeAgent true
-                        expression { distros.contains(env.TARGET) }
-                    }
-                    agent {
-                        dockerfile {
-                            filename 'packaging/' + dockerfile_map[env.TARGET]
-                            label 'docker_runner'
-                            args ' --cap-add=SYS_ADMIN' +
-                                 ' --privileged=true'
-                            additionalBuildArgs dockerBuildArgs()
-                        }
-                    }
                     stages {
-                        stage('Test build with DAOS') {
+                        stage('Test Packages') {
                             steps {
-                                sh label: env.STAGE_NAME,
-                                   script: '''rm -rf test_dir
-                                              mkdir test_dir
-                                              trap "popd; rm -rf test_dir" EXIT
-                                              pushd test_dir
-                                              git clone https://github.com/daos-stack/daos.git
-                                              cd daos
-                                              git checkout ''' + cachedCommitPragma('DAOS-test-branch-' + env.BRANCH,
-                                                                                    pipeline_args.get(
-                                                                                        'daos_test_branch-' +
-                                                                                        env.BRANCH,
-                                                        /* groovylint-disable-next-line GStringExpressionWithinString */
-                                                                                    'origin/' + env.BRANCH)) + '''
-                                              git submodule update --init
-                                              : "${DEBEMAIL:="$env.DAOS_EMAIL"}"
-                                              : "${DEBFULLNAME:="$env.DAOS_FULLNAME"}"
-                                              export DEBEMAIL
-                                              export DEBFULLNAME
-                                              if ! make PR_REPOS="''' +
-                                                   (prRepos(env.TARGET).contains('libfabric@') ? '' :
-                                                    env.JOB_NAME.split('/')[1] + '@' + env.BRANCH_NAME + ':' +
-                                                    env.BUILD_NUMBER + ' ') +
-                                                   pipeline_args.get('test_repos', '') +
-                                                   ' ' + pipeline_args.get('test_repos-' + env.TARGET, '') +
-                                                   ' ' + prRepos(env.TARGET) + '"' +
-                                                   ' CHROOT_NAME=' + getChrootName(env.TARGET) +
-                                                 ''' -C utils/rpms chrootbuild; then
-                                                # We need to allow failures from missing other packages
-                                                # we build for creating an initial set of packages
-                                                if [ -f /var/lib/mock/''' + getChrootName(env.TARGET) +
-                                                '''/result/root.log ]; then
-                                                    grep 'No matching package to install'               \
-                                                         /var/lib/mock/''' + getChrootName(env.TARGET) +
-                                                      '''/result/root.log
+                                // TODO: find out what the / escape is.  I've already tried both %2F and %252F
+                                //       https://issues.jenkins.io/browse/JENKINS-68857
+                                // Instead, we will create a branch specifically to test on
+                                withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                                credentialsId: 'daos_jenkins_project_github_access',
+                                                usernameVariable: 'GH_USER',
+                                                passwordVariable: 'GH_PASS']]) {
+                                    sh label: 'Create or update test branch',
+                                       script: 'branch_name=' + test_branch(env.TEST_BRANCH) + '''
+                                               source_branch=origin/''' +
+                                               cachedCommitPragma("Test-${env.TEST_BRANCH}-branch",
+                                                                  env.TEST_BRANCH) + '''
+                                                # dir for checkout since all runs in the matrix share the same workspace
+                                                dir="daos-''' + env.TEST_BRANCH.replaceAll('/', '-') + '''"
+                                                if cd $dir; then
+                                                    git remote update
+                                                    git fetch origin
+                                                else
+                                                    git clone https://''' + env.GH_USER + ':' +
+                                                                            env.GH_PASS +
+                                                                  '''@github.com/daos-stack/daos.git $dir
+                                                    cd $dir
+                                                fi
+                                                if git checkout $branch_name; then
+                                                    git rebase $source_branch
+                                                else
+                                                    if ! git checkout -b $branch_name $source_branch; then
+                                                        echo "Error trying to create branch $branch_name"
+                                                        exit 1
                                                     fi
+                                                    pipeline_libs="''' + cachedCommitPragma('Test-libs') + '''"
+                                                    if [ -n "$pipeline_libs" ]; then
+                                                        sed -i -e "/\\/\\/@Library/c\\
+                                                            @Library(value=$pipeline_libs) _" Jenkinsfile
+                                                        git commit -m 'Pipeline-lib PRs' Jenkinsfile
+                                                    else
+                                                        git commit --allow-empty -m 'Clear any commit pragmas' ''' +
+                                                        '''Jenkinsfile
+                                                    fi
+                                                fi
+                                                git push origin \$branch_name:\$branch_name
+                                                sleep 10'''
+                                } // withCredentials
+                                sh label: 'Delete local test branch',
+                                   script: '''dir="daos-''' + env.TEST_BRANCH.replaceAll('/', '-') + '''"
+                                              if ! cd $dir; then
+                                                  echo "$dir does not exist"
+                                                  exit 1
+                                              fi
+                                              git checkout origin/master
+                                              if ! git branch -D ''' + test_branch(env.TEST_BRANCH) + '''; then
+                                                  git status
+                                                  git branch -a
+                                                  exit 1
                                               fi'''
-                            }
+                                build job: 'daos-stack/daos/' + test_branch(env.TEST_BRANCH),
+                                      parameters: [string(name: 'TestTag',
+                                                          value: ('load_mpi test_core_files ' +
+                                                                   pipeline_args.get('test-tag', '')).trim()),
+                                                   string(name: 'CI_RPM_TEST_VERSION',
+                                                          value: daosLatestVersion(env.TEST_BRANCH)),
+                                                   string(name: 'BuildPriority', value: '2'),
+                                                   string(name: 'CI_PROVISIONING_POOL', value: 'default'),
+                                                   string(name: 'CI_BUILD_DESCRIPTION',
+                                                          value: 'Dependency Validation Build Test'),
+                                                   booleanParam(name: 'CI_FI_el8_TEST', value: false),
+                                                   booleanParam(name: 'CI_FUNCTIONAL_el7_TEST',
+                                                                value: 'centos7' in distros),
+                                                   booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
+                                                   booleanParam(name: 'CI_FUNCTIONAL_el8_TEST',
+                                                                value: 'el8' in distros),
+                                                   booleanParam(name: 'CI_FUNCTIONAL_leap15_TEST',
+                                                                value: 'leap15' in distros),
+                                                   booleanParam(name: 'CI_SCAN_RPMS_el7_TEST', value: false),
+                                                   booleanParam(name: 'CI_RPMS_el7_TEST',
+                                                                value: 'centos7' in distros),
+                                                   booleanParam(name: 'CI_small_TEST',
+                                                                value: 'el8' in distros),
+                                                   booleanParam(name: 'CI_medium_TEST', value: false),
+                                                   booleanParam(name: 'CI_large_TEST', value: false),
+                                                   string(name: 'CI_PR_REPOS',
+                                                          value: env.JOB_NAME.split('/')[1] + '@' +
+                                                                 "${env.BRANCH_NAME}:${env.BUILD_ID}"),
+                                                  ]
+                            } //steps
                             post {
-                                always {
-                                    sh label: 'Build Log',
-                                       script: 'cat /var/lib/mock/' + getChrootName(env.TARGET) +
-                                               '/result/{root,build}.log'
-                                }
-                                cleanup {
-                                    archiveArtifacts artifacts: 'test_artifacts/**',
-                                                                allowEmptyArchive: true
-                                }
-                            }
-                        } // stage "Test build with DAOS on $TARGET"
+                                success {
+                                    withCredentials([[$class: 'UsernamePasswordMultiBinding',
+                                                    credentialsId: 'daos_jenkins_project_github_access',
+                                                    usernameVariable: 'GH_USER',
+                                                    passwordVariable: 'GH_PASS']]) {
+                                        sh label: 'Delete test branch',
+                                           script: 'if ! git push https://$GH_USER:$GH_PASS@github.com/daos-stack/' +
+                                                      'daos.git --delete ' + test_branch(env.TEST_BRANCH) + '''; then
+                                                        echo "Error trying to delete branch ''' +
+                                                        test_branch(env.TEST_BRANCH) + '''"
+                                                        git remote -v
+                                                        env
+                                                        exit 1
+                                                    fi'''
+                                    } // withCredentials
+                                } // success
+                            } // post
+                        } // stage('Test Packages')
                     } // stages
                 } // matrix
             } // stage('Test')

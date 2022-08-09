@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral, NestedBlockDepth, VariableName */
 // vars/parseStageInfo.groovy
 
 /**
@@ -49,14 +50,14 @@ String get_commit_pragma_tags(String pragma_suffix) {
 
   // Use the tags defined by the stage-specific 'Test-tag-<stage>:' commit message pragma.  If those
   // are not specified use the tags defined by the general 'Test-tag:' commit message pragma.
-  pragma_tag = commitPragma("Test-tag" + pragma_suffix, commitPragma("Test-tag", null))
+  pragma_tag = commitPragma('Test-tag' + pragma_suffix, commitPragma('Test-tag', null))
   if (pragma_tag) {
     return pragma_tag
   }
 
   // If neither of the 'Test-tag*:' commit message pragmas are specified, use the 'Features:'
   // commit message pragma to define the tags to use.
-  String features = commitPragma("Features", null)
+  String features = commitPragma('Features', null)
   if (features) {
     // Features extend the standard pr testing tags to include tests run in daily or weekly builds
     // that test the specified feature.
@@ -69,8 +70,8 @@ String get_commit_pragma_tags(String pragma_suffix) {
   return pragma_tag
 }
 
-def call(Map config = [:]) {
-
+/* groovylint-disable-next-line MethodSize */
+void call(Map config = [:]) {
   Map result = [:]
   String stage_name = ''
   if (env.STAGE_NAME) {
@@ -229,7 +230,7 @@ def call(Map config = [:]) {
 
     // Determine which tests tags to use
     String tag
-    if (startedByUser()) {
+    if (startedByUser() || startedByUpstream()) {
       // Test tags defined by the build parameters override all other tags
       tag = get_build_params_tags()
     }
@@ -238,9 +239,9 @@ def call(Map config = [:]) {
       tag = config['test_tag']
       if (!tag) {
         // Otherwise use the default timed build tags
-        tag = "pr daily_regression"
-        if (env.BRANCH_NAME.startsWith("weekly-testing")) {
-          tag = "full_regression"
+        tag = 'pr daily_regression'
+        if (env.BRANCH_NAME.startsWith('weekly-testing')) {
+          tag = 'full_regression'
         }
       }
     } else if (!tag) {
@@ -249,9 +250,10 @@ def call(Map config = [:]) {
       if (!tag) {
         // Followed by stage defined tags
         tag = config['test_tag']
+        /* groovylint-disable-next-line CouldBeElvis */
         if (!tag) {
           // Otherwise use the default PR tag
-          tag = "pr"
+          tag = 'pr'
         }
       }
     }

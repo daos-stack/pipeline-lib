@@ -1,3 +1,4 @@
+/* groovylint-disable ParameterName, VariableName */
 // vars/functionalPackages.groovy
 
 /**
@@ -9,6 +10,14 @@
 /**
  * Method to return the list of packages to install for functional testing
  */
+
+String call(Integer client_ver, BigDecimal next_version) {
+    return functionalPackages(client_ver, next_version.toString(), null)
+}
+
+String call(Integer client_ver, BigDecimal next_version, String add_daos_pkgs) {
+    return functionalPackages(client_ver, next_version.toString(), add_daos_pkgs)
+}
 
 String call(Integer client_ver, String next_version) {
     return functionalPackages(client_ver, next_version, null)
@@ -23,10 +32,10 @@ String call(String distro, Integer client_ver, String next_version) {
 }
 
 String call(String distro, Integer client_ver, String next_version, String add_daos_pkgs) {
-    String daos_pkgs = getDAOSPackages(distro, next_version, add_daos_pkgs)
+    String daos_pkgs = getDAOSPackages(distro, next_version.toString(), add_daos_pkgs)
     if (!fileExists('ci/functional/required_packages.sh')) {
         echo "ci/functional/required_packages.sh doesn't exist.  " +
-             "Hopefully the daos-tests package has the dependencies configured."
+             'Hopefully the daos-tests package has the dependencies configured.'
         return
     }
 
@@ -41,5 +50,8 @@ String call(String distro, Integer client_ver, String next_version, String add_d
         distro.startsWith('rhel8') || distro.startsWith('ubuntu20')) {
         return daos_pkgs + ' ' + pkgs
     }
+
     error 'functionalPackages not implemented for ' + distro
+
+    return ""
 }

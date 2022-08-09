@@ -176,8 +176,13 @@ pr_repos() {
 }
 
 rpm_test_version() {
+    if [ -n "$CI_RPM_TEST_VERSION" ]; then
+        echo "$CI_RPM_TEST_VERSION"
+        return 0
+    fi
+
     echo "$COMMIT_MESSAGE" |
-             sed -ne '/^RPM-test-version: */s/^[^:]*: *//Ip' 
+             sed -ne '/^RPM-test-version: */s/^[^:]*: *//Ip'
     return 0
 
 }
@@ -191,10 +196,11 @@ set_local_repo() {
     local version
     version="$(lsb_release -sr)"
     version=${version%%.*}
-    if [ "$repo_server" = "artifactory" ] && [ -z "$(rpm_test_version)" ] &&
-       { [[ ${CHANGE_TARGET:-$BRANCH_NAME} != weekly-testing* ]] ||
-         [[ ${CHANGE_TARGET:-$BRANCH_NAME} != provider-testing* ]] ||
-         [[ ${CHANGE_TARGET:-$BRANCH_NAME} != soak-testing* ]]; }; then
+    if [ "$repo_server" = "artifactory" ] &&
+       [ -z "$(rpm_test_version)" ] &&
+       [[ ${CHANGE_TARGET:-$BRANCH_NAME} != weekly-testing* ]] &&
+       [[ ${CHANGE_TARGET:-$BRANCH_NAME} != provider-testing* ]] &&
+       [[ ${CHANGE_TARGET:-$BRANCH_NAME} != soak-testing* ]]; then
         # Disable the daos repo so that the Jenkins job repo or a PR-repos*: repo is
         # used for daos packages
         dnf -y config-manager \
