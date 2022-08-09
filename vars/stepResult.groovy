@@ -150,7 +150,7 @@ def call(Map config= [:]) {
   }
   param['status'] = result
 
-  writeFile(file: stageStatusFilename(), text: result)
+  writeFile(file: stageStatusFilename(), text: config['result'])
 
   scmNotify param
 }

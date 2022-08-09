@@ -13,19 +13,17 @@
 
 // Determine if this is a restarted job and if it succeeded on the
 // previous run.
-boolean already_passed() {
+boolean already_passed(String stage_name = env.STAGE_NAME, String postfix='') {
     // Lookup to see if restarted
-    String restart_cause = 'org.jenkinsci.plugins.pipeline.modeldefinition.' +
-                   'causes.RestartDeclarativePipelineCause'
-
-    def restarted = currentBuild.getBuildCauses().any { cause ->
-        cause._class == restart_cause }
-    if (!restarted) {
+    /* groovylint-disable-next-line UnnecessaryGetter */
+    if (!currentBuild.getBuildCauses().any { cause ->
+        cause._class == 'org.jenkinsci.plugins.pipeline.modeldefinition.' +
+                        'causes.RestartDeclarativePipelineCause' }) {
         return false
     }
 
     // Make sure a previous check has been removed.
-    String status_file = stageStatusFilename()
+    String status_file = stageStatusFilename(stage_name, postfix)
     if (fileExists(status_file)) {
         fileOperations([fileDeleteOperation(includes: status_file)])
     }
@@ -40,11 +38,11 @@ boolean already_passed() {
                       filter: status_file,
                       selector: specific(old_build)
         try {
-            String stage_status = readFile(file: status_file)
+            String stage_status = readFile(file: status_file).trim()
             if (stage_status == 'SUCCESS') {
                 return true
             }
-            println("Previous run this stage ended with status " +
+            println('Previous run this stage ended with status ' +
                     "'${stage_status}', so re-running")
 
         } catch (java.nio.file.NoSuchFileException e) {
@@ -220,12 +218,17 @@ boolean call(Map config = [:]) {
         return skip_stage_pragma(config['stage'], config['def_val'])
     }
 
+    if (already_passed(config['stage_name'] ?: env.STAGE_NAME,
+                       config['axes'] ?: '')) {
+        return true
+    }
+
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
 
     switch (env.STAGE_NAME) {
         case 'Cancel Previous Builds':
             return cachedCommitPragma('Cancel-prev-build') == 'false' ||
-                   !is_pr()
+                   (!is_pr() && !startedByUpstream())
         case 'Pre-build':
             return docOnlyChange(target_branch) ||
                    target_branch == 'weekly-testing' ||

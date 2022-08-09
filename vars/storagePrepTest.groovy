@@ -68,9 +68,9 @@ def call(Map config = [:]) {
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: config.get('inst_rpms', '')
 
-  Map params = [:]
-  params['context'] = context
-  params['description'] = description
+    Map p = [:]
+    p['context'] = context
+    p['description'] = description
 
   if (!fileExists('ci/storage/test_main.sh')) {
     println("No storage Prep script found!")

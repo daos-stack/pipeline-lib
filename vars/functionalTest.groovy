@@ -84,15 +84,15 @@ void call(Map config = [:]) {
     stashes.add("${target_compiler}-build-vars")
   }
 
-  Map params = [:]
-  params['stashes'] = stashes
-  params['test_rpms'] = config.get('test_rpms', env.TEST_RPMS)
-  params['pragma_suffix'] = stage_info['pragma_suffix']
-  params['test_tag'] =  config.get('test_tag', stage_info['test_tag'])
-  params['node_count'] = stage_info['node_count']
-  params['ftest_arg'] = stage_info['ftest_arg']
-  params['context'] = context
-  params['description'] = description
+    Map p = [:]
+    p['stashes'] = stashes
+    p['test_rpms'] = config.get('test_rpms', env.TEST_RPMS)
+    p['pragma_suffix'] = stage_info['pragma_suffix']
+    p['test_tag'] =  config.get('test_tag', stage_info['test_tag'])
+    p['node_count'] = stage_info['node_count']
+    p['ftest_arg'] = stage_info['ftest_arg']
+    p['context'] = context
+    p['description'] = description
 
   sh label: 'Install Launchable',
      script: '''# can't use --upgrade with pip3 because it tries to upgrade everything
@@ -116,8 +116,8 @@ void call(Map config = [:]) {
 
   if (config.get('test_function', 'runTestFunctional') ==
       'runTestFunctionalV2') {
-    runTestFunctionalV2 params
+        runTestFunctionalV2 p
   } else {
-    runTestFunctional params
-  }
+        runTestFunctional p
+      }
 }

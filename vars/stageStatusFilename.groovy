@@ -1,10 +1,11 @@
+/* groovylint-disable ParameterName */
 // vars/stageStatusFilename.groovy
 
 import java.net.URLEncoder
 
 @NonCPS
-String urlEncode() {
-    return URLEncoder.encode(env.STAGE_NAME, 'UTF-8')
+String urlEncodedStageName(String stage_name=env.STAGE_NAME, String postfix='') {
+    return URLEncoder.encode(stage_name + (postfix == '' ? '' : '-') + postfix, 'UTF-8')
 }
 
   /**
@@ -21,10 +22,10 @@ String urlEncode() {
    * returns: String with Url Encoded pathname for the stage status.
    */
 
-String call(Map config= [:]) {
+String call(String stage_name=env.STAGE_NAME, String postfix='') {
     String directory = 'stage_status'
     if (!fileExists(directory)) {
         fileOperations([folderCreateOperation(directory)])
     }
-    return directory + '/' + urlEncode() + ".status"
+    return directory + '/' + urlEncodedStageName(stage_name, postfix) + '.status'
 }

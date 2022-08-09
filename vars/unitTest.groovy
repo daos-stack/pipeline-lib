@@ -112,25 +112,25 @@ def call(Map config = [:]) {
                 outputFile: 'bullseye.tar'
   }
 
-  Map params = [:]
-  params['stashes'] = stashes
-  params['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
-                     "NODELIST=${nodelist} " +
-                     "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
-                     test_script
-  params['junit_files'] = config.get('junit_files', 'test_results/*.xml')
-  params['context'] = config.get('context', 'test/' + env.STAGE_NAME)
-  params['description'] = config.get('description', env.STAGE_NAME)
-  params['ignore_failure'] = config.get('ignore_failure', false)
+    Map p = [:]
+    p['stashes'] = stashes
+    p['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
+                  "NODELIST=${nodelist} " +
+                  "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
+                  test_script
+    p['junit_files'] = config.get('junit_files', 'test_results/*.xml')
+    p['context'] = config.get('context', 'test/' + env.STAGE_NAME)
+    p['description'] = config.get('description', env.STAGE_NAME)
+    p['ignore_failure'] = config.get('ignore_failure', false)
 
   int time = config.get('timeout_time', 120) as int
   String unit = config.get('timeout_unit', 'MINUTES')
 
-  timeout(time: time, unit: unit) {
-    runTest params
-  }
-  if (stage_info['compiler'] == 'covc') {
-      stash name: config.get('coverage_stash', "${target_stash}-unit-cov"),
+    timeout(time: time, unit: unit) {
+        runTest p
+    }
+    if (stage_info['compiler'] == 'covc') {
+        stash name: config.get('coverage_stash', "${target_stash}-unit-cov"),
             includes: 'test.cov'
   }
 }

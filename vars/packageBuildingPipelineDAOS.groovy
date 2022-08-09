@@ -38,9 +38,9 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 // To test changes to this pipeline you need push changes to this file to
-// a PR and then to modify the
-//@Library(value="pipeline-lib@your_branch") _ line the Jenkinsfile for a
+// a PR and then to modify the line the Jenkinsfile for a
 //project to point to the above branch.  Then build and test as usual
+//@Library(value="pipeline-lib@your_branch") _
 
 /* It's really odd, but without this declaration here, some references
  * to pipeline_args are not resolved.

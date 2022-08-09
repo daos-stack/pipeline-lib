@@ -241,15 +241,20 @@ void call(Map config = [:]) {
         }
       }
     } else if (!tag) {
-      // Tags defined by commit pragmas have priority in user PRs
-      tag = get_commit_pragma_tags(result['pragma_suffix'])
-      if (!tag) {
-        // Followed by stage defined tags
-        tag = config['test_tag']
-        /* groovylint-disable-next-line CouldBeElvis */
+      if (env.BRANCH_NAME.startsWith('weekly-testing') ||
+          env.BRANCH_NAME.startsWith('provider-testing')) {
+        tag = 'always_passes'
+      } else {
+        // Tags defined by commit pragmas have priority in user PRs
+        tag = get_commit_pragma_tags(result['pragma_suffix'])
         if (!tag) {
-          // Otherwise use the default PR tag
-          tag = 'pr'
+          // Followed by stage defined tags
+          tag = config['test_tag']
+          /* groovylint-disable-next-line CouldBeElvis */
+          if (!tag) {
+            // Otherwise use the default PR tag
+            tag = 'pr'
+          }
         }
       }
     }
