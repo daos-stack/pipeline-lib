@@ -27,7 +27,7 @@ String test_branch(String target) {
 pipeline {
     agent { label 'lightweight' }
     libraries {
-      lib("pipeline-lib@${env.BRANCH_NAME}")
+        lib("pipeline-lib@${env.BRANCH_NAME}")
     }
 
     environment {

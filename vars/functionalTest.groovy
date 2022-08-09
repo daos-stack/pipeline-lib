@@ -52,37 +52,35 @@
    *
    * config['test_tag']          Avocado tag to test.
    *                             Default determined by parseStageInfo().
-   *
    */
 
 void call(Map config = [:]) {
+    String nodelist = config.get('NODELIST', env.NODELIST)
+    String context = config.get('context', 'test/' + env.STAGE_NAME)
+    String description = config.get('description', env.STAGE_NAME)
 
-  String nodelist = config.get('NODELIST', env.NODELIST)
-  String context = config.get('context', 'test/' + env.STAGE_NAME)
-  String description = config.get('description', env.STAGE_NAME)
- 
-  Map stage_info = parseStageInfo(config)
+    Map stage_info = parseStageInfo(config)
 
-  // Install any additional rpms required for this stage
-  String stage_inst_rpms = config.get('inst_rpms', '')
-  if (stage_info['stage_rpms']) {
-    stage_inst_rpms = stage_info['stage_rpms'] + ' ' + stage_inst_rpms
-  }
+    // Install any additional rpms required for this stage
+    String stage_inst_rpms = config.get('inst_rpms', '')
+    if (stage_info['stage_rpms']) {
+        stage_inst_rpms = stage_info['stage_rpms'] + ' ' + stage_inst_rpms
+    }
 
-  provisionNodes NODELIST: nodelist,
+    provisionNodes NODELIST: nodelist,
                  node_count: stage_info['node_count'],
                  distro: (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: stage_inst_rpms
 
-  List stashes = []
-  if (config['stashes']) {
-    stashes = config['stashes']
+    List stashes = []
+    if (config['stashes']) {
+        stashes = config['stashes']
   } else {
-    String target_compiler = "${stage_info['target']}-${stage_info['compiler']}"
-    stashes.add("${target_compiler}-install")
-    stashes.add("${target_compiler}-build-vars")
-  }
+        String target_compiler = "${stage_info['target']}-${stage_info['compiler']}"
+        stashes.add("${target_compiler}-install")
+        stashes.add("${target_compiler}-build-vars")
+    }
 
     Map p = [:]
     p['stashes'] = stashes
@@ -94,7 +92,7 @@ void call(Map config = [:]) {
     p['context'] = context
     p['description'] = description
 
-  sh label: 'Install Launchable',
+    sh label: 'Install Launchable',
      script: '''# can't use --upgrade with pip3 because it tries to upgrade everything
                 v=$(pip3 install --user launchable== 2>&1 | sed -ne '2s/.*, \\(.*\\))/\\1/p')
                 if ! pip3 install --user launchable==$v; then
@@ -107,14 +105,14 @@ void call(Map config = [:]) {
                 fi
                 pip3 list --user || true
                 '''
-  withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
-     sh label: 'Send build data',
+    withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
+        sh label: 'Send build data',
         /* groovylint-disable-next-line GStringExpressionWithinString */
         script: '''export PATH=$PATH:$HOME/.local/bin
                    launchable record build --name ${BUILD_TAG//%2F/-} --source src=.'''
-  }
+    }
 
-  if (config.get('test_function', 'runTestFunctional') ==
+    if (config.get('test_function', 'runTestFunctional') ==
       'runTestFunctionalV2') {
         runTestFunctionalV2 p
   } else {

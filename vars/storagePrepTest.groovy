@@ -1,3 +1,4 @@
+/* groovylint-disable VariableName */
 // vars/storagePrepTest.groovy
 
   /**
@@ -51,18 +52,16 @@
    *
    * config['test_tag']          Avocado tag to test. (Not currently used)
    *                             Default determined by parseStageInfo().
-   *
    */
 
-def call(Map config = [:]) {
+void call(Map config = [:]) {
+    String nodelist = config.get('NODELIST', env.NODELIST)
+    String context = config.get('context', 'test/' + env.STAGE_NAME)
+    String description = config.get('description', env.STAGE_NAME)
 
-  String nodelist = config.get('NODELIST', env.NODELIST)
-  String context = config.get('context', 'test/' + env.STAGE_NAME)
-  String description = config.get('description', env.STAGE_NAME)
- 
-  Map stage_info = parseStageInfo(config)
+    Map stage_info = parseStageInfo(config)
 
-  provisionNodes NODELIST: nodelist,
+    provisionNodes NODELIST: nodelist,
                  node_count: stage_info['node_count'],
                  distro: (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
                  inst_repos: config.get('inst_repos', ''),
@@ -72,21 +71,19 @@ def call(Map config = [:]) {
     p['context'] = context
     p['description'] = description
 
-  if (!fileExists('ci/storage/test_main.sh')) {
-    println("No storage Prep script found!")
-    return
-  }
+    if (!fileExists('ci/storage/test_main.sh')) {
+        println('No storage Prep script found!')
+        return
+    }
 
-  config['script'] = 'export NODE_COUNT="' + stage_info['node_count'] + '"\n ' +
+    config['script'] = 'export NODE_COUNT="' + stage_info['node_count'] + '"\n ' +
                      'export OPERATIONS_EMAIL="' +
                          env.OPERATIONS_EMAIL + '"\n ' +
                      'export DAOS_PKG_VERSION=' +
-                         daosPackagesVersion("1000") + '\n' +
+                         daosPackagesVersion('1000') + '\n' +
                      'ci/storage/test_main.sh'
-                                     
-  if (!config['failure_artifacts']) {
-    config['failure_artifacts'] = env.STAGE_NAME
-  }
 
-  runTest(config)
+    config['failure_artifacts'] = config['failure_artifacts'] ?: env.STAGE_NAME
+
+    runTest(config)
 }

@@ -1,8 +1,6 @@
 /* groovylint-disable ParameterName */
 // vars/stageStatusFilename.groovy
 
-import java.net.URLEncoder
-
 @NonCPS
 String urlEncodedStageName(String stage_name=env.STAGE_NAME, String postfix='') {
     return URLEncoder.encode(stage_name + (postfix == '' ? '' : '-') + postfix, 'UTF-8')

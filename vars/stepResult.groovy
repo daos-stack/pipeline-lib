@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral, VariableName */
 // vars/stepResult.groovy
 
 import com.intel.doGetHttpRequest
@@ -6,10 +7,10 @@ import com.intel.doGetHttpRequest
  * stepResult.groovy
  *
  * stepResult pipeline step
- *
  */
 
-def call(Map config= [:]) {
+/* groovylint-disable-next-line MethodSize */
+Void call(Map config= [:]) {
   /**
    * step reporting method.
    *
@@ -25,22 +26,22 @@ def call(Map config= [:]) {
    *                     assigned to the shell script.
    * config['junit_files'] The names of any available junit files.
    */
-  Map param =[:]
+  Map param = [:]
   param['description'] = config['name']
   if (config['context'].contains('/')) {
     // Allow migration to common context value for scmNotify and
     // stepResult
     param['context'] = config['context']
   } else {
-    param['context'] = config['context'] + "/" + config['name']
+    param['context'] = config['context'] + '/' + config['name']
   }
 
-  def flow_name = config.get('flow_name', env.STAGE_NAME)
+  String flow_name = config.get('flow_name', env.STAGE_NAME)
 
-  def log_url = null
+  String log_url = null
 
   if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
-    println "Jenkins not configured to notify github of builds."
+    println 'Jenkins not configured to notify github of builds.'
     return
   }
 
@@ -49,14 +50,14 @@ def call(Map config= [:]) {
               "/view/change-requests/job/${env.BRANCH_NAME}/" +
               "${env.BUILD_ID}/testReport/(root)/"
   } else {
-
-    def h = new com.intel.doGetHttpRequest()
+    def h = new doGetHttpRequest()
     resp = h.doGetHttpRequest(env.JOB_URL - ~/\/job\/[^\/]*\/$/ +
-           "/view/change-requests/job/" +
+           '/view/change-requests/job/' +
            env.BRANCH_NAME.replaceAll('/', '%252F') +
-           "/${env.BUILD_ID}/wfapi/describe");
+           "/${env.BUILD_ID}/wfapi/describe")
 
-    def job = readJSON text: resp
+    Map job = readJSON text: resp
+    /* groovylint-disable-next-line Instanceof */
     assert job instanceof Map
 
     def stage
@@ -69,7 +70,8 @@ def call(Map config= [:]) {
     resp = h.doGetHttpRequest("${env.JENKINS_URL}" +
            stage['_links']['self']['href'])
 
-    stage = readJSON text: resp
+    stage = readJSON(text: resp)
+    /* groovylint-disable-next-line Instanceof */
     assert stage instanceof Map
 
     def stageFlowNode = null
@@ -79,18 +81,19 @@ def call(Map config= [:]) {
         break
       }
     }
-    if (!stageFlowNode) {
-      echo "No step with label \"" + flow_name +
-           "\" could be found run for this stage."
-      config['result'] = "FAILURE"
-      config['ignore_failure'] = false
-    } else {
+    if (stageFlowNode) {
       resp = h.doGetHttpRequest("${env.JENKINS_URL}" +
              stageFlowNode['_links']['log']['href'])
-      log = readJSON text: resp
+      log = readJSON(text: resp)
+      /* groovylint-disable-next-line Instanceof */
       assert log instanceof Map
 
       log_url = "${env.JENKINS_URL}${log.consoleUrl}"
+    } else {
+      echo 'No step with label "' + flow_name +
+           '" could be found run for this stage.'
+      config['result'] = 'FAILURE'
+      config['ignore_failure'] = false
     }
   }
 
@@ -98,22 +101,22 @@ def call(Map config= [:]) {
     currentBuild.result = config.get('result')
   }
 
-  if (config['result'] == "ABORTED" ||
-      config['result'] == "UNSTABLE" ||
-      config['result'] == "FAILURE") {
-    def comment_url = env.BUILD_URL + "display/redirect"
+  if (config['result'] == 'ABORTED' ||
+      config['result'] == 'UNSTABLE' ||
+      config['result'] == 'FAILURE') {
+    String comment_url = env.BUILD_URL + 'display/redirect'
 
     if (env.CHANGE_ID) {
       if (log_url) {
         comment_url = log_url
       }
 
-      def msg = "Test stage ${config.name}" +
-                " completed with status " +
+      String msg = "Test stage ${config.name}" +
+                ' completed with status ' +
                 "${config.result}" +
-                 ".  " + comment_url
+                 '.  ' + comment_url
 
-      if (commitPragma("Skip-PR-comments").toLowerCase() == "true") {
+      if (commitPragma('Skip-PR-comments').toLowerCase() == 'true') {
           emailext subject: "${JOB_NAME} ${config.name} stage ${config.result}",
                    recipientProviders: [[$class: 'RequesterRecipientProvider'],
                                         [$class: 'DevelopersRecipientProvider']],
@@ -123,26 +126,33 @@ def call(Map config= [:]) {
                          'Please accept my appologies and kindly forward this message to\n' +
                          'brian.murrell@intel.com for investigation.\n\n' +
                          'Thank-you.\n\n\n' +
+                         /* groovylint-disable-next-line GStringExpressionWithinString */
                          'BUILD_NUMBER=${BUILD_NUMBER}\n' +
+                         /* groovylint-disable-next-line GStringExpressionWithinString */
                          'BUILD_TAG=${BUILD_TAG}\n' +
+                         /* groovylint-disable-next-line GStringExpressionWithinString */
                          'BUILD_URL=${BUILD_URL}\n' +
+                         /* groovylint-disable-next-line GStringExpressionWithinString */
                          'CHANGE_AUTHOR=${CHANGE_AUTHOR}\n' +
+                         /* groovylint-disable-next-line GStringExpressionWithinString */
                          'CHANGE_BRANCH=${CHANGE_BRANCH}\n' +
+                         /* groovylint-disable-next-line GStringExpressionWithinString */
                          'CHANGE_ID=${CHANGE_ID}\n' +
+                         /* groovylint-disable-next-line GStringExpressionWithinString */
                          'CHANGE_TARGET=${CHANGE_TARGET}'
       } else {
           pullRequest.comment(msg)
       }
     }
-  }
+      }
 
-  def result = config['result']
-  switch(config['result']) {
-    case "UNSTABLE":
-      result = "FAILURE"
+  String result = config['result']
+  switch (config['result']) {
+    case 'UNSTABLE':
+      result = 'FAILURE'
       break
-    case "FAILURE":
-      result = "ERROR"
+    case 'FAILURE':
+      result = 'ERROR'
       break
   }
   if (log_url) {
@@ -153,4 +163,6 @@ def call(Map config= [:]) {
   writeFile(file: stageStatusFilename(), text: config['result'])
 
   scmNotify param
+
+  return
 }
