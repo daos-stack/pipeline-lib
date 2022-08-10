@@ -29,9 +29,14 @@ boolean call() {
                              exit 0
                          fi
                          if [ -x list_tests.py ]; then
-                             ./list_tests.py ''' + parseStageInfo()['test_tag'] + '''
+                             if ./list_tests.py ''' + parseStageInfo()['test_tag'] + '''; then
+                                 exit 0
+                             fi
                          else
-                             ./launch.py --list ''' + parseStageInfo()['test_tag'] + '''
-                         fi''',
+                             if ./launch.py --list ''' + parseStageInfo()['test_tag'] + '''; then
+                                 exit 0
+                             fi
+                         fi
+                         exit 1''',
               returnStatus: true) == 0
 }
