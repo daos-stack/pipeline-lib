@@ -37,6 +37,7 @@ boolean call() {
                                  exit 0
                              fi
                          fi
+                         trap '' ERR
                          exit 1''',
               returnStatus: true) == 0
 }

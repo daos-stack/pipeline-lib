@@ -537,6 +537,8 @@ boolean call(Map config = [:]) {
         case 'Bullseye Report on EL 8':
             return env.BULLSEYE == null ||
                    skip_stage_pragma('bullseye', 'true')
+        case 'DAOS Build and Test':
+            return skip_stage_pragma('daos-build-and-test')
         default:
             println("Don't know how to skip stage \"${env.STAGE_NAME}\", not skipping")
     }
