@@ -108,7 +108,7 @@ def call(Map config = [:]) {
     rc = sh(script: script, label: flow_name, returnStatus: true)
 
     if (cb_result != currentBuild.result) {
-      println 'The runTest script changed build result to ' +
+      println 'Some other stage changed the currentBuild result to ' +
               "${currentBuild.result}."
     }
 
@@ -118,15 +118,24 @@ def call(Map config = [:]) {
     // Once that is fixed all of the below should be pushed up into the
     // Jenkinsfile post { stable/unstable/failure/etc. }
     String status = 'SUCCESS'
+    println('rc == ${rc} from running test.')
     if (rc != 0) {
         status = 'FAILURE'
     } else if (rc == 0) {
+        println()
         boolean test_failure = false
         boolean test_error = false
+        String junit_results = ''
+        if (config['testResults']) {
+            junit_results += config['testResults']
+        }
         if (config['junit_files']) {
+            junit_results += config['junit_files']
+        }
+        if (junit_results) {
             List filesList = []
-            config['junit_files'].split().each {
-                filesList.addAll(findFiles(glob: it))
+            junit_results.split().each { junitfile ->
+                filesList.addAll(findFiles(glob: junitfile))
             }
             if (filesList) {
                 String junit_xml = filesList.collect{"'" + it + "'"}.join(' ')
@@ -171,7 +180,7 @@ def call(Map config = [:]) {
                context: context,
                flow_name: flow_name,
                result: status,
-               junit_files: config['junit_files'],
+               junit_files: junit_results,
                ignore_failure: ignore_failure
 
     if (status != 'SUCCESS') {
@@ -184,5 +193,4 @@ def call(Map config = [:]) {
 	        error(env.STAGE_NAME + ' failed: ' + rc)
 	    }
     }
-
 }

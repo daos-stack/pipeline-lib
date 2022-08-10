@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral, NestedBlockDepth, VariableName */
 // vars/cloverReportPublish.groovy
 
   /**
@@ -27,8 +28,7 @@
    * config['stash']               Stash name for the ".build-vars.*" files.
    */
 
-def call(Map config = [:]) {
-
+void call(Map config = [:]) {
   // If we don't have a BULLSEYE environment variable set
   // there are no Bullsye reports to process.
   if (!env.BULLSEYE) {
@@ -47,33 +47,37 @@ def call(Map config = [:]) {
               httpMode: 'GET',
               outputFile: 'bullshtml.jar'
 
-  def stashes = []
+  List stashes = []
   if (config['coverage_stashes']) {
     stashes = config['coverage_stashes']
   } else {
-    error "No coverage_stashes passed!"
+    error 'No coverage_stashes passed!'
   }
 
   String target_stash = "${stage_info['target']}-${stage_info['compiler']}"
   if (stage_info['build_type']) {
     target_stash += '-' + stage_info['build_type']
   }
-  
+
   unstash config.get('stash', "${target_stash}-build-vars")
 
-  int stash_cnt=0
-  stashes.each {
-    unstash it
-    stash_cnt++
-    String new_name = "test.cov_${stash_cnt}"
-    fileOperations([fileRenameOperation(source: 'test.cov',
-                                        destination: new_name)])
+  int stash_cnt = 0
+  stashes.each { name ->
+    unstash name
+    // The functional tests may or may not produce a test.cov
+    // depending on the run options.
+    if (fileExists('test.cov')) {
+      stash_cnt++
+      String new_name = "test.cov_${stash_cnt}"
+      fileOperations([fileRenameOperation(source: 'test.cov',
+                                          destination: new_name)])
+    }
   }
 
   sh label: 'Create Coverage Report',
      script: config.get('coverage_script', 'ci/bullseye_generate_report.sh')
 
-  def cb_result = currentBuild.result
+  String cb_result = currentBuild.result
   step([$class: 'CloverPublisher',
         cloverReportDir: 'test_coverage',
         cloverReportFileName: 'clover.xml',
@@ -83,7 +87,7 @@ def call(Map config = [:]) {
                                     statementCoverage: 80])])
 
   if (cb_result != currentBuild.result) {
-    println "The CloverPublisher plugin changed result to " +
+    println 'The CloverPublisher plugin changed result to ' +
             "${currentBuild.result}."
   }
 
@@ -94,5 +98,4 @@ def call(Map config = [:]) {
                  fi"""
   archiveArtifacts artifacts: coverage_website,
                    allowEmptyArchive: true
-
 }

@@ -1,10 +1,11 @@
+/* groovylint-disable DuplicateStringLiteral, NestedBlockDepth, VariableName
+   groovylint-disable CouldBeElvis */
 // vars/runTestFunctionalV2.groovy
 
 /**
  * runTestFunctionalV2.groovy
  *
  * runTestFunctionalV2 pipeline step
- *
  */
 
 void call(Map config = [:]) {
@@ -47,7 +48,7 @@ void call(Map config = [:]) {
     }
 
     Boolean test_rpms = false
-    if (config['test_rpms'] == "true") {
+    if (config['test_rpms'] == 'true') {
         test_rpms = true
     }
     config['script'] = 'TEST_TAG="' + config['test_tag'] + '" ' +
@@ -57,9 +58,10 @@ void call(Map config = [:]) {
                        'OPERATIONS_EMAIL="' + env.OPERATIONS_EMAIL + '" ' +
                        "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
                        'ci/functional/test_main.sh'
-                                     
-    config['junit_files'] = "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/*.xml " +
-                            "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/test-results/*/data/*_results.xml"
+
+    basedir = 'install/lib/daos/TESTING/ftest/avocado/job-results/'
+    config['junit_files'] = "${basedir}job-*/*.xml " +
+                            "${basedir}job-*/test-results/*/data/*_results.xml"
     if (!config['failure_artifacts']) {
         config['failure_artifacts'] = env.STAGE_NAME
     }
@@ -78,4 +80,13 @@ void call(Map config = [:]) {
 
     runTest(config)
 
+    String covfile = 'test.cov'
+    if (!fileExists('test.cov')) {
+        covfile += '_not_done'
+        fileOperations([fileCreateOperation(fileName: covfile,
+                                            fileContent: '')])
+    }
+    String name = 'func' + stage_info['pragma_suffix'] + '-cov'
+    stash name: config.get('coverage_stash', name),
+          includes: covfile
 }
