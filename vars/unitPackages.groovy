@@ -12,7 +12,6 @@
  */
 
 String call() {
-
     String script = 'ci/unit/required_packages.sh'
     if (!fileExists(script)) {
         echo "${script} doesn't exist.  " +
@@ -22,15 +21,16 @@ String call() {
 
     Map stage_info = parseStageInfo()
     String target = stage_info['target']
+    boolean quick_build = quickBuild() || (stage_info['compiler'] == 'covc')
 
     if (target.startsWith('centos') || target.startsWith('el')) {
-        if (quickBuild()) {
+        if (quick_build) {
             // the script run below will read from this file
             unstash target + '-required-mercury-rpm-version'
         }
 
         return sh(script: "${script} ${target} " +
-                          String.valueOf(quickBuild()),
+                          String.valueOf(quick_build),
                   returnStdout: true)
     }
     error 'unitPackages not implemented for ' + target

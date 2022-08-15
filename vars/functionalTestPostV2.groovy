@@ -17,7 +17,6 @@
    */
 
 void call(Map config = [:]) {
-
     String always_script = config.get('always_script',
                                       'ci/functional/job_cleanup.sh')
     sh(label: 'Job Cleanup', script: always_script, returnStatus: true)
@@ -34,6 +33,9 @@ void call(Map config = [:]) {
                                       env.STAGE_NAME + '/*/*/*/test-results/*/data/*_results.xml')
 
     junit(testResults: junit_results)
+
+    // Save these temporarily
+    archiveArtifacts(artifacts: junit_results)
 
     sh(label: 'Install Launchable',
        script: 'pip3 install --user --upgrade launchable~=1.0')

@@ -141,6 +141,7 @@ def call(Map config = [:]) {
             }
             if (filesList) {
                 String junit_xml = filesList.collect{"'" + it + "'"}.join(' ')
+                println("checking ${junit_xml}")
                 if (sh(label: 'Check junit xml files for errors',
                        script: 'grep -E "<error( |Details>|StackTrace>)" ' + junit_xml,
                        returnStatus: true) == 0) {
