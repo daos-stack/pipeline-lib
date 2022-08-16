@@ -118,7 +118,7 @@ def call(Map config = [:]) {
     // Once that is fixed all of the below should be pushed up into the
     // Jenkinsfile post { stable/unstable/failure/etc. }
     
-    String junit_results = functionalTestUnitFiles(config)
+    String junit_results = functionalTestJunitFiles(config)
     String status = 'SUCCESS'
     if (rc != 0) {
         status = 'FAILURE'
