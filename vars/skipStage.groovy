@@ -100,7 +100,7 @@ boolean skip_build_on_landing_branch(String target_branch) {
         return false
     }
     return env.BRANCH_NAME != target_branch ||
-           quickbuild()
+           quickBuild()
 }
 
 boolean is_pr() {
@@ -381,7 +381,7 @@ boolean call(Map config = [:]) {
         case 'NLT on CentOS 8':
         case 'NLT on EL 8':
             return skip_stage_pragma('nlt') ||
-                   quickbuild() ||
+                   quickBuild() ||
                    already_passed()
         case 'Unit Test Bullseye':
         case 'Unit Test Bullseye on CentOS 8':
