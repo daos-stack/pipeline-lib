@@ -46,7 +46,6 @@ boolean already_passed() {
             }
             println("Previous run this stage ended with status " +
                     "'${stage_status}', so re-running")
-
         } catch (java.nio.file.NoSuchFileException e) {
             // This should not ever fail, so just collecting diagnostics
             // if the code ever gets here.
@@ -382,6 +381,7 @@ boolean call(Map config = [:]) {
         case 'NLT on CentOS 8':
         case 'NLT on EL 8':
             return skip_stage_pragma('nlt') ||
+                   quickbuild() ||
                    already_passed()
         case 'Unit Test Bullseye':
         case 'Unit Test Bullseye on CentOS 8':

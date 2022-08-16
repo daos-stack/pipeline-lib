@@ -1,4 +1,5 @@
-/* groovylint-disable DuplicateStringLiteral, NestedBlockDepth, VariableName */
+/* groovylint-disable DuplicateStringLiteral, DuplicateNumberLiteral
+   groovylint-disable NestedBlockDepth, VariableName */
 // vars/cloverReportPublish.groovy
 
   /**
@@ -87,8 +88,8 @@ void call(Map config = [:]) {
                                     statementCoverage: 80])])
 
   if (cb_result != currentBuild.result) {
-    println 'The CloverPublisher plugin changed result to ' +
-            "${currentBuild.result}."
+    println('The CloverPublisher plugin changed result to ' +
+            "${currentBuild.result}.")
   }
 
   sh label: 'Create test coverage Tarball',

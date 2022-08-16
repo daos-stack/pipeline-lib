@@ -108,8 +108,8 @@ def call(Map config = [:]) {
     rc = sh(script: script, label: flow_name, returnStatus: true)
 
     if (cb_result != currentBuild.result) {
-      println 'Some other stage changed the currentBuild result to ' +
-              "${currentBuild.result}."
+      println('Some other stage changed the currentBuild result to ' +
+              "${currentBuild.result}.")
     }
 
     // All of this really should be done in the post section of the main
@@ -118,16 +118,7 @@ def call(Map config = [:]) {
     // Once that is fixed all of the below should be pushed up into the
     // Jenkinsfile post { stable/unstable/failure/etc. }
     
-    // Somehow we now have two different names for storing the expected
-    // junit result file names.
-    String junit_results = ''
-    if (config['testResults']) {
-        junit_results += config['testResults']
-    }
-    if (config['junit_files']) {
-        junit_results += config['junit_files']
-    }
-
+    String junit_results = FunctionalTestUnitFiles(config)
     String status = 'SUCCESS'
     if (rc != 0) {
         status = 'FAILURE'

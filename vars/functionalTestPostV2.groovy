@@ -25,12 +25,7 @@ void call(Map config = [:]) {
            config.get('artifacts', env.STAGE_NAME + '/**')
     archiveArtifacts(artifacts: artifacts)
 
-    String junit_results = config.get('testResults',
-                                      env.STAGE_NAME + '/*/*/results.xml, ' +
-                                      env.STAGE_NAME + '/*/*/*/results.xml, ' +
-                                      env.STAGE_NAME + '/*/framework_results.xml, ' +
-                                      env.STAGE_NAME + '/*/*/test-results/*/data/*_results.xml, ' +
-                                      env.STAGE_NAME + '/*/*/*/test-results/*/data/*_results.xml')
+    String junit_results = FunctionalTestUnitFiles(config)
 
     junit(testResults: junit_results)
 
