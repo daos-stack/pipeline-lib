@@ -127,8 +127,8 @@ def call(Map config = [:]) {
         boolean test_error = false
         if (junit_results) {
             List filesList = []
-            junit_results.split().each { junitfile ->
-                filesList.addAll(findFiles(glob: junitfile))
+            junit_results.split(',').each { junitfile ->
+                filesList.addAll(findFiles(glob: junitfile.trim()))
             }
             if (filesList) {
                 String junit_xml = filesList.collect{"'" + it + "'"}.join(' ')

@@ -21,8 +21,9 @@ String call(Map config = [:]) {
                                       env.STAGE_NAME + '/*/*/test-results/*/data/*_results.xml, ' +
                                       env.STAGE_NAME + '/*/*/*/test-results/*/data/*_results.xml')
 
+    // junit_files are space delimited, need to be converted.
     if (config['junit_files']) {
-      junit_results += config['junit_files']
+        junit_results += ',' + config['junit_files'].split().join(',')
     }
 
     return junit_results
