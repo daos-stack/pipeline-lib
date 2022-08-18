@@ -27,7 +27,11 @@ String call(Map config = [:]) {
     }
 
     String xml_files = sh(label: 'debug xml files',
-                          script: "find . -name '*.xml'",
+                          script: '''#!/bin/bash
+                                     hostname -s
+                                     ls /usr/bin/find* || true
+                                     find . -name '*.xml' || true
+                                     ''',
                           returnStdout: true)
     println("DEBUG xml files found = -${xml_files}-")
 
