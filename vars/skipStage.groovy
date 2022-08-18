@@ -111,7 +111,7 @@ boolean is_pr() {
     if (cachedCommitPragma('Run-landing-stages') == 'true') {
         return false
     }
-    return env.CHANGE_ID
+    return env.CHANGE_ID != null
 }
 
 boolean skip_scan_rpms(String distro, String target_branch) {
@@ -225,7 +225,7 @@ boolean call(Map config = [:]) {
     switch (env.STAGE_NAME) {
         case 'Cancel Previous Builds':
             return cachedCommitPragma('Cancel-prev-build') == 'false' ||
-                   !changeRequest()
+                   !is_pr()
         case 'Pre-build':
             return docOnlyChange(target_branch) ||
                    target_branch == 'weekly-testing' ||
