@@ -32,7 +32,7 @@ void call(Map config = [:]) {
                                       env.STAGE_NAME + '/*/*/test-results/*/data/*_results.xml, ' +
                                       env.STAGE_NAME + '/*/*/*/test-results/*/data/*_results.xml')
 
-    String result_stash = 'result_for_' + sanitizedStageName
+    String result_stash = 'result_for_' + sanitizedStageName()
     unstash name: result_stash
     int result_code = readFile(result_stash).toLong()
     String prev_result = currentBuild.result
