@@ -136,7 +136,7 @@ void call(Map config = [:]) {
                    context: context,
                    flow_name: flow_name,
                    result: status,
-                   junit_files: junit_results,
+                   junit_files: config['junit_files'],
                    ignore_failure: ignore_failure
     }
 
