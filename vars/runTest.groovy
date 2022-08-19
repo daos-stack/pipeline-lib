@@ -107,7 +107,7 @@ void call(Map config = [:]) {
     // We need to pass the rc value to post step.
     // The currentBuild result is for all innerstages, not just this
     // stage, so can not be trusted for this.
-    String result_stash = stageStatusFilename().replaceAll('/', '-')
+    String result_stash = 'result_for_' + sanitizedStageName
     writeFile(file: result_stash, text: "${rc}")
     stash name: result_stash,
           includes: result_stash
