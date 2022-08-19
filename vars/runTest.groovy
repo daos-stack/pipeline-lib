@@ -107,7 +107,7 @@ void call(Map config = [:]) {
     // We need to pass the rc value to post step.
     // The currentBuild result is for all innerstages, not just this
     // stage, so can not be trusted for this.
-    String result_stash = stageStatusFilename.replaceAll('/', '-')
+    String result_stash = stageStatusFilename().replaceAll('/', '-')
     writeFile(file: result_stash, text: "${rc}")
     stash name: result_stash,
           includes: result_stash
@@ -124,12 +124,10 @@ void call(Map config = [:]) {
     // Jenkinsfile post { stable/unstable/failure/etc. }
 
     String status = 'SUCCESS'
-    println("debug rc ${rc}, notify_result = ${notify_result}")
     if (rc != 0) {
         status = 'FAILURE'
     } else if (notify_result) {
         // Currently only used here for unit testing.
-        println('Calling checkJunitFiles')
         status = checkJunitFiles(config)
     }
 
