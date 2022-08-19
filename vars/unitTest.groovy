@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral, NestedBlockDepth, VariableName */
 // vars/unitTest.groovy
 
   /**
@@ -67,8 +68,7 @@
    * config['timeout_units']     Timelimit units.  Default is minutes.
    */
 
-def call(Map config = [:]) {
-
+void call(Map config = [:]) {
   String nodelist = config.get('NODELIST', env.NODELIST)
   String test_script = config.get('test_script', 'ci/unit/test_main.sh')
 
