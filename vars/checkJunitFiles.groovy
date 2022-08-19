@@ -28,17 +28,17 @@ String call(Map config = [:]) {
     if (config['junit_files']) {
         junit_results += ',' + config['junit_files'].split().join(',')
     }
+    println("DEBUG config ${config['junit_files']}, junit_results=-${junit_results}-")
 
-    String status = 'SUCCESS'
-    if (!junit_results) {
-        return status
-    }
     String xml_files = sh(label: 'debug find xml files',
                           script: "find . -name '*.xml' || true",
                           returnStdout: true)
     println("DEBUG xml files found = -${xml_files}-")
 
-    println("DEBUG junit_results=-${junit_results}-")
+    String status = 'SUCCESS'
+    if (!junit_results) {
+        return status
+    }
 
     boolean test_failure = false
     boolean test_error = false

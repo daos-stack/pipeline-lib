@@ -75,8 +75,10 @@ void call(Map config = [:]) {
                        if [ "''' + env.NO_CI_TESTING + '''" == 'true' ]; then
                            skipped=true
                        fi
-                       if git show -s --format=%B | grep "^Skip-test: true"; then
-                           skipped=true
+                       if command -v git; then
+                           if git show -s --format=%B | grep "^Skip-test: true"; then
+                               skipped=true
+                           fi
                        fi
                        if ${skipped}; then
                            # cart
@@ -122,10 +124,12 @@ void call(Map config = [:]) {
     // Jenkinsfile post { stable/unstable/failure/etc. }
 
     String status = 'SUCCESS'
+    println("debug rc ${rc}, notify_result = ${notify_result}")
     if (rc != 0) {
         status = 'FAILURE'
-    } else if (notify_result && (rc == 0)) {
+    } else if (notify_result) {
         // Currently only used here for unit testing.
+        println('Calling checkJunitFiles')
         status = checkJunitFiles(config)
     }
 
