@@ -25,12 +25,41 @@ void call(Map config = [:]) {
            config.get('artifacts', env.STAGE_NAME + '/**')
     archiveArtifacts(artifacts: artifacts)
 
-    String junit_results = functionalTestJunitFiles(config)
+    String junit_results = config.get('testResults',
+                                      env.STAGE_NAME + '/*/*/results.xml, ' +
+                                      env.STAGE_NAME + '/*/*/*/results.xml, ' +
+                                      env.STAGE_NAME + '/*/framework_results.xml, ' +
+                                      env.STAGE_NAME + '/*/*/test-results/*/data/*_results.xml, ' +
+                                      env.STAGE_NAME + '/*/*/*/test-results/*/data/*_results.xml')
+
+    String result_stash = stageStatusFilename.replaceAll('/', '-')
+    unstash name: result_stash
+    int result_code = readFile(result_stash).toLong()
+    String prev_result = currentBuild.result
 
     junit(testResults: junit_results)
 
-    // Save these temporarily
+    if (prev_result != currentBuild.result) {
+        println('Junit or some other stage changed currentBuild result to ' +
+                "${currentBuild.result}.")
+    }
+
+    // Save these in case we want to inspect them.
     archiveArtifacts(artifacts: junit_results)
+
+    String status = 'SUCCESS'
+    if (result_code != 0) {
+        status = 'FAILURE'
+    } else {
+        status = checkJunitFiles(config)
+    }
+
+    stepResult name: description,
+               context: context,
+               flow_name: flow_name,
+               result: status,
+               junit_files: junit_results,
+               ignore_failure: ignore_failure
 
     sh(label: 'Install Launchable',
        script: 'pip3 install --user --upgrade launchable~=1.0')

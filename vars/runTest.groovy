@@ -1,13 +1,8 @@
+/* groovylint-disable DuplicateStringLiteral, MethodSize, VariableName
+   groovylint-disable GStringExpressionWithinString */
 // vars/runTest.groovy
 
-/**
- * runTest.groovy
- *
- * runTest pipeline step
- *
- */
-
-def call(Map config = [:]) {
+void call(Map config = [:]) {
   /**
    * runTest step method
    *
@@ -19,6 +14,9 @@ def call(Map config = [:]) {
    * config['stashes'] Stashes from the build to unstash
    * config['failure_artifacts'] Artifacts to link to when test fails, if any
    * config['ignore_failure'] Whether a FAILURE result should post a failed step
+   * config['notify_result'] Flag to notify SCM for the resultstatus,
+   *                         default true, Use false if the notification
+   *                         will be in post processing.
    *
    * config['context'] Context name for SCM to identify the specific stage to
    *                   update status for.
@@ -58,15 +56,13 @@ def call(Map config = [:]) {
         deleteDir()
     }
     if (config['stashes']) {
-        config['stashes'].each {
-            unstash it
+        config['stashes'].each { name ->
+            unstash name
         }
     }
 
-    boolean ignore_failure = false
-    if (config['ignore_failure']) {
-        ignore_failure = true
-    }
+    boolean ignore_failure = config.get('ignore_failure', false)
+    boolean notify_result = config.get('notify_result', true)
 
     scmNotify description: description,
               context: context,
@@ -102,14 +98,21 @@ def call(Map config = [:]) {
                           config['failure_artifacts'] + '"'
     }
 
-    def cb_result = currentBuild.result
-
+    String cb_result = currentBuild.result
     int rc = 0
     rc = sh(script: script, label: flow_name, returnStatus: true)
 
+    // We need to pass the rc value to post step.
+    // The currentBuild result is for all innerstages, not just this
+    // stage, so can not be trusted for this.
+    String result_stash = stageStatusFilename.replaceAll('/', '-')
+    writeFile(file: result_stash, text: "${rc}")
+    stash name: result_stash,
+          includes: result_stash
+
     if (cb_result != currentBuild.result) {
-      println('Some other stage changed the currentBuild result to ' +
-              "${currentBuild.result}.")
+        println('Some other stage changed the currentBuild result to ' +
+                "${currentBuild.result}.")
     }
 
     // All of this really should be done in the post section of the main
@@ -117,65 +120,23 @@ def call(Map config = [:]) {
     // https://issues.jenkins-ci.org/browse/JENKINS-39203
     // Once that is fixed all of the below should be pushed up into the
     // Jenkinsfile post { stable/unstable/failure/etc. }
-    
-    String junit_results = functionalTestJunitFiles(config)
+
     String status = 'SUCCESS'
     if (rc != 0) {
         status = 'FAILURE'
-    } else if (rc == 0) {
-        boolean test_failure = false
-        boolean test_error = false
-        if (junit_results) {
-            List filesList = []
-            junit_results.split(',').each { junitfile ->
-                filesList.addAll(findFiles(glob: junitfile.trim()))
-            }
-            if (filesList) {
-                String junit_xml = filesList.collect{"'" + it + "'"}.join(' ')
-                println("checking ${junit_xml}")
-                if (sh(label: 'Check junit xml files for errors',
-                       script: 'grep -E "<error( |Details>|StackTrace>)" ' + junit_xml,
-                       returnStatus: true) == 0) {
-                    status = 'FAILURE'
-                    println 'Found at least one error in the Junit files.'
-                } else if (sh(label: 'Check junit xml files for failures',
-                              script: 'grep "<failure " ' + junit_xml,
-                              returnStatus: true) == 0) {
-                    status = 'UNSTABLE'
-                    println 'Found at least one failure in the junit files.'
-                }
-                if (junit_xml.indexOf('pipeline-test-failure.xml') > -1) {
-                    test_failure = true
-                } else if (junit_xml.indexOf('pipeline-test-error.xml') > -1) {
-                    test_error = true
-                }
-            }
-        }
-        // If we are testing this library, make sure the result is as expected
-        if (test_failure || test_error) {
-            def expected_status
-            if (test_failure) {
-                expected_status = 'UNSTABLE'
-            } else if (test_error) {
-                expected_status = 'FAILURE'
-            }
-            if (status == expected_status) {
-                echo "Expected status ${status} found"
-                status = 'SUCCESS'
-            } else {
-                // and fail the step if it's not
-                echo "Expected status ${expected_status} not found.  status == ${status}"
-                status = 'UNSTABLE'
-            }
-        }
+    } else if (notify_result && (rc == 0)) {
+        // Currently only used here for unit testing.
+        status = checkJunitFiles(config)
     }
 
-    stepResult name: description,
-               context: context,
-               flow_name: flow_name,
-               result: status,
-               junit_files: junit_results,
-               ignore_failure: ignore_failure
+    if (notify_result) {
+        stepResult name: description,
+                   context: context,
+                   flow_name: flow_name,
+                   result: status,
+                   junit_files: junit_results,
+                   ignore_failure: ignore_failure
+    }
 
     if (status != 'SUCCESS') {
         if (ignore_failure) {
@@ -183,8 +144,8 @@ def call(Map config = [:]) {
                        buildResult: 'SUCCESS') {
                 error(env.STAGE_NAME + ' failed: ' + rc)
             }
-	    } else {
-	        error(env.STAGE_NAME + ' failed: ' + rc)
-	    }
+        } else {
+            error(env.STAGE_NAME + ' failed: ' + rc)
+        }
     }
 }

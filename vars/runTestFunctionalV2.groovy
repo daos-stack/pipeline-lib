@@ -78,6 +78,9 @@ void call(Map config = [:]) {
     config.remove('node_count')
     config.remove('test_rpms')
 
+    // Notify SCM result in post steps.
+    config['notify_result'] = false
+
     runTest(config)
 
     String covfile = 'test.cov'
