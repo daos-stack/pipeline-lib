@@ -41,7 +41,7 @@ String call(Map config = [:]) {
     boolean test_failure = false
     boolean test_error = false
     List filesList = []
-    junit_results.split().each { junitfile ->
+    junit_results.split(',').each { junitfile ->
         filesList.addAll(findFiles(glob: junitfile.trim()))
     }
     if (!filesList) {
