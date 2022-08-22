@@ -35,10 +35,6 @@ void call(Map config = [:]) {
                                       'ci/functional/job_cleanup.sh')
     sh(label: 'Job Cleanup', script: always_script, returnStatus: true)
 
-    String artifacts = stageStatusFilename() + ',' +
-           config.get('artifacts', env.STAGE_NAME + '/**')
-    archiveArtifacts(artifacts: artifacts)
-
     String junit_results = config.get('testResults',
                                       env.STAGE_NAME + '/*/*/results.xml, ' +
                                       env.STAGE_NAME + '/*/*/*/results.xml, ' +
@@ -78,6 +74,10 @@ void call(Map config = [:]) {
                result: status,
                junit_files: junit_results,
                ignore_failure: ignore_failure
+
+    String artifacts = stageStatusFilename() + ',' +
+           config.get('artifacts', env.STAGE_NAME + '/**')
+    archiveArtifacts(artifacts: artifacts)
 
     sh(label: 'Install Launchable',
        script: 'pip3 install --user --upgrade launchable~=1.0')
