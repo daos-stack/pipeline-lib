@@ -8,5 +8,5 @@
    */
 
 String call(Map config= [:]) {
-    return env.STAGE_NAME.replaceAll(~'[ /%+\'"=:;]') { x -> '_' }
+    return env.STAGE_NAME.replaceAll('[ /%+\'"=:;]', '_')
 }
