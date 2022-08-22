@@ -6,14 +6,28 @@
    *
    * @param config Map of parameters passed
    *
-   * config['always_script']       Script to run after any test.
-   *                               Default 'ci/functional/job_cleanup.sh'.
+   * config['always_script']  Script to run after any test.
+   *                          Default 'ci/functional/job_cleanup.sh'.
    *
-   * config['artifacts']           Artifacts to archive.
-   *                               Default env.STAGE_NAME + '/**'
+   * config['artifacts']      Artifacts to archive.
+   *                          Default env.STAGE_NAME + '/**'
    *
-   * config['testResults']         Junit test result files.
-   *                               Default env.STAGE_NAME subdirectories
+   * config['context']        Context name for SCM to identify the specific
+   *                          stage to update status for.
+   *                          Default is 'test/' + env.STAGE_NAME.
+   *
+   * config['description']    Description to report for SCM status.
+   *                          Default env.STAGE_NAME.
+   *
+   * config['flow_name']      Stage Flow name for logging.
+   *                          Default is env.STAGE_NAME.
+   *                          For sh steps, the stage flow name is the label
+   *                          assigned to the shell script.
+   *
+   * config['ignore_failure'] Whether a FAILURE result should post a failed step
+   *
+   * config['testResults']    Junit test result files.
+   *                          Default env.STAGE_NAME subdirectories
    */
 
 void call(Map config = [:]) {
@@ -54,6 +68,10 @@ void call(Map config = [:]) {
         status = checkJunitFiles(config)
     }
 
+    String description = config.get('description', env.STAGE_NAME)
+    String context = config.get('context', 'test/' + env.STAGE_NAME)
+    String flow_name = config.get('flow_name', env.STAGE_NAME)
+    boolean ignore_failure = config.get('ignore_failure', false)
     stepResult name: description,
                context: context,
                flow_name: flow_name,
