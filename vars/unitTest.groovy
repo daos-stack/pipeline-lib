@@ -1,4 +1,4 @@
-/* groovylint-disable DuplicateStringLiteral, NestedBlockDepth, VariableName */
+/* groovylint-disable VariableName */
 // vars/unitTest.groovy
 
   /**
@@ -69,68 +69,67 @@
    */
 
 void call(Map config = [:]) {
-  String nodelist = config.get('NODELIST', env.NODELIST)
-  String test_script = config.get('test_script', 'ci/unit/test_main.sh')
+    String nodelist = config.get('NODELIST', env.NODELIST)
+    String test_script = config.get('test_script', 'ci/unit/test_main.sh')
 
-  Map stage_info = parseStageInfo(config)
+    Map stage_info = parseStageInfo(config)
 
-  String inst_rpms = config.get('inst_rpms','')
+    String inst_rpms = config.get('inst_rpms', '')
 
-  if (stage_info['compiler'] == 'covc') {
-    if (stage_info['java_pkg']) {
-      inst_rpms += " ${stage_info['java_pkg']}"
+    if (stage_info['compiler'] == 'covc') {
+        if (stage_info['java_pkg']) {
+            inst_rpms += " ${stage_info['java_pkg']}"
+        }
     }
-  }
 
-  provisionNodes NODELIST: nodelist,
+    provisionNodes NODELIST: nodelist,
                  node_count: stage_info['node_count'],
                  distro: (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: inst_rpms
 
-  String target_stash = "${stage_info['target']}-${stage_info['compiler']}"
-  if (stage_info['build_type']) {
-    target_stash += '-' + stage_info['build_type']
-  }
+    String target_stash = "${stage_info['target']}-${stage_info['compiler']}"
+    if (stage_info['build_type']) {
+        target_stash += '-' + stage_info['build_type']
+    }
 
-  List stashes = []
-  if (config['stashes']) {
-    stashes = config['stashes']
+    List stashes = []
+    if (config['stashes']) {
+        stashes = config['stashes']
   } else {
-    stashes.add("${target_stash}-tests")
-    stashes.add("${target_stash}-install")
-    stashes.add("${target_stash}-build-vars")
-  }
+        stashes.add("${target_stash}-tests")
+        stashes.add("${target_stash}-install")
+        stashes.add("${target_stash}-build-vars")
+    }
 
-  if (stage_info['compiler'] == 'covc') {
-
-    String tools_url = env.JENKINS_URL +
+    if (stage_info['compiler'] == 'covc') {
+        String tools_url = env.JENKINS_URL +
                     'job/daos-stack/job/tools/job/master' +
                     '/lastSuccessfulBuild/artifact/'
-    httpRequest url: tools_url + 'bullseyecoverage-linux.tar',
+        httpRequest url: tools_url + 'bullseyecoverage-linux.tar',
                 httpMode: 'GET',
                 outputFile: 'bullseye.tar'
-  }
+    }
 
-  Map params = [:]
-  params['stashes'] = stashes
-  params['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
-                     "NODELIST=${nodelist} " +
-                     "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
-                     test_script
-  params['junit_files'] = config.get('junit_files', 'test_results/*.xml')
-  params['context'] = config.get('context', 'test/' + env.STAGE_NAME)
-  params['description'] = config.get('description', env.STAGE_NAME)
-  params['ignore_failure'] = config.get('ignore_failure', false)
+    Map p = [:]
+    p['stashes'] = stashes
+    p['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
+                  "NODELIST=${nodelist} " +
+                  "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
+                  test_script
+    p['junit_files'] = config.get('junit_files', 'test_results/*.xml')
+    p['context'] = config.get('context', 'test/' + env.STAGE_NAME)
+    p['description'] = config.get('description', env.STAGE_NAME)
+    p['ignore_failure'] = config.get('ignore_failure', false)
 
-  int time = config.get('timeout_time', 120) as int
-  String unit = config.get('timeout_unit', 'MINUTES')
+    int time = config.get('timeout_time', 120) as int
+    String unit = config.get('timeout_unit', 'MINUTES')
 
-  timeout(time: time, unit: unit) {
-    runTest params
-  }
-  if (stage_info['compiler'] == 'covc') {
-      stash name: config.get('coverage_stash', "${target_stash}-unit-cov"),
+    timeout(time: time, unit: unit) {
+        runTest p
+    }
+    if (stage_info['compiler'] == 'covc') {
+        stash name: config.get('coverage_stash', "${target_stash}-unit-cov"),
             includes: 'test.cov'
-  }
+    }
 }

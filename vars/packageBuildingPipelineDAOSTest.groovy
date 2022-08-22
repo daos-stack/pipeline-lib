@@ -38,9 +38,9 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 // To test changes to this pipeline you need push changes to this file to
-// a PR and then to modify the
-//@Library(value="pipeline-lib@your_branch") _ line the Jenkinsfile for a
-//project to point to the above branch.  Then build and test as usual
+// a PR and then to modify the line the Jenkinsfile for a
+// project to point to the above branch.  Then build and test as usual
+//@Library(value="pipeline-lib@your_branch") _
 
 /* It's really odd, but without this declaration here, some references
  * to pipeline_args are not resolved.
@@ -647,7 +647,8 @@ void call(Map pipeline_args) {
                 when {
                     beforeAgent true
                     expression {
-                        currentBuild.currentResult == 'SUCCESS' && !skipStage()
+                        currentBuild.currentResult == 'SUCCESS' &&
+                        !skipStage([axes: (env.TEST_BRANCH ?: '').replaceAll('/', '-')])
                     }
                 }
                 matrix {
@@ -657,6 +658,14 @@ void call(Map pipeline_args) {
                             values 'master',
                                    'release/2.2',
                                    'release/2.0'
+                        }
+                    }
+                    when {
+                        beforeAgent true
+                        expression {
+                            // Need to pass the stage name: https://issues.jenkins.io/browse/JENKINS-69394
+                            !skipStage([stage_name: 'Test Packages',
+                                        axes: env.TEST_BRANCH.replaceAll('/', '-')])
                         }
                     }
                     stages {
@@ -676,6 +685,7 @@ void call(Map pipeline_args) {
                                                                   env.TEST_BRANCH) + '''
                                                 # dir for checkout since all runs in the matrix share the same workspace
                                                 dir="daos-''' + env.TEST_BRANCH.replaceAll('/', '-') + '''"
+                                                rm -rf "$dir"
                                                 if cd $dir; then
                                                     git remote update
                                                     git fetch origin
@@ -685,24 +695,29 @@ void call(Map pipeline_args) {
                                                                   '''@github.com/daos-stack/daos.git $dir
                                                     cd $dir
                                                 fi
+                                                # delete the branch if it exists
                                                 if git checkout $branch_name; then
-                                                    git rebase $source_branch
-                                                else
-                                                    if ! git checkout -b $branch_name $source_branch; then
-                                                        echo "Error trying to create branch $branch_name"
-                                                        exit 1
-                                                    fi
-                                                    pipeline_libs="''' + cachedCommitPragma('Test-libs') + '''"
-                                                    if [ -n "$pipeline_libs" ]; then
-                                                        sed -i -e "/\\/\\/@Library/c\\
-                                                            @Library(value=$pipeline_libs) _" Jenkinsfile
-                                                        git commit -m 'Pipeline-lib PRs' Jenkinsfile
-                                                    else
-                                                        git commit --allow-empty -m 'Clear any commit pragmas' ''' +
-                                                        '''Jenkinsfile
+                                                    if ! git checkout origin/master || ! git branch -D $branch_name; then
+                                                      git status
+                                                      git branch -a
+                                                      exit 1
                                                     fi
                                                 fi
-                                                git push origin \$branch_name:\$branch_name
+                                                # create the branch
+                                                if ! git checkout -b $branch_name $source_branch; then
+                                                    echo "Error trying to create branch $branch_name"
+                                                    exit 1
+                                                fi
+                                                pipeline_libs="''' + cachedCommitPragma('Test-libs') + '''"
+                                                if [ -n "$pipeline_libs" ]; then
+                                                    sed -i -e "/\\/\\/@Library/c\\
+                                                        @Library(value=$pipeline_libs) _" Jenkinsfile
+                                                    git commit -m 'Pipeline-lib PRs' Jenkinsfile
+                                                else
+                                                    git commit --allow-empty -m 'Clear any commit pragmas' ''' +
+                                                    '''Jenkinsfile
+                                                fi
+                                                git push -f origin $branch_name:$branch_name
                                                 sleep 10'''
                                 } // withCredentials
                                 sh label: 'Delete local test branch',
@@ -723,7 +738,6 @@ void call(Map pipeline_args) {
                                                                    pipeline_args.get('test-tag', '')).trim()),
                                                    string(name: 'CI_RPM_TEST_VERSION',
                                                           value: daosLatestVersion(env.TEST_BRANCH)),
-                                                   string(name: 'BuildPriority', value: '2'),
                                                    string(name: 'CI_PROVISIONING_POOL', value: 'default'),
                                                    string(name: 'CI_BUILD_DESCRIPTION',
                                                           value: 'Dependency Validation Build Test'),
@@ -764,6 +778,16 @@ void call(Map pipeline_args) {
                                                     fi'''
                                     } // withCredentials
                                 } // success
+                                always {
+                                    /* groovylint-disable-next-line LineLength */
+                                    writeFile file: stageStatusFilename(env.STAGE_NAME,
+                                                                        env.TEST_BRANCH.replaceAll('/', '-')),
+                                              text: currentBuild.currentResult + '\n'
+                                    /* groovylint-disable-next-line LineLength */
+                                    archiveArtifacts artifacts: stageStatusFilename(
+                                                                    env.STAGE_NAME,
+                                                                    env.TEST_BRANCH.replaceAll('/', '-'))
+                                }
                             } // post
                         } // stage('Test Packages')
                     } // stages

@@ -158,9 +158,12 @@ void call(Map config = [:]) {
   provision_script += ' ' +
                       'NODESTRING=' + nodeString + ' ' +
                       'CONFIG_POWER_ONLY=' + config_power_only + ' ' +
-                      'INST_REPOS="' + inst_repos + '" ' +
+                      'INST_REPOS="' + inst_repos.trim() + '" ' +
                       'INST_RPMS="' + inst_rpms + '" ' +
                       'GPG_KEY_URLS="' + gpg_key_urls.join(' ') + '" ' +
+                      // https://issues.jenkins.io/browse/JENKINS-55819
+                      'CI_RPM_TEST_VERSION="' + (params.CI_RPM_TEST_VERSION ?: '') + '" ' +
+                      'CI_PR_REPOS="' + (params.CI_PR_REPOS ?: '') + '" ' +
                       'ci/provisioning/post_provision_config.sh'
   new_config['post_restore'] = provision_script
   try {

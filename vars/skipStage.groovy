@@ -13,19 +13,17 @@
 
 // Determine if this is a restarted job and if it succeeded on the
 // previous run.
-boolean already_passed() {
+boolean already_passed(String stage_name = env.STAGE_NAME, String postfix='') {
     // Lookup to see if restarted
-    String restart_cause = 'org.jenkinsci.plugins.pipeline.modeldefinition.' +
-                   'causes.RestartDeclarativePipelineCause'
-
-    def restarted = currentBuild.getBuildCauses().any { cause ->
-        cause._class == restart_cause }
-    if (!restarted) {
+    /* groovylint-disable-next-line UnnecessaryGetter */
+    if (!currentBuild.getBuildCauses().any { cause ->
+        cause._class == 'org.jenkinsci.plugins.pipeline.modeldefinition.' +
+                        'causes.RestartDeclarativePipelineCause' }) {
         return false
     }
 
     // Make sure a previous check has been removed.
-    String status_file = stageStatusFilename()
+    String status_file = stageStatusFilename(stage_name, postfix)
     if (fileExists(status_file)) {
         fileOperations([fileDeleteOperation(includes: status_file)])
     }
@@ -40,11 +38,11 @@ boolean already_passed() {
                       filter: status_file,
                       selector: specific(old_build)
         try {
-            String stage_status = readFile(file: status_file)
+            String stage_status = readFile(file: status_file).trim()
             if (stage_status == 'SUCCESS') {
                 return true
             }
-            println("Previous run this stage ended with status " +
+            println('Previous run this stage ended with status ' +
                     "'${stage_status}', so re-running")
         } catch (java.nio.file.NoSuchFileException e) {
             // This should not ever fail, so just collecting diagnostics
@@ -98,7 +96,7 @@ boolean skip_build_on_landing_branch(String target_branch) {
     if (cachedCommitPragma('Run-landing-stages') == 'true' ||
         cachedCommitPragma('Run-daily-stages') == 'true') {
         return false
-    }
+        }
     return env.BRANCH_NAME != target_branch ||
            quickBuild()
 }
@@ -137,7 +135,7 @@ boolean skip_ftest(String distro, String target_branch) {
         run_default_skipped_stage('func-test-vm-all')) {
         // Forced to run due to a (Skip) pragma set to false
         return false
-    }
+        }
     // If a parameter exists to enable a build, then use it.
     // The params.CI_MORE_FUNCTIONAL_PR_TESTS allows enabling
     // tests that are not run in PRs.
@@ -188,7 +186,7 @@ boolean skip_if_unstable() {
         env.BRANCH_NAME.startsWith('provider-testing') ||
         env.BRANCH_NAME.startsWith('release/')) {
         return false
-    }
+        }
 
     //Ok, it's a PR and the Allow pragma isn't set.  Skip if the build is
     //unstable.
@@ -205,12 +203,12 @@ boolean skip_build_on_el_gcc(String target_branch, String version) {
 }
 
 boolean skip_build_bullseye(String target_branch, String distro) {
-            return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
-                   env.NO_CI_TESTING == 'true' ||
-                   skip_stage_pragma('bullseye', 'true') ||
-                   (docOnlyChange(target_branch) &&
-                    prRepos(distro) == '') ||
-                   quickFunctional()
+    return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
+           env.NO_CI_TESTING == 'true' ||
+           skip_stage_pragma('bullseye', 'true') ||
+           (docOnlyChange(target_branch) &&
+            prRepos(distro) == '') ||
+           quickFunctional()
 }
 
 /* groovylint-disable-next-line MethodSize */
@@ -219,12 +217,17 @@ boolean call(Map config = [:]) {
         return skip_stage_pragma(config['stage'], config['def_val'])
     }
 
+    if (already_passed(config['stage_name'] ?: env.STAGE_NAME,
+                       config['axes'] ?: '')) {
+        return true
+    }
+
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
 
     switch (env.STAGE_NAME) {
         case 'Cancel Previous Builds':
             return cachedCommitPragma('Cancel-prev-build') == 'false' ||
-                   !is_pr()
+                   (!is_pr() && !startedByUpstream())
         case 'Pre-build':
             return docOnlyChange(target_branch) ||
                    target_branch == 'weekly-testing' ||
