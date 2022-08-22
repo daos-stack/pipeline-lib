@@ -27,7 +27,7 @@ String test_branch(String target) {
 pipeline {
     agent { label 'lightweight' }
     libraries {
-      lib("pipeline-lib@${env.BRANCH_NAME}")
+        lib("pipeline-lib@${env.BRANCH_NAME}")
     }
 
     environment {
@@ -38,6 +38,7 @@ pipeline {
 
     options {
         ansiColor('xterm')
+        copyArtifactPermission("/daos-stack/pipeline-lib/${env.BRANCH_NAME}")
     }
 
     stages {
@@ -413,6 +414,14 @@ pipeline {
                                'weekly-testing-2.0'
                     }
                 }
+                when {
+                    beforeAgent true
+                    expression {
+                        // Need to pass the stage name: https://issues.jenkins.io/browse/JENKINS-69394
+                        !skipStage([stage_name: 'Test Library',
+                                    axes: env.TEST_BRANCH.replaceAll('/', '-')])
+                    }
+                }
                 stages {
                     stage('Test Library') {
                         steps {
@@ -506,6 +515,14 @@ pipeline {
                                                 fi'''
                                 } // withCredentials
                             } // success
+                            always {
+                                writeFile file: stageStatusFilename(env.STAGE_NAME,
+                                                                    env.TEST_BRANCH.replaceAll('/', '-')),
+                                          text: currentBuild.currentResult + '\n'
+                                /* groovylint-disable-next-line LineLength */
+                                archiveArtifacts artifacts: stageStatusFilename(env.STAGE_NAME,
+                                                                                env.TEST_BRANCH.replaceAll('/', '-'))
+                            }
                         } // post
                     } // stage('Test Library')
                 } // stages
