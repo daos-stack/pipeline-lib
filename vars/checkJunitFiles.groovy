@@ -28,10 +28,6 @@ String call(Map config = [:]) {
     if (config['junit_files']) {
         junit_results += ',' + config['junit_files'].split().join(',')
     }
-    String xml_files = sh(label: 'debug find xml files',
-                          script: "find . -name '*.xml' || true",
-                          returnStdout: true)
-    println("DEBUG xml files found = -${xml_files}-")
 
     String status = 'SUCCESS'
     if (!junit_results) {
