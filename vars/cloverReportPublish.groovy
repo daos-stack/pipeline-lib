@@ -75,7 +75,7 @@ void call(Map config = [:]) {
                                                 destination: new_name)])
           }
         } catch(Exception ex) {
-            println ('Missing expected cache ${name}: ${ex}')
+            println ("Missing expected cache ${name}: ${ex}")
         }
     }
 
