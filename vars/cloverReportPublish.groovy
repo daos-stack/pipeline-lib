@@ -74,8 +74,8 @@ void call(Map config = [:]) {
                 fileOperations([fileRenameOperation(source: 'test.cov',
                                                 destination: new_name)])
           }
-        } catch(Exception ex) {
-            println ("Missing expected cache ${name}: ${ex}")
+        } catch(HudsonAbortException ex) {
+            println ("Unstasn failed: ${ex}")
         }
     }
 
