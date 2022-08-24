@@ -114,7 +114,10 @@ String call(Map config = [:]) {
                      " --build-arg JENKINS_URL=$env.JENKINS_URL"
     if (cachebust) {
       Calendar current_time = Calendar.getInstance()
-      ret_str += " --build-arg CACHEBUST=" + current_time.get(Calendar.WEEK_OF_YEAR)
+      // *NEVER* redefine CACHEBUST to some other value.  If you think something
+      // in a Dockerfile needs doing less frequently than *always* consider either
+      // CB0 (below) or define a new cache-bust interval
+      ret_str += " --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
       ret_str += " --build-arg CB0=" + current_time.get(Calendar.WEEK_OF_YEAR)
     }
 
