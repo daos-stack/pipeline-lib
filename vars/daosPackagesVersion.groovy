@@ -85,6 +85,11 @@ String call(String distro, String next_version) {
         return rpm_version_cache + rpm_dist(_distro)
     }
 
+    /* what's the query to get the highest 1.0.x package?
+    if (target_branch == "weekly-testing-1.x") {
+        return "release/0.9"
+    }
+
     // otherwise use the version in the stash
     // but trim off any point release from the distro first
     Integer dot = _distro.indexOf('.')
