@@ -16,7 +16,7 @@
 // That PR should be landed with out deleting the PR branch.
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
-//@Library(value="pipeline-lib@my_branch_name") _
+//@Library(value='pipeline-lib@my_branch_name') _
 
 String test_branch(String target) {
     return 'ci-' + JOB_NAME.replaceAll('/', '-') +
@@ -75,7 +75,7 @@ pipeline {
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('grep JUnit results tests failure case')
-                stage('grep JUnit results tests error case') {
+                stage('grep JUnit results tests error case 1') {
                     agent {
                         docker {
                             image 'rockylinux:8'
@@ -91,7 +91,24 @@ pipeline {
                             failure_artifacts: env.STAGE_NAME
                     }
                     // runTest handles SCM notification via stepResult
-                } // stage('grep JUnit results tests error case')
+                } // stage('grep JUnit results tests error case 1')
+                stage('grep JUnit results tests error case 2') {
+                    agent {
+                        docker {
+                            image 'rockylinux:8'
+                            label 'docker_runner'
+                        }
+                    }
+                    steps {
+                        runTest script: '''set -ex
+                                           rm -f *.xml
+                                           echo "<errorDetails>bla bla bla</errorDetails>" > \
+                                             pipeline-test-error.xml''',
+                            junit_files: "*.xml non-exist*.xml",
+                            failure_artifacts: env.STAGE_NAME
+                    }
+                    // runTest handles SCM notification via stepResult
+                } // stage('grep JUnit results tests error case 2')
                 stage('publishToRepository RPM tests') {
                     when {
                         beforeAgent true
