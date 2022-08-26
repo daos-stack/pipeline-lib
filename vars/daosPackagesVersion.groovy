@@ -48,6 +48,18 @@ String call(String distro, String next_version) {
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
     String _distro = distro
 
+    // build parameter (CI_RPM_TEST_VERSION) has highest priority, followed by commit pragma
+    // TODO: this should actually be determined from the PR-repos artifacts
+    String version = rpmTestVersion()
+    if (version != '') {
+        String dist = ''
+        if (version.indexOf('-') > -1) {
+            // only tack on the %{dist} if the release was specified
+            dist = rpm_dist(_distro)
+        }
+        return version + dist
+    }
+
     if (target_branch.startsWith("weekly-testing") ||
         target_branch.startsWith("provider-testing") ||
         target_branch.startsWith("soak-testing")) {
@@ -71,23 +83,6 @@ String call(String distro, String next_version) {
             }
         }
         return rpm_version_cache + rpm_dist(_distro)
-    }
-
-    /* what's the query to get the highest 1.0.x package?
-    if (target_branch == "weekly-testing-1.x") {
-        return "release/0.9"
-    }
-    */
-    // commit pragma has highest priority
-    // TODO: this should actually be determined from the PR-repos artifacts
-    String version = rpmTestVersion()
-    if (version != '') {
-        String dist = ''
-        if (version.indexOf('-') > -1) {
-            // only tack on the %{dist} if the release was specified
-            dist = rpm_dist(_distro)
-        }
-        return version + dist
     }
 
     // otherwise use the version in the stash
