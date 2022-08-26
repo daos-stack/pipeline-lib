@@ -89,6 +89,7 @@ String call(String distro, String next_version) {
     if (target_branch == "weekly-testing-1.x") {
         return "release/0.9"
     }
+    */
 
     // otherwise use the version in the stash
     // but trim off any point release from the distro first
