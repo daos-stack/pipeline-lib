@@ -266,6 +266,18 @@ void call(Map config = [:]) {
       tag = tag.trim()
     }
 
+    // Highest nvme ftest argument priority is TestNvme parameter
+    if (params.TestNvme && params.TestNvme != '') {
+      ftest_arg_nvme = params.TestNvme
+    } else {
+      // Next highest priority is a stage specific Test-nvme-* then the general Test-nvme
+      String nvme = cachedCommitPragma(
+        'Test-nvme' + result['pragma_suffix'], cachedCommitPragma('Test-nvme', null))
+      if (nvme) {
+        ftest_arg_nvme = nvme
+      }
+    }
+
     // Highest repeat ftest argument priority is TestRepeat parameter
     if (params.TestRepeat && params.TestRepeat != '') {
       ftest_arg_repeat = params.TestRepeat
