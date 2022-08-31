@@ -231,10 +231,10 @@ void call(Map config = [:]) {
         result['node_count'] = 5
         cluster_size = 'hw,medium'
         result['pragma_suffix'] = '-hw-medium'
-      } else if (stage_name.contains('Xlarge')) {
+      } else if (stage_name.contains('Hardware 24')) {
         result['node_count'] = 24
-        cluster_size = 'hw,xlarge'
-        result['pragma_suffix'] = '-hw-xlarge'
+        cluster_size = 'hw,24'
+        result['pragma_suffix'] = '-hw-24'
       }
     }
     if (stage_name.contains('with Valgrind')) {

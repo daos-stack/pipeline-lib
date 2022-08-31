@@ -538,9 +538,9 @@ boolean call(Map config = [:]) {
         case 'Functional_Hardware_Large':
         case 'Functional Hardware Large':
             return skip_ftest_hw('large', target_branch)
-        case 'Functional_Hardware_Xlarge':
-        case 'Functional Hardware Xlarge':
-            return skip_ftest_hw('xlarge', target_branch)
+        case 'Functional_Hardware_24':
+        case 'Functional Hardware 24':
+            return skip_ftest_hw('24', target_branch)
         case 'Bullseye Report':
         case 'Bullseye Report on CentOS 8':
         case 'Bullseye Report on EL 8':
