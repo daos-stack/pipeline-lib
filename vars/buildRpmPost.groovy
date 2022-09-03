@@ -65,8 +65,8 @@ def call(Map config = [:]) {
     
     String success_script = config.get('success_script',
                                       'ci/rpm/build_success.sh')
-    sh label: 'Build Log',
-       script: "${env_vars} " + success_script
+    sh(label: 'Build Log',
+       script: "${env_vars} " + success_script)
 
     String repo_format = 'yum'
     if (!target.startsWith('ubuntu')) {
@@ -87,6 +87,9 @@ def call(Map config = [:]) {
                         tech: target,
                         repo_dir: 'artifacts/' + target
 
+    rpmlintMockResults(sh(label: 'Get chroot name',
+                          script: 'source ci/parse_ci_envs.sh; echo $CHROOT_NAME',
+                          returnStdout: true).trim())
   }
 
   if ((config['condition'] == 'success') ||
@@ -105,8 +108,8 @@ def call(Map config = [:]) {
     String unsuccessful_script = config.get('unsuccessful_script',
                                             'ci/rpm/build_unsuccessful.sh')
 
-    sh label: 'Build Log',
-       script: "${env_vars} " + unsuccessful_script
+    sh(label: 'Build Log',
+       script: "${env_vars} " + unsuccessful_script)
     archiveArtifacts artifacts: 'config.log-' + target + '-rpm',
                      allowEmptyArchive: true
 
