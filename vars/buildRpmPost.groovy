@@ -46,6 +46,9 @@
    * config['tech']                Tech value for repository storage.
    *                               Default based on parsing target.
    *
+   * config['rpmlint']             Whether to run rpmlint on resulting RPMs.
+   *                               Default false.
+   *
    * config['unsuccessful_script'] Script to run if build is not successful.
    *                               Default 'ci/rpm/build_unsuccessful.sh'
    */
@@ -56,7 +59,7 @@ def call(Map config = [:]) {
   
   String context = config.get('context', 'build/' + env.STAGE_NAME)
   String description = config.get('description', env.STAGE_NAME)
-  String ignore_failure = config.get('ignore_failure', false)
+  Boolean ignore_failure = config.get('ignore_failure', false)
   String target = config.get('target', stage_info['target'])
 
   String env_vars = ' TARGET=' + target
@@ -65,8 +68,8 @@ def call(Map config = [:]) {
     
     String success_script = config.get('success_script',
                                       'ci/rpm/build_success.sh')
-    sh label: 'Build Log',
-       script: "${env_vars} " + success_script
+    sh(label: 'Build Log',
+       script: "${env_vars} " + success_script)
 
     String repo_format = 'yum'
     if (!target.startsWith('ubuntu')) {
@@ -87,7 +90,12 @@ def call(Map config = [:]) {
                         tech: target,
                         repo_dir: 'artifacts/' + target
 
-  }
+        if (config.get('rpmlint', false)) {
+            rpmlintMockResults(sh(label: 'Get chroot name',
+                                      script: 'source ci/parse_ci_envs.sh; echo $CHROOT_NAME',
+                                      returnStdout: true).trim())
+        }
+    }
 
   if ((config['condition'] == 'success') ||
       (config['condition'] == 'unstable') ||
@@ -105,8 +113,8 @@ def call(Map config = [:]) {
     String unsuccessful_script = config.get('unsuccessful_script',
                                             'ci/rpm/build_unsuccessful.sh')
 
-    sh label: 'Build Log',
-       script: "${env_vars} " + unsuccessful_script
+    sh(label: 'Build Log',
+       script: "${env_vars} " + unsuccessful_script)
     archiveArtifacts artifacts: 'config.log-' + target + '-rpm',
                      allowEmptyArchive: true
 
