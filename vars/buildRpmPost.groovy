@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral, VariableName */
 // vars/buildRpmPost.groovy
 
   /**
@@ -5,7 +6,7 @@
    *
    * @param config Map of parameters passed
    *
-   * config['condition']           Name of the post step to run. 
+   * config['condition']           Name of the post step to run.
    *                               Rrequired to be one of
    *                               'success', 'unstable', 'failure',
    *                               'unsuccessful', or 'cleanup'.
@@ -53,42 +54,40 @@
    *                               Default 'ci/rpm/build_unsuccessful.sh'
    */
 
-def call(Map config = [:]) {
+void call(Map config = [:]) {
+    Map stage_info = parseStageInfo(config)
 
-  Map stage_info = parseStageInfo(config)
-  
-  String context = config.get('context', 'build/' + env.STAGE_NAME)
-  String description = config.get('description', env.STAGE_NAME)
-  Boolean ignore_failure = config.get('ignore_failure', false)
-  String target = config.get('target', stage_info['target'])
+    String context = config.get('context', 'build/' + env.STAGE_NAME)
+    String description = config.get('description', env.STAGE_NAME)
+    Boolean ignore_failure = config.get('ignore_failure', false)
+    String target = config.get('target', stage_info['target'])
 
-  String env_vars = ' TARGET=' + target
+    String env_vars = ' TARGET=' + target
 
-  if (config['condition'] == 'success') {
-    
-    String success_script = config.get('success_script',
+    if (config['condition'] == 'success') {
+        String success_script = config.get('success_script',
                                       'ci/rpm/build_success.sh')
-    sh(label: 'Build Log',
-       script: "${env_vars} " + success_script)
+        sh(label: 'Build Log',
+           script: "${env_vars} " + success_script)
 
-    String repo_format = 'yum'
-    if (!target.startsWith('ubuntu')) {
-        stash name: target + '-required-mercury-rpm-version',
+        String repo_format = 'yum'
+        if (target.startsWith('ubuntu')) {
+            // TODO: Have Ubuntu support stashes with mercury target
+            repo_format = 'apt'
+        } else {
+            stash name: target + '-required-mercury-rpm-version',
               includes: target + '-required-mercury-rpm-version'
-    } else {
-        // TODO: Have Ubuntu support stashes with mercury target
-        repo_format = 'apt'
-    }
+        }
 
-    stash name: target + '-rpm-version',
-          includes: target + '-rpm-version'
+        stash name: target + '-rpm-version',
+              includes: target + '-rpm-version'
 
-    String product = config.get('product', 'daos-stack')
-    publishToRepository product: product,
-                        format: repo_format,
-                        maturity: 'stable',
-                        tech: target,
-                        repo_dir: 'artifacts/' + target
+        String product = config.get('product', 'daos-stack')
+        publishToRepository product: product,
+                            format: repo_format,
+                            maturity: 'stable',
+                            tech: target,
+                            repo_dir: 'artifacts/' + target
 
         if (config.get('rpmlint', false)) {
             rpmlintMockResults(sh(label: 'Get chroot name',
@@ -97,33 +96,33 @@ def call(Map config = [:]) {
         }
     }
 
-  if ((config['condition'] == 'success') ||
-      (config['condition'] == 'unstable') ||
-      (config['condition'] == 'failure')) {
-    stepResult name: description,
-               context: context,
-               flow_name: config.get('flow_name', env.STAGE_NAME),
-               result: config['condition'].toUpperCase(),
-               ignore_failure: ignore_failure
+    if ((config['condition'] == 'success') ||
+        (config['condition'] == 'unstable') ||
+        (config['condition'] == 'failure')) {
+        stepResult name: description,
+                   context: context,
+                   flow_name: config.get('flow_name', env.STAGE_NAME),
+                   result: config['condition'].toUpperCase(),
+                   ignore_failure: ignore_failure
 
-    return
-  }
+        return
+      }
 
-  if (config['condition'] == 'unsuccessful') {
-    String unsuccessful_script = config.get('unsuccessful_script',
-                                            'ci/rpm/build_unsuccessful.sh')
+    if (config['condition'] == 'unsuccessful') {
+        String unsuccessful_script = config.get('unsuccessful_script',
+                                                'ci/rpm/build_unsuccessful.sh')
 
-    sh(label: 'Build Log',
-       script: "${env_vars} " + unsuccessful_script)
-    archiveArtifacts artifacts: 'config.log-' + target + '-rpm',
-                     allowEmptyArchive: true
+        sh(label: 'Build Log',
+           script: "${env_vars} " + unsuccessful_script)
+        archiveArtifacts(artifacts: 'config.log-' + target + '-rpm',
+                         allowEmptyArchive: true)
 
-    return
-  }
+        return
+    }
 
-  if (config['condition'] == 'cleanup') {
-    archiveArtifacts artifacts: "artifacts/" + target + '/**'
-    return
-  }
-  error 'Invalid value for condition parameter'
+    if (config['condition'] == 'cleanup') {
+        archiveArtifacts artifacts: 'artifacts/' + target + '/**'
+        return
+    }
+    error 'Invalid value for condition parameter'
 }
