@@ -39,19 +39,24 @@ String extract(String output, String type) {
 
 /* groovylint-disable-next-line ParameterName */
 void call(String config, Boolean allow_errors=false, Boolean skip_rpmlint=false) {
-    if (skip_rpmlint) {
+    if (skip_rpmlint || config == 'not_applicable') {
         return
     }
 
+    String chdir = '.'
+    if (fileExists('utils/rpms/Makefile')) {
+        chdir = 'utils/rpms/'
+    }
     String output = sh(label: 'RPM Lint built RPMs',
                        /* groovylint-disable-next-line GStringExpressionWithinString */
-                       script: '''name=$(make show_NAME)
-                                  if [ -f "$name".rpmlintrc ]; then
-                                      rpmlint_args=(-r "$name".rpmlintrc)
-                                  fi
-                                  rpmlint --ignore-unused-rpmlintrc "${rpmlint_args[@]}" ''' +
-                                 '$(ls /var/lib/mock/' + config + '/result/*.rpm | ' +
-                                  'grep -v -e -debuginfo -e debugsource) || exit 0',
+                       script: 'cd ' + chdir + '''
+                                name=$(make show_NAME)
+                                if [ -f "$name".rpmlintrc ]; then
+                                    rpmlint_args=(-r "$name".rpmlintrc)
+                                fi
+                                rpmlint --ignore-unused-rpmlintrc "${rpmlint_args[@]}" ''' +
+                               '$(ls /var/lib/mock/' + config + '/result/*.rpm | ' +
+                               'grep -v -e -debuginfo -e debugsource) || exit 0',
                        returnStdout: true).trim()
 
     int result = sh(label: 'Analyze rpmlint output',
