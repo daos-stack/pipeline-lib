@@ -15,7 +15,7 @@ String daos_repo() {
 
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
 
-    if (target_branch.matches('^[-0-9A-Za-z]+-testing')) {
+    if (target_branch.matches(testBranchRE())) {
         return ''
     }
 

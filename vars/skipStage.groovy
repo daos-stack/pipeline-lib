@@ -182,7 +182,7 @@ boolean skip_if_unstable() {
     if (paramsValue('CI_ALLOW_UNSTABLE_TEST', false) ||
         cachedCommitPragma('Allow-unstable-test').toLowerCase() == 'true' ||
         env.BRANCH_NAME == 'master' ||
-        env.BRANCH_NAME.matches('^[-0-9A-Za-z]+-testing') ||
+        env.BRANCH_NAME.matches(testBranchRE()) ||
         env.BRANCH_NAME.startsWith('release/')) {
         return false
         }
@@ -408,7 +408,7 @@ boolean call(Map config = [:]) {
                    (skip_stage_pragma('build') &&
                     rpmTestVersion() == '') ||
                    skip_stage_pragma('test') ||
-                   (env.BRANCH_NAME.matches('^[-0-9A-Za-z]+-testing') &&
+                   (env.BRANCH_NAME.matches(testBranchRE()) &&
                     ! startedByTimer() &&
                     ! startedByUser()) ||
                    skip_if_unstable()
@@ -519,7 +519,7 @@ boolean call(Map config = [:]) {
                    (skip_stage_pragma('build') &&
                     rpmTestVersion() == '') ||
                    skip_stage_pragma('test') ||
-                   (env.BRANCH_NAME.matches('^[-0-9A-Za-z]+-testing') &&
+                   (env.BRANCH_NAME.matches(testBranchRE()) &&
                     ! startedByTimer() &&
                     ! startedByUser()) ||
                    skip_if_unstable()

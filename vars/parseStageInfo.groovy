@@ -246,7 +246,7 @@ void call(Map config = [:]) {
         }
       }
     } else if (!tag) {
-      if (env.BRANCH_NAME.matches('^[-0-9A-Za-z]+-testing') {
+      if (env.BRANCH_NAME.matches(testBranchRE())) {
         tag = 'always_passes'
       } else {
         // Tags defined by commit pragmas have priority in user PRs
