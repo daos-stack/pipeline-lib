@@ -60,9 +60,7 @@ String call(String distro, String next_version) {
         return version + dist
     }
 
-    if (target_branch.startsWith("weekly-testing") ||
-        target_branch.startsWith("provider-testing") ||
-        target_branch.startsWith("soak-testing")) {
+    if (target_branch.matches('^[a-z]+-testing')) {
         // weekly-test just wants the latest for the branch
         if (rpm_version_cache != '' && rpm_version_cache != 'locked') {
             return rpm_version_cache + rpm_dist(_distro)

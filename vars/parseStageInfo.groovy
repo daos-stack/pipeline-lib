@@ -70,20 +70,6 @@ String get_commit_pragma_tags(String pragma_suffix) {
   return pragma_tag
 }
 
-String get_ftest_arg(String build_param, String commit_pragma, String pragma_suffix) {
-  // Get the ftest argument from either the build parameter or commit pragma variables
-  String ftest_arg
-
-  // Highest ftest argument priority is build parameter
-  if (build_param && build_param != '') {
-    ftest_arg = build_param
-  } else {
-    // Next highest priority is a stage specific pragma, followed by the common pragma
-    ftest_arg = cachedCommitPragma(
-      commit_pragma + pragma_suffix, cachedCommitPragma(commit_pragma, null))
-  }
-  return ftest_arg
-}
 
 /* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
@@ -260,8 +246,7 @@ void call(Map config = [:]) {
         }
       }
     } else if (!tag) {
-      if (env.BRANCH_NAME.startsWith('weekly-testing') ||
-          env.BRANCH_NAME.startsWith('provider-testing')) {
+      if (env.BRANCH_NAME.matches('^[a-z]+-testing') {
         tag = 'always_passes'
       } else {
         // Tags defined by commit pragmas have priority in user PRs
@@ -282,22 +267,16 @@ void call(Map config = [:]) {
     }
 
     // Get the ftest --nvme argument from either the build parameters or commit pragmas
-    String ftest_arg = get_ftest_arg(params.TestNvme, 'Test-nvme', result['pragma_suffix'])
-    if (ftest_arg) {
-      ftest_arg_nvme = ftest_arg
-    }
+    ftest_arg_nvme = params.TestNvme ?: cachedCommitPragma(
+      'Test-nvme' + result['pragma_suffix'], cachedCommitPragma('Test-nvme', ftest_arg_nvme))
 
     // Get the ftest --repeat argument from either the build parameters or commit pragmas
-    ftest_arg = get_ftest_arg(params.TestRepeat, 'Test-repeat', result['pragma_suffix'])
-    if (ftest_arg) {
-      ftest_arg_repeat = ftest_arg
-    }
+    ftest_arg_repeat = params.TestRepeat ?: cachedCommitPragma(
+      'Test-repeat' + result['pragma_suffix'], cachedCommitPragma('Test-repeat', null))
 
     // Get the ftest --provider argument from either the build parameters or commit pragmas
-    ftest_arg = get_ftest_arg(params.TestProvider, 'Test-provider',  result['pragma_suffix'])
-    if (ftest_arg) {
-      ftest_arg_provider = ftest_arg
-    }
+    ftest_arg_provider = params.TestProvider ?: cachedCommitPragma(
+      'Test-provider' + result['pragma_suffix'], cachedCommitPragma('Test-provider', null))
 
     // Assemble the ftest args
     result['ftest_arg'] = ''
