@@ -697,7 +697,8 @@ void call(Map pipeline_args) {
                                                 fi
                                                 # delete the branch if it exists
                                                 if git checkout $branch_name; then
-                                                    if ! git checkout origin/master || ! git branch -D $branch_name; then
+                                                    if ! git checkout origin/master || \
+                                                       ! git branch -D $branch_name; then
                                                       git status
                                                       git branch -a
                                                       exit 1

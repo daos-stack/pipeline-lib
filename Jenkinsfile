@@ -104,7 +104,7 @@ pipeline {
                                            rm -f *.xml
                                            echo "<errorDetails>bla bla bla</errorDetails>" > \
                                              pipeline-test-error.xml''',
-                            junit_files: "*.xml non-exist*.xml",
+                            junit_files: '*.xml non-exist*.xml',
                             failure_artifacts: env.STAGE_NAME
                     }
                     // runTest handles SCM notification via stepResult
@@ -322,11 +322,11 @@ pipeline {
                                       'Functional Hardware Medium',
                                       'Functional Hardware Large']
                             commits = [[pragmas: ['Skip-func-test-leap15: false'],
-                                        skips: [false, true, false, false, false, false]],
+                                        skips: [false, env.CHANGE_ID, false, false, false, false]],
                                        [pragmas: [''],
-                                        skips: [true, true, false, false, false, false]],
+                                        skips: [true, env.CHANGE_ID, false, false, false, false]],
                                        [pragmas: ['Skip-func-hw-test-small: true'],
-                                        skips: [true, true, false, true, false, false]]]
+                                        skips: [env.CHANGE_ID, env.CHANGE_ID, false, true, false, false]]]
                             commits.each { commit ->
                                 cm = '''\
                                         Test commit\n\n'''
