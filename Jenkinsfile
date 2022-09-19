@@ -475,9 +475,11 @@ pipeline {
                                                 fi
                                                 # edit to use this PR as the pipeline-lib branch
                                                 sed -i -e '/^\\/\\/@Library/s/^\\/\\///' """ +
+                                                      "-e \"/^@Library/s/'/\\\"/g\" " +
                                                       "-e '/^@Library/s/-lib@.*/-lib@" +
                                                     env.CHANGE_BRANCH.replaceAll('\\/', '\\\\/') +
                                                     "\") _/' Jenkinsfile" + '''
+                                                grep Library Jenkinsfile
                                                 if [ -n "$(git status -s)" ]; then
                                                     git commit -m 'Update pipeline-lib branch to self' Jenkinsfile
                                                 fi
@@ -502,7 +504,6 @@ pipeline {
                                                       value: 'load_mpi test_core_files'),
                                                string(name: 'CI_RPM_TEST_VERSION',
                                                       value: daosLatestVersion(env.TEST_BRANCH)),
-                                               string(name: 'BuildPriority', value: '2'),
                                                booleanParam(name: 'CI_FI_el8_TEST', value: true),
                                                booleanParam(name: 'CI_FUNCTIONAL_el7_TEST', value: true),
                                                booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
