@@ -315,6 +315,7 @@ pipeline {
                 stage('Commit Pragma tests') {
                     steps {
                         script {
+                            println('isPr() == ' + isPr())
                             stages = ['Functional on Leap 15',
                                       'Functional on CentOS 7',
                                       'Functional on EL 8',
