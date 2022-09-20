@@ -16,7 +16,7 @@
 // That PR should be landed with out deleting the PR branch.
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
-@Library(value='pipeline-lib@bmurrell/fix-commit-pragma-tests-on-landing') _
+//@Library(value='pipeline-lib@my_branch_name') _
 
 String test_branch(String target) {
     return 'ci-' + JOB_NAME.replaceAll('/', '-') +
@@ -315,7 +315,6 @@ pipeline {
                 stage('Commit Pragma tests') {
                     steps {
                         script {
-                            println('isPr() == ' + isPr())
                             stages = ['Functional on Leap 15',
                                       'Functional on CentOS 7',
                                       'Functional on EL 8',
