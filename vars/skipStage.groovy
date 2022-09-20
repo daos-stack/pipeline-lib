@@ -101,16 +101,6 @@ boolean skip_build_on_landing_branch(String target_branch) {
            quickBuild()
 }
 
-boolean is_pr() {
-    if (params.CI_MORE_FUNCTIONAL_PR_TESTS) {
-        return false
-    }
-    if (cachedCommitPragma('Run-landing-stages') == 'true') {
-        return false
-    }
-    return env.CHANGE_ID != null
-}
-
 boolean skip_scan_rpms(String distro, String target_branch) {
     return already_passed() ||
            target_branch == 'weekly-testing' ||
@@ -149,7 +139,7 @@ boolean skip_ftest(String distro, String target_branch) {
            skip_stage_pragma('func-test-' + distro) ||
            (docOnlyChange(target_branch) &&
             prRepos(distro) == '') ||
-           (is_pr() && distro != 'el8')
+           (isPr() && distro != 'el8')
 }
 
 boolean skip_ftest_valgrind(String distro, String target_branch) {
@@ -159,7 +149,7 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
            !run_default_skipped_stage('func-test-vm-valgrind') ||
            !paramsValue('CI_FUNCTIONAL_' + distro + '_VALGRIND_TEST', false) ||
            skip_ftest(distro, target_branch) ||
-           is_pr() ||
+           isPr() ||
            target_branch.startsWith('weekly-testing')
 }
 
@@ -227,7 +217,7 @@ boolean call(Map config = [:]) {
     switch (env.STAGE_NAME) {
         case 'Cancel Previous Builds':
             return cachedCommitPragma('Cancel-prev-build') == 'false' ||
-                   (!is_pr() && !startedByUpstream())
+                   (!isPr() && !startedByUpstream())
         case 'Pre-build':
             return docOnlyChange(target_branch) ||
                    target_branch == 'weekly-testing' ||
