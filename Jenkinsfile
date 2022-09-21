@@ -323,13 +323,13 @@ pipeline {
                                       'Functional Hardware Large']
                             commits = [[pragmas: ['Skip-func-test-leap15: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [false, isPr(), false, false, false, false]],
+                                        skips: [false, isPr(), false, !isPr(), !isPr(), !isPr()]],
                                        [pragmas: [''],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, isPr(), false, false, false, false]],
+                                        skips: [true, isPr(), false, !isPr(), !isPr(), !isPr()]],
                                        [pragmas: ['Skip-func-hw-test-small: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, true, false, false]]]
+                                        skips: [isPr(), isPr(), false, true, !isPr(), !isPr()]]]
                             commits.each { commit ->
                                 cm = '''\
                                         Test commit\n\n'''
