@@ -474,13 +474,15 @@ pipeline {
                                                     echo "Error trying to create branch \$branch_name"
                                                     exit 1
                                                 fi
-                                                # edit to use this PR as the pipeline-lib branch
-                                                sed -i -e '/^\\/\\/@Library/s/^\\/\\///' """ +
-                                                      "-e \"/^@Library/s/'/\\\"/g\" " +
-                                                      "-e '/^@Library/s/-lib@.*/-lib@" +
-                                                    env.CHANGE_BRANCH.replaceAll('\\/', '\\\\/') +
-                                                    "\") _/' Jenkinsfile" + '''
-                                                grep Library Jenkinsfile
+                                                # if a PR...
+                                                if [ -n "\$CHANGE_BRANCH" ]; then
+                                                    # edit to use this PR as the pipeline-lib branch
+                                                    sed -i -e '/^\\/\\/@Library/s/^\\/\\///' """ +
+                                                          "-e \"/^@Library/s/'/\\\"/g\" " +
+                                                          "-e '/^@Library/s/-lib@.*/-lib@" +
+                                                        (env.CHANGE_BRANCH ?: '').replaceAll('\\/', '\\\\/') +
+                                                        "\") _/' Jenkinsfile" + '''
+                                                fi
                                                 if [ -n "$(git status -s)" ]; then
                                                     git commit -m 'Update pipeline-lib branch to self' Jenkinsfile
                                                 fi
