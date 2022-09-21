@@ -326,16 +326,14 @@ pipeline {
                                         skips: [false, isPr(), false, !isPr(), !isPr(), !isPr()]],
                                        [pragmas: [''],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, isPr(), false, !isPr(), !isPr(), !isPr()]],
+                                        skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr()]],
                                        [pragmas: ['Skip-func-hw-test-small: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [isPr(), isPr(), false, true, !isPr(), !isPr()]]]
                             commits.each { commit ->
-                                cm = '''\
-                                        Test commit\n\n'''
+                                cm = 'Test commit\n\n'
                                 commit.pragmas.each { pragma ->
-                                    cm += """\
-                                        ${pragma}\n"""
+                                    cm += "${pragma}\n"
                                 }
                                 i = 0
                                 stages.each { stage ->
@@ -345,8 +343,8 @@ pipeline {
                                         // Useful for debugging since Jenkins'
                                         // assert() is pretty lame
                                         //println('For stage: ' + stage + ', assert(skipStage(commit_msg: ' +
-                                        //          cm.stripIndent() + ') == ' + commit.skips[i] + ')')
-                                        assert(skipStage(commit_msg: cm.stripIndent()) == commit.skips[i])
+                                        //        cm + ') == ' + commit.skips[i] + ')')
+                                        assert(skipStage(commit_msg: cm) == commit.skips[i])
                                         i++
                                     }
                                 }

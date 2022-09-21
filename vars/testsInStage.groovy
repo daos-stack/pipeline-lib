@@ -12,12 +12,13 @@
  */
 
 boolean call() {
+    if (env.UNIT_TEST && env.UNIT_TEST == 'true') {
+        println('Unit testing, so exiting "Get test list" with true')
+        return true
+    }
     return sh(label: 'Get test list',
               /* groovylint-disable-next-line GStringExpressionWithinString */
               script: '''trap 'echo "Got an unhandled error, exiting as if a match was found"; exit 0' ERR
-                         if ${UNIT_TEST:-false}; then
-                             exit 0
-                         fi
                          # This doesn't actually work on weekly-testing branches due to a lack
                          # src/test/ftest/launch.py (and friends).  We could probably just
                          # check that out from the branch we are testing against (i.e. master,
