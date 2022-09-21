@@ -139,6 +139,7 @@ boolean skip_ftest(String distro, String target_branch) {
            skip_stage_pragma('func-test-' + distro) ||
            (docOnlyChange(target_branch) &&
             prRepos(distro) == '') ||
+           /* groovylint-disable-next-line UnnecessaryGetter */
            (isPr() && distro != 'el8')
 }
 
