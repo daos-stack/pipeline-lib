@@ -17,6 +17,7 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 //@Library(value='pipeline-lib@my_branch_name') _
+@Library(value='pipeline-lib@sre-519') _
 
 String test_branch(String target) {
     return 'ci-' + JOB_NAME.replaceAll('/', '-') +
@@ -68,7 +69,7 @@ pipeline {
                     steps {
                         runTest script: '''set -ex
                                            rm -f *.xml
-                                           echo "<failure bla bla bla/>" > \
+                                           echo "<failure> bla bla bla</failure>" > \
                                              pipeline-test-failure.xml''',
                             junit_files: '*.xml non-exist*.xml',
                             failure_artifacts: env.STAGE_NAME
