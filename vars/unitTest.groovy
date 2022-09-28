@@ -105,7 +105,7 @@ void call(Map config = [:]) {
             stashes.add("${target_stash}-tests")
         }
         stashes.add("${target_stash}-build-vars")
-	if config.get('unstash_install', false) {
+	if (config.get('unstash_install', false)) {
 	    stashes.add("${target_stash}-opt-tar")
 	} else {
 	    stashes.add("${target_stash}-install")
