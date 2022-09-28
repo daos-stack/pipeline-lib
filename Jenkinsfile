@@ -68,7 +68,7 @@ pipeline {
                     steps {
                         runTest script: '''set -ex
                                            rm -f *.xml
-                                           echo "<failure bla bla bla/>" > \
+                                           echo "<failure> bla bla bla</failure>" > \
                                              pipeline-test-failure.xml''',
                             junit_files: '*.xml non-exist*.xml',
                             failure_artifacts: env.STAGE_NAME
@@ -104,7 +104,7 @@ pipeline {
                                            rm -f *.xml
                                            echo "<errorDetails>bla bla bla</errorDetails>" > \
                                              pipeline-test-error.xml''',
-                            junit_files: "*.xml non-exist*.xml",
+                            junit_files: '*.xml non-exist*.xml',
                             failure_artifacts: env.STAGE_NAME
                     }
                     // runTest handles SCM notification via stepResult
@@ -322,17 +322,18 @@ pipeline {
                                       'Functional Hardware Medium',
                                       'Functional Hardware Large']
                             commits = [[pragmas: ['Skip-func-test-leap15: false'],
-                                        skips: [false, true, false, false, false, false]],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [false, isPr(), false, !isPr(), !isPr(), !isPr()]],
                                        [pragmas: [''],
-                                        skips: [true, true, false, false, false, false]],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr()]],
                                        [pragmas: ['Skip-func-hw-test-small: true'],
-                                        skips: [true, true, false, true, false, false]]]
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), false, true, !isPr(), !isPr()]]]
                             commits.each { commit ->
-                                cm = '''\
-                                        Test commit\n\n'''
+                                cm = 'Test commit\n\n'
                                 commit.pragmas.each { pragma ->
-                                    cm += """\
-                                        ${pragma}\n"""
+                                    cm += "${pragma}\n"
                                 }
                                 i = 0
                                 stages.each { stage ->
@@ -342,8 +343,8 @@ pipeline {
                                         // Useful for debugging since Jenkins'
                                         // assert() is pretty lame
                                         //println('For stage: ' + stage + ', assert(skipStage(commit_msg: ' +
-                                        //          cm.stripIndent() + ') == ' + commit.skips[i] + ')')
-                                        assert(skipStage(commit_msg: cm.stripIndent()) == commit.skips[i])
+                                        //        cm + ') == ' + commit.skips[i] + ')')
+                                        assert(skipStage(commit_msg: cm) == commit.skips[i])
                                         i++
                                     }
                                 }
@@ -473,11 +474,15 @@ pipeline {
                                                     echo "Error trying to create branch \$branch_name"
                                                     exit 1
                                                 fi
-                                                # edit to use this PR as the pipeline-lib branch
-                                                sed -i -e '/^\\/\\/@Library/s/^\\/\\///' """ +
-                                                      "-e '/^@Library/s/-lib@.*/-lib@" +
-                                                    env.CHANGE_BRANCH.replaceAll('\\/', '\\\\/') +
-                                                    "\") _/' Jenkinsfile" + '''
+                                                # if a PR...
+                                                if [ -n "\$CHANGE_BRANCH" ]; then
+                                                    # edit to use this PR as the pipeline-lib branch
+                                                    sed -i -e '/^\\/\\/@Library/s/^\\/\\///' """ +
+                                                          "-e \"/^@Library/s/'/\\\"/g\" " +
+                                                          "-e '/^@Library/s/-lib@.*/-lib@" +
+                                                        (env.CHANGE_BRANCH ?: '').replaceAll('\\/', '\\\\/') +
+                                                        "\") _/' Jenkinsfile" + '''
+                                                fi
                                                 if [ -n "$(git status -s)" ]; then
                                                     git commit -m 'Update pipeline-lib branch to self' Jenkinsfile
                                                 fi
@@ -502,7 +507,6 @@ pipeline {
                                                       value: 'load_mpi test_core_files'),
                                                string(name: 'CI_RPM_TEST_VERSION',
                                                       value: daosLatestVersion(env.TEST_BRANCH)),
-                                               string(name: 'BuildPriority', value: '2'),
                                                booleanParam(name: 'CI_FI_el8_TEST', value: true),
                                                booleanParam(name: 'CI_FUNCTIONAL_el7_TEST', value: true),
                                                booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
