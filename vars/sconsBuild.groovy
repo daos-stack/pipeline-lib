@@ -306,7 +306,7 @@ def call(Map config = [:]) {
             target_stash += '-' + stage_info['build_type']
         }
 	if (config.get('stash_opt', false)) {
-              sh 'tar -cf opt-daos.tar /opt/daos/', label: 'Tar /opt'
+              sh(script: 'tar -cf opt-daos.tar /opt/daos/', label: 'Tar /opt')
               stash name: target_stash + '-opt-tar', includes: 'opt-daos.tar'	
         } else {
             stash name: target_stash + '-install',
