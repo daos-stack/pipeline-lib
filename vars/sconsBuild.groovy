@@ -63,7 +63,7 @@ def call(Map config = [:]) {
    *  Default filename is based on parsing environment variables.
    * config['parallel_build'] Build using maximum CPUs
    * config['stash_files']  Filename containing list of test files to stash.
-   * config['stash_install'] Boolean in install/** should be stashed.  Default true.
+   * config['stash_opt'] Boolean, stash tar of /opt in preference to install/**.  Default false.
    *   If present, those files will be placed in a stash name
    *   of based on parsing the evironment variables of the
    *   <target-compiler[-build_type]-test>.  Additional stashes
@@ -305,8 +305,10 @@ def call(Map config = [:]) {
         if (stage_info['build_type']) {
             target_stash += '-' + stage_info['build_type']
         }
-	stash_install = config.get('stash_install', true)
-	if (stash_install) {
+	if (config.get('stash_opt', false)) {
+              sh 'tar -cf opt-daos.tar /opt/daos/', label: 'Tar /opt'
+              stash name: target_stash + '-opt-tar', includes: 'opt-daos.tar'	
+        } else {
             stash name: target_stash + '-install',
                 includes: 'install/**'
         }

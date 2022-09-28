@@ -66,6 +66,10 @@
    *                             Default is 120 Minutes.
    *
    * config['timeout_units']     Timelimit units.  Default is minutes.
+   *
+   * config['unstash_opt']       Unstash -opt-tar instead of -opt, default is false.
+   *
+   * config['unstash_tests']     Unstash -tests, default is true.
    */
 
 void call(Map config = [:]) {
@@ -97,9 +101,15 @@ void call(Map config = [:]) {
     if (config['stashes']) {
         stashes = config['stashes']
   } else {
-        stashes.add("${target_stash}-tests")
-        stashes.add("${target_stash}-install")
+        if (config.get('unstash_tests', true) {
+            stashes.add("${target_stash}-tests")
+        }
         stashes.add("${target_stash}-build-vars")
+	if config.get('unstash_install', false) {
+	    stashes.add("${target_stash}-opt-tar")
+	} else {
+	    stashes.add("${target_stash}-install")
+        }
     }
 
     if (stage_info['compiler'] == 'covc') {
