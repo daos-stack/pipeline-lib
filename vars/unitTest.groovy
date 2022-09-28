@@ -101,7 +101,7 @@ void call(Map config = [:]) {
     if (config['stashes']) {
         stashes = config['stashes']
   } else {
-        if (config.get('unstash_tests', true) {
+        if (config.get('unstash_tests', true)) {
             stashes.add("${target_stash}-tests")
         }
         stashes.add("${target_stash}-build-vars")
