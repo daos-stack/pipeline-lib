@@ -62,7 +62,8 @@ def call(Map config = [:]) {
    * config['log_to_file'] Copy build output to a file.
    *  Default filename is based on parsing environment variables.
    * config['parallel_build'] Build using maximum CPUs
-   * config['stash_files']  List of test files to stash.
+   * config['stash_files']  Filename containing list of test files to stash.
+   * config['stash_opt'] Boolean, stash tar of /opt in preference to install/**.  Default false.
    *   If present, those files will be placed in a stash name
    *   of based on parsing the evironment variables of the
    *   <target-compiler[-build_type]-test>.  Additional stashes
@@ -304,14 +305,19 @@ def call(Map config = [:]) {
         if (stage_info['build_type']) {
             target_stash += '-' + stage_info['build_type']
         }
-        String install_includes = 'install/**'
-        if (stage_info['compiler'] == 'covc') {
-            install_includes += ', test.cov'
+	if (config.get('stash_opt', false)) {
+              sh(script: 'tar -cf opt-daos.tar /opt/daos/', label: 'Tar /opt')
+              stash name: target_stash + '-opt-tar', includes: 'opt-daos.tar'	
+        } else {
+            stash name: target_stash + '-install',
+                includes: 'install/**'
         }
-        stash name: target_stash + '-install',
-              includes: install_includes
+	String vars_includes = '.build_vars.*'
+        if (stage_info['compiler'] == 'covc') {
+            vars_includes += ', test.cov'
+	}
         stash name: target_stash + '-build-vars',
-              includes: '.build_vars.*'
+              includes: vars_includes
         String test_files = readFile "${env.WORKSPACE}/${config['stash_files']}"
         stash name: target_stash + '-tests',
               includes: test_files
