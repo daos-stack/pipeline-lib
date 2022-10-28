@@ -71,29 +71,7 @@ void call(Map config = [:]) {
     // We really shouldn't even get here if $NO_CI_TESTING is true as the
     // when{} block for the stage should skip it entirely.  But we'll leave
     // this for historical purposes
-    String script = '''skipped=false
-                       if [ "''' + env.NO_CI_TESTING + '''" == 'true' ]; then
-                           skipped=true
-                       fi
-                       if command -v git; then
-                           if git show -s --format=%B | grep "^Skip-test: true"; then
-                               skipped=true
-                           fi
-                       fi
-                       if ${skipped}; then
-                           # cart
-                           testdir1="install/Linux/TESTING/testLogs"
-                           testdir2="${testdir1}_valgrind"
-                           # daos
-                           testdir3="src/tests/ftest/avocado/job-results"
-                           mkdir -p "${testdir1}"
-                           mkdir -p "${testdir2}"
-                           mkdir -p "${testdir3}"
-                           touch "${testdir1}/skipped_tests"
-                           touch "${testdir2}/skipped_tests"
-                           touch "${testdir3}/skipped_tests"
-                           exit 0
-                       fi\n''' + config['script']
+    String script = config['script']
     if (config['failure_artifacts']) {
         script += '''\nset +x\necho -n "Test artifacts can be found at: "
                      echo "${JOB_URL%/job/*}/view/change-requests/job/$BRANCH_NAME/$BUILD_ID/artifact/''' +
