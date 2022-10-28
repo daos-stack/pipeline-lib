@@ -110,7 +110,9 @@ void call(Map config = [:]) {
         sh label: 'Send build data',
         /* groovylint-disable-next-line GStringExpressionWithinString */
         script: '''export PATH=$PATH:$HOME/.local/bin
-                   launchable record build --name ${BUILD_TAG//%2F/-} --source src=.'''
+                   launchable record build --name ${BUILD_TAG//%2F/-} --source src=.
+                   launchable subset --time 60m --build ${BUILD_TAG//%2F/-} ''' +
+                  '--get-tests-from-previous-sessions --rest=rest.txt raw > subset.txt'
     }
 
     if (config.get('test_function', 'runTestFunctional') ==
