@@ -214,8 +214,19 @@ void call(Map config = [:]) {
         result['pragma_suffix'] = '-hw-small'
       } else if (stage_name.contains('Medium')) {
         result['node_count'] = 5
-        cluster_size = 'hw,medium'
+        cluster_size = 'hw,medium,-provider'
         result['pragma_suffix'] = '-hw-medium'
+        if (stage_name.contains('Provider')) {
+          cluster_size = 'hw,medium,provider'
+          if (stage_name.contains('Verbs')) {
+            result['pragma_suffix'] += '-verbs-provider'
+            ftest_arg_provider = 'ofi+verbs'
+          }
+          elif (stage_name.contains('UCX')) {
+            result['pragma_suffix'] += '-ucx-provider'
+            ftest_arg_provider = 'ucx+dc_x'
+          }
+        }
       }
     }
     if (stage_name.contains('with Valgrind')) {
@@ -274,15 +285,18 @@ void call(Map config = [:]) {
       }
     }
 
-    // Highest provider ftest argument priority is TestProvider parameter
-    if (params.TestProvider && params.TestProvider != '') {
-      ftest_arg_provider = params.TestProvider
-    } else {
-      // Next highest priority is a stage specific Test-provider-* then the general Test-provider
-      String provider = cachedCommitPragma(
-        'Test-provider' + result['pragma_suffix'], cachedCommitPragma('Test-provider', null))
-      if (provider) {
-        ftest_arg_provider = provider
+    // Highest provider ftest argument priority is the stage defined parameter
+    if (!ftest_arg_provider) {
+      // Next highest priority is TestProvider parameter
+      if (params.TestProvider && params.TestProvider != '') {
+        ftest_arg_provider = params.TestProvider
+      } else {
+        // Next highest priority is a stage specific Test-provider-* then the general Test-provider
+        String provider = cachedCommitPragma(
+          'Test-provider' + result['pragma_suffix'], cachedCommitPragma('Test-provider', null))
+        if (provider) {
+          ftest_arg_provider = provider
+        }
       }
     }
 
