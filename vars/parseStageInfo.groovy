@@ -273,31 +273,19 @@ void call(Map config = [:]) {
       tag = tag.trim()
     }
 
-    // Highest repeat ftest argument priority is TestRepeat parameter
-    if (params.TestRepeat && params.TestRepeat != '') {
-      ftest_arg_repeat = params.TestRepeat
-    } else {
-      // Next highest priority is a stage specific Test-repeat-* then the general Test-repeat
-      String repeat = cachedCommitPragma(
-        'Test-repeat' + result['pragma_suffix'], cachedCommitPragma('Test-repeat', null))
-      if (repeat) {
-        ftest_arg_repeat = repeat
-      }
-    }
+    // Get the ftest --nvme argument from either the build parameters or commit pragmas
+    ftest_arg_nvme = params.TestNvme ?: cachedCommitPragma(
+      'Test-nvme' + result['pragma_suffix'], cachedCommitPragma('Test-nvme', ftest_arg_nvme))
 
-    // Highest provider ftest argument priority is the stage defined parameter
+    // Get the ftest --repeat argument from either the build parameters or commit pragmas
+    ftest_arg_repeat = params.TestRepeat ?: cachedCommitPragma(
+      'Test-repeat' + result['pragma_suffix'], cachedCommitPragma('Test-repeat', null))
+
+    // Get the ftest --provider argument from either the build parameters or commit pragmas if not
+    // already defined by the stage
     if (!ftest_arg_provider) {
-      // Next highest priority is TestProvider parameter
-      if (params.TestProvider && params.TestProvider != '') {
-        ftest_arg_provider = params.TestProvider
-      } else {
-        // Next highest priority is a stage specific Test-provider-* then the general Test-provider
-        String provider = cachedCommitPragma(
-          'Test-provider' + result['pragma_suffix'], cachedCommitPragma('Test-provider', null))
-        if (provider) {
-          ftest_arg_provider = provider
-        }
-      }
+      ftest_arg_provider = params.TestProvider ?: cachedCommitPragma(
+        'Test-provider' + result['pragma_suffix'], cachedCommitPragma('Test-provider', null))
     }
 
     // Assemble the ftest args
