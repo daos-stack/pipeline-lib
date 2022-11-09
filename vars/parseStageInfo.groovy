@@ -222,7 +222,7 @@ void call(Map config = [:]) {
             result['pragma_suffix'] += '-verbs-provider'
             ftest_arg_provider = 'ofi+verbs'
           }
-          elif (stage_name.contains('UCX')) {
+          else if (stage_name.contains('UCX')) {
             result['pragma_suffix'] += '-ucx-provider'
             ftest_arg_provider = 'ucx+dc_x'
           }
