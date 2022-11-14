@@ -176,10 +176,10 @@ boolean skip_if_unstable() {
         env.BRANCH_NAME.matches(testBranchRE()) ||
         env.BRANCH_NAME.startsWith('release/')) {
         return false
-        }
+    }
 
-    //Ok, it's a PR and the Allow pragma isn't set.  Skip if the build is
-    //unstable.
+    // Ok, it's a PR and the Allow pragma isn't set.  Skip if the build is
+    // unstable.
 
     return currentBuild.currentResult == 'UNSTABLE'
 }

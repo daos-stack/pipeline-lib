@@ -188,33 +188,7 @@ pipeline {
                         }
                     }
                 } //stage('publishToRepository DEB tests')
-                stage('provisionNodes with release/0.9 Repo') {
-                    when {
-                        beforeAgent true
-                        expression { env.NO_CI_TESTING != 'true' }
-                    }
-                    agent {
-                        label 'ci_vm1'
-                    }
-                    steps {
-                        // remove the ci/ folder so that provisionNodesV1 is used
-                        fileOperations([folderDeleteOperation(folderPath: 'ci')])
-                        provisionNodes NODELIST: env.NODELIST,
-                                       distro: 'el7',
-                                       profile: 'daos_ci',
-                                       node_count: '1',
-                                       snapshot: true,
-                                       inst_repos: 'daos@release/0.9'
-                        /* groovylint-disable-next-line GStringExpressionWithinString */
-                        runTest script: '''NODE=${NODELIST%%,*}
-                                           ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
-                                           yum --disablerepo=\\* --enablerepo=build\\* makecache"''',
-                                junit_files: null,
-                                failure_artifacts: env.STAGE_NAME
-                    }
-                    // runTest handles SCM notification via stepResult
-                } //stage('provisionNodes with release/0.9 Repo')
-                stage('provisionNodes with release/2.0 Repo') {
+                stage('provisionNodes with release/2.2 Repo') {
                     when {
                         beforeAgent true
                         expression { env.NO_CI_TESTING != 'true' }
@@ -228,7 +202,7 @@ pipeline {
                                        profile: 'daos_ci',
                                        node_count: '1',
                                        snapshot: true,
-                                       inst_repos: 'daos@release/2.0'
+                                       inst_repos: 'daos@release/2.2'
                         /* groovylint-disable-next-line GStringExpressionWithinString */
                         runTest script: '''NODE=${NODELIST%%,*}
                                            ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
@@ -426,10 +400,8 @@ pipeline {
                         name 'TEST_BRANCH'
                         values 'master',
                                'release/2.2',
-                               'release/2.0',
                                'weekly-testing',
-                               'weekly-testing-2.2',
-                               'weekly-testing-2.0'
+                               'weekly-testing-2.2'
                     }
                 }
                 when {

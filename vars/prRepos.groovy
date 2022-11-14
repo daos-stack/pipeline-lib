@@ -31,7 +31,7 @@ String call(String distro) {
         } else if (distro.startsWith('ubuntu20')) {
             repos = cachedCommitPragma('PR-repos-ubuntu20')
         } else {
-           error 'prRepos not implemented for ' + distro
+            error 'prRepos not implemented for ' + distro
         }
     }
     return [repos,
