@@ -70,6 +70,7 @@ String get_commit_pragma_tags(String pragma_suffix) {
   return pragma_tag
 }
 
+
 /* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
   Map result = [:]
@@ -216,6 +217,10 @@ void call(Map config = [:]) {
         result['node_count'] = 5
         cluster_size = 'hw,medium'
         result['pragma_suffix'] = '-hw-medium'
+      } else if (stage_name.contains('Hardware 24')) {
+        result['node_count'] = 24
+        cluster_size = 'hw,24'
+        result['pragma_suffix'] = '-hw-24'
       }
     }
     if (stage_name.contains('with Valgrind')) {
@@ -241,8 +246,7 @@ void call(Map config = [:]) {
         }
       }
     } else if (!tag) {
-      if (env.BRANCH_NAME.startsWith('weekly-testing') ||
-          env.BRANCH_NAME.startsWith('provider-testing')) {
+      if (env.BRANCH_NAME.matches(testBranchRE())) {
         tag = 'always_passes'
       } else {
         // Tags defined by commit pragmas have priority in user PRs
@@ -262,29 +266,17 @@ void call(Map config = [:]) {
       tag = tag.trim()
     }
 
-    // Highest repeat ftest argument priority is TestRepeat parameter
-    if (params.TestRepeat && params.TestRepeat != '') {
-      ftest_arg_repeat = params.TestRepeat
-    } else {
-      // Next highest priority is a stage specific Test-repeat-* then the general Test-repeat
-      String repeat = cachedCommitPragma(
-        'Test-repeat' + result['pragma_suffix'], cachedCommitPragma('Test-repeat', null))
-      if (repeat) {
-        ftest_arg_repeat = repeat
-      }
-    }
+    // Get the ftest --nvme argument from either the build parameters or commit pragmas
+    ftest_arg_nvme = params.TestNvme ?: cachedCommitPragma(
+      'Test-nvme' + result['pragma_suffix'], cachedCommitPragma('Test-nvme', ftest_arg_nvme))
 
-    // Highest provider ftest argument priority is TestProvider parameter
-    if (params.TestProvider && params.TestProvider != '') {
-      ftest_arg_provider = params.TestProvider
-    } else {
-      // Next highest priority is a stage specific Test-provider-* then the general Test-provider
-      String provider = cachedCommitPragma(
-        'Test-provider' + result['pragma_suffix'], cachedCommitPragma('Test-provider', null))
-      if (provider) {
-        ftest_arg_provider = provider
-      }
-    }
+    // Get the ftest --repeat argument from either the build parameters or commit pragmas
+    ftest_arg_repeat = params.TestRepeat ?: cachedCommitPragma(
+      'Test-repeat' + result['pragma_suffix'], cachedCommitPragma('Test-repeat', null))
+
+    // Get the ftest --provider argument from either the build parameters or commit pragmas
+    ftest_arg_provider = params.TestProvider ?: cachedCommitPragma(
+      'Test-provider' + result['pragma_suffix'], cachedCommitPragma('Test-provider', null))
 
     // Assemble the ftest args
     result['ftest_arg'] = ''
