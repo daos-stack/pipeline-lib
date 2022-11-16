@@ -70,6 +70,7 @@ String get_commit_pragma_tags(String pragma_suffix) {
   return pragma_tag
 }
 
+
 /* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
   Map result = [:]
@@ -227,6 +228,10 @@ void call(Map config = [:]) {
             ftest_arg_provider = 'ucx+dc_x'
           }
         }
+      } else if (stage_name.contains('Hardware 24')) {
+        result['node_count'] = 24
+        cluster_size = 'hw,24'
+        result['pragma_suffix'] = '-hw-24'
       }
     }
     if (stage_name.contains('with Valgrind')) {
@@ -252,8 +257,7 @@ void call(Map config = [:]) {
         }
       }
     } else if (!tag) {
-      if (env.BRANCH_NAME.startsWith('weekly-testing') ||
-          env.BRANCH_NAME.startsWith('provider-testing')) {
+      if (env.BRANCH_NAME.matches(testBranchRE())) {
         tag = 'always_passes'
       } else {
         // Tags defined by commit pragmas have priority in user PRs

@@ -661,8 +661,7 @@ void call(Map pipeline_args) {
                         axis {
                             name 'BRANCH'
                             values 'master',
-                                   'release/2.2',
-                                   'release/2.0'
+                                   'release/2.2'
                         }
                     }
                     when {

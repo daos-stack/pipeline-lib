@@ -15,8 +15,7 @@ String daos_repo() {
 
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
 
-    if (target_branch.startsWith('weekly-testing') ||
-        target_branch.startsWith('provider-testing')) {
+    if (target_branch.matches(testBranchRE())) {
         return ''
     }
 

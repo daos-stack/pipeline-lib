@@ -173,8 +173,7 @@ boolean skip_if_unstable() {
     if (paramsValue('CI_ALLOW_UNSTABLE_TEST', false) ||
         cachedCommitPragma('Allow-unstable-test').toLowerCase() == 'true' ||
         env.BRANCH_NAME == 'master' ||
-        env.BRANCH_NAME.startsWith('weekly-testing') ||
-        env.BRANCH_NAME.startsWith('provider-testing') ||
+        env.BRANCH_NAME.matches(testBranchRE()) ||
         env.BRANCH_NAME.startsWith('release/')) {
         return false
     }
@@ -400,10 +399,9 @@ boolean call(Map config = [:]) {
                    (skip_stage_pragma('build') &&
                     rpmTestVersion() == '') ||
                    skip_stage_pragma('test') ||
-                   ((env.BRANCH_NAME.startsWith('weekly-testing') ||
-                     env.BRANCH_NAME.startsWith('provider-testing')) &&
-                    !startedByTimer() &&
-                    !startedByUser()) ||
+                   (env.BRANCH_NAME.matches(testBranchRE()) &&
+                    ! startedByTimer() &&
+                    ! startedByUser()) ||
                    skip_if_unstable()
         case 'Test on CentOS 7 [in] Vagrant':
             return skip_stage_pragma('vagrant-test', 'true') &&
@@ -512,10 +510,9 @@ boolean call(Map config = [:]) {
                    (skip_stage_pragma('build') &&
                     rpmTestVersion() == '') ||
                    skip_stage_pragma('test') ||
-                   ((env.BRANCH_NAME.startsWith('weekly-testing') ||
-                    env.BRANCH_NAME.startsWith('provider-testing')) &&
-                    !startedByTimer() &&
-                    !startedByUser()) ||
+                   (env.BRANCH_NAME.matches(testBranchRE()) &&
+                    ! startedByTimer() &&
+                    ! startedByUser()) ||
                    skip_if_unstable()
         case 'Functional_Hardware_Small':
         case 'Functional Hardware Small':
@@ -530,6 +527,9 @@ boolean call(Map config = [:]) {
         case 'Functional_Hardware_Large':
         case 'Functional Hardware Large':
             return skip_ftest_hw('large', target_branch)
+        case 'Functional_Hardware_24':
+        case 'Functional Hardware 24':
+            return skip_ftest_hw('24', target_branch)
         case 'Bullseye Report':
         case 'Bullseye Report on CentOS 8':
         case 'Bullseye Report on EL 8':
