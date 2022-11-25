@@ -478,7 +478,7 @@ void call(Map pipeline_args) {
                             success {
                                 rpmlintMockResults('opensuse-leap-15.4-x86_64',
                                                    pipeline_args.get('rpmlint_rpms_allow_errors', false),
-                                                   pipeline_args.get('rpmlint_rpms_skip', false))
+                                                   pipeline_args.get('rpmlint_rpms_skip', false),
                                                    pipeline_args.get('make args', ''))
                                 sh label: 'Collect artifacts',
                                    script: '''(cd /var/lib/mock/opensuse-leap-15.4-x86_64/result/ &&
