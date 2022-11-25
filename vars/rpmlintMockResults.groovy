@@ -48,9 +48,9 @@ void call(String config, Boolean allow_errors=false, Boolean skip_rpmlint=false,
         chdir = 'utils/rpms/'
     }
     String output = sh(label: 'RPM Lint built RPMs',
-                       script: 'cd ' + chdir + '''
-                                /* groovylint-disable-next-line GStringExpressionWithinString */
-                                name=$(make ''' + make_args + ''' show_NAME)
+                       script: 'cd ' + chdir + '\n' +
+                             /* groovylint-disable-next-line GStringExpressionWithinString */
+                             '''name=$(make ''' + make_args + ''' show_NAME)
                                 if [ -f "$name".rpmlintrc ]; then
                                     rpmlint_args=(-r "$name".rpmlintrc)
                                 fi
