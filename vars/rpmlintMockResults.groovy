@@ -38,7 +38,7 @@ String extract(String output, String type) {
 }
 
 /* groovylint-disable-next-line ParameterName */
-void call(String config, Boolean allow_errors=false, Boolean skip_rpmlint=false) {
+void call(String config, Boolean allow_errors=false, Boolean skip_rpmlint=false, String make_args='') {
     if (skip_rpmlint || config == 'not_applicable') {
         return
     }
@@ -48,9 +48,9 @@ void call(String config, Boolean allow_errors=false, Boolean skip_rpmlint=false)
         chdir = 'utils/rpms/'
     }
     String output = sh(label: 'RPM Lint built RPMs',
-                       /* groovylint-disable-next-line GStringExpressionWithinString */
                        script: 'cd ' + chdir + '''
-                                name=$(make show_NAME)
+                                /* groovylint-disable-next-line GStringExpressionWithinString */
+                                name=$(make ''' + make_args + ''' show_NAME)
                                 if [ -f "$name".rpmlintrc ]; then
                                     rpmlint_args=(-r "$name".rpmlintrc)
                                 fi

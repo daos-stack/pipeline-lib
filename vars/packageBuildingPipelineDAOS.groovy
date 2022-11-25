@@ -323,7 +323,8 @@ void call(Map pipeline_args) {
                             success {
                                 rpmlintMockResults('centos+epel-7-x86_64',
                                                    pipeline_args.get('rpmlint_rpms_allow_errors', false),
-                                                   pipeline_args.get('rpmlint_rpms_skip', false))
+                                                   pipeline_args.get('rpmlint_rpms_skip', false),
+                                                   pipeline_args.get('make_args', ''))
                                 sh label: 'Collect artifacts',
                                    script: '''(cd /var/lib/mock/centos+epel-7-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/centos7/)\n''' +
