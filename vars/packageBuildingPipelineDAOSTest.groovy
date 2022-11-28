@@ -758,7 +758,8 @@ void call(Map pipeline_args) {
                                                    booleanParam(name: 'CI_large_TEST', value: false),
                                                    string(name: 'CI_PR_REPOS',
                                                           value: env.JOB_NAME.split('/')[1] + '@' +
-                                                                 "${env.BRANCH_NAME}:${env.BUILD_ID}"),
+                                                                 "${env.BRANCH_NAME}:${env.BUILD_ID}" +
+                                                                 ' ' + cachedCommitPragma('PR-repos'))
                                                   ]
                             } //steps
                             post {
