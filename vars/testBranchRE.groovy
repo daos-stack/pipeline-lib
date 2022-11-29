@@ -5,5 +5,5 @@
    */
 
 def call() {
-    return '^[-0-9A-Za-z]+-testing.*'
+    return '^(weekly|provider|soak)-testing(-[a-z]+|)(-[0-9.]+|)'
 }
