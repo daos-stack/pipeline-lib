@@ -5,5 +5,5 @@
    */
 
 def call() {
-    return '^(weekly|provider|soak)-testing(-[a-z]+|)(-[0-9.]+|)'
+    return '^[-0-9A-Za-z.]+-testing(-(tcp|ucx))?(-2.2)?$'
 }
