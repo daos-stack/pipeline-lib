@@ -1,8 +1,9 @@
+/* groovylint-disable DuplicateStringLiteral, VariableName */
 // vars/dockerBuildArgs.groovy
 
-def num_proc() {
-    return sh(label: "Get number of processors online",
-              script: "/usr/bin/getconf _NPROCESSORS_ONLN",
+Integer num_proc() {
+    return sh(label: 'Get number of processors online',
+              script: '/usr/bin/getconf _NPROCESSORS_ONLN',
               returnStdout: true)
 }
 
@@ -71,23 +72,24 @@ String call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
 
     if (config.containsKey('distro')) {
-      stage_info['target'] = config['distro']
+        stage_info['target'] = config['distro']
     }
 
     // The docker agent setup and the provisionNodes step need to know the
     // UID that the build agent is running under.
-    String ret_str = " --build-arg NOBUILD=1 " +
-                     " --build-arg UID=" + sh(label: 'getuid()',
-                                              script: "id -u",
+    String ret_str = ' --build-arg NOBUILD=1 ' +
+                     ' --build-arg UID=' + sh(label: 'getuid()',
+                                              script: 'id -u',
                                               returnStdout: true).trim() +
                      " --build-arg JENKINS_URL=$env.JENKINS_URL"
     if (cachebust) {
-      Calendar current_time = Calendar.getInstance()
-      // *NEVER* redefine CACHEBUST to some other value.  If you think something
-      // in a Dockerfile needs doing less frequently than *always* consider either
-      // CB0 (below) or define a new cache-bust interval
-      ret_str += " --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
-      ret_str += " --build-arg CB0=" + current_time.get(Calendar.WEEK_OF_YEAR)
+        /* groovylint-disable-next-line UnnecessaryGetter */
+        Calendar current_time = Calendar.getInstance()
+        // *NEVER* redefine CACHEBUST to some other value.  If you think something
+        // in a Dockerfile needs doing less frequently than *always* consider either
+        // CB0 (below) or define a new cache-bust interval
+        ret_str += " --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
+        ret_str += ' --build-arg CB0=' + current_time.get(Calendar.WEEK_OF_YEAR)
     }
 
     // pass through env. var.s
@@ -98,7 +100,7 @@ String call(Map config = [:]) {
     }
 
     if (config['qb']) {
-      ret_str += ' --build-arg QUICKBUILD=true --build-arg DAOS_DEPS_BUILD=no'
+        ret_str += ' --build-arg QUICKBUILD=true --build-arg DAOS_DEPS_BUILD=no'
     } else {
         if (deps_build) {
             ret_str += ' --build-arg DAOS_DEPS_BUILD=yes --build-arg DAOS_BUILD=no'
