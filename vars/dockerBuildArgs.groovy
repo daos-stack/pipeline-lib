@@ -99,6 +99,7 @@ String call(Map config = [:]) {
         dist_type = daos_type
       }
     }
+
     Map stage_info = parseStageInfo(config)
 
     if (config.containsKey('distro')) {
@@ -203,6 +204,12 @@ String call(Map config = [:]) {
             ret_str += ' --build-arg DEPS_JOBS=' + procs.trim()
         }
     }
+
+    // set BASE_DISTRO if necessary
+    if (stage_info['target'] == 'leap15') {
+        ret_str += ' --build-arg BASE_DISTRO=opensuse/leap:' + stage_info['distro_version']
+    }
+
     ret_str += ' '
     return ret_str
 }
