@@ -13,8 +13,6 @@ def num_proc() {
    *
    * config['qb']      Whether to generate Quick-build args
    *
-   * config['add_repos'] Whether to add yum repos to image.
-   *
    * config['cachebust'] Whether to set CB0 and CACHEBUST args.
    *                     CB0 will be set weekly and should force entire rebuild
    *                     CACHEBUST should be unique and should force updates.
@@ -23,9 +21,6 @@ def num_proc() {
    * config['deps_build'] Whether to build the daos dependencies.
    *
    * config['parallel_build'] Whether to build in parallel (-j)
-   *
-   * config['repo_type'] Type of repo to add.  Default 'local' for compatibilty
-   *                     with older dockerfiles.
    *
    * Repositories URLs are looked up via Jenkins environment variables.
    * There are two environment variables that are put together to create
@@ -70,23 +65,8 @@ def num_proc() {
 
 String call(Map config = [:]) {
     Boolean cachebust = config.get('cachebust', true)
-    Boolean add_repos = config.get('add_repos', true)
     Boolean deps_build = config.get('deps_build', false)
     Boolean parallel_build = config.get('parallel_build', false)
-    String daos_type = 'LOCAL'
-    String dist_type = 'GROUP'
-    String repo_alias = ''
-    String repo_mod = ''
-    String daos_arg = "DAOS"
-    String dist_arg = 'DISTRO'
-
-    if (config.containsKey('repo_type')) {
-      daos_type = config['repo_type'].toString().toUpperCase()
-      if (daos_type != 'LOCAL') {
-        repo_mod = '_DOCKER'
-        dist_type = daos_type
-      }
-    }
 
     Map stage_info = parseStageInfo(config)
 
@@ -108,62 +88,6 @@ String call(Map config = [:]) {
       // CB0 (below) or define a new cache-bust interval
       ret_str += " --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
       ret_str += " --build-arg CB0=" + current_time.get(Calendar.WEEK_OF_YEAR)
-    }
-
-    // No env.REPOSITORY_URL, no repos to add.
-    if (add_repos && env.REPOSITORY_URL) {
-      String repo_name = null
-      String repo_arg = ''
-      if (stage_info['target'] == 'centos7') {
-        repo_alias = 'EL_7'
-        if (daos_type == 'LOCAL') {
-          daos_arg = 'EL7'
-        }
-      } else if (['centos8', 'el8', 'rocky8', 'almalinux8',
-                  'rhel8'].contains(stage_info['target'])) {
-        repo_alias = 'EL_8'
-        if (daos_type == 'LOCAL') {
-          daos_arg = 'EL8'
-        }
-        // Appstream repo not working in Nexus group repos
-        if (env.DAOS_STACK_EL_8_APPSTREAM_REPO) {
-          ret_str += " --build-arg REPO_APPSTREAM=" +
-                     env.DAOS_STACK_EL_8_APPSTREAM_REPO
-        }
-      } else if (stage_info['target'] == 'leap15') {
-        repo_alias = 'LEAP_15'
-        // Backwards compatibilty for LOCAL
-        if (daos_type == 'LOCAL') {
-          if (env.DAOS_STACK_LEAP_15_GROUP_REPO) {
-            daos_arg = 'LOCAL_LEAP15'
-            dist_arg = 'GROUP_LEAP15'
-          }
-        }
-      } else if (stage_info['target'] == 'ubuntu20.04') {
-        // Ubuntu repos curently only used for package building.
-        // When fully implemented it will probably be similar to above.
-        // And the URLS for will be for installing a list of repos.
-        // Details still to be worked out.
-        repo_alias = 'UBUNTU_20_04'
-        daos_arg = repo_alias
-      } else if (stage_info['target'] == 'fedora' ) {
-        // Used for mock builds, and some code scanning
-        repo_alias = 'FEDORA'
-        daos_arg = 'FEDORA'
-      }
-      dist_repo = env["DAOS_STACK_${repo_alias}${repo_mod}_${dist_type}_REPO"]
-      daos_repo = env["DAOS_STACK_${repo_alias}_${daos_type}_REPO"]
-
-      // Only add the build args if a repo was found.
-      if (dist_repo || daos_repo) {
-        ret_str += ' --build-arg REPO_URL=' + env.REPOSITORY_URL
-        if (daos_repo) {
-          ret_str += " --build-arg REPO_${daos_arg}=" + daos_repo
-        }
-        if (dist_repo) {
-          ret_str += " --build-arg REPO_${dist_arg}=" + dist_repo
-        }
-      }
     }
 
     // pass through env. var.s
