@@ -69,10 +69,10 @@ def num_proc() {
    */
 
 String call(Map config = [:]) {
-    Boolean cachebust = true
-    Boolean add_repos = true
-    Boolean deps_build = false
-    Boolean parallel_build = false
+    Boolean cachebust = config.get('cachebust', true)
+    Boolean add_repos = config.get('add_repos', true)
+    Boolean deps_build = config.get('deps_build', false)
+    Boolean parallel_build = config.get('parallel_build', false)
     String daos_type = 'LOCAL'
     String dist_type = 'GROUP'
     String repo_alias = ''
@@ -80,18 +80,6 @@ String call(Map config = [:]) {
     String daos_arg = "DAOS"
     String dist_arg = 'DISTRO'
 
-    if (config.containsKey('cachebust')) {
-      cachebust = config['cachebust']
-    }
-    if (config.containsKey('add_repos')) {
-      add_repos = config['add_repos']
-    }
-    if (config.containsKey('deps_build')) {
-      deps_build = config['deps_build']
-    }
-    if (config.containsKey('parallel_build')) {
-      parallel_build = config['parallel_build']
-    }
     if (config.containsKey('repo_type')) {
       daos_type = config['repo_type'].toString().toUpperCase()
       if (daos_type != 'LOCAL') {
@@ -131,11 +119,8 @@ String call(Map config = [:]) {
         if (daos_type == 'LOCAL') {
           daos_arg = 'EL7'
         }
-      } else if (stage_info['target'] == 'centos8' ||
-                 stage_info['target'] == 'el8' ||
-                 stage_info['target'] == 'rocky8'  ||
-                 stage_info['target'] == 'almalinux8' ||
-                 stage_info['target'] == 'rhel8') {
+      } else if (['centos8', 'el8', 'rocky8', 'almalinux8',
+                  'rhel8'].contains(stage_info['target'])) {
         repo_alias = 'EL_8'
         if (daos_type == 'LOCAL') {
           daos_arg = 'EL8'
@@ -180,17 +165,14 @@ String call(Map config = [:]) {
         }
       }
     }
-    if (env.REPO_FILE_URL) {
-        ret_str += ' --build-arg REPO_FILE_URL="' + env.REPO_FILE_URL + '"'
+
+    // pass through env. var.s
+    ['REPO_FILE_URL', 'HTTP_PROXY', 'HTTPS_PROXY'].each { var ->
+        if (env."$var") {
+            ret_str += ' --build-arg ' + var + '="' + env."$var" + '"'
+        }
     }
-    if (env.HTTP_PROXY) {
-      ret_str += ' --build-arg HTTP_PROXY="' + env.HTTP_PROXY + '"'
-                 ' --build-arg http_proxy="' + env.HTTP_PROXY + '"'
-    }
-    if (env.HTTPS_PROXY) {
-      ret_str += ' --build-arg HTTPS_PROXY="' + env.HTTPS_PROXY + '"'
-                 ' --build-arg https_proxy="' + env.HTTPS_PROXY + '"'
-    }
+
     if (config['qb']) {
       ret_str += ' --build-arg QUICKBUILD=true --build-arg DAOS_DEPS_BUILD=no'
     } else {
