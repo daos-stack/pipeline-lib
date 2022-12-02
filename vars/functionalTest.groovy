@@ -94,7 +94,8 @@ void call(Map config = [:]) {
 
     sh label: 'Install Launchable',
      script: '''# can't use --upgrade with pip3 because it tries to upgrade everything
-                v=$(pip3 install --user launchable== 2>&1 | sed -ne '2s/.*, \\(.*\\))/\\1/p')
+                v=$(pip3 install --user launchable== 2>&1 | \
+                    sed -ne '/Could not find a version/s/.*, \\(.*\\))/\\1/p')
                 if ! pip3 install --user launchable==$v; then
                   echo "Failed to install launchable"
                   id
