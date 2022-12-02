@@ -33,6 +33,7 @@ def call(Map config = [:]) {
 
   fileOperations([fileDeleteOperation(includes: '*.memcheck.xml')])
 
+            println("Success unstashing ${stash}.")
   int stash_cnt=0
   stashes.each {
     try {
@@ -47,6 +48,11 @@ def call(Map config = [:]) {
     println("No valgrind XML files found, skipping valgrind publishing")
     return
   }
+
+    println("Unstashed ${stash_cnt} stashes")
+    sh(label: 'Show valgrind files',
+       script: 'ls -l *.memcheck.xml',
+       returnStdout: true)
 
   boolean ignore_failure = config.get('ignore_failure', false)
 
