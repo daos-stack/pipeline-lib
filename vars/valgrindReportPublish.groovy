@@ -47,14 +47,15 @@ void call(Map config = [:]) {
         return
     }
 
-    println("Unstashed ${stash_cnt} stashes")
-    sh(label: 'Show valgrind files',
-       script: 'ls -l *.memcheck.xml',
-       returnStdout: true)
-
-    boolean ignore_failure = config.get('ignore_failure', false)
+    Boolean ignore_failure = config.get('ignore_failure', false)
 
     String valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
+
+    if (findFiles(glob: valgrind_pattern).length == 0) {
+        println('No Valgrind files found')
+        return
+    }
+
     /* groovylint-disable-next-line NoDef, VariableTypeRequired */
     def cb_result = currentBuild.result
     publishValgrind failBuildOnInvalidReports: true,
