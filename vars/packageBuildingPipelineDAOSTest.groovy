@@ -755,9 +755,8 @@ void call(Map pipeline_args) {
                                                    booleanParam(name: 'CI_SCAN_RPMS_el7_TEST', value: false),
                                                    booleanParam(name: 'CI_RPMS_el7_TEST',
                                                                 value: 'centos7' in distros),
-                                                   booleanParam(name: 'CI_small_TEST',
+                                                   booleanParam(name: 'CI_medium_TEST',
                                                                 value: 'el8' in distros),
-                                                   booleanParam(name: 'CI_medium_TEST', value: false),
                                                    booleanParam(name: 'CI_large_TEST', value: false),
                                                    string(name: 'CI_PR_REPOS',
                                                           value: env.JOB_NAME.split('/')[1] + '@' +
