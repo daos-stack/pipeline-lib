@@ -1,4 +1,4 @@
-/* groovylint-disable DuplicateStringLiteral, VariableName */
+/* groovylint-disable DuplicateNumberLiteral, DuplicateStringLiteral, VariableName */
 // vars/valgrindReportPublish.groovy
 
   /**
