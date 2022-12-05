@@ -74,7 +74,7 @@ void call(Map config = [:]) {
                 fileOperations([fileRenameOperation(source: 'test.cov',
                                                 destination: new_name)])
           }
-        } catch(HudsonAbortException ex) {
+        } catch(Hudson.AbortException ex) {
             println ("Unstasn failed: ${ex}")
         }
     }
