@@ -75,7 +75,7 @@ void call(Map config = [:]) {
                                                 destination: new_name)])
           }
         } catch (hudson.AbortException ex) {
-            println("Unstasn failed: ${ex}")
+            println("Unstash failed: ${ex}")
         }
     }
 
