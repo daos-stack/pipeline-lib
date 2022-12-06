@@ -106,6 +106,14 @@ void call(Map config = [:]) {
       result['target'] = 'el8'
       result['distro_version'] = cachedCommitPragma('EL8-version', '8')
       new_ci_target = cachedCommitPragma('EL8-target', result['target'])
+    } else if (stage_name.contains('Leap 15.3')) {
+      result['target'] = 'leap15'
+      result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.3')
+      new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
+    } else if (stage_name.contains('Leap 15.4')) {
+      result['target'] = 'leap15'
+      result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.4')
+      new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
     } else if (stage_name.contains('Leap 15')) {
       result['target'] = 'leap15'
       result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.3')
