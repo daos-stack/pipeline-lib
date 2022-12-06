@@ -74,8 +74,8 @@ void call(Map config = [:]) {
                 fileOperations([fileRenameOperation(source: 'test.cov',
                                                 destination: new_name)])
           }
-        } catch(HudsonAbortException ex) {
-            println ("Unstasn failed: ${ex}")
+        } catch (hudson.AbortException ex) {
+            println("Unstash failed: ${ex}")
         }
     }
 
@@ -92,8 +92,8 @@ void call(Map config = [:]) {
                                       statementCoverage: 80])])
 
     if (cb_result != currentBuild.result) {
-      println('The CloverPublisher plugin changed result to ' +
-              "${currentBuild.result}.")
+        println('The CloverPublisher plugin changed result to ' +
+                "${currentBuild.result}.")
     }
 
     sh label: 'Create test coverage Tarball',
