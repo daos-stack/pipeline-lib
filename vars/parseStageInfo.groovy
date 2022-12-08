@@ -223,8 +223,19 @@ void call(Map config = [:]) {
         result['pragma_suffix'] = '-hw-small'
       } else if (stage_name.contains('Medium')) {
         result['node_count'] = 5
-        cluster_size = 'hw,medium'
+        cluster_size = 'hw,medium,-provider'
         result['pragma_suffix'] = '-hw-medium'
+        if (stage_name.contains('Provider')) {
+          cluster_size = 'hw,medium,provider'
+          if (stage_name.contains('Verbs')) {
+            result['pragma_suffix'] += '-verbs-provider'
+            ftest_arg_provider = 'ofi+verbs'
+          }
+          else if (stage_name.contains('UCX')) {
+            result['pragma_suffix'] += '-ucx-provider'
+            ftest_arg_provider = 'ucx+dc_x'
+          }
+        }
       } else if (stage_name.contains('Hardware 24')) {
         result['node_count'] = 24
         cluster_size = 'hw,24'
@@ -282,9 +293,12 @@ void call(Map config = [:]) {
     ftest_arg_repeat = params.TestRepeat ?: cachedCommitPragma(
       'Test-repeat' + result['pragma_suffix'], cachedCommitPragma('Test-repeat', null))
 
-    // Get the ftest --provider argument from either the build parameters or commit pragmas
-    ftest_arg_provider = params.TestProvider ?: cachedCommitPragma(
-      'Test-provider' + result['pragma_suffix'], cachedCommitPragma('Test-provider', null))
+    // Get the ftest --provider argument from either the build parameters or commit pragmas if not
+    // already defined by the stage
+    if (!ftest_arg_provider) {
+      ftest_arg_provider = params.TestProvider ?: cachedCommitPragma(
+        'Test-provider' + result['pragma_suffix'], cachedCommitPragma('Test-provider', null))
+    }
 
     // Assemble the ftest args
     result['ftest_arg'] = ''
