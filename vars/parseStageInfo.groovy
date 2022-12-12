@@ -208,6 +208,7 @@ void call(Map config = [:]) {
   String ftest_arg_nvme = ''
   String ftest_arg_repeat = ''
   String ftest_arg_provider = ''
+  String ftest_arg_storage_tier = ''
   if (stage_name.contains('Functional')) {
     result['test'] = 'Functional'
     result['node_count'] = 9
@@ -300,6 +301,10 @@ void call(Map config = [:]) {
         'Test-provider' + result['pragma_suffix'], cachedCommitPragma('Test-provider', null))
     }
 
+    // Get the ftest --storage_tier argument from either the build parameters or commit pragmas
+    ftest_arg_storage_tier = params.TestStorageTier ?: cachedCommitPragma(
+      'Test-storage-tier' + result['pragma_suffix'], cachedCommitPragma('Test-storage-tier', null))
+
     // Assemble the ftest args
     result['ftest_arg'] = ''
     if (ftest_arg_nvme) {
@@ -310,6 +315,9 @@ void call(Map config = [:]) {
     }
     if (ftest_arg_provider) {
       result['ftest_arg'] += ' --provider=' +  ftest_arg_provider
+    }
+    if (ftest_arg_storage_tier) {
+      result['ftest_arg'] += ' --storage_tier=' +  ftest_arg_storage_tier
     }
     if (result['ftest_tag']) {
       result['ftest_tag'] = result['ftest_tag'].trim()
