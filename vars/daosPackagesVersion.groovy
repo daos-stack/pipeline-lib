@@ -34,7 +34,7 @@ String rpm_dist(String distro) {
                distro.startsWith('rhel8')) {
         return '.el8'
     } else if (distro.startsWith('leap15')) {
-        return '.suse.lp153'
+        return '.suse.lp' + parseStageInfo()['distro_version'].replaceAll('\\.', '')
     }
     error("Don't know what the RPM %{dist} is for ${distro}")
     return

@@ -249,6 +249,7 @@ boolean call(Map config = [:]) {
                    prRepos('el8').contains('daos@') ||
                    skip_stage_pragma('build-el8-rpm')
         case 'Build RPM on Leap 15':
+        case 'Build RPM on Leap 15.4':
             return paramsValue('CI_RPM_leap15_NOBUILD', false) ||
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
@@ -330,6 +331,7 @@ boolean call(Map config = [:]) {
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '')
         case 'Build on Leap 15 with Clang':
+        case 'Build on Leap 15.4 with Clang':
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_build_on_landing_branch(target_branch) ||
                    (docOnlyChange(target_branch) &&
@@ -350,12 +352,14 @@ boolean call(Map config = [:]) {
                     prRepos('ubuntu20') == '') ||
                    quickBuild()
         case 'Build on Leap 15':
+        case 'Build on Leap 15.4':
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-leap15-gcc') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
                    quickBuild()
         case 'Build on Leap 15 with Intel-C and TARGET_PREFIX':
+        case 'Build on Leap 15.4 with Intel-C and TARGET_PREFIX':
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    target_branch == 'weekly-testing' ||
                    skip_stage_pragma('build-leap15-icc') ||
@@ -400,8 +404,9 @@ boolean call(Map config = [:]) {
                     rpmTestVersion() == '') ||
                    skip_stage_pragma('test') ||
                    (env.BRANCH_NAME.matches(testBranchRE()) &&
-                    ! startedByTimer() &&
-                    ! startedByUser()) ||
+                    !startedByTimer() &&
+                    !startedByUpstream() &&
+                    !startedByUser()) ||
                    skip_if_unstable()
         case 'Test on CentOS 7 [in] Vagrant':
             return skip_stage_pragma('vagrant-test', 'true') &&
@@ -427,6 +432,7 @@ boolean call(Map config = [:]) {
         case 'Functional on EL 8':
             return skip_ftest('el8', target_branch)
         case 'Functional on Leap 15':
+        case 'Functional on Leap 15.4':
             return skip_ftest('leap15', target_branch)
         case 'Functional on Ubuntu 20.04':
             /* we don't do any testing on Ubuntu yet
@@ -502,6 +508,7 @@ boolean call(Map config = [:]) {
         case 'Scan EL 8 RPMs':
             return skip_scan_rpms('el-8', target_branch)
         case 'Scan Leap 15 RPMs':
+        case 'Scan Leap 15.4 RPMs':
             return skip_scan_rpms('leap-15', target_branch)
         case 'Test Hardware':
             return env.NO_CI_TESTING == 'true' ||
@@ -511,8 +518,9 @@ boolean call(Map config = [:]) {
                     rpmTestVersion() == '') ||
                    skip_stage_pragma('test') ||
                    (env.BRANCH_NAME.matches(testBranchRE()) &&
-                    ! startedByTimer() &&
-                    ! startedByUser()) ||
+                    !startedByTimer() &&
+                    !startedByUpstream() &&
+                    !startedByUser()) ||
                    skip_if_unstable()
         case 'Functional_Hardware_Small':
         case 'Functional Hardware Small':

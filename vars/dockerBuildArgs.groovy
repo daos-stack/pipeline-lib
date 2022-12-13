@@ -66,23 +66,8 @@ Integer num_proc() {
 
 String call(Map config = [:]) {
     Boolean cachebust = config.get('cachebust', true)
-    Boolean add_repos = config.get('add_repos', true)
     Boolean deps_build = config.get('deps_build', false)
     Boolean parallel_build = config.get('parallel_build', false)
-    String daos_type = 'LOCAL'
-    String dist_type = 'GROUP'
-    String repo_alias = ''
-    String repo_mod = ''
-    String daos_arg = 'DAOS'
-    String dist_arg = 'DISTRO'
-
-    if (config.containsKey('repo_type')) {
-        daos_type = config['repo_type'].toString().toUpperCase()
-        if (daos_type != 'LOCAL') {
-            repo_mod = '_DOCKER'
-            dist_type = daos_type
-        }
-    }
 
     Map stage_info = parseStageInfo(config)
 
@@ -105,31 +90,6 @@ String call(Map config = [:]) {
         // CB0 (below) or define a new cache-bust interval
         ret_str += " --build-arg CACHEBUST=${currentBuild.startTimeInMillis}"
         ret_str += ' --build-arg CB0=' + current_time.get(Calendar.WEEK_OF_YEAR)
-    }
-
-    // No env.REPOSITORY_URL, no repos to add.
-    if (add_repos && env.REPOSITORY_URL) {
-        if (stage_info['target'] == 'ubuntu20.04') {
-            // Ubuntu repos curently only used for package building.
-            // When fully implemented it will probably be similar to above.
-            // And the URLS for will be for installing a list of repos.
-            // Details still to be worked out.
-            repo_alias = 'UBUNTU_20_04'
-            daos_arg = repo_alias
-        }
-        dist_repo = env["DAOS_STACK_${repo_alias}${repo_mod}_${dist_type}_REPO"]
-        daos_repo = env["DAOS_STACK_${repo_alias}_${daos_type}_REPO"]
-
-        // Only add the build args if a repo was found.
-        if (dist_repo || daos_repo) {
-            ret_str += ' --build-arg REPO_URL=' + env.REPOSITORY_URL
-            if (daos_repo) {
-                ret_str += " --build-arg REPO_${daos_arg}=" + daos_repo
-            }
-            if (dist_repo) {
-                ret_str += " --build-arg REPO_${dist_arg}=" + dist_repo
-            }
-        }
     }
 
     // pass through env. var.s
