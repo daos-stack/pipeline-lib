@@ -70,6 +70,12 @@ String get_commit_pragma_tags(String pragma_suffix) {
   return pragma_tag
 }
 
+String get_param_or_pragma(param, pragma, arg, predefined) {
+    String res = params.$param ?: cachedCommitPragma(
+      pragma + result['pragma_suffix'], cachedCommitPragma(pragma, predefined))
+
+    return res ? ' ' + arg + '= ' + res : ''
+}
 
 /* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
@@ -206,9 +212,7 @@ void call(Map config = [:]) {
 
   String cluster_size = ''
   String ftest_arg_nvme = ''
-  String ftest_arg_repeat = ''
   String ftest_arg_provider = ''
-  String ftest_arg_storage_tier = ''
   if (stage_name.contains('Functional')) {
     result['test'] = 'Functional'
     result['node_count'] = 9
@@ -286,39 +290,20 @@ void call(Map config = [:]) {
       tag = tag.trim()
     }
 
-    // Get the ftest --nvme argument from either the build parameters or commit pragmas
-    ftest_arg_nvme = params.TestNvme ?: cachedCommitPragma(
-      'Test-nvme' + result['pragma_suffix'], cachedCommitPragma('Test-nvme', ftest_arg_nvme))
-
-    // Get the ftest --repeat argument from either the build parameters or commit pragmas
-    ftest_arg_repeat = params.TestRepeat ?: cachedCommitPragma(
-      'Test-repeat' + result['pragma_suffix'], cachedCommitPragma('Test-repeat', null))
-
-    // Get the ftest --provider argument from either the build parameters or commit pragmas if not
-    // already defined by the stage
-    if (!ftest_arg_provider) {
-      ftest_arg_provider = params.TestProvider ?: cachedCommitPragma(
-        'Test-provider' + result['pragma_suffix'], cachedCommitPragma('Test-provider', null))
-    }
-
-    // Get the ftest --storage_tier argument from either the build parameters or commit pragmas
-    ftest_arg_storage_tier = params.TestStorageTier ?: cachedCommitPragma(
-      'Test-storage-tier' + result['pragma_suffix'], cachedCommitPragma('Test-storage-tier', null))
-
-    // Assemble the ftest args
+    // Assemble the ftest args from either the build parameters or commit pragmas
     result['ftest_arg'] = ''
-    if (ftest_arg_nvme) {
-      result['ftest_arg'] += ' --nvme=' + ftest_arg_nvme
-    }
-    if (ftest_arg_repeat) {
-      result['ftest_arg'] += ' --repeat=' + ftest_arg_repeat
-    }
+    result['ftest_arg'] += get_param_or_pragma('TestNvme', 'Test-nvme', '--nvme', ftest_arg_nvme)
+    result['ftest_arg'] += get_param_or_pragma('TestRepeat', 'Test-repeat', '--repeat', null)
     if (ftest_arg_provider) {
+      // Use the specific provider defined by the stage
       result['ftest_arg'] += ' --provider=' +  ftest_arg_provider
+    } else {
+      // Only use a build parameter or commit pragma provider for non-provider-specific stages
+      result['ftest_arg'] += get_param_or_pragma(
+        'TestProvider', 'Test-provider', '--provider', null)
     }
-    if (ftest_arg_storage_tier) {
-      result['ftest_arg'] += ' --storage_tier=' +  ftest_arg_storage_tier
-    }
+    result['ftest_arg'] += get_param_or_pragma(
+      'TestStorageTier', 'Test-storage-tier', '--storage_tier', null)
     if (result['ftest_tag']) {
       result['ftest_tag'] = result['ftest_tag'].trim()
     }
