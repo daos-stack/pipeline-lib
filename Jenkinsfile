@@ -292,7 +292,6 @@ pipeline {
                             stages = ['Functional on Leap 15',
                                       'Functional on CentOS 7',
                                       'Functional on EL 8',
-                                      'Functional Hardware Small',
                                       'Functional Hardware Medium',
                                       'Functional Hardware Large']
                             commits = [[pragmas: ['Skip-func-test-leap15: false'],
@@ -301,7 +300,7 @@ pipeline {
                                        [pragmas: [''],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr()]],
-                                       [pragmas: ['Skip-func-hw-test-small: true'],
+                                       [pragmas: ['Skip-func-hw-test-medium: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [isPr(), isPr(), false, true, !isPr(), !isPr()]]]
                             commits.each { commit ->
@@ -336,11 +335,11 @@ pipeline {
                         // lots more test cases could be cooked up, to be sure
                         script {
                             stages = [[name: 'Fake CentOS 7 Functional stage',
-                                       tag: '-hw'],
-                                      [name: 'Fake CentOS 7 Functional Hardware Small stage',
-                                       tag: 'hw,small'],
+                                       tag: '-hw',],
                                       [name: 'Fake CentOS 7 Functional Hardware Medium stage',
-                                       tag: 'hw,medium'],
+                                       tag: 'hw,medium,-provider'],
+                                      [name: 'Fake CentOS 7 Functional Hardware Medium Provider stage',
+                                       tag: 'hw,medium,provider'],
                                       [name: 'Fake CentOS 7 Functional Hardware Large stage',
                                        tag: 'hw,large']]
                             commits = [[tags: [[tag: 'Test-tag', value: 'datamover']],
@@ -377,7 +376,7 @@ pipeline {
                                         cmp = cmp.replace('@stages.tag@', stage.tag)
                                         // Useful for debugging since Jenkins'
                                         // assert() is pretty lame
-                                        println('assert(' + parseStageInfo()['test_tag'] + " == ${cmp})")
+                                        // println('assert(' + parseStageInfo()['test_tag'] + " == ${cmp})")
                                         assert(parseStageInfo()['test_tag'] == cmp)
                                     }
                                 }
