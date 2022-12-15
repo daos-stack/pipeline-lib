@@ -44,10 +44,7 @@ pipeline {
     stages {
         stage('Get Commit Message') {
             steps {
-                script {
-                    env.COMMIT_MESSAGE = sh(script: 'git show -s --format=%B',
-                                            returnStdout: true).trim()
-                }
+                pragmasToEnv()
             }
         }
         stage('Cancel Previous Builds') {
@@ -477,7 +474,9 @@ pipeline {
                                   parameters: [string(name: 'TestTag',
                                                       value: 'load_mpi test_core_files test_pool_info_query'),
                                                string(name: 'CI_RPM_TEST_VERSION',
-                                                      value: daosLatestVersion(env.TEST_BRANCH)),
+                                                      value: cachedCommitPragma('Test-skip-build', 'true') == 'true' ?
+                                                               daosLatestVersion(env.TEST_BRANCH) : ''),
+                                               booleanParam(name: 'CI_UNIT_TEST', value: false),
                                                booleanParam(name: 'CI_FI_el8_TEST', value: true),
                                                booleanParam(name: 'CI_FUNCTIONAL_el7_TEST', value: true),
                                                booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
