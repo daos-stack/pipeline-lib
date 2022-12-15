@@ -475,7 +475,7 @@ pipeline {
                             } // withCredentials
                             build job: 'daos-stack/daos/' + test_branch(env.TEST_BRANCH),
                                   parameters: [string(name: 'TestTag',
-                                                      value: 'load_mpi test_core_files'),
+                                                      value: 'load_mpi test_core_files test_pool_info_query'),
                                                string(name: 'CI_RPM_TEST_VERSION',
                                                       value: daosLatestVersion(env.TEST_BRANCH)),
                                                booleanParam(name: 'CI_FI_el8_TEST', value: true),
