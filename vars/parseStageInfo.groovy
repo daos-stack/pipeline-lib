@@ -70,11 +70,13 @@ String get_commit_pragma_tags(String pragma_suffix) {
   return pragma_tag
 }
 
-String get_param_or_pragma(param, pragma, arg, predefined) {
-    String res = params.$param ?: cachedCommitPragma(
-      pragma + result['pragma_suffix'], cachedCommitPragma(pragma, predefined))
+String get_param_or_pragma(param, pragma, pragma_suffix, launch_arg, predefined) {
+  // Get the launch.py argument value from either the build parameter, stage-specific commit
+  // pragma, general commit pragma, or predefined value
+  String res = params.$param ?: cachedCommitPragma(
+    pragma + pragma_suffix, cachedCommitPragma(pragma, predefined))
 
-    return res ? ' ' + arg + '= ' + res : ''
+  return res ? ' ' + launch_arg + '= ' + res : ''
 }
 
 /* groovylint-disable-next-line MethodSize */
@@ -292,18 +294,20 @@ void call(Map config = [:]) {
 
     // Assemble the ftest args from either the build parameters or commit pragmas
     result['ftest_arg'] = ''
-    result['ftest_arg'] += get_param_or_pragma('TestNvme', 'Test-nvme', '--nvme', ftest_arg_nvme)
-    result['ftest_arg'] += get_param_or_pragma('TestRepeat', 'Test-repeat', '--repeat', null)
+    result['ftest_arg'] += get_param_or_pragma(
+      'TestNvme', 'Test-nvme', result['pragma_suffix'],'--nvme', ftest_arg_nvme)
+    result['ftest_arg'] += get_param_or_pragma(
+      'TestRepeat', 'Test-repeat', result['pragma_suffix'], '--repeat', null)
     if (ftest_arg_provider) {
       // Use the specific provider defined by the stage
       result['ftest_arg'] += ' --provider=' +  ftest_arg_provider
     } else {
       // Only use a build parameter or commit pragma provider for non-provider-specific stages
       result['ftest_arg'] += get_param_or_pragma(
-        'TestProvider', 'Test-provider', '--provider', null)
+        'TestProvider', 'Test-provider', result['pragma_suffix'], '--provider', null)
     }
     result['ftest_arg'] += get_param_or_pragma(
-      'TestStorageTier', 'Test-storage-tier', '--storage_tier', null)
+      'TestStorageTier', 'Test-storage-tier', result['pragma_suffix'], '--storage_tier', null)
     if (result['ftest_tag']) {
       result['ftest_tag'] = result['ftest_tag'].trim()
     }
