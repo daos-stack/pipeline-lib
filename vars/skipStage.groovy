@@ -125,12 +125,11 @@ boolean skip_ftest(String distro, String target_branch) {
         run_default_skipped_stage('func-test-vm-all')) {
         // Forced to run due to a (Skip) pragma set to false
         return false
-        }
+    }
     // If a parameter exists to enable a build, then use it.
     // The params.CI_MORE_FUNCTIONAL_PR_TESTS allows enabling
     // tests that are not run in PRs.
-    params_value = !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true)
-    return params_value ||
+    return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true) ||
            distro == 'ubuntu20' ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||
@@ -150,6 +149,7 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
            !run_default_skipped_stage('func-test-vm-valgrind') ||
            !paramsValue('CI_FUNCTIONAL_' + distro + '_VALGRIND_TEST', false) ||
            skip_ftest(distro, target_branch) ||
+           /* groovylint-disable-next-line UnnecessaryGetter */
            isPr() ||
            target_branch.startsWith('weekly-testing')
 }
@@ -217,6 +217,7 @@ boolean call(Map config = [:]) {
     switch (env.STAGE_NAME) {
         case 'Cancel Previous Builds':
             return cachedCommitPragma('Cancel-prev-build') == 'false' ||
+                   /* groovylint-disable-next-line UnnecessaryGetter */
                    (!isPr() && !startedByUpstream())
         case 'Pre-build':
             return docOnlyChange(target_branch) ||

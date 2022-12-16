@@ -306,14 +306,18 @@ pipeline {
                                     cm += "${pragma}\n"
                                 }
                                 i = 0
+                                // assign Map to env. var to serialize it
+                                env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
                                 stages.each { stage ->
                                     withEnv(['STAGE_NAME=' + stage,
                                              'UNIT_TEST=true',
+                                             'pragmas=' + env.tmp_pragmas,
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         // Useful for debugging since Jenkins'
                                         // assert() is pretty lame
                                         //println('For stage: ' + stage + ', assert(skipStage(commit_msg: ' +
-                                        //        cm + ') == ' + commit.skips[i] + ')')
+                                        //        cm.trim() + ') == ' + commit.skips[i] + ') value is: ' +
+                                        //        skipStage(commit_msg: cm))
                                         assert(skipStage(commit_msg: cm) == commit.skips[i])
                                         i++
                                     }
@@ -332,7 +336,7 @@ pipeline {
                         // lots more test cases could be cooked up, to be sure
                         script {
                             stages = [[name: 'Fake CentOS 7 Functional stage',
-                                       tag: '-hw',],
+                                       tag: '-hw'],
                                       [name: 'Fake CentOS 7 Functional Hardware Medium stage',
                                        tag: 'hw,medium,-provider'],
                                       [name: 'Fake CentOS 7 Functional Hardware Medium Provider stage',
@@ -365,9 +369,12 @@ pipeline {
 
                                         ${tag.tag}: ${tag.value}"""
                                 }
+                                // assign Map to env. var to serialize it
+                                env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
                                 stages.each { stage ->
                                     withEnv(['STAGE_NAME=' + stage.name,
                                              'UNIT_TEST=true',
+                                             'pragmas=' + env.tmp_pragmas,
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         cmp = commit.tag_template.replace('@commits.value@', commit.tags[0].value)
                                         cmp = cmp.replace('@stages.tag@', stage.tag)
@@ -452,7 +459,9 @@ pipeline {
                                                         "\") _/' Jenkinsfile" + '''
                                                 fi
                                                 if [ -n "$(git status -s)" ]; then
-                                                    git commit -m 'Update pipeline-lib branch to self' Jenkinsfile
+                                                    git commit -m "Update pipeline-lib branch to self''' +
+                                                      (cachedCommitPragma('Test-skip-build', 'true') == 'true' ? '' :
+                                                               '\n\nSkip-unit-tests: true') + '''" Jenkinsfile
                                                 fi
                                             fi
                                             git push -f origin $branch_name:$branch_name

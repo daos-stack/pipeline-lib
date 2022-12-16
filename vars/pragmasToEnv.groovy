@@ -1,3 +1,4 @@
+/* groovylint-disable ParameterName */
 // vars/pragmasToEnv.groovy
 
 /**
@@ -6,16 +7,10 @@
  * pragmasToEnv variable
  */
 
-
-/**
- * Method to put the commit pragmas into the environment
- */
-Void call() {
-    env.COMMIT_MESSAGE = sh(script: 'git show -s --format=%B',
-                            returnStdout: true).trim()
+String call(String commit_message) {
     Map pragmas = [:]
     // can't use eachLine() here: https://issues.jenkins.io/browse/JENKINS-46988/
-    env.COMMIT_MESSAGE.split('\n').each { line ->
+    commit_message.split('\n').each { line ->
         String key, value
         try {
             (key, value) = line.split(':', 2)
@@ -28,7 +23,17 @@ Void call() {
             // ignore and move on to the next line
         }
     }
-    env.pragmas = pragmas
+
+    return pragmas
+}
+
+/**
+ * Method to put the commit pragmas into the environment
+ */
+Void call() {
+    env.COMMIT_MESSAGE = sh(script: 'git show -s --format=%B',
+                            returnStdout: true).trim()
+    env.pragmas = pragmasToEnv(env.COMMIT_MESSAGE)
 
     return
 }
