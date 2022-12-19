@@ -529,6 +529,8 @@ boolean call(Map config = [:]) {
         case 'Functional_Hardware_Medium':
         case 'Functional Hardware Medium':
             return skip_ftest_hw('medium', target_branch)
+        case 'Functional Hardware Medium TCP Provider':
+            return skip_ftest_hw('medium-tcp-provider', target_branch)
         case 'Functional Hardware Medium Verbs Provider':
             return skip_ftest_hw('medium-verbs-provider', target_branch)
         case 'Functional Hardware Medium UCX Provider':
