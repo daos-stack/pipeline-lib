@@ -44,10 +44,7 @@ pipeline {
     stages {
         stage('Get Commit Message') {
             steps {
-                script {
-                    env.COMMIT_MESSAGE = sh(script: 'git show -s --format=%B',
-                                            returnStdout: true).trim()
-                }
+                pragmasToEnv()
             }
         }
         stage('Cancel Previous Builds') {
@@ -309,14 +306,18 @@ pipeline {
                                     cm += "${pragma}\n"
                                 }
                                 i = 0
+                                // assign Map to env. var to serialize it
+                                env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
                                 stages.each { stage ->
                                     withEnv(['STAGE_NAME=' + stage,
                                              'UNIT_TEST=true',
+                                             'pragmas=' + env.tmp_pragmas,
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         // Useful for debugging since Jenkins'
                                         // assert() is pretty lame
                                         //println('For stage: ' + stage + ', assert(skipStage(commit_msg: ' +
-                                        //        cm + ') == ' + commit.skips[i] + ')')
+                                        //        cm.trim() + ') == ' + commit.skips[i] + ') value is: ' +
+                                        //        skipStage(commit_msg: cm))
                                         assert(skipStage(commit_msg: cm) == commit.skips[i])
                                         i++
                                     }
@@ -368,9 +369,12 @@ pipeline {
 
                                         ${tag.tag}: ${tag.value}"""
                                 }
+                                // assign Map to env. var to serialize it
+                                env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
                                 stages.each { stage ->
                                     withEnv(['STAGE_NAME=' + stage.name,
                                              'UNIT_TEST=true',
+                                             'pragmas=' + env.tmp_pragmas,
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         cmp = commit.tag_template.replace('@commits.value@', commit.tags[0].value)
                                         cmp = cmp.replace('@stages.tag@', stage.tag)
@@ -455,7 +459,9 @@ pipeline {
                                                         "\") _/' Jenkinsfile" + '''
                                                 fi
                                                 if [ -n "$(git status -s)" ]; then
-                                                    git commit -m 'Update pipeline-lib branch to self' Jenkinsfile
+                                                    git commit -m "Update pipeline-lib branch to self''' +
+                                                      (cachedCommitPragma('Test-skip-build', 'true') == 'true' ? '' :
+                                                               '\n\nSkip-unit-tests: true') + '''" Jenkinsfile
                                                 fi
                                             fi
                                             git push -f origin $branch_name:$branch_name
@@ -475,9 +481,11 @@ pipeline {
                             } // withCredentials
                             build job: 'daos-stack/daos/' + test_branch(env.TEST_BRANCH),
                                   parameters: [string(name: 'TestTag',
-                                                      value: 'load_mpi test_core_files'),
+                                                      value: 'load_mpi test_core_files test_pool_info_query'),
                                                string(name: 'CI_RPM_TEST_VERSION',
-                                                      value: daosLatestVersion(env.TEST_BRANCH)),
+                                                      value: cachedCommitPragma('Test-skip-build', 'true') == 'true' ?
+                                                               daosLatestVersion(env.TEST_BRANCH) : ''),
+                                               booleanParam(name: 'CI_UNIT_TEST', value: false),
                                                booleanParam(name: 'CI_FI_el8_TEST', value: true),
                                                booleanParam(name: 'CI_FUNCTIONAL_el7_TEST', value: true),
                                                booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
