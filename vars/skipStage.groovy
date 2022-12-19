@@ -125,12 +125,11 @@ boolean skip_ftest(String distro, String target_branch) {
         run_default_skipped_stage('func-test-vm-all')) {
         // Forced to run due to a (Skip) pragma set to false
         return false
-        }
+    }
     // If a parameter exists to enable a build, then use it.
     // The params.CI_MORE_FUNCTIONAL_PR_TESTS allows enabling
     // tests that are not run in PRs.
-    params_value = !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true)
-    return params_value ||
+    return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true) ||
            distro == 'ubuntu20' ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||
@@ -150,6 +149,7 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
            !run_default_skipped_stage('func-test-vm-valgrind') ||
            !paramsValue('CI_FUNCTIONAL_' + distro + '_VALGRIND_TEST', false) ||
            skip_ftest(distro, target_branch) ||
+           /* groovylint-disable-next-line UnnecessaryGetter */
            isPr() ||
            target_branch.startsWith('weekly-testing')
 }
@@ -217,6 +217,7 @@ boolean call(Map config = [:]) {
     switch (env.STAGE_NAME) {
         case 'Cancel Previous Builds':
             return cachedCommitPragma('Cancel-prev-build') == 'false' ||
+                   /* groovylint-disable-next-line UnnecessaryGetter */
                    (!isPr() && !startedByUpstream())
         case 'Pre-build':
             return docOnlyChange(target_branch) ||
@@ -249,6 +250,7 @@ boolean call(Map config = [:]) {
                    prRepos('el8').contains('daos@') ||
                    skip_stage_pragma('build-el8-rpm')
         case 'Build RPM on Leap 15':
+        case 'Build RPM on Leap 15.4':
             return paramsValue('CI_RPM_leap15_NOBUILD', false) ||
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
@@ -330,6 +332,7 @@ boolean call(Map config = [:]) {
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '')
         case 'Build on Leap 15 with Clang':
+        case 'Build on Leap 15.4 with Clang':
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_build_on_landing_branch(target_branch) ||
                    (docOnlyChange(target_branch) &&
@@ -350,12 +353,14 @@ boolean call(Map config = [:]) {
                     prRepos('ubuntu20') == '') ||
                    quickBuild()
         case 'Build on Leap 15':
+        case 'Build on Leap 15.4':
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-leap15-gcc') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
                    quickBuild()
         case 'Build on Leap 15 with Intel-C and TARGET_PREFIX':
+        case 'Build on Leap 15.4 with Intel-C and TARGET_PREFIX':
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    target_branch == 'weekly-testing' ||
                    skip_stage_pragma('build-leap15-icc') ||
@@ -400,8 +405,9 @@ boolean call(Map config = [:]) {
                     rpmTestVersion() == '') ||
                    skip_stage_pragma('test') ||
                    (env.BRANCH_NAME.matches(testBranchRE()) &&
-                    ! startedByTimer() &&
-                    ! startedByUser()) ||
+                    !startedByTimer() &&
+                    !startedByUpstream() &&
+                    !startedByUser()) ||
                    skip_if_unstable()
         case 'Test on CentOS 7 [in] Vagrant':
             return skip_stage_pragma('vagrant-test', 'true') &&
@@ -427,6 +433,7 @@ boolean call(Map config = [:]) {
         case 'Functional on EL 8':
             return skip_ftest('el8', target_branch)
         case 'Functional on Leap 15':
+        case 'Functional on Leap 15.4':
             return skip_ftest('leap15', target_branch)
         case 'Functional on Ubuntu 20.04':
             /* we don't do any testing on Ubuntu yet
@@ -502,6 +509,7 @@ boolean call(Map config = [:]) {
         case 'Scan EL 8 RPMs':
             return skip_scan_rpms('el-8', target_branch)
         case 'Scan Leap 15 RPMs':
+        case 'Scan Leap 15.4 RPMs':
             return skip_scan_rpms('leap-15', target_branch)
         case 'Test Hardware':
             return env.NO_CI_TESTING == 'true' ||
@@ -511,8 +519,9 @@ boolean call(Map config = [:]) {
                     rpmTestVersion() == '') ||
                    skip_stage_pragma('test') ||
                    (env.BRANCH_NAME.matches(testBranchRE()) &&
-                    ! startedByTimer() &&
-                    ! startedByUser()) ||
+                    !startedByTimer() &&
+                    !startedByUpstream() &&
+                    !startedByUser()) ||
                    skip_if_unstable()
         case 'Functional_Hardware_Small':
         case 'Functional Hardware Small':
