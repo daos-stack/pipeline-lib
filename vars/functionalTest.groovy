@@ -56,6 +56,9 @@
 
 void call(Map config = [:]) {
     String nodelist = config.get('NODELIST', env.NODELIST)
+    if (!nodelist) {
+        error('nodelist is null!  config:\n' + config + 'env:\n' + env)
+    }
     String context = config.get('context', 'test/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
 

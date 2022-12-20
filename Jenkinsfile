@@ -401,10 +401,7 @@ pipeline {
                 axes {
                     axis {
                         name 'TEST_BRANCH'
-                        values 'master',
-                               'release/2.2',
-                               'weekly-testing',
-                               'weekly-testing-2.2'
+                        values 'release/2.2'
                     }
                 }
                 when {
@@ -489,11 +486,11 @@ pipeline {
                                                booleanParam(name: 'CI_FI_el8_TEST', value: true),
                                                booleanParam(name: 'CI_FUNCTIONAL_el7_TEST', value: true),
                                                booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
-                                               booleanParam(name: 'CI_FUNCTIONAL_el8_TEST', value: true),
-                                               booleanParam(name: 'CI_FUNCTIONAL_leap15_TEST', value: true),
-                                               booleanParam(name: 'CI_SCAN_RPMS_el7_TEST', value: true),
-                                               booleanParam(name: 'CI_RPMS_el7_TEST', value: true),
-                                               booleanParam(name: 'CI_medium_TEST', value: true),
+                                               booleanParam(name: 'CI_FUNCTIONAL_el8_TEST', value: false),
+                                               booleanParam(name: 'CI_FUNCTIONAL_leap15_TEST', value: false),
+                                               booleanParam(name: 'CI_SCAN_RPMS_el7_TEST', value: false),
+                                               booleanParam(name: 'CI_RPMS_el7_TEST', value: false),
+                                               booleanParam(name: 'CI_medium_TEST', value: false),
                                                booleanParam(name: 'CI_large_TEST', value: false)
                                               ]
                         } //steps
