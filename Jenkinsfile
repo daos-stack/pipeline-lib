@@ -54,6 +54,11 @@ pipeline {
             }
         }
         stage('Test') {
+            when {
+                beforeAgent true
+                expression { !skipStage() }
+            }
+
             parallel {
                 stage('grep JUnit results tests failure case') {
                     agent {
