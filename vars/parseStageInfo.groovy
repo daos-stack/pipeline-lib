@@ -235,6 +235,10 @@ void call(Map config = [:]) {
             result['pragma_suffix'] += '-ucx-provider'
             ftest_arg_provider = 'ucx+dc_x'
           }
+          else if (stage_name.contains('TCP')) {
+            result['pragma_suffix'] += '-tcp-provider'
+            ftest_arg_provider = 'ofi+tcp'
+          }
         }
       } else if (stage_name.contains('Hardware 24')) {
         result['node_count'] = 24
