@@ -79,6 +79,17 @@ void call(Map config = [:]) {
            config.get('artifacts', env.STAGE_NAME + '/**')
     archiveArtifacts(artifacts: artifacts)
 
+    // Analyze test failures
+    String jobName = env.JOB_NAME.replace('/', '_')
+    jobName += '_' + env.BUILD_NUMBER
+    String fileName = env.DAOS_STACK_JOB_STATUS_DIR + '/' + jobName
+
+    if (fileExists('ci/functional/launchable_analysis')) {
+        sh(label: 'Analyze failed tests vs. Launchable subset',
+           script: 'ci/functional/launchable_analysis "' + fileName + '"')
+
+    }
+
     sh(label: 'Install Launchable',
        script: 'pip3 install --user --upgrade launchable~=1.0')
 
