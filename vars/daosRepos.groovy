@@ -12,7 +12,6 @@
  */
 
 String daos_repo() {
-
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
 
     if (target_branch =~ testBranchRE()) {
@@ -32,10 +31,9 @@ String call() {
 }
 
 String call(String distro) {
-
     String pr_repos = prRepos(distro)
 
-    if (!pr_repos.contains('daos@')) {
+    if (!prReposContains(distro, 'daos')) {
         pr_repos += ' ' + daos_repo()
     }
 

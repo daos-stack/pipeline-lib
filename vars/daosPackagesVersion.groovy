@@ -22,6 +22,11 @@ String normalize_distro(String distro) {
         distro.startsWith('rhel8')) {
         return 'el8'
     }
+    if (distro.startsWith('el9') || distro.startsWith('centos9') ||
+        distro.startsWith('rocky9') || distro.startsWith('almalinux9') ||
+        distro.startsWith('rhel9')) {
+        return 'el9'
+    }
 
     return distro
 }
@@ -33,6 +38,10 @@ String rpm_dist(String distro) {
                distro.startsWith('rocky8') || distro.startsWith('almalinux8') ||
                distro.startsWith('rhel8')) {
         return '.el8'
+    } else if (distro.startsWith('el9') || distro.startsWith('centos9') ||
+               distro.startsWith('rocky9') || distro.startsWith('almalinux9') ||
+               distro.startsWith('rhel9')) {
+        return '.el9'
     } else if (distro.startsWith('leap15')) {
         return '.suse.lp' + parseStageInfo()['distro_version'].replaceAll('\\.', '')
     }
@@ -96,6 +105,7 @@ String call(String distro, String next_version) {
         _distro = _distro[0..dot - 1]
     }
 
+    // Everything below here is deprecated and should be removed shortly
     String err_msg = null
     /* TODO: the stage info should tell us the name of the distro that the
      * packages to be tested were built on and stashed in
@@ -117,21 +127,21 @@ String call(String distro, String next_version) {
             version_file = _distro
         /* groovylint-disable-next-line CatchException */
         } catch (Exception e2) {
-            err_msg = "Don't know how to determine package version for " + _distro
+            print('Ingoring missing but deprecated ' + _distro + '-rpm-version' + ' stash')
+            return ''
         }
     }
 
-    if (!err_msg) {
-        version = readFile(version_file + '-rpm-version').trim()
-        if (version != '') {
-            return version
-        }
-        err_msg = 'Unable to read a version from ' + version_file + '-rpm-version'
+    version = readFile(version_file + '-rpm-version').trim()
+    if (version != '') {
+        return version
     }
+
+    err_msg = 'Unable to read a version from ' + version_file + '-rpm-version'
 
     sh('ls -l ' + version_file + '-rpm-version || true; ' +
        'cat ' + version_file + '-rpm-version || true;')
 
     error err_msg
-    return
+    return ''
 }

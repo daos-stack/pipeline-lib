@@ -132,6 +132,8 @@ boolean skip_ftest(String distro, String target_branch) {
     // tests that are not run in PRs.
     return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true) ||
            distro == 'ubuntu20' ||
+           skip_stage_pragma('build-' + distro + '-rpm') ||
+           skip_stage_pragma('build-' + distro + '-rpm') ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||
            skip_stage_pragma('func-test-vm-all') ||
@@ -140,7 +142,7 @@ boolean skip_ftest(String distro, String target_branch) {
            (docOnlyChange(target_branch) &&
             prRepos(distro) == '') ||
            /* groovylint-disable-next-line UnnecessaryGetter */
-           (isPr() && distro != 'el8')
+           (isPr() && !(distro in ['el8', 'el9']))
 }
 
 boolean skip_ftest_valgrind(String distro, String target_branch) {
@@ -221,6 +223,10 @@ boolean call(Map config = [:]) {
             return cachedCommitPragma('Cancel-prev-build') == 'false' ||
                    /* groovylint-disable-next-line UnnecessaryGetter */
                    (!isPr() && !startedByUpstream())
+        case 'Check Packaging':
+            return skip_stage_pragma('packaging-check')
+        case 'Lint':
+            return quickBuild()
         case 'Pre-build':
             return docOnlyChange(target_branch) ||
                    target_branch =~ branchTypeRE('weekly') ||
@@ -237,12 +243,12 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build') ||
                    rpmTestVersion() != '' ||
                    (quickFunctional() &&
-                    cachedCommitPragma('PR-repos').trim().contains('daos@'))
+                   prReposContains(null, 'daos'))
         case 'Build RPM on CentOS 7':
             return paramsValue('CI_RPM_centos7_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
-                    prRepos('centos7').contains('daos@') ||
+                   prReposContains('centos7', 'daos') ||
                    skip_stage_pragma('build-centos7-rpm')
         case 'Build RPM on EL 8':
         case 'Build RPM on EL 8.5':
@@ -250,22 +256,28 @@ boolean call(Map config = [:]) {
             return paramsValue('CI_RPM_el8_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('el8') == '') ||
-                   prRepos('el8').contains('daos@') ||
+                   prReposContains('el8', 'daos') ||
                    skip_stage_pragma('build-el8-rpm')
+        case 'Build RPM on EL 9':
+            return paramsValue('CI_RPM_el9_NOBUILD', false) ||
+                   (docOnlyChange(target_branch) &&
+                    prRepos('el9') == '') ||
+                   prReposContains('el9', 'daos') ||
+                   skip_stage_pragma('build-el9-rpm')
         case 'Build RPM on Leap 15':
         case 'Build RPM on Leap 15.4':
             return paramsValue('CI_RPM_leap15_NOBUILD', false) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
-                   prRepos('leap15').contains('daos@') ||
+                   prReposContains('leap15', 'daos') ||
                    skip_stage_pragma('build-leap15-rpm')
         case 'Build DEB on Ubuntu 20.04':
             return paramsValue('CI_RPM_ubuntu20_NOBUILD', false) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
-                   prRepos('ubuntu20').contains('daos@') ||
+                   prReposContains('ubuntu20', 'daos') ||
                    skip_stage_pragma('build-ubuntu20-rpm')
         case 'Build on CentOS 8':
         case 'Build on EL 8':
@@ -421,6 +433,7 @@ boolean call(Map config = [:]) {
         case 'Coverity on CentOS 7':
         case 'Coverity on CentOS 8':
         case 'Coverity on EL 8':
+        case 'Coverity':
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    rpmTestVersion() != '' ||
                    skip_stage_pragma('coverity-test', 'true') ||
@@ -437,6 +450,8 @@ boolean call(Map config = [:]) {
         case 'Functional on CentOS 8':
         case 'Functional on EL 8':
             return skip_ftest('el8', target_branch)
+        case 'Functional on EL 9':
+            return skip_ftest('el9', target_branch)
         case 'Functional on Leap 15':
         case 'Functional on Leap 15.4':
             return skip_ftest('leap15', target_branch)
@@ -555,5 +570,6 @@ boolean call(Map config = [:]) {
             return skip_stage_pragma('daos-build-and-test')
         default:
             println("Don't know how to skip stage \"${env.STAGE_NAME}\", not skipping")
+            return false
     }
 }

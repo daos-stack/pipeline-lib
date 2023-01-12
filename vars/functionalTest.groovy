@@ -124,7 +124,7 @@ Map call(Map config = [:]) {
     } else {
         runtestData = runTestFunctional p
     }
-    runtestData.each{ resultKey, data -> runData[resultKey] = data }
+    runtestData.each { resultKey, data -> runData[resultKey] = data }
 
     int runTime = durationSeconds(startDate)
     runData['funtionaltest_time'] = runTime
