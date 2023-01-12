@@ -31,15 +31,12 @@ String call(String distro, String next_version, String add_daos_pkgs) {
         pkgs = 'daos{,-client}'
     }
 
-    String version = daosPackagesVersion(distro, next_version)
+    if (!distro.startsWith('ubuntu')) {
+        String version = daosPackagesVersion(distro, next_version)
 
-    if (version != '') {
-        if (distro.startsWith('ubuntu20')) {
-            pkgs += '='
-        } else {
-            pkgs += '-'
+        if (version != '') {
+            pkgs += '-' + version
         }
-        pkgs += daosPackagesVersion(distro, next_version)
     }
     return pkgs
 }
