@@ -26,6 +26,7 @@ String call(String distro, String next_version, String add_daos_pkgs) {
 
     String pkgs
     if (env.TEST_RPMS == 'true') {
+        // Remove serialize from this list soon
         pkgs = 'daos{,-{client,tests,server,serialize}' + _add_daos_pkgs + '}'
     } else {
         pkgs = 'daos{,-client}'
@@ -33,13 +34,13 @@ String call(String distro, String next_version, String add_daos_pkgs) {
 
     String version = daosPackagesVersion(distro, next_version)
 
-    if (version != '') {
+    if (version) {
         if (distro.startsWith('ubuntu20')) {
             pkgs += '='
         } else {
             pkgs += '-'
         }
-        pkgs += daosPackagesVersion(distro, next_version)
+        pkgs += version
     }
     return pkgs
 }

@@ -1,4 +1,4 @@
-/* groovylint-disable DuplicateStringLiteral, NestedBlockDepth, VariableName */
+/* groovylint-disable DuplicateStringLiteral, NestedBlockDepth, ParameterName, VariableName */
 // vars/parseStageInfo.groovy
 
 /**
@@ -37,341 +37,340 @@
  */
 
 String get_build_params_tags() {
-  // Get the tags defined by the build parameter entry for this stage
-  if (params.TestTag && params.TestTag != '') {
-    return params.TestTag
-  }
-  return ''
+    // Get the tags defined by the build parameter entry for this stage
+    if (params.TestTag && params.TestTag != '') {
+        return params.TestTag
+    }
+    return ''
 }
 
 String get_commit_pragma_tags(String pragma_suffix) {
-  // Get the test tags defined in the commit message
-  String pragma_tag
+    // Get the test tags defined in the commit message
+    String pragma_tag
 
-  // Use the tags defined by the stage-specific 'Test-tag-<stage>:' commit message pragma.  If those
-  // are not specified use the tags defined by the general 'Test-tag:' commit message pragma.
-  pragma_tag = commitPragma('Test-tag' + pragma_suffix, commitPragma('Test-tag', null))
-  if (pragma_tag) {
-    return pragma_tag
-  }
-
-  // If neither of the 'Test-tag*:' commit message pragmas are specified, use the 'Features:'
-  // commit message pragma to define the tags to use.
-  String features = commitPragma('Features', null)
-  if (features) {
-    // Features extend the standard pr testing tags to include tests run in daily or weekly builds
-    // that test the specified feature.
-    pragma_tag = 'pr'
-    for (feature in features.split(' ')) {
-      pragma_tag += ' daily_regression,' + feature
-      pragma_tag += ' full_regression,' + feature
+    // Use the tags defined by the stage-specific 'Test-tag-<stage>:' commit message pragma.  If those
+    // are not specified use the tags defined by the general 'Test-tag:' commit message pragma.
+    pragma_tag = commitPragma('Test-tag' + pragma_suffix, commitPragma('Test-tag', null))
+    if (pragma_tag) {
+        return pragma_tag
     }
-  }
-  return pragma_tag
+
+    // If neither of the 'Test-tag*:' commit message pragmas are specified, use the 'Features:'
+    // commit message pragma to define the tags to use.
+    String features = commitPragma('Features', null)
+    if (features) {
+        // Features extend the standard pr testing tags to include tests run in daily or weekly builds
+        // that test the specified feature.
+        pragma_tag = 'pr'
+        for (feature in features.split(' ')) {
+            pragma_tag += ' daily_regression,' + feature
+            pragma_tag += ' full_regression,' + feature
+        }
+    }
+    return pragma_tag
 }
 
 String get_default_nvme() {
-  // Get the default test nvme setting
-  if (env.BRANCH_NAME.startsWith('feature/vos_on_blob')) {
-      if (startedByTimer()) {
-        return 'auto_md_on_ssd'
-      }
-      return 'auto'
+    // Get the default test nvme setting
+    if (env.BRANCH_NAME.startsWith('feature/vos_on_blob')) {
+        return startedByTimer() ? 'auto_md_on_ssd' : 'auto'
     }
     return 'auto:-3DNAND'
 }
 
 /* groovylint-disable-next-line MethodSize */
 Map call(Map config = [:]) {
-  Map result = [:]
-  String stage_name = ''
-  if (env.STAGE_NAME) {
-    stage_name = env.STAGE_NAME
-  }
-
-  String new_ci_target = ''
-  if (config['target']) {
-    result['target'] = config['target']
-  } else if (env.TARGET) {
-    result['target'] = env.TARGET
-    result['distro_version'] = '7'
-  } else {
-    if (env.STAGE_NAME.contains('Hardware')) {
-      res = hwDistroTarget2()
-      result['target'] = res[0] + res[1]
-      result['distro_version'] = res[1]
-    } else if (stage_name.contains('CentOS 8.3.2011')) {
-      result['target'] = 'centos8.3'
-      result['distro_version'] = cachedCommitPragma('EL8.3-version', '8.3')
-      new_ci_target = cachedCommitPragma('EL8.3-target', result['target'])
-    } else if (stage_name.contains('EL 8.4')) {
-      result['target'] = 'el8.4'
-      result['distro_version'] = cachedCommitPragma('EL8.4-version', '8.4')
-      new_ci_target = cachedCommitPragma('EL8.4-target', result['target'])
-    } else if (stage_name.contains('CentOS 8')) {
-      result['target'] = 'centos8'
-      result['distro_version'] = cachedCommitPragma('EL8-version', '8')
-      new_ci_target = cachedCommitPragma('EL8-target', result['target'])
-    } else if (stage_name.contains('EL 8')) {
-      result['target'] = 'el8'
-      result['distro_version'] = cachedCommitPragma('EL8-version',
-                                                    distroVersion(result['target']))
-      new_ci_target = cachedCommitPragma('EL8-target', result['target'])
-    } else if (stage_name.contains('Leap 15.3')) {
-      result['target'] = 'leap15'
-      result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.3')
-      new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
-    } else if (stage_name.contains('Leap 15.4')) {
-      result['target'] = 'leap15'
-      result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.4')
-      new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
-    } else if (stage_name.contains('Leap 15')) {
-      result['target'] = 'leap15'
-      result['distro_version'] = cachedCommitPragma('LEAP15-version',
-                                                    distroVersion(result['target']))
-      new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
-    } else if (stage_name.contains('Ubuntu 18')) {
-      result['target'] = 'ubuntu18.04'
-      result['distro_version'] = cachedCommitPragma('UBUNTU18-version', '18.04')
-      new_ci_target = cachedCommitPragma('UBUNTU18-target', result['target'])
-    } else if (stage_name.contains('Ubuntu 20.04')) {
-      result['target'] = 'ubuntu20.04'
-      result['distro_version'] = cachedCommitPragma('UBUNTU20-version', '20.04')
-      new_ci_target = cachedCommitPragma('UBUNTU20-target', result['target'])
-    } else if (stage_name.contains('Ubuntu 20')) {
-      // TODO: below needs to change to ubuntu20 at some point in the future when
-      //       all other pipelines are ready for it
-      result['target'] = 'ubuntu20.04'
-      result['distro_version'] = cachedCommitPragma('UBUNTU20-version',
-                                                    distroVersion(result['target']))
-      new_ci_target = cachedCommitPragma('UBUNTU20-target', result['target'])
-    } else {
-      // also for: if (stage_name.contains('CentOS 7')) {
-      echo "Could not determine target in ${stage_name}, defaulting to EL7"
-      result['target'] = 'centos7'
-      result['distro_version'] = cachedCommitPragma('EL7-version', '7')
-      new_ci_target = cachedCommitPragma('EL7-target', result['target'])
+    Map result = [:]
+    String stage_name = ''
+    if (env.STAGE_NAME) {
+        stage_name = env.STAGE_NAME
     }
-  }
-  new_ci_target = paramsValue('CI_' +
+
+    String new_ci_target = ''
+    if (config['target']) {
+        result['target'] = config['target']
+    } else if (env.TARGET) {
+        result['target'] = env.TARGET
+        result['distro_version'] = '7'
+    } else {
+        if (env.STAGE_NAME.contains('Hardware')) {
+            res = hwDistroTarget2()
+            result['target'] = res[0] + res[1]
+            result['distro_version'] = res[1]
+        } else if (stage_name.contains('CentOS 8.3.2011')) {
+            result['target'] = 'centos8.3'
+            result['distro_version'] = cachedCommitPragma('EL8.3-version', '8.3')
+            new_ci_target = cachedCommitPragma('EL8.3-target', result['target'])
+        } else if (stage_name.contains('EL 8.4')) {
+            result['target'] = 'el8.4'
+            result['distro_version'] = cachedCommitPragma('EL8.4-version', '8.4')
+            new_ci_target = cachedCommitPragma('EL8.4-target', result['target'])
+        } else if (stage_name.contains('CentOS 8')) {
+            result['target'] = 'centos8'
+            result['distro_version'] = cachedCommitPragma('EL8-version', '8')
+            new_ci_target = cachedCommitPragma('EL8-target', result['target'])
+        } else if (stage_name.contains('EL 8')) {
+            result['target'] = 'el8'
+            result['distro_version'] = cachedCommitPragma('EL8-version',
+                                                    distroVersion(result['target']))
+            new_ci_target = cachedCommitPragma('EL8-target', result['target'])
+        } else if (stage_name.contains('EL 9')) {
+            result['target'] = 'el9'
+            result['distro_version'] = cachedCommitPragma('EL9-version',
+                                                    distroVersion(result['target']))
+            new_ci_target = cachedCommitPragma('EL9-target', result['target'])
+        } else if (stage_name.contains('Leap 15.3')) {
+            result['target'] = 'leap15'
+            result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.3')
+            new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
+        } else if (stage_name.contains('Leap 15.4')) {
+            result['target'] = 'leap15'
+            result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.4')
+            new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
+        } else if (stage_name.contains('Leap 15')) {
+            result['target'] = 'leap15'
+            result['distro_version'] = cachedCommitPragma('LEAP15-version',
+                                                    distroVersion(result['target']))
+            new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
+        } else if (stage_name.contains('Ubuntu 18')) {
+            result['target'] = 'ubuntu18.04'
+            result['distro_version'] = cachedCommitPragma('UBUNTU18-version', '18.04')
+            new_ci_target = cachedCommitPragma('UBUNTU18-target', result['target'])
+        } else if (stage_name.contains('Ubuntu 20.04')) {
+            result['target'] = 'ubuntu20.04'
+            result['distro_version'] = cachedCommitPragma('UBUNTU20-version', '20.04')
+            new_ci_target = cachedCommitPragma('UBUNTU20-target', result['target'])
+        } else if (stage_name.contains('Ubuntu 20')) {
+            // TODO: below needs to change to ubuntu20 at some point in the future when
+            //       all other pipelines are ready for it
+            result['target'] = 'ubuntu20.04'
+            result['distro_version'] = cachedCommitPragma('UBUNTU20-version',
+                                                    distroVersion(result['target']))
+            new_ci_target = cachedCommitPragma('UBUNTU20-target', result['target'])
+        } else {
+            // also for: if (stage_name.contains('CentOS 7')) {
+            echo "Could not determine target in ${stage_name}, defaulting to EL7"
+            result['target'] = 'centos7'
+            result['distro_version'] = cachedCommitPragma('EL7-version', '7')
+            new_ci_target = cachedCommitPragma('EL7-target', result['target'])
+        }
+    }
+    new_ci_target = paramsValue('CI_' +
                               result['target'].toString().toUpperCase() +
                               '_TARGET', new_ci_target)
-  if (new_ci_target) {
-    result['ci_target'] = new_ci_target
-  } else {
-    result['ci_target'] = result['target']
-  }
+    if (new_ci_target) {
+        result['ci_target'] = new_ci_target
+    } else {
+        result['ci_target'] = result['target']
+    }
 
-  if (result['ci_target'].startsWith('el') ||
+    if (result['ci_target'].startsWith('el') ||
       result['ci_target'].startsWith('centos') ||
       result['ci_target'].startsWith('rocky') ||
       result['ci_target'].startsWith('rhel') ||
       result['ci_target'].startsWith('almalinux')) {
-    result['java_pkg'] = 'java-1.8.0-openjdk'
-  } else if (result['ci_target'].startsWith('ubuntu')) {
-    result['java_pkg'] = 'openjdk-8-jdk'
-  } else if (result['ci_target'].startsWith('leap')) {
-    result['java_pkg'] = 'java-1_8_0-openjdk'
-  } else {
-    error 'Java package not known for ' + result['ci_target']
-  }
-
-  result['compiler'] = 'gcc'
-  if (config['COMPILER']) {
-    result['compiler'] = config['COMPILER']
-  } else if (env.COMPILER) {
-    result['compiler'] = env.COMPILER
-  } else if (stage_name.contains('Clang')) {
-    result['compiler'] = 'clang'
-  } else if (stage_name.contains('Intel-C')) {
-    result['compiler'] = 'icc'
-  } else if (stage_name.contains('Bullseye')) {
-    result['compiler'] = 'covc'
-  }
-
-  if (config['build_type']) {
-    result['build_type'] = config['build_type']
-  } else if (config['BUILD_TYPE']) {
-    result['build_type'] = config['BUILD_TYPE']
-  } else if (stage_name.contains('release')) {
-    result['build_type'] = 'release'
-  } else if (stage_name.contains('debug')) {
-    result['build_type'] = 'debug'
-  }
-
-  if (config['target_prefix']) {
-    result['target_prefix'] == config['target_prefix']
-  } else if (stage_name.contains('TARGET_PREFIX')) {
-    result['target_prefix'] = 'install/opt'
-  }
-
-  if (stage_name.contains('Coverity')) {
-    result['test'] = 'coverity'
-  }
-
-  if (config['log_to_file']) {
-    result['log_to_file'] = config['log_to_file']
-  } else {
-    result['log_to_file'] = result['target'] + '-' +
-                            result['compiler']
-    if (result['build_type']) {
-      result['log_to_file'] += '-' + result['build_type']
+        result['java_pkg'] = 'java-1.8.0-openjdk'
+    } else if (result['ci_target'].startsWith('ubuntu')) {
+        result['java_pkg'] = 'openjdk-8-jdk'
+    } else if (result['ci_target'].startsWith('leap')) {
+        result['java_pkg'] = 'java-1_8_0-openjdk'
+    } else {
+        error 'Java package not known for ' + result['ci_target']
     }
-    result['log_to_file'] += '-build.log'
-  }
 
-  // Unless otherwise specified, all tests will only use one node.
-  result['node_count'] = 1
+    result['compiler'] = 'gcc'
+    if (config['COMPILER']) {
+        result['compiler'] = config['COMPILER']
+    } else if (env.COMPILER) {
+        result['compiler'] = env.COMPILER
+    } else if (stage_name.contains('Clang')) {
+        result['compiler'] = 'clang'
+    } else if (stage_name.contains('Intel-C')) {
+        result['compiler'] = 'icc'
+    } else if (stage_name.contains('Bullseye')) {
+        result['compiler'] = 'covc'
+    }
 
-  String cluster_size = ''
-  String ftest_arg_nvme = ''
-  String ftest_arg_repeat = ''
-  String ftest_arg_provider = ''
-  if (stage_name.contains('Functional')) {
-    result['test'] = 'Functional'
-    result['node_count'] = 9
-    cluster_size = '-hw'
-    result['pragma_suffix'] = '-vm'
-    result['always_script'] = config.get('always_script',
+    if (config['build_type']) {
+        result['build_type'] = config['build_type']
+    } else if (config['BUILD_TYPE']) {
+        result['build_type'] = config['BUILD_TYPE']
+    } else if (stage_name.contains('release')) {
+        result['build_type'] = 'release'
+    } else if (stage_name.contains('debug')) {
+        result['build_type'] = 'debug'
+    }
+
+    if (config['target_prefix']) {
+        result['target_prefix'] == config['target_prefix']
+    } else if (stage_name.contains('TARGET_PREFIX')) {
+        result['target_prefix'] = 'install/opt'
+    }
+
+    if (stage_name.contains('Coverity')) {
+        result['test'] = 'coverity'
+    }
+
+    if (config['log_to_file']) {
+        result['log_to_file'] = config['log_to_file']
+    } else {
+        result['log_to_file'] = result['target'] + '-' +
+                            result['compiler']
+        if (result['build_type']) {
+            result['log_to_file'] += '-' + result['build_type']
+        }
+        result['log_to_file'] += '-build.log'
+    }
+
+    // Unless otherwise specified, all tests will only use one node.
+    result['node_count'] = 1
+
+    String cluster_size = ''
+    String ftest_arg_nvme = ''
+    String ftest_arg_repeat = ''
+    String ftest_arg_provider = ''
+    if (stage_name.contains('Functional')) {
+        result['test'] = 'Functional'
+        result['node_count'] = 9
+        cluster_size = '-hw'
+        result['pragma_suffix'] = '-vm'
+        result['always_script'] = config.get('always_script',
                                          'ci/functional/job_cleanup.sh')
-    if (stage_name.contains('Hardware')) {
-      cluster_size = 'hw,large'
-      result['pragma_suffix'] = '-hw-large'
-      ftest_arg_nvme = get_default_nvme()
-      if (stage_name.contains('Small')) {
-        result['node_count'] = 3
-        cluster_size = 'hw,small'
-        result['pragma_suffix'] = '-hw-small'
+        if (stage_name.contains('Hardware')) {
+            cluster_size = 'hw,large'
+            result['pragma_suffix'] = '-hw-large'
+            ftest_arg_nvme = get_default_nvme()
+            if (stage_name.contains('Small')) {
+                result['node_count'] = 3
+                cluster_size = 'hw,small'
+                result['pragma_suffix'] = '-hw-small'
       } else if (stage_name.contains('Medium')) {
-        result['node_count'] = 5
-        cluster_size = 'hw,medium,-provider'
-        result['pragma_suffix'] = '-hw-medium'
-        if (stage_name.contains('Provider')) {
-          cluster_size = 'hw,medium,provider'
-          if (stage_name.contains('Verbs')) {
-            result['pragma_suffix'] += '-verbs-provider'
-            ftest_arg_provider = 'ofi+verbs'
-          }
+                result['node_count'] = 5
+                cluster_size = 'hw,medium,-provider'
+                result['pragma_suffix'] = '-hw-medium'
+                if (stage_name.contains('Provider')) {
+                    cluster_size = 'hw,medium,provider'
+                    if (stage_name.contains('Verbs')) {
+                        result['pragma_suffix'] += '-verbs-provider'
+                        ftest_arg_provider = 'ofi+verbs'
+                    }
           else if (stage_name.contains('UCX')) {
-            result['pragma_suffix'] += '-ucx-provider'
-            ftest_arg_provider = 'ucx+dc_x'
+                        result['pragma_suffix'] += '-ucx-provider'
+                        ftest_arg_provider = 'ucx+dc_x'
           }
           else if (stage_name.contains('TCP')) {
-            result['pragma_suffix'] += '-tcp-provider'
-            ftest_arg_provider = 'ofi+tcp'
+                        result['pragma_suffix'] += '-tcp-provider'
+                        ftest_arg_provider = 'ofi+tcp'
           }
-        }
+                }
       } else if (stage_name.contains('Hardware 24')) {
-        result['node_count'] = 24
-        cluster_size = 'hw,24'
-        result['pragma_suffix'] = '-hw-24'
-      }
-    }
-    if (stage_name.contains('with Valgrind')) {
-      result['pragma_suffix'] = '-valgrind'
-      result['with_valgrind'] = 'memcheck'
-      config['test_tag'] = 'memcheck'
-    }
-
-    // Determine which tests tags to use
-    String tag
-    if (startedByUser() || startedByUpstream()) {
-      // Test tags defined by the build parameters override all other tags
-      tag = get_build_params_tags()
-    }
-    if (!tag && startedByTimer()) {
-      // Stage defined tags take precedence in timed builds
-      tag = config['test_tag']
-      if (!tag) {
-        // Otherwise use the default timed build tags
-        tag = 'pr daily_regression'
-        if (env.BRANCH_NAME =~ branchTypeRE('weekly')) {
-          tag = 'full_regression'
+                result['node_count'] = 24
+                cluster_size = 'hw,24'
+                result['pragma_suffix'] = '-hw-24'
+            }
         }
-      }
+        if (stage_name.contains('with Valgrind')) {
+            result['pragma_suffix'] = '-valgrind'
+            result['with_valgrind'] = 'memcheck'
+            config['test_tag'] = 'memcheck'
+        }
+
+        // Determine which tests tags to use
+        String tag
+        if (startedByUser() || startedByUpstream()) {
+            // Test tags defined by the build parameters override all other tags
+            tag = get_build_params_tags()
+        }
+        if (!tag && startedByTimer()) {
+            // Stage defined tags take precedence in timed builds
+            tag = config['test_tag']
+            if (!tag) {
+                // Otherwise use the default timed build tags
+                tag = 'pr daily_regression'
+                if (env.BRANCH_NAME =~ branchTypeRE('weekly')) {
+                    tag = 'full_regression'
+                }
+            }
     } else if (!tag) {
-      if (env.BRANCH_NAME =~ branchTypeRE('testing')) {
-        tag = 'always_passes'
+            if (env.BRANCH_NAME =~ branchTypeRE('testing')) {
+                tag = 'always_passes'
       } else {
-        // Tags defined by commit pragmas have priority in user PRs
-        tag = get_commit_pragma_tags(result['pragma_suffix'])
-        if (!tag) {
-          // Followed by stage defined tags
-          tag = config['test_tag']
+                // Tags defined by commit pragmas have priority in user PRs
+                tag = get_commit_pragma_tags(result['pragma_suffix'])
+                if (!tag) {
+                    // Followed by stage defined tags
+                    tag = config['test_tag']
           /* groovylint-disable-next-line CouldBeElvis */
-          if (!tag) {
-            // Otherwise use the default PR tag
-            tag = 'pr'
-          }
+                    if (!tag) {
+                        // Otherwise use the default PR tag
+                        tag = 'pr'
+                    }
+                }
+            }
         }
-      }
-    }
-    if (tag) {
-      tag = tag.trim()
-    }
+        if (tag) {
+            tag = tag.trim()
+        }
 
-    // Get the ftest --nvme argument from either the build parameters or commit pragmas
-    ftest_arg_nvme = params.TestNvme ?: cachedCommitPragma(
+        // Get the ftest --nvme argument from either the build parameters or commit pragmas
+        ftest_arg_nvme = params.TestNvme ?: cachedCommitPragma(
       'Test-nvme' + result['pragma_suffix'], cachedCommitPragma('Test-nvme', ftest_arg_nvme))
 
-    // Get the ftest --repeat argument from either the build parameters or commit pragmas
-    ftest_arg_repeat = params.TestRepeat ?: cachedCommitPragma(
+        // Get the ftest --repeat argument from either the build parameters or commit pragmas
+        ftest_arg_repeat = params.TestRepeat ?: cachedCommitPragma(
       'Test-repeat' + result['pragma_suffix'], cachedCommitPragma('Test-repeat', null))
 
-    // Get the ftest --provider argument from either the build parameters or commit pragmas if not
-    // already defined by the stage
-    if (!ftest_arg_provider) {
-      ftest_arg_provider = params.TestProvider ?: cachedCommitPragma(
-        'Test-provider' + result['pragma_suffix'], cachedCommitPragma('Test-provider', null))
-    }
+        // Get the ftest --provider argument from either the build parameters or commit pragmas if not
+        // already defined by the stage
+        ftest_arg_provider = ftest_arg_provider ?: params.TestProvider ?:
+            cachedCommitPragma(('Test-provider' + result['pragma_suffix']),
+            cachedCommitPragma('Test-provider', null))
 
-    // Assemble the ftest args
-    result['ftest_arg'] = ''
-    if (ftest_arg_nvme) {
-      result['ftest_arg'] += ' --nvme=' + ftest_arg_nvme
-    }
-    if (ftest_arg_repeat) {
-      result['ftest_arg'] += ' --repeat=' + ftest_arg_repeat
-    }
-    if (ftest_arg_provider) {
-      result['ftest_arg'] += ' --provider=' +  ftest_arg_provider
-    }
-    if (result['ftest_tag']) {
-      result['ftest_tag'] = result['ftest_tag'].trim()
-    }
+        // Assemble the ftest args
+        result['ftest_arg'] = ''
+        if (ftest_arg_nvme) {
+            result['ftest_arg'] += ' --nvme=' + ftest_arg_nvme
+        }
+        if (ftest_arg_repeat) {
+            result['ftest_arg'] += ' --repeat=' + ftest_arg_repeat
+        }
+        if (ftest_arg_provider) {
+            result['ftest_arg'] += ' --provider=' +  ftest_arg_provider
+        }
+        if (result['ftest_tag']) {
+            result['ftest_tag'] = result['ftest_tag'].trim()
+        }
 
-    // Assemble the stage test tags - add the cluster size to each tag group
-    result['test_tag'] = ''
-    for (group in tag.split(' ')) {
-      result['test_tag'] += group + ',' + cluster_size + ' '
-    }
-    result['test_tag'] = result['test_tag'].trim()
+        // Assemble the stage test tags - add the cluster size to each tag group
+        result['test_tag'] = ''
+        for (group in tag.split(' ')) {
+            result['test_tag'] += group + ',' + cluster_size + ' '
+        }
+        result['test_tag'] = result['test_tag'].trim()
 
-    // Determine any additional rpms needed for this stage
-    result['stage_rpms'] = ''
-    if (ftest_arg_provider && ftest_arg_provider.contains('ucx')) {
-      result['stage_rpms'] = 'mercury-ucx'
-    }
-
-    // if (stage_name.contains('Functional'))
+        // Determine any additional rpms needed for this stage
+        result['stage_rpms'] = ''
+        if (ftest_arg_provider && ftest_arg_provider.contains('ucx')) {
+            result['stage_rpms'] = 'mercury-ucx'
+        }
   } else if (stage_name.contains('Storage')) {
-    if (env.NODELIST) {
-      List node_list = env.NODELIST.split(',')
-      result['node_count'] = node_list.size()
-    }
+        if (env.NODELIST) {
+            List node_list = env.NODELIST.split(',')
+            result['node_count'] = node_list.size()
+        }
   } // else if (stage_name.contains('Storage'))
-  if (config['test']) {
-    result['test'] = config['test']
-  }
-  if (config['node_count']) {
-    result['node_count'] = config['node_count']
-  }
-  if (config['pragma_suffix']) {
-    result['pragma_suffix'] = config['pragma_suffix']
-  }
-  if (config['ftest_arg']) {
-    result['ftest_arg'] = config['ftest_arg']
-  }
+    if (config['test']) {
+        result['test'] = config['test']
+    }
+    if (config['node_count']) {
+        result['node_count'] = config['node_count']
+    }
+    if (config['pragma_suffix']) {
+        result['pragma_suffix'] = config['pragma_suffix']
+    }
+    if (config['ftest_arg']) {
+        result['ftest_arg'] = config['ftest_arg']
+    }
 
     if (stage_name.contains('NLT')) {
         result['NLT'] = true
@@ -396,5 +395,5 @@ Map call(Map config = [:]) {
         }
     }
 
-  return result
+    return result
 }
