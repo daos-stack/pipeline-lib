@@ -437,9 +437,7 @@ boolean call(Map config = [:]) {
         case 'Functional on Leap 15.4':
             return skip_ftest('leap15', target_branch)
         case 'Functional on Ubuntu 20.04':
-            /* we don't do any testing on Ubuntu yet
-            skip_ftest('ubuntu20', target_branch) */
-            return true
+            return skip_ftest('ubuntu20', target_branch)
         case 'Fault injection testing':
         case 'Fault injection testing on CentOS 8':
         case 'Fault injection testing on EL 8':
