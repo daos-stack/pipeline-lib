@@ -26,7 +26,11 @@ String call(String distro, String next_version, String add_daos_pkgs) {
 
     String pkgs
     if (env.TEST_RPMS == 'true') {
-        pkgs = 'daos{,-{client,tests,server,serialize}' + _add_daos_pkgs + '}'
+        if (distro.startsWith('ubuntu')) {
+            pkgs = 'daos{,-{client,tests,server}' + _add_daos_pkgs + '}'
+        } else {
+            pkgs = 'daos{,-{client,tests,server,serialize}' + _add_daos_pkgs + '}'
+        }
     } else {
         pkgs = 'daos{,-client}'
     }
