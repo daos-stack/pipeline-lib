@@ -17,6 +17,53 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 //@Library(value='pipeline-lib@my_branch_name') _
+@Library(value='pipeline-lib@jemalmbe/sre-1682') _
+
+/* groovylint-disable-next-line CompileStatic */
+job_status_internal = [:]
+
+void job_status_write() {
+    if (!env.DAOS_STACK_JOB_STATUS_DIR) {
+        return
+    }
+    String jobName = env.JOB_NAME.replace('/', '_')
+    jobName += '_' + env.BUILD_NUMBER
+    String dirName = env.DAOS_STACK_JOB_STATUS_DIR + '/' + jobName + '/'
+
+    String job_status_text = writeYaml data: job_status_internal,
+                                       returnText: true
+
+    // Need to use shell script for creating files that are not
+    // in the workspace.
+    sh label: "Write jenkins_job_status ${dirName}jenkins_result",
+       script: """mkdir -p ${dirName}
+                  echo "${job_status_text}" >> ${dirName}jenkins_result"""
+}
+
+// groovylint-disable-next-line MethodParameterTypeRequired
+void job_status_update(String name=env.STAGE_NAME,
+                       // groovylint-disable-next-line NoDef
+                       def value=currentBuild.currentResult) {
+    String key = name.replace(' ', '_')
+    key = key.replaceAll('[ .]', '_')
+    if (job_status_internal.containsKey(key)) {
+        Map myStage = job_status_internal[key]
+        if (value instanceof Map) {
+            value.each{ resultKey, data -> myStage[resultKey] = data }
+        } else {
+            // Update result with single value
+            myStage['result'] = value
+        }
+    } else {
+        // pass through value
+        job_status_internal[key] = value
+    }
+}
+
+// groovylint-disable-next-line MethodParameterTypeRequired, NoDef
+void job_step_update(def value) {
+    job_status_update(env.STAGE_NAME, value)
+}
 
 String test_branch(String target) {
     return 'ci-' + JOB_NAME.replaceAll('/', '-') +
@@ -63,12 +110,13 @@ pipeline {
                         }
                     }
                     steps {
-                        runTest script: '''set -ex
-                                           rm -f *.xml
-                                           echo "<failure> bla bla bla</failure>" > \
-                                             pipeline-test-failure.xml''',
-                            junit_files: '*.xml non-exist*.xml',
-                            failure_artifacts: env.STAGE_NAME
+                        job_step_update(
+                            runTest(script: '''set -ex
+                                               rm -f *.xml
+                                               echo "<failure> bla bla bla</failure>" > \
+                                                 pipeline-test-failure.xml''',
+                                    junit_files: '*.xml non-exist*.xml',
+                                    failure_artifacts: env.STAGE_NAME))
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('grep JUnit results tests failure case')
@@ -80,12 +128,13 @@ pipeline {
                         }
                     }
                     steps {
-                        runTest script: '''set -ex
-                                           rm -f *.xml
-                                           echo "<error bla bla bla/>" > \
-                                             pipeline-test-error.xml''',
-                            junit_files: '*.xml non-exist*.xml',
-                            failure_artifacts: env.STAGE_NAME
+                        job_step_update(
+                            runTest(script: '''set -ex
+                                               rm -f *.xml
+                                               echo "<error bla bla bla/>" > \
+                                                 pipeline-test-error.xml''',
+                                    junit_files: '*.xml non-exist*.xml',
+                                    failure_artifacts: env.STAGE_NAME))
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('grep JUnit results tests error case 1')
@@ -97,12 +146,13 @@ pipeline {
                         }
                     }
                     steps {
-                        runTest script: '''set -ex
-                                           rm -f *.xml
-                                           echo "<errorDetails>bla bla bla</errorDetails>" > \
-                                             pipeline-test-error.xml''',
-                            junit_files: '*.xml non-exist*.xml',
-                            failure_artifacts: env.STAGE_NAME
+                        job_step_update(
+                            runTest(script: '''set -ex
+                                               rm -f *.xml
+                                               echo "<errorDetails>bla bla bla</errorDetails>" > \
+                                                 pipeline-test-error.xml''',
+                                junit_files: '*.xml non-exist*.xml',
+                                failure_artifacts: env.STAGE_NAME))
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('grep JUnit results tests error case 2')
@@ -194,18 +244,20 @@ pipeline {
                         label 'ci_vm1'
                     }
                     steps {
-                        provisionNodes NODELIST: env.NODELIST,
-                                       distro: 'el8',
-                                       profile: 'daos_ci',
-                                       node_count: '1',
-                                       snapshot: true,
-                                       inst_repos: 'daos@release/2.2'
-                        /* groovylint-disable-next-line GStringExpressionWithinString */
-                        runTest script: '''NODE=${NODELIST%%,*}
-                                           ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
-                                           yum -y --disablerepo=\\* --enablerepo=build\\* makecache"''',
-                                junit_files: null,
-                                failure_artifacts: env.STAGE_NAME
+                        job_step_update(
+                            provisionNodes(NODELIST: env.NODELIST,
+                                           distro: 'el8',
+                                           profile: 'daos_ci',
+                                           node_count: '1',
+                                           snapshot: true,
+                                           inst_repos: 'daos@release/2.2'))
+                        job_step_update(
+                            /* groovylint-disable-next-line GStringExpressionWithinString */
+                            runTest(script: '''NODE=${NODELIST%%,*}
+                                               ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
+                                               yum -y --disablerepo=\\* --enablerepo=build\\* makecache"''',
+                                    junit_files: null,
+                                    failure_artifacts: env.STAGE_NAME))
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with release/0.9 Repo')
@@ -218,18 +270,20 @@ pipeline {
                         label 'ci_vm1'
                     }
                     steps {
-                        provisionNodes NODELIST: env.NODELIST,
-                                       distro: 'el8',
-                                       profile: 'daos_ci',
-                                       node_count: 1,
-                                       snapshot: true,
-                                       inst_repos: 'daos@master'
-                        /* groovylint-disable-next-line GStringExpressionWithinString */
-                        runTest script: '''NODE=${NODELIST%%,*}
-                                           ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
-                                           dnf -y makecache"''',
-                                junit_files: null,
-                                failure_artifacts: env.STAGE_NAME
+                        job_step_update(
+                            provisionNodes(NODELIST: env.NODELIST,
+                                           distro: 'el8',
+                                           profile: 'daos_ci',
+                                           node_count: 1,
+                                           snapshot: true,
+                                           inst_repos: 'daos@master'))
+                        job_step_update(
+                            /* groovylint-disable-next-line GStringExpressionWithinString */
+                            runTest(script: '''NODE=${NODELIST%%,*}
+                                               ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
+                                               dnf -y makecache"''',
+                                    junit_files: null,
+                                    failure_artifacts: env.STAGE_NAME))
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('provisionNodes with master Repo')
@@ -242,20 +296,22 @@ pipeline {
                         label 'ci_vm1'
                     }
                     steps {
-                        provisionNodes NODELIST: env.NODELIST,
-                                       distro: 'el8',
-                                       profile: 'daos_ci',
-                                       node_count: 1,
-                                       snapshot: true,
-                                       inst_rpms: 'slurm' +
-                                                  ' slurm-slurmctld slurm-slurmd' +
-                                                  ' ipmctl'
-                        /* groovylint-disable-next-line GStringExpressionWithinString */
-                        runTest script: '''NODE=${NODELIST%%,*}
-                                           ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
-                                           which scontrol"''',
-                                junit_files: null,
-                                failure_artifacts: env.STAGE_NAME
+                        job_step_update(
+                            provisionNodes(NODELIST: env.NODELIST,
+                                           distro: 'el8',
+                                           profile: 'daos_ci',
+                                           node_count: 1,
+                                           snapshot: true,
+                                           inst_rpms: 'slurm' +
+                                                      ' slurm-slurmctld slurm-slurmd' +
+                                                      ' ipmctl'))
+                        job_step_update(
+                            /* groovylint-disable-next-line GStringExpressionWithinString */
+                            runTest(script: '''NODE=${NODELIST%%,*}
+                                               ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
+                                               which scontrol"''',
+                                    junit_files: null,
+                                    failure_artifacts: env.STAGE_NAME))
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with slurm EL8')
@@ -268,18 +324,20 @@ pipeline {
                         label 'ci_vm1'
                     }
                     steps {
-                        provisionNodes NODELIST: env.NODELIST,
-                                       distro: 'opensuse15',
-                                       profile: 'daos_ci',
-                                       node_count: 1,
-                                       snapshot: true,
-                                       inst_rpms: 'slurm ipmctl'
-                        /* groovylint-disable-next-line GStringExpressionWithinString */
-                        runTest script: '''NODE=${NODELIST%%,*}
-                                           ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
-                                           which scontrol"''',
-                                junit_files: null,
-                                failure_artifacts: env.STAGE_NAME
+                        job_step_update(
+                            provisionNodes(NODELIST: env.NODELIST,
+                                           distro: 'opensuse15',
+                                           profile: 'daos_ci',
+                                           node_count: 1,
+                                           snapshot: true,
+                                           inst_rpms: 'slurm ipmctl'))
+                        job_step_update(
+                            /* groovylint-disable-next-line GStringExpressionWithinString */
+                            runTest(script: '''NODE=${NODELIST%%,*}
+                                               ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
+                                               which scontrol"''',
+                                    junit_files: null,
+                                    failure_artifacts: env.STAGE_NAME))
                     }
                     // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes_with_slurm_leap15')
@@ -394,7 +452,8 @@ pipeline {
             when {
                 beforeAgent true
                 expression {
-                    currentBuild.currentResult == 'SUCCESS' && !skipStage()
+                    // currentBuild.currentResult == 'SUCCESS' && !skipStage()
+                    false
                 }
             }
             matrix {
@@ -528,4 +587,13 @@ pipeline {
             } // matrix
         } // stage('DAOS Build and Test')
     } // stages
+    post {
+        always {
+            job_status_update('final_status')
+            job_status_write()
+        }
+        unsuccessful {
+            notifyBrokenBranch branches: target_branch
+        }
+    }
 } // pipeline

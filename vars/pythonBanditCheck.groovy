@@ -31,24 +31,25 @@
    *                        default false.
    */
 
-def call(Map config = [:]) {
+Map call(Map config = [:]) {
 
-  def context = config.get('context', 'check/' + env.STAGE_NAME)
-  def description = config.get('description', env.STAGE_NAME)
-  def bandit_script = config.get('script', 'ci/python_bandit_check.sh')
+  String context = config.get('context', 'check/' + env.STAGE_NAME)
+  String description = config.get('description', env.STAGE_NAME)
+  String bandit_script = config.get('script', 'ci/python_bandit_check.sh')
 
   Map stage_info = parseStageInfo(config)
 
   checkoutScm withSubmodules: true
 
-  def error_stage_result = 'FAILURE'
-  def error_build_result = 'FAILURE'
+  String error_stage_result = 'FAILURE'
+  String error_build_result = 'FAILURE'
   if (config['unstable']) {
     error_stage_result = 'UNSTABLE'
     error_build_result = 'SUCCESS'
   }
-  def bandit_junit = config.get('junit_files', 'bandit.xml')
-  runTest script: bandit_script,
-          junit_files: bandit_junit,
-          ignore_failure: true
+  String bandit_junit = config.get('junit_files', 'bandit.xml')
+  Map runData = runTest script: bandit_script,
+                junit_files: bandit_junit,
+                ignore_failure: true
+  return runData
 }

@@ -7,7 +7,7 @@
  *
  */
 
-def call(Map config = [:]) {
+Map call(Map config = [:]) {
   /**
    * runTestFunctionalV1 step method
    *
@@ -38,11 +38,11 @@ def call(Map config = [:]) {
    *                        Default env.STAGE_NAME.
    */
 
-    def test_rpms = 'false'
+    String test_rpms = 'false'
     if (config['test_rpms'] == "true") {
         test_rpms = 'true'
     }
-    def functional_test_script = '''test_tag=$(git show -s --format=%%B | sed -ne "/^Test-tag%s:/s/^.*: *//p")
+    String functional_test_script = '''test_tag=$(git show -s --format=%%B | sed -ne "/^Test-tag%s:/s/^.*: *//p")
                                     if [ -z "$test_tag" ]; then
                                         test_tag=%s
                                     fi
@@ -122,6 +122,6 @@ def call(Map config = [:]) {
     config.remove('node_count')
     config.remove('test_rpms')
 
-    runTest(config)
+    return runTest(config)
 
 }

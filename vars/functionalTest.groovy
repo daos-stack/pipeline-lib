@@ -54,7 +54,8 @@
    *                             Default determined by parseStageInfo().
    */
 
-void call(Map config = [:]) {
+Map call(Map config = [:]) {
+    Date startDate = new Date()
     String nodelist = config.get('NODELIST', env.NODELIST)
     String context = config.get('context', 'test/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
@@ -67,16 +68,17 @@ void call(Map config = [:]) {
         stage_inst_rpms = stage_info['stage_rpms'] + ' ' + stage_inst_rpms
     }
 
-    provisionNodes NODELIST: nodelist,
+    Map runData = provisionNodes(
+                 NODELIST: nodelist,
                  node_count: stage_info['node_count'],
                  distro: (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
                  inst_repos: config.get('inst_repos', ''),
-                 inst_rpms: stage_inst_rpms
+                 inst_rpms: stage_inst_rpms)
 
     List stashes = []
     if (config['stashes']) {
         stashes = config['stashes']
-  } else {
+    } else {
         String target_compiler = "${stage_info['target']}-${stage_info['compiler']}"
         stashes.add("${target_compiler}-install")
         stashes.add("${target_compiler}-build-vars")
@@ -115,10 +117,16 @@ void call(Map config = [:]) {
                   '--get-tests-from-previous-sessions --rest=rest.txt raw > subset.txt'
     }
 
+    Map runtestData = [:]
     if (config.get('test_function', 'runTestFunctional') ==
       'runTestFunctionalV2') {
-        runTestFunctionalV2 p
-  } else {
-        runTestFunctional p
-      }
+        runtestData = runTestFunctionalV2 p
+    } else {
+        runtestData = runTestFunctional p
+    }
+    runtestData.each{ resultKey, data -> runData[resultKey] = data }
+
+    int runTime = durationMinutes(startDate)
+    runData['funtionaltest_time'] = runTime
+    return runData
 }

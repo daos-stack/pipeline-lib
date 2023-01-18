@@ -29,12 +29,13 @@
    * config['stash']               Stash name for the ".build-vars.*" files.
    */
 
-void call(Map config = [:]) {
+Map call(Map config = [:]) {
     // If we don't have a BULLSEYE environment variable set
     // there are no Bullsye reports to process.
     if (!env.BULLSEYE) {
-        return
+        return ['result': 'SUCCESS', 'cloverreportpublish_time': 0]
     }
+    Date startDate = new Date()
     Map stage_info = parseStageInfo(config)
 
     String coverage_website = config.get('coverage_website',
@@ -103,4 +104,7 @@ void call(Map config = [:]) {
                    fi"""
     archiveArtifacts artifacts: coverage_website,
                      allowEmptyArchive: true
+    int runTime = durationMinutes(startDate)
+    return ['result': currentBuild.result,
+            'cloverreportpublish_time': runTime]
 }

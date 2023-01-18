@@ -7,7 +7,7 @@
  *
  */
 
-void call(Map config = [:]) {
+Map call(Map config = [:]) {
   /**
    * runTestFunctional step method
    *
@@ -40,6 +40,5 @@ void call(Map config = [:]) {
 
     config['failure_artifacts'] = 'Functional'
 
-    runTestFunctionalV2(config)
-
+    return runTestFunctionalV2(config)
 }
