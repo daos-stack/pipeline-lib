@@ -104,7 +104,7 @@ boolean skip_build_on_landing_branch(String target_branch) {
 boolean skip_scan_rpms(String distro, String target_branch) {
     return already_passed() ||
            target_branch == 'weekly-testing' ||
-           skip_stage_pragma('build') ||
+           rpmTestVersion() != '' ||
            skip_stage_pragma('scan-rpms', 'false') ||
            skip_stage_pragma('scan-' + distro + '-rpms') ||
            docOnlyChange(target_branch) ||
