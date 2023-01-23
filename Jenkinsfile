@@ -47,22 +47,27 @@ void job_status_update(String name=env.STAGE_NAME,
     key = key.replaceAll('[ .]', '_')
     if (job_status_internal.containsKey(key)) {
         Map myStage = job_status_internal[key]
-        if (value instanceof Map) {
-            value.each{ resultKey, data -> myStage[resultKey] = data }
-        } else {
+        if (myStage isinstanceof Map) {
+            if (value instanceof Map) {
+                value.each{ resultKey, data -> myStage[resultKey] = data }
+                return
+            }
             // Update result with single value
             myStage['result'] = value
+            return
         }
-    } else {
-        // pass through value
-        job_status_internal[key] = value
     }
+    // pass through value
+    job_status_internal[key] = value
 }
 
 // groovylint-disable-next-line MethodParameterTypeRequired, NoDef
 void job_step_update(def value) {
     job_status_update(env.STAGE_NAME, value)
 }
+
+// Don't define this as a type or it loses it's global scope
+target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
 
 String test_branch(String target) {
     return 'ci-' + JOB_NAME.replaceAll('/', '-') +
