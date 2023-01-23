@@ -491,6 +491,7 @@ pipeline {
                                                booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
                                                booleanParam(name: 'CI_FUNCTIONAL_el8_TEST', value: true),
                                                booleanParam(name: 'CI_FUNCTIONAL_leap15_TEST', value: true),
+                                               booleanParam(name: 'CI_SCAN_RPMS_el7_TEST', value: true),
                                                booleanParam(name: 'CI_RPMS_el7_TEST', value: true),
                                                booleanParam(name: 'CI_medium_TEST', value: true),
                                                booleanParam(name: 'CI_large_TEST', value: false)
