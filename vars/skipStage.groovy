@@ -109,6 +109,7 @@ boolean skip_scan_rpms(String distro, String target_branch) {
            skip_stage_pragma('scan-' + distro + '-rpms') ||
            (distro == 'centos7' &&
             (!paramsValue('CI_SCAN_RPMS_el7_TEST', true)) ||
+            skip_stage_pragma('scan-centos-rpms')) ||
            docOnlyChange(target_branch) ||
            quickFunctional()
 }
