@@ -47,7 +47,7 @@ void job_status_update(String name=env.STAGE_NAME,
     key = key.replaceAll('[ .]', '_')
     if (job_status_internal.containsKey(key)) {
         Map myStage = job_status_internal[key]
-        if (myStage isinstanceof Map) {
+        if (myStage instanceof Map) {
             if (value instanceof Map) {
                 value.each{ resultKey, data -> myStage[resultKey] = data }
                 return
