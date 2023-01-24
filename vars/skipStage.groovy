@@ -104,11 +104,12 @@ boolean skip_build_on_landing_branch(String target_branch) {
 boolean skip_scan_rpms(String distro, String target_branch) {
     return already_passed() ||
            target_branch == 'weekly-testing' ||
-           skip_stage_pragma('scan-rpms', 'true') ||
-           (distro == 'centos-7' &&
+           rpmTestVersion() != '' ||
+           skip_stage_pragma('scan-rpms') ||
+           skip_stage_pragma('scan-' + distro + '-rpms') ||
+           (distro == 'centos7' &&
             (!paramsValue('CI_SCAN_RPMS_el7_TEST', true)) ||
             skip_stage_pragma('scan-centos-rpms')) ||
-           skip_stage_pragma('scan-' + distro + '-rpms') ||
            docOnlyChange(target_branch) ||
            quickFunctional()
 }
@@ -504,13 +505,13 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('test-leap-15-rpms', 'true') ||
                    already_passed()
         case 'Scan CentOS 7 RPMs':
-            return skip_scan_rpms('centos-7', target_branch)
+            return skip_scan_rpms('centos7', target_branch)
         case 'Scan CentOS 8 RPMs':
         case 'Scan EL 8 RPMs':
-            return skip_scan_rpms('el-8', target_branch)
+            return skip_scan_rpms('el8', target_branch)
         case 'Scan Leap 15 RPMs':
         case 'Scan Leap 15.4 RPMs':
-            return skip_scan_rpms('leap-15', target_branch)
+            return skip_scan_rpms('leap15', target_branch)
         case 'Test Hardware':
             return env.NO_CI_TESTING == 'true' ||
                    skip_stage_pragma('func-test') ||
