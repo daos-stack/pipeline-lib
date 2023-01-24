@@ -177,6 +177,6 @@ Map call(Map config = [:]) {
     error('Could not find a provisionNodesSystem step in' +
                 ' a shared groovy library')
   }
-  int runTime = durationMinutes(startDate)
+  int runTime = durationSeconds(startDate)
   return ['provision_time': runTime]
 }

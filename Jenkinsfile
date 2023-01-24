@@ -63,6 +63,9 @@ void job_status_update(String name=env.STAGE_NAME,
 
 // groovylint-disable-next-line MethodParameterTypeRequired, NoDef
 void job_step_update(def value) {
+    if (value == null) {
+        value = currentBuild.currentResult
+    }
     job_status_update(env.STAGE_NAME, value)
 }
 

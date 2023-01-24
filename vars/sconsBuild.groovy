@@ -321,7 +321,7 @@ Map call(Map config = [:]) {
         stash name: target_stash + '-tests',
               includes: test_files
     }
-    int runTime = durationMinutes(startDate)
+    int runTime = durationSeconds(startDate)
     runData['sconsbuild_time'] = runTime
     return runData
 }

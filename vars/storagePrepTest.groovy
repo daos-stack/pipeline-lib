@@ -85,6 +85,5 @@ Map call(Map config = [:]) {
 
     config['failure_artifacts'] = config['failure_artifacts'] ?: env.STAGE_NAME
 
-    Map runData = runTest(config)
-    return runData
+    return runTest(config)
 }

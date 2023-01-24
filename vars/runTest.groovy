@@ -130,7 +130,7 @@ Map call(Map config = [:]) {
         }
     }
 
-    int runTime = durationMinutes(startDate)
+    int runTime = durationSeconds(startDate)
     return ['result': status,
             'runtest_time': runTime]
 }

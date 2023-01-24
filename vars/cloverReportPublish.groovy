@@ -104,7 +104,7 @@ Map call(Map config = [:]) {
                    fi"""
     archiveArtifacts artifacts: coverage_website,
                      allowEmptyArchive: true
-    int runTime = durationMinutes(startDate)
+    int runTime = durationSeconds(startDate)
     return ['result': currentBuild.result,
             'cloverreportpublish_time': runTime]
 }

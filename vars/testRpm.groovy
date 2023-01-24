@@ -82,7 +82,7 @@ Map call(Map config = [:]) {
                     description: description,
                     context: context
   runtestData.each{ resultKey, data -> runData[resultKey] = data }
-  int runTime = durationMinutes(startDate)
+  int runTime = durationSeconds(startDate)
   runData['rpmtest_time'] = runTime
   return runData
 }

@@ -74,7 +74,7 @@ Map call(Map config = [:]) {
            script: "${env_vars} " + build_script)
         runData['result'] = 'SUCCESS'
     }
-    int runTime = durationMinutes(startDate)
+    int runTime = durationSeconds(startDate)
     runData['buildrpm_time'] = runTime
     return runData
 }
