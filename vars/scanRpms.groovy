@@ -76,10 +76,10 @@ Map call(Map config = [:]) {
   String junit_files = config.get('junit_files', 'maldetect.xml')
   String failure_artifacts = config.get('failure_artifacts', env.STAGE_NAME)
   boolean ignore_failure = config.get('ignore_failure', false)
-  return runTest script: full_test_script,
+  return runTest(script: full_test_script,
                  junit_files: junit_files,
                  failure_artifacts: env.STAGE_NAME,
                  ignore_failure: ignore_failure,
                  description: description,
-                 context: context
+                 context: context)
 }

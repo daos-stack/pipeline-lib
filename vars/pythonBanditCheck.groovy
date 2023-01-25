@@ -48,7 +48,7 @@ Map call(Map config = [:]) {
     error_build_result = 'SUCCESS'
   }
   String bandit_junit = config.get('junit_files', 'bandit.xml')
-  return runTest script: bandit_script,
+  return runTest(script: bandit_script,
                  junit_files: bandit_junit,
-                 ignore_failure: true
+                 ignore_failure: true)
 }
