@@ -47,7 +47,7 @@
    *
    */
 
-def call(Map config = [:]) {
+Map call(Map config = [:]) {
 
   if (!config['daos_pkg_version']) {
     error 'daos_pkg_version is required.'
@@ -73,13 +73,13 @@ def call(Map config = [:]) {
                          config['daos_pkg_version'] + '\n' +
                          test_script
 
-  def junit_files = config.get('junit_files', 'maldetect.xml')
-  def failure_artifacts = config.get('failure_artifacts', env.STAGE_NAME)
-  def ignore_failure = config.get('ignore_failure', false)
-  runTest script: full_test_script,
-          junit_files: junit_files,
-          failure_artifacts: env.STAGE_NAME,
-          ignore_failure: ignore_failure,
-          description: description,
-          context: context
+  String junit_files = config.get('junit_files', 'maldetect.xml')
+  String failure_artifacts = config.get('failure_artifacts', env.STAGE_NAME)
+  boolean ignore_failure = config.get('ignore_failure', false)
+  return runTest(script: full_test_script,
+                 junit_files: junit_files,
+                 failure_artifacts: env.STAGE_NAME,
+                 ignore_failure: ignore_failure,
+                 description: description,
+                 context: context)
 }

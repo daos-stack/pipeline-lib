@@ -2,7 +2,7 @@
    groovylint-disable GStringExpressionWithinString */
 // vars/runTest.groovy
 
-void call(Map config = [:]) {
+Map call(Map config = [:]) {
   /**
    * runTest step method
    *
@@ -48,6 +48,7 @@ void call(Map config = [:]) {
     // github expectations at the same time to also include any Matrix
     // environment variables.
 
+    Date startDate = new Date()
     String context = config.get('context', 'test/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
     String flow_name = config.get('flow_name', env.STAGE_NAME)
@@ -128,4 +129,8 @@ void call(Map config = [:]) {
             error(env.STAGE_NAME + ' failed: ' + rc)
         }
     }
+
+    int runTime = durationSeconds(startDate)
+    return ['result': status,
+            'runtest_time': runTime]
 }

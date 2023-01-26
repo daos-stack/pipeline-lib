@@ -43,7 +43,8 @@
                      Suse Linux Enterprise Server.
 */
 /* groovylint-disable-next-line MethodSize */
-void call(Map config = [:]) {
+Map call(Map config = [:]) {
+  Date startDate = new Date()
   String nodeString = config['NODELIST']
   List node_list = config['NODELIST'].split(',')
   int node_max_cnt = node_list.size()
@@ -176,4 +177,6 @@ void call(Map config = [:]) {
     error('Could not find a provisionNodesSystem step in' +
                 ' a shared groovy library')
   }
+  int runTime = durationSeconds(startDate)
+  return ['provision_time': runTime]
 }

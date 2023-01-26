@@ -8,13 +8,13 @@
  *
  */
 
-def num_proc() {
+String num_proc() {
     return sh(label: "Get number of processors online",
               script: "/usr/bin/getconf _NPROCESSORS_ONLN",
               returnStdout: true)
 }
 
-def call(Map config = [:]) {
+Map call(Map config = [:]) {
   /**
    * sconsBuild step method
    *
@@ -71,6 +71,7 @@ def call(Map config = [:]) {
    *   prefixes.
    */
 
+    Date startDate = new Date()
     String config_target
     if (config['target']) {
       config_target = config['target']
@@ -143,12 +144,12 @@ def call(Map config = [:]) {
                           script: 'command -v scons || command -v scons-3',
                           returnStdout: true).trim()
 
-    def scons_args = ''
+    String scons_args = ''
     if (config['parallel_build'] && config['parallel_build'] == true) {
         String procs = num_proc()
         scons_args += '-j ' + procs.trim()
     }
-    def sconstruct = ''
+    String sconstruct = ''
     if (config['scons_exe']) {
         scons_exe = "${config['scons_exe']}"
     }
@@ -192,11 +193,11 @@ def call(Map config = [:]) {
         scons_args += " WARNING_LEVEL=${config['WARNING_LEVEL']}"
     }
     //scons -c is not perfect so get out the big hammer
-    def clean_cmd = ""
+    String clean_cmd = ""
     if (config['skip_clean']) {
         clean_cmd += "echo 'skipping scons -c'\n"
     } else {
-        def clean_files = "_build.external"
+        String clean_files = "_build.external"
         if (config['clean']) {
             clean_files = config['clean']
         }
@@ -216,22 +217,22 @@ def call(Map config = [:]) {
        script:'rm -rf src/rdb/raft/CLinkedListQueue bandit.xml test.cov',
        returnStatus: true
 
-    def prebuild = ''
+    String prebuild = ''
     if (config['prebuild']) {
       prebuild = config['prebuild'] + '\n'
     }
-    def prefix_1 = ''
+    String prefix_1 = ''
 
     if (config['TARGET_PREFIX']) {
       scons_args += " TARGET_PREFIX=${config['TARGET_PREFIX']}"
       if (config['target_work']) {
-        def target_dirs = ''
+        String target_dirs = ''
         if (config['target_dirs']) {
           target_dirs = config['target_dirs']
         } else if (config_target) {
           target_dirs = config_target
         }
-        def target_work = config['target_work']
+        String target_work = config['target_work']
         prefix_1 =
           """for new_dir in ${target_dirs}; do
                mkdir -p "\${WORKSPACE}/${target_work}/\${new_dir}"
@@ -246,7 +247,7 @@ def call(Map config = [:]) {
         scons_args += ' ' + config['scons_args']
     }
 
-    def script = clean_cmd
+    String script = clean_cmd
     script += 'SCONS_ARGS="' + scons_args + '"\n'
 
     if (config['coverity']) {
@@ -277,8 +278,8 @@ def call(Map config = [:]) {
                           failure_artifacts + '"' + '''
                      exit \$rc
                  fi'''
-    def full_script = "#!/bin/bash\nset -ex\n" +
-                      set_cwd + prebuild + prefix_1 + script
+    String full_script = "#!/bin/bash\nset -ex\n" +
+                         set_cwd + prebuild + prefix_1 + script
     int rc = 0
     rc = sh(script: full_script, label: env.STAGE_NAME, returnStatus: true)
     // All of this really should be done in the post section of the main
@@ -286,15 +287,13 @@ def call(Map config = [:]) {
     // https://issues.jenkins-ci.org/browse/JENKINS-39203
     // Once that is fixed all of the below should be pushed up into the
     // Jenkinsfile post { stable/unstable/failure/etc. }
-
+    Map runData = ['result': 'FAILURE', 'result_code': rc]
+    if (rc == 0) {
+        runData['result'] = 'SUCCESS'
+    }
     if (env.DAOS_JENKINS_NOTIFY_STATUS != null) {
-        if (rc != 0) {
-            stepResult name: env.STAGE_NAME, context: "build",
-                       result: "FAILURE"
-        } else if (rc == 0) {
-            stepResult name: env.STAGE_NAME, context: "build",
-                       result: "SUCCESS"
-        }
+        stepResult name: env.STAGE_NAME, context: "build",
+                   result: runData['result']
     }
     if (!config['returnStatus'] && (rc != 0)) {
       error "sconsBuild failed for ${full_script}"
@@ -305,22 +304,24 @@ def call(Map config = [:]) {
         if (stage_info['build_type']) {
             target_stash += '-' + stage_info['build_type']
         }
-	if (config.get('stash_opt', false)) {
-              sh(script: 'tar -cf opt-daos.tar /opt/daos/', label: 'Tar /opt')
-              stash name: target_stash + '-opt-tar', includes: 'opt-daos.tar'	
+        if (config.get('stash_opt', false)) {
+            sh(script: 'tar -cf opt-daos.tar /opt/daos/', label: 'Tar /opt')
+            stash name: target_stash + '-opt-tar', includes: 'opt-daos.tar'
         } else {
             stash name: target_stash + '-install',
-                includes: 'install/**'
+                        includes: 'install/**'
         }
-	String vars_includes = '.build_vars.*'
+        String vars_includes = '.build_vars.*'
         if (stage_info['compiler'] == 'covc') {
             vars_includes += ', test.cov'
-	}
+        }
         stash name: target_stash + '-build-vars',
               includes: vars_includes
         String test_files = readFile "${env.WORKSPACE}/${config['stash_files']}"
         stash name: target_stash + '-tests',
               includes: test_files
     }
-    return rc
+    int runTime = durationSeconds(startDate)
+    runData['sconsbuild_time'] = runTime
+    return runData
 }

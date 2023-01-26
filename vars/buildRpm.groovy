@@ -39,7 +39,8 @@
    *                        default false.
    */
 
-void call(Map config = [:]) {
+Map call(Map config = [:]) {
+    Date startDate = new Date()
     String context = config.get('context', 'build/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
     String build_script = config.get('build_script', 'ci/rpm/build.sh')
@@ -65,10 +66,15 @@ void call(Map config = [:]) {
         error_stage_result = 'UNSTABLE'
         error_build_result = 'SUCCESS'
     }
+    Map runData = ['result': 'FAILURE']
     catchError(stageResult: error_stage_result,
                buildResult: error_build_result) {
         // flow_name used as the label for this step to allow log lookup.
         sh(label: config.get('flow_name', env.STAGE_NAME),
            script: "${env_vars} " + build_script)
+        runData['result'] = 'SUCCESS'
     }
+    int runTime = durationSeconds(startDate)
+    runData['buildrpm_time'] = runTime
+    return runData
 }

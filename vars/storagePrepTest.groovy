@@ -54,7 +54,7 @@
    *                             Default determined by parseStageInfo().
    */
 
-void call(Map config = [:]) {
+Map call(Map config = [:]) {
     String nodelist = config.get('NODELIST', env.NODELIST)
     String context = config.get('context', 'test/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
@@ -85,5 +85,5 @@ void call(Map config = [:]) {
 
     config['failure_artifacts'] = config['failure_artifacts'] ?: env.STAGE_NAME
 
-    runTest(config)
+    return runTest(config)
 }

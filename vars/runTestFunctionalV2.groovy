@@ -8,7 +8,7 @@
  * runTestFunctionalV2 pipeline step
  */
 
-void call(Map config = [:]) {
+Map call(Map config = [:]) {
   /**
    * runTestFunctionalV2 step method
    *
@@ -59,7 +59,7 @@ void call(Map config = [:]) {
                        "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
                        'ci/functional/test_main.sh'
 
-    basedir = 'install/lib/daos/TESTING/ftest/avocado/job-results/'
+    String basedir = 'install/lib/daos/TESTING/ftest/avocado/job-results/'
     config['junit_files'] = "${basedir}job-*/*.xml " +
                             "${basedir}job-*/test-results/*/data/*_results.xml"
     if (!config['failure_artifacts']) {
@@ -81,7 +81,7 @@ void call(Map config = [:]) {
     // Notify SCM result in post steps.
     config['notify_result'] = false
 
-    runTest(config)
+    Map runData = runTest(config)
 
     String covfile = 'test.cov'
     if (!fileExists('test.cov')) {
@@ -92,4 +92,5 @@ void call(Map config = [:]) {
     String name = 'func' + stage_info['pragma_suffix'] + '-cov'
     stash name: config.get('coverage_stash', name),
           includes: covfile
+    return runData
 }

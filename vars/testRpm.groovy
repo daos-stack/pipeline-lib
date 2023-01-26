@@ -47,8 +47,9 @@
    *
    */
 
-def call(Map config = [:]) {
+Map call(Map config = [:]) {
 
+  Date startDate = new Date()
   if (!config['daos_pkg_version']) {
     error 'daos_pkg_version is required.'
   }
@@ -60,12 +61,12 @@ def call(Map config = [:]) {
 
   Map stage_info = parseStageInfo(config)
 
-  provisionNodes NODELIST: nodelist,
-                 node_count: 1,
-                 profile: config.get('profile', 'daos_ci'),
-                 distro: stage_info['ci_target'],
-                 inst_repos: config.get('inst_repos', ''),
-                 inst_rpms: config.get('inst_rpms', '')
+  Map runData = provisionNodes NODELIST: nodelist,
+                               node_count: 1,
+                               profile: config.get('profile', 'daos_ci'),
+                               distro: stage_info['ci_target'],
+                               inst_repos: config.get('inst_repos', ''),
+                               inst_rpms: config.get('inst_rpms', '')
 
   String full_test_script = 'export DAOS_PKG_VERSION=' +
                          config['daos_pkg_version'] + '\n' +
@@ -74,10 +75,14 @@ def call(Map config = [:]) {
   def junit_files = config.get('junit_files', null)
   def failure_artifacts = config.get('failure_artifacts', env.STAGE_NAME)
   def ignore_failure = config.get('ignore_failure', false)
-  runTest script: full_test_script,
-          junit_files: junit_files,
-          failure_artifacts: env.STAGE_NAME,
-          ignore_failure: ignore_failure,
-          description: description,
-          context: context
+  Map runtestData = runTest script: full_test_script,
+                    junit_files: junit_files,
+                    failure_artifacts: env.STAGE_NAME,
+                    ignore_failure: ignore_failure,
+                    description: description,
+                    context: context
+  runtestData.each{ resultKey, data -> runData[resultKey] = data }
+  int runTime = durationSeconds(startDate)
+  runData['rpmtest_time'] = runTime
+  return runData
 }
