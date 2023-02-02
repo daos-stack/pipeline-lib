@@ -35,7 +35,7 @@ String call(String distro) {
 
     String pr_repos = prRepos(distro)
 
-    if (!pr_repos.contains('daos@')) {
+    if (!pr_repos.contains(' daos@')) {
         pr_repos += ' ' + daos_repo()
     }
 
