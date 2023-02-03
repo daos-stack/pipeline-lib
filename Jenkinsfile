@@ -1,5 +1,6 @@
 #!/usr/bin/env groovy
 /* groovylint-disable DuplicateListLiteral, DuplicateNumberLiteral, DuplicateStringLiteral, NestedBlockDepth */
+/* groovylint-disable  VariableName */
 /* Copyright (C) 2019-2022 Intel Corporation
  * All rights reserved.
  *
@@ -46,11 +47,13 @@ void job_status_update(String name=env.STAGE_NAME,
     String key = name.replace(' ', '_')
     key = key.replaceAll('[ .]', '_')
     if (job_status_internal.containsKey(key)) {
-        // groovylint-disable-next-line NoDef
+        /* groovylint-disable-next-line NoDef, VariableTypeRequired */
         def myStage = job_status_internal[key]
+        /* groovylint-disable-next-line Instanceof */
         if (myStage instanceof Map) {
+            /* groovylint-disable-next-line Instanceof */
             if (value instanceof Map) {
-                value.each{ resultKey, data -> myStage[resultKey] = data }
+                value.each { resultKey, data -> myStage[resultKey] = data }
                 return
             }
             // Update result with single value
@@ -60,14 +63,16 @@ void job_status_update(String name=env.STAGE_NAME,
     }
     // pass through value
     job_status_internal[key] = value
-}
+                       }
 
 // groovylint-disable-next-line MethodParameterTypeRequired, NoDef
 void job_step_update(def value) {
-    if (value == null) {
-        value = currentBuild.currentResult
+    /* groovylint-disable-next-line NoDef, VariableTypeRequired */
+    def _value = value
+    if (_value == null) {
+        _value = currentBuild.currentResult
     }
-    job_status_update(env.STAGE_NAME, value)
+    job_status_update(env.STAGE_NAME, _value)
 }
 
 // Don't define this as a type or it loses it's global scope
@@ -126,7 +131,7 @@ pipeline {
                                     junit_files: '*.xml non-exist*.xml',
                                     failure_artifacts: env.STAGE_NAME))
                     }
-                    // runTest handles SCM notification via stepResult
+                // runTest handles SCM notification via stepResult
                 } // stage('grep JUnit results tests failure case')
                 stage('grep JUnit results tests error case 1') {
                     agent {
@@ -144,7 +149,7 @@ pipeline {
                                     junit_files: '*.xml non-exist*.xml',
                                     failure_artifacts: env.STAGE_NAME))
                     }
-                    // runTest handles SCM notification via stepResult
+                // runTest handles SCM notification via stepResult
                 } // stage('grep JUnit results tests error case 1')
                 stage('grep JUnit results tests error case 2') {
                     agent {
@@ -162,7 +167,7 @@ pipeline {
                                 junit_files: '*.xml non-exist*.xml',
                                 failure_artifacts: env.STAGE_NAME))
                     }
-                    // runTest handles SCM notification via stepResult
+                // runTest handles SCM notification via stepResult
                 } // stage('grep JUnit results tests error case 2')
                 stage('publishToRepository RPM tests') {
                     when {
@@ -267,7 +272,7 @@ pipeline {
                                     junit_files: null,
                                     failure_artifacts: env.STAGE_NAME))
                     }
-                    // runTest handles SCM notification via stepResult
+                // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with release/0.9 Repo')
                 stage('provisionNodes with master Repo') {
                     when {
@@ -293,7 +298,7 @@ pipeline {
                                     junit_files: null,
                                     failure_artifacts: env.STAGE_NAME))
                     }
-                    // runTest handles SCM notification via stepResult
+                // runTest handles SCM notification via stepResult
                 } // stage('provisionNodes with master Repo')
                 stage('provisionNodes with slurm EL8') {
                     when {
@@ -321,7 +326,7 @@ pipeline {
                                     junit_files: null,
                                     failure_artifacts: env.STAGE_NAME))
                     }
-                    // runTest handles SCM notification via stepResult
+                // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes with slurm EL8')
                 stage('provisionNodes with slurm Leap15') {
                     when {
@@ -347,7 +352,7 @@ pipeline {
                                     junit_files: null,
                                     failure_artifacts: env.STAGE_NAME))
                     }
-                    // runTest handles SCM notification via stepResult
+                // runTest handles SCM notification via stepResult
                 } //stage('provisionNodes_with_slurm_leap15')
                 stage('Commit Pragma tests') {
                     steps {
@@ -386,7 +391,7 @@ pipeline {
                                         //        skipStage(commit_msg: cm))
                                         assert(skipStage(commit_msg: cm) == commit.skips[i])
                                         i++
-                                    }
+                                             }
                                 }
                                 cachedCommitPragma(clear: true)
                             }
@@ -448,7 +453,7 @@ pipeline {
                                         // assert() is pretty lame
                                         // println('assert(' + parseStageInfo()['test_tag'] + " == ${cmp})")
                                         assert(parseStageInfo()['test_tag'] == cmp)
-                                    }
+                                             }
                                 }
                             }
                         }
@@ -549,7 +554,7 @@ pipeline {
                                   parameters: [string(name: 'TestTag',
                                                       value: 'load_mpi test_core_files test_pool_info_query'),
                                                string(name: 'CI_RPM_TEST_VERSION',
-                                                      value: cachedCommitPragma('Test-skip-build', 'true') == 'true' ?
+                                                      value: cachedCommitPragma('Test-skip-build', 'false') == 'true' ?
                                                                daosLatestVersion(env.TEST_BRANCH) : ''),
                                                booleanParam(name: 'CI_UNIT_TEST', value: false),
                                                booleanParam(name: 'CI_FI_el8_TEST', value: true),
