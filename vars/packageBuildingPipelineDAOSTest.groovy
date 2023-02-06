@@ -712,6 +712,9 @@ void call(Map pipeline_args) {
                                                     exit 1
                                                 fi
                                                 pipeline_libs="''' + cachedCommitPragma('Test-libs') + '''"
+                                                # remove any triggers so that this test branch doesn't run weekly, etc.
+                                                sed -i -e '/triggers/,/}/d' Jenkinsfile
+                                                git commit -m 'Remove triggers' Jenkinsfile
                                                 if [ -n "$pipeline_libs" ]; then
                                                     sed -i -e "/\\/\\/@Library/c\\
                                                         @Library(value=$pipeline_libs) _" Jenkinsfile
