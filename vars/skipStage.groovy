@@ -131,7 +131,6 @@ boolean skip_ftest(String distro, String target_branch) {
     // The params.CI_MORE_FUNCTIONAL_PR_TESTS allows enabling
     // tests that are not run in PRs.
     return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true) ||
-           distro == 'ubuntu20' ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||
            skip_stage_pragma('func-test-vm-all') ||
@@ -203,19 +202,7 @@ boolean skip_build_bullseye(String target_branch, String distro) {
 }
 
 boolean pr_repos_contains(String distro, String value) {
-
-    println('Debug: ' + prRepos('ubuntu20'))
-    List pr_repos = prRepos('ubuntu20').split()
-    println('Debug: ' + pr_repos)
-    println('Debug: ' + pr_repos + '.any { i -> i.startsWith("daos@") } == ' +
-            pr_repos.any { i -> i.startsWith('daos@') })
-    println('Debug: ' + pr_repos + '.any { i -> i.startsWith("daos@") } == ' +
-            prRepos('ubuntu20').split().any { i -> i.startsWith('daos@') })
-
-    boolean result = prRepos(distro).split().any { i -> i.startsWith(value + '@') }
-    println('Debug: returning ' + result)
-    return result
- 
+    return prRepos(distro).split().any { i -> i.startsWith(value + '@') }
 }
 /* groovylint-disable-next-line MethodSize */
 boolean call(Map config = [:]) {
@@ -256,14 +243,14 @@ boolean call(Map config = [:]) {
             return paramsValue('CI_RPM_centos7_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
-                   prRepos('centos7').split().any { i -> i.startsWith('daos@') } ||
+                   pr_repos_contains('centos7', 'daos') ||
                    skip_stage_pragma('build-centos7-rpm')
         case 'Build RPM on EL 8':
         case 'Build RPM on CentOS 8':
             return paramsValue('CI_RPM_el8_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('el8') == '') ||
-                   prRepos('el8').split().any { i -> i.startsWith('daos@') } ||
+                   pr_repos_contains('el8', 'daos') ||
                    skip_stage_pragma('build-el8-rpm')
         case 'Build RPM on Leap 15':
         case 'Build RPM on Leap 15.4':
@@ -271,7 +258,7 @@ boolean call(Map config = [:]) {
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
-                   prRepos('leap15').split().any { i -> i.startsWith('daos@') } ||
+                   pr_repos_contains('leap15', 'daos') ||
                    skip_stage_pragma('build-leap15-rpm')
         case 'Build DEB on Ubuntu 20.04':
             return paramsValue('CI_RPM_ubuntu20_NOBUILD', false) ||
