@@ -202,6 +202,21 @@ boolean skip_build_bullseye(String target_branch, String distro) {
            quickFunctional()
 }
 
+boolean pr_repos_contains(String distro, String value) {
+
+    println('Debug: ' + prRepos('ubuntu20'))
+    List pr_repos = prRepos('ubuntu20').split()
+    println('Debug: ' + pr_repos)
+    println('Debug: ' + pr_repos + '.any { i -> i.startsWith("daos@") } == ' +
+            pr_repos.any { i -> i.startsWith('daos@') })
+    println('Debug: ' + pr_repos + '.any { i -> i.startsWith("daos@") } == ' +
+            prRepos('ubuntu20').split().any { i -> i.startsWith('daos@') })
+
+    boolean result = prRepos(distro).split().any { i -> i.startsWith(value + '@') }
+    println('Debug: returning ' + value)
+    return result
+ 
+}
 /* groovylint-disable-next-line MethodSize */
 boolean call(Map config = [:]) {
     if (config['stage']) {
@@ -236,19 +251,19 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build') ||
                    rpmTestVersion() != '' ||
                    (quickFunctional() &&
-                    cachedCommitPragma('PR-repos').split().any { -> it it.contains('daos@') })
+                    cachedCommitPragma('PR-repos').split().any { -> it it.startsWith('daos@') })
         case 'Build RPM on CentOS 7':
             return paramsValue('CI_RPM_centos7_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
-                   prRepos('centos7').split().any { i -> i.contains('daos@') } ||
+                   prRepos('centos7').split().any { i -> i.startsWith('daos@') } ||
                    skip_stage_pragma('build-centos7-rpm')
         case 'Build RPM on EL 8':
         case 'Build RPM on CentOS 8':
             return paramsValue('CI_RPM_el8_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('el8') == '') ||
-                   prRepos('el8').split().any { i -> i.contains('daos@') } ||
+                   prRepos('el8').split().any { i -> i.startsWith('daos@') } ||
                    skip_stage_pragma('build-el8-rpm')
         case 'Build RPM on Leap 15':
         case 'Build RPM on Leap 15.4':
@@ -256,21 +271,14 @@ boolean call(Map config = [:]) {
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
-                   prRepos('leap15').split().any { i -> i.contains('daos@') } ||
+                   prRepos('leap15').split().any { i -> i.startsWith('daos@') } ||
                    skip_stage_pragma('build-leap15-rpm')
         case 'Build DEB on Ubuntu 20.04':
-            println('Debug: ' + prRepos('ubuntu20'))
-            List pr_repos = prRepos('ubuntu20').split()
-            println('Debug: ' + pr_repos)
-            println('Debug: ' + pr_repos + '.any { i -> i.startsWith("daos@") } == ' +
-                    pr_repos.any { i -> i.startsWith('daos@') })
-            println('Debug: ' + pr_repos + '.any { i -> i.startsWith("daos@") } == ' +
-                    prRepos('ubuntu20').split().any { i -> i.startsWith('daos@') })
             return paramsValue('CI_RPM_ubuntu20_NOBUILD', false) ||
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
-                   prRepos('ubuntu20').split().any { i -> i.contains('daos@') } ||
+                   pr_repos_contains('ubuntu20', 'daos') ||
                    skip_stage_pragma('build-ubuntu20-rpm')
         case 'Build on CentOS 8':
         case 'Build on EL 8':
