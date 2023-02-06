@@ -241,14 +241,14 @@ boolean call(Map config = [:]) {
             return paramsValue('CI_RPM_centos7_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
-                   prRepos('centos7').split().any { -> it it.contains('daos@') } ||
+                   prRepos('centos7').split().any { i -> i.contains('daos@') } ||
                    skip_stage_pragma('build-centos7-rpm')
         case 'Build RPM on EL 8':
         case 'Build RPM on CentOS 8':
             return paramsValue('CI_RPM_el8_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('el8') == '') ||
-                   prRepos('el8').split().any { -> it it.contains('daos@') } ||
+                   prRepos('el8').split().any { i -> i.contains('daos@') } ||
                    skip_stage_pragma('build-el8-rpm')
         case 'Build RPM on Leap 15':
         case 'Build RPM on Leap 15.4':
@@ -256,14 +256,14 @@ boolean call(Map config = [:]) {
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
-                   prRepos('leap15').split().any { -> it it.contains('daos@') } ||
+                   prRepos('leap15').split().any { i -> i.contains('daos@') } ||
                    skip_stage_pragma('build-leap15-rpm')
         case 'Build DEB on Ubuntu 20.04':
             return paramsValue('CI_RPM_ubuntu20_NOBUILD', false) ||
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
-                   prRepos('ubuntu20').split().any { -> it it.contains('daos@') } ||
+                   prRepos('ubuntu20').split().any { i -> i.contains('daos@') } ||
                    skip_stage_pragma('build-ubuntu20-rpm')
         case 'Build on CentOS 8':
         case 'Build on EL 8':
