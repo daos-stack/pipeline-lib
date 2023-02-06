@@ -213,7 +213,7 @@ boolean pr_repos_contains(String distro, String value) {
             prRepos('ubuntu20').split().any { i -> i.startsWith('daos@') })
 
     boolean result = prRepos(distro).split().any { i -> i.startsWith(value + '@') }
-    println('Debug: returning ' + value)
+    println('Debug: returning ' + result)
     return result
  
 }
