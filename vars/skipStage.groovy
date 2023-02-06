@@ -259,10 +259,12 @@ boolean call(Map config = [:]) {
                    prRepos('leap15').split().any { i -> i.contains('daos@') } ||
                    skip_stage_pragma('build-leap15-rpm')
         case 'Build DEB on Ubuntu 20.04':
-            println('Debug:')
-            println(prRepos('ubuntu20'))
-            println(prRepos('ubuntu20').split())
-            println('.any { i -> i.contains("daos@") } == ' +
+            println('Debug: ' + prRepos('ubuntu20'))
+            List pr_repos = prRepos('ubuntu20').split()
+            println('Debug: ' + pr_repos)
+            println('Debug: ' + pr_repos + '.any { i -> i.contains("daos@") } == ' +
+                    pr_repos.any { i -> i.contains('daos@') })
+            println('Debug: ' + pr_repos + '.any { i -> i.contains("daos@") } == ' +
                     prRepos('ubuntu20').split().any { i -> i.contains('daos@') })
             return paramsValue('CI_RPM_ubuntu20_NOBUILD', false) ||
                    target_branch == 'weekly-testing' ||
