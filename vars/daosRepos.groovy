@@ -33,7 +33,7 @@ String call() {
 String call(String distro) {
     String pr_repos = prRepos(distro)
 
-    if (!pr_repos.split().any { i -> i.contains('daos@') }) {
+    if (!pr_repos.split().any { i -> i.startsWith('daos@') }) {
         pr_repos += ' ' + daos_repo()
     }
 
