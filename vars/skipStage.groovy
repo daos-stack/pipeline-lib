@@ -246,6 +246,7 @@ boolean call(Map config = [:]) {
                     prRepos('centos7').contains('daos@') ||
                    skip_stage_pragma('build-centos7-rpm')
         case 'Build RPM on EL 8':
+        case 'Build RPM on EL 8.5':
         case 'Build RPM on CentOS 8':
             return paramsValue('CI_RPM_el8_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
