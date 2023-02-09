@@ -167,7 +167,9 @@ boolean skip_ftest_hw(String size, String target_branch) {
             !(startedByTimer() || startedByUser())) ||
            cachedCommitPragma('Run-daily-stages') == 'true' ||
            (docOnlyChange(target_branch) &&
-            prRepos(hwDistroTarget(size)) == '')
+            prRepos(hwDistroTarget(size)) == '') ||
+           /* groovylint-disable-next-line UnnecessaryGetter */
+           (isPr() && size == 'medium-ucx-provider')
 }
 
 boolean skip_if_unstable() {
