@@ -1,6 +1,7 @@
 #!/usr/bin/env groovy
-/* groovylint-disable DuplicateListLiteral, DuplicateNumberLiteral, DuplicateStringLiteral, NestedBlockDepth */
-/* Copyright (C) 2019-2022 Intel Corporation
+// groovylint-disable DuplicateListLiteral, DuplicateNumberLiteral,
+// groovylint-disable DuplicateStringLiteral, NestedBlockDepth, VariableName
+/* Copyright (C) 2019-2023 Intel Corporation
  * All rights reserved.
  *
  * This file is part of the DAOS Project. It is subject to the license terms
@@ -46,11 +47,11 @@ void job_status_update(String name=env.STAGE_NAME,
     String key = name.replace(' ', '_')
     key = key.replaceAll('[ .]', '_')
     if (job_status_internal.containsKey(key)) {
-        // groovylint-disable-next-line NoDef
+        // groovylint-disable-next-line NoDef, VariableTypeRequired
         def myStage = job_status_internal[key]
-        if (myStage instanceof Map) {
-            if (value instanceof Map) {
-                value.each{ resultKey, data -> myStage[resultKey] = data }
+        if (myStage in Map) {
+            if (value in Map) {
+                value.each { resultKey, data -> myStage[resultKey] = data }
                 return
             }
             // Update result with single value
@@ -65,6 +66,7 @@ void job_status_update(String name=env.STAGE_NAME,
 // groovylint-disable-next-line MethodParameterTypeRequired, NoDef
 void job_step_update(def value) {
     if (value == null) {
+        // groovylint-disable-next-line ParameterReassignment
         value = currentBuild.currentResult
     }
     job_status_update(env.STAGE_NAME, value)
@@ -103,7 +105,10 @@ pipeline {
             }
         }
         stage('Cancel Previous Builds') {
-            when { changeRequest() }
+            when {
+                beforeAgent true
+                expression { !skipStage() }
+            }
             steps {
                 cancelPreviousBuilds()
             }

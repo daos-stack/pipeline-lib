@@ -4,32 +4,18 @@
  * junit.groovy
  *
  * Wrapper for junit step to allow for skipped tests.
- *
  */
 
-
-
-def call(String testResults) {
+void call(String testResults) {
     Map config = [:]
     config['testResults'] = testResults
     call(config)
 }
 
-def call(Map config = [:]) {
-    // We really shouldn't even get here if $NO_CI_TESTING is true as the
-    // when{} block for the stage should skip it entirely.  But we'll leave
-    // this for historical purposes
-    def script = 'if [ "' + env.NO_CI_TESTING + '''" == 'true' ]; then
-                      exit 1
-                  fi
-                  if git show -s --format=%B | grep "^Skip-test: true"; then
-                      exit 1
-                  fi
-                  exit 0\n'''
-    int rc = 0
-    rc = sh(script: script, label: env.STAGE_NAME + '_junit',
-            returnStatus: true)
-    if (rc != 0) {
+//groovylint-disable DuplicateStringLiteral
+void call(Map config = [:]) {
+    if (env.NO_CI_TESTING != 'true' ||
+            commitPragma('Skip-Test') == 'true') {
         config['allowEmptyResults'] = true
     }
     // don't trucate stdio/stdout in JUnit results

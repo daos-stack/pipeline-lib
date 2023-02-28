@@ -7,7 +7,7 @@
  * pragmasToEnv variable
  */
 
-String call(String commit_message) {
+Map call(String commit_message) {
     Map pragmas = [:]
     // can't use eachLine() here: https://issues.jenkins.io/browse/JENKINS-46988/
     commit_message.split('\n').each { line ->
@@ -15,6 +15,7 @@ String call(String commit_message) {
         try {
             (key, value) = line.split(':', 2)
             if (key.contains(' ')) {
+                // this returns from the .each closure, not the method
                 return
             }
             pragmas[key.toLowerCase()] = value
@@ -31,7 +32,14 @@ String call(String commit_message) {
  * Method to put the commit pragmas into the environment
  */
 Void call() {
-    env.COMMIT_MESSAGE = sh(script: 'git show -s --format=%B',
+    String cmd = '''if [ -n "$GIT_CHECKOUT_DIR" ] && [ -d "$GIT_CHECKOUT_DIR" ]
+                    then
+                      cd "$GIT_CHECKOUT_DIR"
+                    fi
+                    git show -s --format=%B\n'''
+
+    env.COMMIT_MESSAGE = sh(label: 'pragmasToEnv: lookup commit message',
+                            script: cmd,
                             returnStdout: true).trim()
     env.pragmas = pragmasToEnv(env.COMMIT_MESSAGE)
 
