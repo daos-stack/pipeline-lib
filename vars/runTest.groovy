@@ -48,6 +48,8 @@ Map call(Map config = [:]) {
     // github expectations at the same time to also include any Matrix
     // environment variables.
 
+    // Must use Date() in pipeline-lib
+    // groovylint-disable-next-line NoJavaUtilDate
     Date startDate = new Date()
     String context = config.get('context', 'test/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
@@ -80,8 +82,13 @@ Map call(Map config = [:]) {
     }
 
     String cb_result = currentBuild.result
-    int rc = 0
-    rc = sh(script: script, label: flow_name, returnStatus: true)
+    int rc = 2
+    try {
+        sh(script: script, label: flow_name)
+        rc = 0
+    } catch (hudson.AbortException e) {
+        rc = 1
+    }
 
     // We need to pass the rc value to post step.
     // The currentBuild result is for all innerstages, not just this

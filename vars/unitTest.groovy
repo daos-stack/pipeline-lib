@@ -73,6 +73,8 @@
    */
 
 Map call(Map config = [:]) {
+    // Must use Date() in pipeline-lib
+    // groovylint-disable-next-line NoJavaUtilDate
     Date startDate = new Date()
     String nodelist = config.get('NODELIST', env.NODELIST)
     String test_script = config.get('test_script', 'ci/unit/test_main.sh')
@@ -102,7 +104,7 @@ Map call(Map config = [:]) {
     List stashes = []
     if (config['stashes']) {
         stashes = config['stashes']
-  } else {
+    } else {
         if (config.get('unstash_tests', true)) {
             stashes.add("${target_stash}-tests")
         }
@@ -123,11 +125,12 @@ Map call(Map config = [:]) {
                 outputFile: 'bullseye.tar'
     }
 
+    String with_valgrind = stage_info.get('with_valgrind', '')
     Map p = [:]
     p['stashes'] = stashes
     p['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
                   "NODELIST=${nodelist} " +
-                  "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
+                  "WITH_VALGRIND=${with_valgrind} " +
                   test_script
     p['junit_files'] = config.get('junit_files', 'test_results/*.xml')
     p['context'] = config.get('context', 'test/' + env.STAGE_NAME)
@@ -139,7 +142,7 @@ Map call(Map config = [:]) {
 
     timeout(time: time, unit: unit) {
         Map runtestData = runTest p
-        runtestData.each{ resultKey, data -> runData[resultKey] = data }
+        runtestData.each { resultKey, data -> runData[resultKey] = data }
     }
     if (stage_info['compiler'] == 'covc') {
         stash name: config.get('coverage_stash', "${target_stash}-unit-cov"),

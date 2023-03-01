@@ -46,16 +46,21 @@ String call(Map config = [:]) {
     String junit_xml = filesList.collect { junitfile ->
         "'" + junitfile + "'"
     }.join(' ')
-    if (sh(label: 'Check junit xml files for errors',
-           script: 'grep -E "<error( |Details>|StackTrace>)" ' + junit_xml,
-           returnStatus: true) == 0) {
+    try {
+        sh label: 'Check junit xml files for errors',
+           script: '! grep -E "<error( |Details>|StackTrace>)" ' + junit_xml
+    } catch (hudson.AbortException e) {
         status = 'FAILURE'
         println 'Found at least one error in the Junit files.'
-    } else if (sh(label: 'Check junit xml files for failures',
-                  script: 'grep -E "<failure( |>)" ' + junit_xml,
-                  returnStatus: true) == 0) {
-        status = 'UNSTABLE'
-        println 'Found at least one failure in the junit files.'
+    }
+    if (status != 'FAILURE') {
+        try {
+            sh label: 'Check junit xml files for failures',
+               script: '! grep -E "<failure( |>)" ' + junit_xml
+        } catch (hudson.AbortException e) {
+            status = 'UNSTABLE'
+            println 'Found at least one failure in the junit files.'
+        }
     }
     if (junit_xml.indexOf('pipeline-test-failure.xml') > -1) {
         test_failure = true
