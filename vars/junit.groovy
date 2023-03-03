@@ -15,7 +15,7 @@ void call(String testResults) {
 //groovylint-disable DuplicateStringLiteral
 void call(Map config = [:]) {
     if (env.NO_CI_TESTING != 'true' ||
-            commitPragma('Skip-Test') == 'true') {
+            cachedCommitPragma('Skip-Test') == 'true') {
         config['allowEmptyResults'] = true
     }
     // don't trucate stdio/stdout in JUnit results

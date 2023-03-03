@@ -8,7 +8,7 @@
 //groovylint-disable DuplicateStringLiteral
 void call(Map config = [:]) {
     if (env.NO_CI_TESTING != 'true' ||
-            commitPragma('Skip-Test') == 'true') {
+            cachedCommitPragma('Skip-Test') == 'true') {
         config['allowEmptyArchive'] = true
     }
     steps.archiveArtifacts(config)
