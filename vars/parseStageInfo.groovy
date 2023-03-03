@@ -104,7 +104,8 @@ void call(Map config = [:]) {
       new_ci_target = cachedCommitPragma('EL8-target', result['target'])
     } else if (stage_name.contains('EL 8')) {
       result['target'] = 'el8'
-      result['distro_version'] = cachedCommitPragma('EL8-version', '8')
+      result['distro_version'] = cachedCommitPragma('EL8-version',
+                                                    distroVersion(result['target']))
       new_ci_target = cachedCommitPragma('EL8-target', result['target'])
     } else if (stage_name.contains('Leap 15.3')) {
       result['target'] = 'leap15'
@@ -116,15 +117,23 @@ void call(Map config = [:]) {
       new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
     } else if (stage_name.contains('Leap 15')) {
       result['target'] = 'leap15'
-      result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.3')
+      result['distro_version'] = cachedCommitPragma('LEAP15-version',
+                                                    distroVersion(result['target']))
       new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
     } else if (stage_name.contains('Ubuntu 18')) {
       result['target'] = 'ubuntu18.04'
       result['distro_version'] = cachedCommitPragma('UBUNTU18-version', '18.04')
       new_ci_target = cachedCommitPragma('UBUNTU18-target', result['target'])
-    } else if (stage_name.contains('Ubuntu 20')) {
+    } else if (stage_name.contains('Ubuntu 20.04')) {
       result['target'] = 'ubuntu20.04'
       result['distro_version'] = cachedCommitPragma('UBUNTU20-version', '20.04')
+      new_ci_target = cachedCommitPragma('UBUNTU20-target', result['target'])
+    } else if (stage_name.contains('Ubuntu 20')) {
+      // TODO: below needs to change to ubuntu20 at some point in the future when
+      //       all other pipelines are ready for it
+      result['target'] = 'ubuntu20.04'
+      result['distro_version'] = cachedCommitPragma('UBUNTU20-version',
+                                                    distroVersion(result['target']))
       new_ci_target = cachedCommitPragma('UBUNTU20-target', result['target'])
     } else {
       // also for: if (stage_name.contains('CentOS 7')) {
