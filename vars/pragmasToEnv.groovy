@@ -7,7 +7,7 @@
  * pragmasToEnv variable
  */
 
-Map call(String commit_message) {
+String call(String commit_message) {
     Map pragmas = [:]
     // can't use eachLine() here: https://issues.jenkins.io/browse/JENKINS-46988/
     commit_message.split('\n').each { line ->
@@ -25,6 +25,8 @@ Map call(String commit_message) {
         }
     }
 
+    // note this converts the Map to a string in the format "{foo=bar}"
+    // instead of the expected format of "[foo:bar]"
     return pragmas
 }
 
