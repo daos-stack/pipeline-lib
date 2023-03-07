@@ -131,7 +131,6 @@ boolean skip_ftest(String distro, String target_branch) {
     // The params.CI_MORE_FUNCTIONAL_PR_TESTS allows enabling
     // tests that are not run in PRs.
     return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true) ||
-           distro == 'ubuntu20' ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||
            skip_stage_pragma('func-test-vm-all') ||
@@ -204,6 +203,9 @@ boolean skip_build_bullseye(String target_branch, String distro) {
            quickFunctional()
 }
 
+boolean pr_repos_contains(String distro, String value) {
+    return prRepos(distro).split().any { i -> i.startsWith(value + '@') }
+}
 /* groovylint-disable-next-line MethodSize */
 boolean call(Map config = [:]) {
     if (config['stage']) {
@@ -238,12 +240,12 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build') ||
                    rpmTestVersion() != '' ||
                    (quickFunctional() &&
-                    cachedCommitPragma('PR-repos').trim().contains('daos@'))
+                    cachedCommitPragma('PR-repos').split().any { -> it it.startsWith('daos@') })
         case 'Build RPM on CentOS 7':
             return paramsValue('CI_RPM_centos7_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
-                    prRepos('centos7').contains('daos@') ||
+                   pr_repos_contains('centos7', 'daos') ||
                    skip_stage_pragma('build-centos7-rpm')
         case 'Build RPM on EL 8':
         case 'Build RPM on EL 8.5':
@@ -251,7 +253,7 @@ boolean call(Map config = [:]) {
             return paramsValue('CI_RPM_el8_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('el8') == '') ||
-                   prRepos('el8').contains('daos@') ||
+                   pr_repos_contains('el8', 'daos') ||
                    skip_stage_pragma('build-el8-rpm')
         case 'Build RPM on Leap 15':
         case 'Build RPM on Leap 15.4':
@@ -259,14 +261,14 @@ boolean call(Map config = [:]) {
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
-                   prRepos('leap15').contains('daos@') ||
+                   pr_repos_contains('leap15', 'daos') ||
                    skip_stage_pragma('build-leap15-rpm')
         case 'Build DEB on Ubuntu 20.04':
             return paramsValue('CI_RPM_ubuntu20_NOBUILD', false) ||
                    target_branch == 'weekly-testing' ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
-                   prRepos('ubuntu20').contains('daos@') ||
+                   pr_repos_contains('ubuntu20', 'daos') ||
                    skip_stage_pragma('build-ubuntu20-rpm')
         case 'Build on CentOS 8':
         case 'Build on EL 8':
@@ -440,9 +442,7 @@ boolean call(Map config = [:]) {
         case 'Functional on Leap 15.4':
             return skip_ftest('leap15', target_branch)
         case 'Functional on Ubuntu 20.04':
-            /* we don't do any testing on Ubuntu yet
-            skip_ftest('ubuntu20', target_branch) */
-            return true
+            return skip_ftest('ubuntu20', target_branch)
         case 'Fault injection testing':
         case 'Fault injection testing on CentOS 8':
         case 'Fault injection testing on EL 8':

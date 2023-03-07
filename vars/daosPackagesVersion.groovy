@@ -91,9 +91,12 @@ String call(String distro, String next_version) {
 
     // otherwise use the version in the stash
     // but trim off any point release from the distro first
-    Integer dot = _distro.indexOf('.')
-    if (dot > -1) {
-        _distro = _distro[0..dot - 1]
+    // for non ubuntu distros
+    if (!_distro.startsWith('ubuntu')) {
+        Integer dot = _distro.indexOf('.')
+        if (dot > -1) {
+            _distro = _distro[0..dot - 1]
+        }
     }
 
     String err_msg = null

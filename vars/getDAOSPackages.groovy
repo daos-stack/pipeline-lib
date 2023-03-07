@@ -26,20 +26,17 @@ String call(String distro, String next_version, String add_daos_pkgs) {
 
     String pkgs
     if (env.TEST_RPMS == 'true') {
-        pkgs = 'daos{,-{client,tests,server,serialize}' + _add_daos_pkgs + '}'
+        pkgs = 'daos{,-{client,tests,server}' + _add_daos_pkgs + '}'
     } else {
         pkgs = 'daos{,-client}'
     }
 
-    String version = daosPackagesVersion(distro, next_version)
+    if (!distro.startsWith('ubuntu')) {
+        String version = daosPackagesVersion(distro, next_version)
 
-    if (version != '') {
-        if (distro.startsWith('ubuntu20')) {
-            pkgs += '='
-        } else {
-            pkgs += '-'
+        if (version != '') {
+            pkgs += '-' + version
         }
-        pkgs += daosPackagesVersion(distro, next_version)
     }
     return pkgs
 }
