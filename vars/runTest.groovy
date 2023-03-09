@@ -82,12 +82,17 @@ Map call(Map config = [:]) {
     }
 
     String cb_result = currentBuild.result
-    int rc = 2
+    int rc = 255
     try {
         sh(script: script, label: flow_name)
         rc = 0
     } catch (hudson.AbortException e) {
-        rc = 1
+        // groovylint-disable UnnecessaryGetter
+        // groovylint-disable-next-line NoDef, VariableTypeRequired
+        def rc_val = (e.getMessage() =~ /\d+$/)
+        if (rc_val) {
+            rc = rc_val[0] as Integer
+        }
     }
 
     // We need to pass the rc value to post step.
@@ -127,13 +132,14 @@ Map call(Map config = [:]) {
     }
 
     if (status != 'SUCCESS') {
+        String msg = ' See Junit report for details'
         if (ignore_failure) {
             catchError(stageResult: 'UNSTABLE',
                        buildResult: 'SUCCESS') {
-                error(env.STAGE_NAME + ' failed: ' + rc)
+                error(env.STAGE_NAME + ' failed: ' + rc + msg)
             }
         } else {
-            error(env.STAGE_NAME + ' failed: ' + rc)
+            error(env.STAGE_NAME + ' failed: ' + rc + msg)
         }
     }
 

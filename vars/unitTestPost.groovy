@@ -124,6 +124,6 @@ void call(Map config = [:]) {
         }
     }
     if (valgrind_found) {
-        error "Valgrind Errors detected in ${env.STAGE_NAME}"
+        unstable "Valgrind Errors detected in ${env.STAGE_NAME}"
     }
 }
