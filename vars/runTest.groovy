@@ -132,7 +132,7 @@ Map call(Map config = [:]) {
     }
 
     if (status != 'SUCCESS') {
-        String msg = ' See Junit report for details'
+        String msg = ' See Job Test Results report for details'
         if (ignore_failure) {
             catchError(stageResult: 'UNSTABLE',
                        buildResult: 'SUCCESS') {

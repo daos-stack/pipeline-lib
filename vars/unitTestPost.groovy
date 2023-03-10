@@ -43,26 +43,31 @@ void call(Map config = [:]) {
         if (config['ignore_failure']) {
             health_scale = 0.0
         }
-
         String cb_result = currentBuild.result
         junit testResults: config.get('testResults', 'test_results/*.xml'),
               healthScaleFactor: health_scale
-
         if (cb_result != currentBuild.result) {
             println "The junit plugin changed result to ${currentBuild.result}."
         }
     }
-
-    boolean valgrind_found = false
     if (stage_info['with_valgrind']) {
         String target_dir = 'unit_test_memcheck_logs'
         String src_files = 'unit-test-*.memcheck.xml'
-        try {
-            sh label: 'Check for Valgrind errors',
-               script: "! grep -E '<error( |>)' ${src_files}"
-        } catch (hudson.AbortException e) {
-            valgrind_found = true
+        int vgfail = 0
+        String rcs = sh label: 'Check for Valgrind errors',
+                 script: "grep -E '<error( |>)' ${src_files} || true",
+                 returnStdout: true
+        if (rcs) {
+            vgfail = 1
         }
+        String suite = sanitizedStageName()
+        junitSimpleReport suite: suite,
+                          file: suite + '_valgrind_results.xml',
+                          fails: vgfail,
+                          name: 'Valgrind_Memcheck',
+                          class: 'Valgrind',
+                          message: 'Valgrind detected',
+                          testdata: rcs
         fileOperations([fileCopyOperation(excludes: '',
                                       flattenFiles: false,
                                       includes: src_files,
@@ -122,8 +127,5 @@ void call(Map config = [:]) {
             println(
               "The recordIssues step changed result to ${currentBuild.result}.")
         }
-    }
-    if (valgrind_found) {
-        unstable "Valgrind Errors detected in ${env.STAGE_NAME}"
     }
 }
