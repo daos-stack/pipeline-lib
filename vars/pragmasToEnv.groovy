@@ -15,6 +15,7 @@ String call(String commit_message) {
         try {
             (key, value) = line.split(':', 2)
             if (key.contains(' ')) {
+                // this returns from the .each closure, not the method
                 return
             }
             pragmas[key.toLowerCase()] = value
@@ -24,6 +25,8 @@ String call(String commit_message) {
         }
     }
 
+    // note this converts the Map to a string in the format "{foo=bar}"
+    // instead of the expected format of "[foo:bar]"
     return pragmas
 }
 
@@ -31,7 +34,14 @@ String call(String commit_message) {
  * Method to put the commit pragmas into the environment
  */
 Void call() {
-    env.COMMIT_MESSAGE = sh(script: 'git show -s --format=%B',
+    String cmd = '''if [ -n "$GIT_CHECKOUT_DIR" ] && [ -d "$GIT_CHECKOUT_DIR" ]
+                    then
+                      cd "$GIT_CHECKOUT_DIR"
+                    fi
+                    git show -s --format=%B\n'''
+
+    env.COMMIT_MESSAGE = sh(label: 'pragmasToEnv: lookup commit message',
+                            script: cmd,
                             returnStdout: true).trim()
     env.pragmas = pragmasToEnv(env.COMMIT_MESSAGE)
 
