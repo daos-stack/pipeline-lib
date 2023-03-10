@@ -10,7 +10,7 @@
  * Method to return whether job is a PR or not
  */
 
-Boolean call() {
+boolean call() {
     if (params.CI_MORE_FUNCTIONAL_PR_TESTS) {
         return false
     }
