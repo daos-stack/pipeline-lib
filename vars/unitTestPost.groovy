@@ -28,7 +28,10 @@
    *                               creating valgrind reports.
    */
 
-// groovylint-disable DuplicateStringLiteral, VariableName
+// groovylint-disable DuplicateNumberLiteral, DuplicateStringLiteral,
+// groovylint-disable VariableName
+
+// groovylint-disable-next-line MethodSize
 void call(Map config = [:]) {
     String always_script = config.get('always_script',
                                       'ci/unit/test_post_always.sh')
@@ -54,16 +57,22 @@ void call(Map config = [:]) {
         String target_dir = 'unit_test_memcheck_logs'
         String src_files = 'unit-test-*.memcheck.xml'
         int vgfail = 0
+        int vgerr = 0
         String rcs = sh label: 'Check for Valgrind errors',
                  script: "grep -E '<error( |>)' ${src_files} || true",
                  returnStdout: true
         if (rcs) {
-            vgfail = 1
+            if (config['ignore_failure']) {
+                vgfail = 1
+            } else {
+                vgerr = 1
+            }
         }
         String suite = sanitizedStageName()
         junitSimpleReport suite: suite,
                           file: suite + '_valgrind_results.xml',
                           fails: vgfail,
+                          errors: vgerr,
                           name: 'Valgrind_Memcheck',
                           class: 'Valgrind',
                           message: 'Valgrind detected',
