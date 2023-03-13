@@ -62,11 +62,7 @@ void call(Map config = [:]) {
                  script: "grep -E '<error( |>)' ${src_files} || true",
                  returnStdout: true
         if (rcs) {
-            if (config['ignore_failure']) {
-                vgfail = 1
-            } else {
-                vgerr = 1
-            }
+            vgfail = 1
         }
         String suite = sanitizedStageName()
         junitSimpleReport suite: suite,
@@ -88,7 +84,7 @@ void call(Map config = [:]) {
     List artifact_list = config.get('artifacts', ['run_test.sh/*'])
     boolean ignore_failure = config.get('ignore_failure', false)
     artifact_list.each { artifactPat ->
-        println("artifactPat = ${artifactPat}")
+        println("Archiving artifacts matching: ${artifactPat}")
         archiveArtifacts artifacts: artifactPat,
                      allowEmptyArchive: ignore_failure
     }
