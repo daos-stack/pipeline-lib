@@ -71,7 +71,7 @@ void call(Map config = [:]) {
                           errors: vgerr,
                           name: 'Valgrind_Memcheck',
                           class: 'Valgrind',
-                          message: 'Valgrind detected',
+                          message: 'Valgrind Memcheck error detected',
                           testdata: rcs
         fileOperations([fileCopyOperation(excludes: '',
                                       flattenFiles: false,
