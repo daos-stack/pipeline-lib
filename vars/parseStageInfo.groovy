@@ -70,6 +70,16 @@ String get_commit_pragma_tags(String pragma_suffix) {
   return pragma_tag
 }
 
+String get_default_nvme() {
+  // Get the default test nvme setting
+  if (env.BRANCH_NAME.startsWith('feature/vos_on_blob')) {
+      if (startedByTimer()) {
+        return 'auto_md_on_ssd'
+      }
+      return 'auto'
+    }
+    return 'auto:-3DNAND'
+}
 
 /* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
@@ -225,7 +235,7 @@ void call(Map config = [:]) {
     if (stage_name.contains('Hardware')) {
       cluster_size = 'hw,large'
       result['pragma_suffix'] = '-hw-large'
-      ftest_arg_nvme = 'auto:-3DNAND'
+      ftest_arg_nvme = get_default_nvme()
       if (stage_name.contains('Small')) {
         result['node_count'] = 3
         cluster_size = 'hw,small'
