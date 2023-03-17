@@ -47,15 +47,13 @@ String call(Map config = [:]) {
         "'" + junitfile + "'"
     }.join(' ')
     if (sh(label: 'Check junit xml files for errors',
-           script: '! grep -E "<error( |Details>|StackTrace>)" ' + junit_xml,
+           script: 'grep -E "<error( |Details>|StackTrace>)" ' + junit_xml,
            returnStatus: true) == 0) {
         status = 'FAILURE'
         println 'Found at least one error in the Junit files.'
-    }
-    if (status != 'FAILURE') {
-        if (sh(label: 'Check junit xml files for failures',
-               script: '! grep -E "<failure( |>)" ' + junit_xml,
-               returnStatus: true) == 0) {
+    } else if (sh(label: 'Check junit xml files for failures',
+                  script: 'grep -E "<failure( |>)" ' + junit_xml,
+                  returnStatus: true) == 0) {
             status = 'UNSTABLE'
             println 'Found at least one failure in the junit files.'
         }
