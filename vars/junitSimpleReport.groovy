@@ -34,6 +34,7 @@ void call(Map config = [:]) {
     String jf = config.get('fails', zero)
     String message = config.get('message', '')
     String testdata = config.get('testdata', '')
+    boolean ignoreFailure = config.get('ingnoreFailure', false)
     String tresult = ''
     // Enforce consistency
     if (jf > zero) {
@@ -63,5 +64,12 @@ void call(Map config = [:]) {
 </testsuite>
 '''
     writeFile(file: jfile, text: "${xml}")
-    junit testResults: jfile
+    // groovylint-disable-next-line NoDouble
+    double healthScale = 1.0
+    if (ignoreFailure) {
+        healthScale = 0.0
+    }
+
+    junit testResults: jfile,
+          healthScaleFactor: healthScale
 }
