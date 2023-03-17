@@ -136,6 +136,8 @@ Map call(Map config = [:]) {
     p['context'] = config.get('context', 'test/' + env.STAGE_NAME)
     p['description'] = config.get('description', env.STAGE_NAME)
     p['ignore_failure'] = config.get('ignore_failure', false)
+    // runTest no longer knows now to notify for Unit Tests
+    p['notify_result'] = false
 
     int time = config.get('timeout_time', 120) as int
     String unit = config.get('timeout_unit', 'MINUTES')

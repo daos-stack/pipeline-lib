@@ -95,11 +95,15 @@ Map call(Map config = [:]) {
         }
     }
 
-    // We need to pass the rc value to post step.
+    // We need to pass the rc ignore_fairue values to post step.
     // The currentBuild result is for all innerstages, not just this
     // stage, so can not be trusted for this.
     String result_stash = 'result_for_' + sanitizedStageName()
     writeFile(file: result_stash, text: "${rc}")
+    stash name: result_stash,
+          includes: result_stash
+    result_stash = 'ignore_failure_for_' + sanitizedStageName()
+    writeFile(file: result_stash, text: "${ignore_failure}")
     stash name: result_stash,
           includes: result_stash
 
@@ -118,7 +122,9 @@ Map call(Map config = [:]) {
     if (rc != 0) {
         status = 'FAILURE'
     } else if (notify_result) {
-        // Currently only used here for unit testing.
+        // Not used for Unit or Functional testing any more
+        // The junit files are only present in the workspace in the post
+        // section of a stage.
         status = checkJunitFiles(config)
     }
 

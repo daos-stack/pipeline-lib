@@ -25,7 +25,7 @@
 void call(Map config = [:]) {
     int zero = 0
     int one = 1
-    String simple = 'simple'
+    simple = 'simple'
     String jclass = config.get('class', simple)
     String jname = config.get('name', simple)
     String jsuite = config.get('suite', sanitizedStageName())
@@ -63,9 +63,5 @@ void call(Map config = [:]) {
 </testsuite>
 '''
     writeFile(file: jfile, text: "${xml}")
-    String cbr = currentBuild.result
     junit testResults: jfile
-    if (cbr != currentBuild.result) {
-        println "The junit plugin changed result to ${currentBuild.result}."
-    }
 }

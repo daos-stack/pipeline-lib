@@ -371,11 +371,16 @@ void call(Map config = [:]) {
     result['ftest_arg'] = config['ftest_arg']
   }
 
-  if (stage_name.contains('NLT')) {
-    result['NLT'] = true
-  } else {
-    result['NLT'] = false
-  }
+    if (stage_name.contains('NLT')) {
+        result['NLT'] = true
+        result['valgrind_pattern'] = config.get('valgrind_pattern',
+                                                '*memcheck.xml')
+    } else {
+        result['NLT'] = false
+        if (config['valgrind_pattern']) {
+            result['valgrind_pattern'] = config['valgrind_pattern']
+        }
+    }
 
   if (stage_name.contains('Unit Test') &&
     stage_name.contains('memcheck')) {
