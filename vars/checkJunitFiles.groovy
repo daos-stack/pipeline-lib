@@ -52,11 +52,10 @@ String call(Map config = [:]) {
         status = 'FAILURE'
         println 'Found at least one error in the Junit files.'
     } else if (sh(label: 'Check junit xml files for failures',
-                  script: 'grep -E "<failure( |>)" ' + junit_xml,
-                  returnStatus: true) == 0) {
-            status = 'UNSTABLE'
-            println 'Found at least one failure in the junit files.'
-        }
+              script: 'grep -E "<failure( |>)" ' + junit_xml,
+              returnStatus: true) == 0) {
+        status = 'UNSTABLE'
+        println 'Found at least one failure in the junit files.'
     }
     if (junit_xml.indexOf('pipeline-test-failure.xml') > -1) {
         test_failure = true
