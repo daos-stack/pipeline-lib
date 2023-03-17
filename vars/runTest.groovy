@@ -95,7 +95,7 @@ Map call(Map config = [:]) {
         }
     }
 
-    // We need to pass the rc ignore_fairue values to post step.
+    // We need to pass the rc and ignore_failure values to post step.
     // The currentBuild result is for all innerstages, not just this
     // stage, so can not be trusted for this.
     String result_stash = 'result_for_' + sanitizedStageName()
