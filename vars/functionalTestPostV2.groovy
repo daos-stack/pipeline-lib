@@ -42,9 +42,10 @@ void call(Map config = [:]) {
                                       env.STAGE_NAME + '/*/*/test-results/*/data/*_results.xml, ' +
                                       env.STAGE_NAME + '/*/*/*/test-results/*/data/*_results.xml')
 
-    String result_stash = 'result_for_' + sanitizedStageName()
-    unstash name: result_stash
-    int result_code = readFile(result_stash).toLong()
+    // Need to unstash the script result from runTest
+    String results_map = 'results_map_' + sanitizedStageName()
+    unstash name: results_map
+    Map results = readYaml file: results_map
     String prev_result = currentBuild.result
 
     junit(testResults: junit_results)
@@ -57,11 +58,10 @@ void call(Map config = [:]) {
     // Save these in case we want to inspect them.
     archiveArtifacts(artifacts: junit_results)
 
-    String status = 'SUCCESS'
-    if (result_code != 0) {
-        status = 'FAILURE'
+    if (results['result_code'] != 0) {
+        results['result'] = 'FAILURE'
     } else {
-        status = checkJunitFiles(config)
+        results['result'] = checkJunitFiles(config)
     }
 
     String description = config.get('description', env.STAGE_NAME)
@@ -71,7 +71,7 @@ void call(Map config = [:]) {
     stepResult name: description,
                context: context,
                flow_name: flow_name,
-               result: status,
+               result: results['result'],
                junit_files: junit_results,
                ignore_failure: ignore_failure
 
@@ -87,7 +87,6 @@ void call(Map config = [:]) {
     if (fileExists('ci/functional/launchable_analysis')) {
         sh(label: 'Analyze failed tests vs. Launchable subset',
            script: 'ci/functional/launchable_analysis "' + fileName + '"')
-
     }
 
     sh(label: 'Install Launchable',

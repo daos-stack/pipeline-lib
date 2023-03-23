@@ -95,18 +95,6 @@ Map call(Map config = [:]) {
         }
     }
 
-    // We need to pass the rc and ignore_failure values to post step.
-    // The currentBuild result is for all innerstages, not just this
-    // stage, so can not be trusted for this.
-    String result_stash = 'result_for_' + sanitizedStageName()
-    writeFile(file: result_stash, text: "${rc}")
-    stash name: result_stash,
-          includes: result_stash
-    result_stash = 'ignore_failure_for_' + sanitizedStageName()
-    writeFile(file: result_stash, text: "${ignore_failure}")
-    stash name: result_stash,
-          includes: result_stash
-
     if (cb_result != currentBuild.result) {
         println('Some other stage changed the currentBuild result to ' +
                 "${currentBuild.result}.")
@@ -150,6 +138,17 @@ Map call(Map config = [:]) {
     }
 
     int runTime = durationSeconds(startDate)
-    return ['result': status,
-            'runtest_time': runTime]
+
+    // We need to pass the rc to the post step.
+    Map results = ['result_code': rc,
+                   'result': status,
+                   'runtest_time': runTime]
+
+    String results_map = 'results_map_' + sanitizedStageName()
+    writeYaml file: results_map,
+              data: results,
+              overwrite: true
+    stash name: results_map,
+          includes: results_map
+    return results
 }
