@@ -42,6 +42,14 @@
 //project to point to the above branch.  Then build and test as usual
 //@Library(value="pipeline-lib@your_branch") _
 
+void scrubSecret(String secret, String file) {
+    if (secret) {
+        sh(label: 'Scrub secret from build.log',
+           /* groovylint-disable-next-line GStringExpressionWithinString */
+           script: "sed -i -e 's/${secret}/[redacted]/g' ${file}")
+    }
+}
+
 /* groovylint-disable-next-line MethodSize, ParameterName */
 void call(Map pipeline_args) {
     /* groovylint-disable-next-line CouldBeElvis */
@@ -339,6 +347,8 @@ void call(Map pipeline_args) {
                                                cp -r . $artdir)'''
                             }
                             always {
+                                scrubSecret(pipeline_args['secret'],
+                                            '/var/lib/mock/centos+epel-7-x86_64/result/build.log')
                                 sh label: 'Collect config.log(s)',
                                    script: '(if cd /var/lib/mock/centos+epel-7-x86_64/root/builddir/build/BUILD/*/; ' +
                                          '''then
@@ -415,6 +425,8 @@ void call(Map pipeline_args) {
                                                cp -r . $artdir)'''
                             }
                             always {
+                                scrubSecret(pipeline_args['secret'],
+                                            '/var/lib/mock/rocky+epel-8-x86_64/result/build.log')
                                 sh label: 'Collect config.log(s)',
                                    script: '(if cd /var/lib/mock/rocky+epel-8-x86_64/root/builddir/build/BUILD/*/; ' +
                                           '''then
@@ -492,6 +504,8 @@ void call(Map pipeline_args) {
                                                cp -r . $artdir)'''
                             }
                             always {
+                                scrubSecret(pipeline_args['secret'],
+                                            '/var/lib/mock/opensuse-leap-15.3-x86_64/result/build.log')
                                 sh label: 'Collect config.log(s)',
                                    script: '(if cd /var/lib/mock/opensuse-leap-15.3-x86_64/root/builddir/build/' +
                                           '''BUILD/*/; then
