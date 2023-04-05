@@ -99,6 +99,7 @@ Map afterTest(Map config, Map testRunInfo) {
         if (vgrcs) {
             result['valgrind_check'] = vgrcs
             result['result'] = 'FAILURE'
+            println("grep of valgrind files result $result")
         }
         fileOperations([fileCopyOperation(excludes: '',
                                       flattenFiles: false,
@@ -203,6 +204,7 @@ Map call(Map config = [:]) {
     p['with_valgrind'] = with_valgrind
     runTestData = afterTest(p, runData)
     runTestData.each { resultKey, data -> runData[resultKey] = data }
+    println("runData $runData")
 
     if (stage_info['compiler'] == 'covc') {
         stash name: config.get('coverage_stash', "${target_stash}-unit-cov"),

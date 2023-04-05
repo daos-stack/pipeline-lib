@@ -183,7 +183,7 @@ boolean skip_if_unstable() {
 
     // Ok, it's a PR and the Allow pragma isn't set.  Skip if the build is
     // unstable.
-
+    println("skip_if_unstable: currentBuild.currentResult = ${currentBuild.currentResult}")
     return currentBuild.currentResult == 'UNSTABLE'
 }
 

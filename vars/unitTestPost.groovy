@@ -40,6 +40,8 @@ void call(Map config = [:]) {
     String results_map = 'results_map_' + sanitizedStageName()
     unstash name: results_map
     Map results = readYaml file: results_map
+    println("results from results_map $results")
+
     String testResults = stage_info.get('testResults', 'test_results/*.xml')
     if (testResults != 'None' ) {
         // groovylint-disable-next-line NoDouble
@@ -116,4 +118,6 @@ void call(Map config = [:]) {
               "The recordIssues step changed result to ${currentBuild.result}.")
         }
     }
+    println("currentBuild.result = ${currentBuild.result}")
+    println("currentBuild.currentResult = ${currentBuild.currentResult}")
 }
