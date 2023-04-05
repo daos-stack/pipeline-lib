@@ -97,7 +97,7 @@ Map afterTest(Map config, Map testRunInfo) {
                    script: "grep -E '<error( |>)' ${valgrind_pattern} || true",
                    returnStdout: true
         if (vgrcs) {
-            result['valgrind_check'] = vgrcs
+            result['valgrind_check'] = vgrcs.replaceAll('[\n]', '')
             result['result'] = 'FAILURE'
             println("grep of valgrind files result $result")
         }
