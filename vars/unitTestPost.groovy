@@ -50,14 +50,7 @@ void call(Map config = [:]) {
         junit testResults: testResults,
               healthScaleFactor: health_scale
     }
-    if (config['with_valgrind']) {
-        fileOperations([fileCopyOperation(excludes: '',
-                                      flattenFiles: false,
-                                      includes: valgrind_pattern,
-                                      targetLocation: target_dir)])
-        sh label: 'Create tarball of Valgrind xml files',
-           script: "tar -czf ${target_dir}.tar.gz ${target_dir}"
-
+    if (stage_info['with_valgrind']) {
         String suite = sanitizedStageName()
         int vgfail = 0
         String testdata = ''

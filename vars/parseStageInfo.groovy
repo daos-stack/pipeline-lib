@@ -380,6 +380,7 @@ Map call(Map config = [:]) {
         result['always_script'] = config.get('always_script',
                                              'ci/unit/test_nlt_post.sh')
         result['testResults'] = config.get('testResults', 'nlt-junit.xml')
+        result['with_valgrind'] = 'memcheck'
     } else {
         result['NLT'] = false
         if (config['valgrind_pattern']) {
