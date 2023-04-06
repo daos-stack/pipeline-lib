@@ -105,8 +105,14 @@ Void call(Map config= [:]) {
             println 'stepResult changed result to ' + currentBuild.result + '.'
         }
         if (cbcResult != currentBuild.currentResult) {
-            println('stepResult changed currentResult to ' +
-                    currentBuild.currentResult + '.')
+            // Make this visible in the WEB UI
+            String etext = 'stepResult changed currentResult to ' +
+                           currentBuild.currentResult + '.'
+            if (currentBuild.result == 'UNSTABLE') {
+                unstable etext
+            } else {
+                println etext
+            }
         }
     }
 

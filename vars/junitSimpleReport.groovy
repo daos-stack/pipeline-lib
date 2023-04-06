@@ -64,6 +64,8 @@ void call(Map config = [:]) {
 </testsuite>
 '''
     writeFile(file: jfile, text: "${xml}")
+    // Debug why this is not showing up correctly in Junit output.
+    archiveArtifacts artifacts: jfile
     // groovylint-disable-next-line NoDouble
     double healthScale = 1.0
     if (ignoreFailure) {
