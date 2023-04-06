@@ -26,6 +26,7 @@
 // groovylint-disable DuplicateStringLiteral, VariableName
 void call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
+    String cbcResult = currentBuild.currentResult
 
     // Stash the valgrind files for later analysis
     String valgrind_pattern = stage_info.get('valgrind_pattern',
@@ -40,7 +41,6 @@ void call(Map config = [:]) {
     String results_map = 'results_map_' + sanitizedStageName()
     unstash name: results_map
     Map results = readYaml file: results_map
-    println("results from results_map $results")
 
     String testResults = stage_info.get('testResults', 'test_results/*.xml')
     if (testResults != 'None' ) {
@@ -56,7 +56,7 @@ void call(Map config = [:]) {
         String suite = sanitizedStageName()
         int vgfail = 0
         String testdata = ''
-        if (results['valgind_check']) {
+        if (results['valgrind_check']) {
             vgfail = 1
             testdata = results['valgrind_check']
         }
@@ -118,6 +118,8 @@ void call(Map config = [:]) {
               "The recordIssues step changed result to ${currentBuild.result}.")
         }
     }
-    println("currentBuild.result = ${currentBuild.result}")
-    println("currentBuild.currentResult = ${currentBuild.currentResult}")
+    if (cbcResult != currentBuild.currentResult &&
+        resultIsWorseOrEqualTo('FAILURE')) {
+        error 'unitTestPost detected a failure'
+    }
 }
