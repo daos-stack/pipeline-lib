@@ -56,7 +56,7 @@ void call(Map config = [:]) {
         String suite = sanitizedStageName()
         int vgfail = 0
         String testdata = ''
-        if (results['valgrind_check']) {
+        if (results.containsKey('valgrind_check')) {
             vgfail = 1
             testdata = results['valgrind_check']
         }

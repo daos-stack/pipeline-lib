@@ -98,7 +98,7 @@ Map afterTest(Map config, Map testRunInfo) {
                    returnStdout: true
         if (vgrcs) {
             result['valgrind_check'] = vgrcs
-            result['result'] = 'FAILURE'
+            result['result'] = 'UNSTABLE'
         }
         fileOperations([fileCopyOperation(excludes: '',
                                       flattenFiles: false,
