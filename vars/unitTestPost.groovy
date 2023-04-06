@@ -119,7 +119,7 @@ void call(Map config = [:]) {
         }
     }
     if (cbcResult != currentBuild.currentResult &&
-        resultIsWorseOrEqualTo('FAILURE')) {
+        currentBuild.resultIsWorseOrEqualTo('FAILURE')) {
         error 'unitTestPost detected a failure'
     }
 }
