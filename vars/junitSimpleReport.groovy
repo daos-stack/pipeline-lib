@@ -35,7 +35,7 @@ void call(Map config = [:]) {
     String message = config.get('message', '')
     String testdata = config.get('testdata', '')
     boolean ignoreFailure = config.get('ingnoreFailure', false)
-    String tresult = ''
+    String tresult = None
     // Enforce consistency
     if (jf > zero) {
         tresult = 'failure'
@@ -64,7 +64,6 @@ void call(Map config = [:]) {
 </testsuite>
 '''
     writeFile(file: jfile, text: "${xml}")
-    // Debug why this is not showing up correctly in Junit output.
     archiveArtifacts artifacts: jfile
     // groovylint-disable-next-line NoDouble
     double healthScale = 1.0

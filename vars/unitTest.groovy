@@ -92,17 +92,14 @@ Map afterTest(Map config, Map testRunInfo) {
     } else {
         result['result'] = checkJunitFiles(testResults: testResults)
     }
-    println("#### result before vgcs = ${result}")
     if (config['with_valgrind']) {
         vgrcs = sh label: 'Check for Valgrind errors',
                    script: "grep -E '<error( |>)' ${valgrind_pattern} || true",
                    returnStdout: true
-        println("#### vcgrs size ${vgrcs.length()} value: -${vgrcs}-")
         if (vgrcs) {
             result['valgrind_check'] = vgrcs
             result['result'] = 'UNSTABLE'
         }
-        println("#### result after vgcs = ${result}")
         fileOperations([fileCopyOperation(excludes: '',
                                       flattenFiles: false,
                                       includes: valgrind_pattern,
