@@ -96,6 +96,7 @@ Map afterTest(Map config, Map testRunInfo) {
         vgrcs = sh label: 'Check for Valgrind errors',
                    script: "grep -E '<error( |>)' ${valgrind_pattern} || true",
                    returnStdout: true
+        println("#### vcgrs = -${vgrcs}-")
         if (vgrcs) {
             result['valgrind_check'] = vgrcs
             result['result'] = 'UNSTABLE'
