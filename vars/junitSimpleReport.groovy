@@ -34,8 +34,8 @@ void call(Map config = [:]) {
     String jf = config.get('fails', zero)
     String message = config.get('message', '')
     String testdata = config.get('testdata', '')
-    boolean ignoreFailure = config.get('ingnoreFailure', false)
-    String tresult = None
+    boolean ignoreFailure = config.get('ignoreFailure', false)
+    String tresult
     // Enforce consistency
     if (jf > zero) {
         tresult = 'failure'
