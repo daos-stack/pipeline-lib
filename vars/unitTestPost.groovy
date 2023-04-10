@@ -56,14 +56,10 @@ void call(Map config = [:]) {
         String suite = sanitizedStageName()
         int vgfail = 0
         String testdata
-        println("utp1: testdata=${testdata} ${testdata.getClass()}")
         if (results.containsKey('valgrind_check')) {
             vgfail = 1
             testdata = results['valgrind_check']
         }
-        println("#### utp2: testdata=${testdata} ${testdata.getClass()}")
-        println("#### utp2: vgfaili=${vgfail} ${vgfail.getClass()}")
-        println("#### utp2: results=${results}")
         junitSimpleReport suite: suite,
                           file: suite + '_valgrind_results.xml',
                           errors: vgfail,

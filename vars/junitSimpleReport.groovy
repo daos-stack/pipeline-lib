@@ -30,14 +30,13 @@ void call(Map config = [:]) {
     String jname = config.get('name', simple)
     String jsuite = config.get('suite', sanitizedStageName())
     String jfile = config.get('file', jsuite + '_results.xml')
-    String je = config.get('errors', zero)
-    String jf = config.get('fails', zero)
+    int je = config.get('errors', zero)
+    int jf = config.get('fails', zero)
     String message = config.get('message', '')
     String testdata = config.get('testdata')
     boolean ignoreFailure = config.get('ignoreFailure', false)
     String tresult
     // Enforce consistency
-    println("#### jsr1: jf = ${jf} je=${je} tresult=${tresult} config=${config}")
     if (jf > zero) {
         tresult = 'failure'
         jf = one
@@ -49,7 +48,6 @@ void call(Map config = [:]) {
             je = one
         }
     }
-    println("#### jsr2: jf = ${jf} je=${je} tresult=${tresult}")
     String xml = """
 <testsuite skip="0" failures="${jf}" errors="${je}" tests="1" name="${jsuite}">
   <testcase name="${jname}" classname="${jclass}">
