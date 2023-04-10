@@ -37,6 +37,7 @@ void call(Map config = [:]) {
     boolean ignoreFailure = config.get('ignoreFailure', false)
     String tresult
     // Enforce consistency
+    println("#### jsr1: jf = ${jf} je=${je} tresult=${tresult} config=${config}")
     if (jf > zero) {
         tresult = 'failure'
         jf = one
@@ -48,6 +49,7 @@ void call(Map config = [:]) {
             je = one
         }
     }
+    println("#### jsr2: jf = ${jf} je=${je} tresult=${tresult}")
     String xml = """
 <testsuite skip="0" failures="${jf}" errors="${je}" tests="1" name="${jsuite}">
   <testcase name="${jname}" classname="${jclass}">
