@@ -33,7 +33,7 @@ void call(Map config = [:]) {
     String je = config.get('errors', zero)
     String jf = config.get('fails', zero)
     String message = config.get('message', '')
-    String testdata = config.get('testdata', '')
+    String testdata = config.get('testdata')
     boolean ignoreFailure = config.get('ignoreFailure', false)
     String tresult
     // Enforce consistency
