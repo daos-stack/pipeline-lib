@@ -108,7 +108,7 @@ Map afterTest(Map config, Map testRunInfo) {
            script: "tar -czf ${target_dir}.tar.gz ${target_dir}"
     }
 
-    if (config['ignore_failure'] && (result['result'] == 'FAILURE')) {
+    if (config['ignore_failure'] && (result['result'] != 'SUCCESS')) {
         // In this case we have to signal an error in order to change
         // keep stageResult as UNSTABLE, yet change buildResult to 'SUCCESS'
         // We have to do this before junit processes the report as as so that
