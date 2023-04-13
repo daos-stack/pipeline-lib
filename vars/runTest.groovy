@@ -48,6 +48,8 @@ Map call(Map config = [:]) {
     // github expectations at the same time to also include any Matrix
     // environment variables.
 
+    // Must use Date() in pipeline-lib
+    // groovylint-disable-next-line NoJavaUtilDate
     Date startDate = new Date()
     String context = config.get('context', 'test/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
@@ -80,16 +82,18 @@ Map call(Map config = [:]) {
     }
 
     String cb_result = currentBuild.result
-    int rc = 0
-    rc = sh(script: script, label: flow_name, returnStatus: true)
-
-    // We need to pass the rc value to post step.
-    // The currentBuild result is for all innerstages, not just this
-    // stage, so can not be trusted for this.
-    String result_stash = 'result_for_' + sanitizedStageName()
-    writeFile(file: result_stash, text: "${rc}")
-    stash name: result_stash,
-          includes: result_stash
+    int rc = 255
+    try {
+        sh(script: script, label: flow_name)
+        rc = 0
+    } catch (hudson.AbortException e) {
+        // groovylint-disable UnnecessaryGetter
+        // groovylint-disable-next-line NoDef, VariableTypeRequired
+        def rc_val = (e.getMessage() =~ /\d+$/)
+        if (rc_val) {
+            rc = rc_val[0] as Integer
+        }
+    }
 
     if (cb_result != currentBuild.result) {
         println('Some other stage changed the currentBuild result to ' +
@@ -106,7 +110,9 @@ Map call(Map config = [:]) {
     if (rc != 0) {
         status = 'FAILURE'
     } else if (notify_result) {
-        // Currently only used here for unit testing.
+        // Not used for Unit or Functional testing any more
+        // The junit files are only present in the workspace in the post
+        // section of a stage.
         status = checkJunitFiles(config)
     }
 
@@ -120,17 +126,29 @@ Map call(Map config = [:]) {
     }
 
     if (status != 'SUCCESS') {
+        String msg = ' See Job Test Results report for details'
         if (ignore_failure) {
             catchError(stageResult: 'UNSTABLE',
                        buildResult: 'SUCCESS') {
-                error(env.STAGE_NAME + ' failed: ' + rc)
+                error(env.STAGE_NAME + ' failed: ' + rc + msg)
             }
         } else {
-            error(env.STAGE_NAME + ' failed: ' + rc)
+            error(env.STAGE_NAME + ' failed: ' + rc + msg)
         }
     }
 
     int runTime = durationSeconds(startDate)
-    return ['result': status,
-            'runtest_time': runTime]
+
+    // We need to pass the rc to the post step.
+    Map results = ['result_code': rc,
+                   'result': status,
+                   'runtest_time': runTime]
+
+    String results_map = 'results_map_' + sanitizedStageName()
+    writeYaml file: results_map,
+              data: results,
+              overwrite: true
+    stash name: results_map,
+          includes: results_map
+    return results
 }

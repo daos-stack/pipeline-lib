@@ -14,7 +14,7 @@ void call(String testResults) {
 
 //groovylint-disable DuplicateStringLiteral
 void call(Map config = [:]) {
-    if (env.NO_CI_TESTING != 'true' ||
+    if (env.NO_CI_TESTING != null ||
             cachedCommitPragma('Skip-Test') == 'true') {
         config['allowEmptyResults'] = true
     }
@@ -24,5 +24,14 @@ void call(Map config = [:]) {
     // https://github.com/jenkinsci/junit-plugin/issues/219
     // https://issues.jenkins.io/browse/JENKINS-27931
     config['keepLongStdio'] = true
+    String cbResult = currentBuild.result
+    String cbcResult = currentBuild.currentResult
     steps.junit(config)
+    if (cbResult != currentBuild.result) {
+        println "The junit plugin changed result to ${currentBuild.result}."
+    }
+    if (cbcResult != currentBuild.currentResult) {
+        println('The junit plugin changed currentResult to ' +
+                currentBuild.currentResult + '.')
+    }
 }

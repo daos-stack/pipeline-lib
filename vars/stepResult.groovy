@@ -97,9 +97,24 @@ Void call(Map config= [:]) {
     }
   }
 
-  if (!config['ignore_failure']) {
-    currentBuild.result = config.get('result')
-  }
+    if (!config['ignore_failure']) {
+        String cbResult = currentBuild.result
+        String cbcResult = currentBuild.currentResult
+        currentBuild.result = config.get('result')
+        if (cbResult != currentBuild.result) {
+            println 'stepResult changed result to ' + currentBuild.result + '.'
+        }
+        if (cbcResult != currentBuild.currentResult) {
+            // Make this visible in the WEB UI
+            String etext = 'stepResult changed currentResult to ' +
+                           currentBuild.currentResult + '.'
+            if (currentBuild.result == 'UNSTABLE') {
+                unstable etext
+            } else {
+                println etext
+            }
+        }
+    }
 
   if (config['result'] == 'ABORTED' ||
       config['result'] == 'UNSTABLE' ||

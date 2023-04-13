@@ -82,7 +82,7 @@ String get_default_nvme() {
 }
 
 /* groovylint-disable-next-line MethodSize */
-void call(Map config = [:]) {
+Map call(Map config = [:]) {
   Map result = [:]
   String stage_name = ''
   if (env.STAGE_NAME) {
@@ -232,6 +232,8 @@ void call(Map config = [:]) {
     result['node_count'] = 9
     cluster_size = '-hw'
     result['pragma_suffix'] = '-vm'
+    result['always_script'] = config.get('always_script',
+                                         'ci/functional/job_cleanup.sh')
     if (stage_name.contains('Hardware')) {
       cluster_size = 'hw,large'
       result['pragma_suffix'] = '-hw-large'
@@ -371,16 +373,28 @@ void call(Map config = [:]) {
     result['ftest_arg'] = config['ftest_arg']
   }
 
-  if (stage_name.contains('NLT')) {
-    result['NLT'] = true
-  } else {
-    result['NLT'] = false
-  }
-
-  if (stage_name.contains('Unit Test') &&
-    stage_name.contains('memcheck')) {
-    result['with_valgrind'] = 'memcheck'
-  }
+    if (stage_name.contains('NLT')) {
+        result['NLT'] = true
+        result['valgrind_pattern'] = config.get('valgrind_pattern',
+                                                '*memcheck.xml')
+        result['always_script'] = config.get('always_script',
+                                             'ci/unit/test_nlt_post.sh')
+        result['testResults'] = config.get('testResults', 'nlt-junit.xml')
+        result['with_valgrind'] = 'memcheck'
+    } else {
+        result['NLT'] = false
+        if (config['valgrind_pattern']) {
+            result['valgrind_pattern'] = config['valgrind_pattern']
+        }
+    }
+    if (stage_name.contains('Unit Test')) {
+        result['testResults'] = config.get('testResults', 'test_results/*.xml')
+        result['always_script'] = config.get('always_script',
+                                             'ci/unit/test_post_always.sh')
+        if (stage_name.contains('memcheck')) {
+            result['with_valgrind'] = 'memcheck'
+        }
+    }
 
   return result
 }

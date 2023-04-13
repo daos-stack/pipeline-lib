@@ -5,14 +5,9 @@
    *
    * @param config Map of parameters passed
    *
-   * config['always_script']       Script to run after any test.
-   *                               Default 'ci/unit/test_post_always.sh'.
-   *
    * TODO: Always provided, should make required
    * config['artifacts']           Artifacts to archive.
    *                               Default ['run_test.sh/*']
-   *
-   * config['ignore_failure']      Ignore test failures.  Default false.
    *
    * config['referenceJobName']    Reference job name.
    *                               Defaults to 'daos-stack/daos/master'
@@ -26,90 +21,105 @@
    * config['valgrind_stash']      Name to stash valgrind artifacts
    *                               Required if more than one stage is
    *                               creating valgrind reports.
-   *
    */
 
-def call(Map config = [:]) {
+// groovylint-disable DuplicateStringLiteral, VariableName
+void call(Map config = [:]) {
+    Map stage_info = parseStageInfo(config)
+    String cbcResult = currentBuild.currentResult
 
-  String always_script = config.get('always_script',
-                                    'ci/unit/test_post_always.sh')
-  sh label: 'Job Cleanup',
-     script: always_script
+    // Stash the valgrind files for later analysis
+    String valgrind_pattern = stage_info.get('valgrind_pattern',
+                                             'unit-test-*memcheck.xml')
+    if (config['valgrind_stash']) {
+        stash name: config['valgrind_stash'], includes: valgrind_pattern
+    }
+    String context = config.get('context', 'test/' + env.STAGE_NAME)
+    String description = config.get('description', env.STAGE_NAME)
+    String flow_name = config.get('flow_name', env.STAGE_NAME)
+    // Need to unstash the script result from runTest
+    String results_map = 'results_map_' + sanitizedStageName()
+    unstash name: results_map
+    Map results = readYaml file: results_map
 
-  Map stage_info = parseStageInfo(config)
+    String testResults = stage_info.get('testResults', 'test_results/*.xml')
+    if (testResults != 'None' ) {
+        // groovylint-disable-next-line NoDouble
+        double health_scale = 1.0
+        if (results['ignore_failure']) {
+            health_scale = 0.0
+        }
+        junit testResults: testResults,
+              healthScaleFactor: health_scale
+    }
+    if (stage_info['with_valgrind']) {
+        String suite = sanitizedStageName()
+        int vgfail = 0
+        String testdata
+        if (results.containsKey('valgrind_check')) {
+            vgfail = 1
+            testdata = results['valgrind_check']
+        }
+        junitSimpleReport suite: suite,
+                          file: suite + '_valgrind_results.xml',
+                          errors: vgfail,
+                          name: 'Valgrind_Memcheck',
+                          class: 'Valgrind',
+                          message: 'Valgrind Memcheck error detected',
+                          testdata: testdata,
+                          ignoreFailure: results['ignore_failure']
+    }
+    stepResult name: description,
+               context: context,
+               flow_name: flow_name,
+               result: results['result'],
+               junit_files: testResults,
+               ignore_failure: results['ignore_failure']
 
-  if (config['testResults'] != 'None' ) {
-    double health_scale = 1.0
-    if (config['ignore_failure']) {
-      health_scale = 0.0
+    List artifact_list = config.get('artifacts', ['run_test.sh/*'])
+    artifact_list.each { artifactPat ->
+        println("Archiving Artifacts matching ${artifactPat}")
+        archiveArtifacts artifacts: artifactPat,
+                     allowEmptyArchive: results['ignore_failure']
+    }
+    String target_stash = "${stage_info['target']}-${stage_info['compiler']}"
+    if (stage_info['build_type']) {
+        target_stash += '-' + stage_info['build_type']
+    }
+    // Coverage instrumented tests and Vagrind are probably mutually exclusive
+    if (stage_info['compiler'] == 'covc') {
+        return
     }
 
-    def cb_result = currentBuild.result
-    junit testResults: config.get('testResults', 'test_results/*.xml'),
-          healthScaleFactor: health_scale
-
-    if (cb_result != currentBuild.result) {
-      println "The junit plugin changed result to ${currentBuild.result}."
+    if (stage_info['NLT']) {
+        String cb_result = currentBuild.result
+        discoverGitReferenceBuild(
+          referenceJob: config.get('referenceJobName',
+                                   'daos-stack/daos/master'),
+          scm: 'daos-stack/daos')
+        recordIssues enabledForFailure: true,
+                     failOnError: !results['ignore_failure'],
+                     ignoreFailedBuilds: true,
+                     ignoreQualityGate: true,
+                     // Set qualitygate to 1 new "NORMAL" priority message
+                     // Supporting messages to help identify causes of
+                     // problems are set to "LOW".
+                     qualityGates: [
+                       [threshold: 1, type: 'TOTAL_ERROR'],
+                       [threshold: 1, type: 'TOTAL_HIGH'],
+                       [threshold: 1, type: 'NEW_NORMAL', unstable: true],
+                       [threshold: 1, type: 'NEW_LOW', unstable: true]],
+                      name: 'Node local testing',
+                      tool: issues(pattern: 'vm_test/nlt-errors.json',
+                                   name: 'NLT results',
+                                   id: 'VM_test')
+        if (cb_result != currentBuild.result) {
+            println(
+              "The recordIssues step changed result to ${currentBuild.result}.")
+        }
     }
-  }
-
-  if(stage_info['with_valgrind']) {
-    String target_dir = "unit_test_memcheck_logs"
-    String src_files = "unit-test-*.memcheck.xml"
-    fileOperations([fileCopyOperation(excludes: '',
-                                      flattenFiles: false,
-                                      includes: src_files,
-                                      targetLocation: target_dir)])
-    sh "tar -czf ${target_dir}.tar.gz ${target_dir}"
-  }
-
-  def artifact_list = config.get('artifacts', ['run_test.sh/*'])
-  def ignore_failure = config.get('ignore_failure', false)
-  artifact_list.each {
-    archiveArtifacts artifacts: it,
-                     allowEmptyArchive: ignore_failure
-  }
-
-  def target_stash = "${stage_info['target']}-${stage_info['compiler']}"
-  if (stage_info['build_type']) {
-    target_stash += '-' + stage_info['build_type']
-  }
-
-  // Coverage instrumented tests and Vagrind are probably mutually exclusive
-  if (stage_info['compiler'] == 'covc') {
-    return
-  }
-
-  if (config['valgrind_stash']) {
-    def valgrind_pattern = config.get('valgrind_pattern', '*.memcheck.xml')
-    stash name: config['valgrind_stash'], includes: valgrind_pattern
-  }
-
-  if (stage_info['NLT']) {
-    def cb_result = currentBuild.result
-    discoverGitReferenceBuild referenceJob: config.get('referenceJobName',
-                                              'daos-stack/daos/master'),
-                              scm: 'daos-stack/daos'
-    recordIssues enabledForFailure: true,
-                 failOnError: !ignore_failure,
-                 ignoreFailedBuilds: true,
-                 ignoreQualityGate: true,
-                 // Set qualitygate to 1 new "NORMAL" priority message
-                 // Supporting messages to help identify causes of
-                 // problems are set to "LOW".
-                 qualityGates: [
-                   [threshold: 1, type: 'TOTAL_ERROR'],
-                   [threshold: 1, type: 'TOTAL_HIGH'],
-                   [threshold: 1, type: 'NEW_NORMAL', unstable: true],
-                   [threshold: 1, type: 'NEW_LOW', unstable: true]],
-                  name: "Node local testing",
-                  tool: issues(pattern: 'vm_test/nlt-errors.json',
-                               name: 'NLT results',
-                               id: 'VM_test')
-
-    if (cb_result != currentBuild.result) {
-      println "The recordIssues step changed result to ${currentBuild.result}."
+    if (cbcResult != currentBuild.currentResult &&
+        currentBuild.resultIsWorseOrEqualTo('FAILURE')) {
+        error 'unitTestPost detected a failure'
     }
-  }
-
 }

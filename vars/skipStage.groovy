@@ -182,9 +182,8 @@ boolean skip_if_unstable() {
     }
 
     // Ok, it's a PR and the Allow pragma isn't set.  Skip if the build is
-    // unstable.
-
-    return currentBuild.currentResult == 'UNSTABLE'
+    // unstable or worse.
+    return currentBuild.resultIsWorseOrEqualTo('UNSTABLE')
 }
 
 boolean skip_build_on_el_gcc(String target_branch, String version) {
