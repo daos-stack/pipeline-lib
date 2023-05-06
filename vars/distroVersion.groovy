@@ -21,7 +21,7 @@ String call(String distro) {
 }
 
 String call(String distro, String branch) {
-    return ['el8':      ['master':      '8.7',
+    return ['el8':      ['master':      '8.6',
                          'release/2.2': '8.6'],
             'leap15':   ['master':      '15.4',
                          'release/2.2': '15.4'],
