@@ -156,12 +156,19 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
 }
 
 boolean skip_ftest_hw(String size, String target_branch) {
-    return already_passed() ||
-           env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
-           !paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
-           skip_stage_pragma('func-test') ||
+    if (already_passed() || !testsInStage()) {
+        // Stage has already run or there are no tests to run in the stage - always skip
+        return true
+    }
+    if (paramsValue('CI_' + size.replace('-', '_') + '_TEST', false) ||
+        !skip_stage_pragma('func-hw-test-' + size, true) ||
+        !skip_stage_pragma('func-test', true)) {
+        // Checked build with params checkbox or commit pragma forcing stage to run
+        return false
+    }
+    return env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
            skip_stage_pragma('func-hw-test-' + size) ||
-           !testsInStage() ||
+           skip_stage_pragma('func-test') ||
            ((env.BRANCH_NAME == 'master' ||
              env.BRANCH_NAME.startsWith('release/')) &&
             !(startedByTimer() || startedByUser())) ||
