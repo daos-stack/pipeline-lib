@@ -403,11 +403,17 @@ pipeline {
                                        [pragmas: ['Skip-func-hw-test-medium-ucx-provider: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr(), !isPr()]]]
+                            errors = 0
                             commits.each { commit ->
                                 cm = 'Test commit\n\n'
                                 commit.pragmas.each { pragma ->
                                     cm += "${pragma}\n"
                                 }
+                                println('-------------------------')
+                                println('Unit test commit message:')
+                                println('')
+                                println(commit)
+                                println('')
                                 i = 0
                                 // assign Map to env. var to serialize it
                                 env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
@@ -416,17 +422,22 @@ pipeline {
                                              'UNIT_TEST=true',
                                              'pragmas=' + env.tmp_pragmas,
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
-                                        // Useful for debugging since Jenkins'
-                                        // assert() is pretty lame
-                                        println('For stage: ' + stage + ', assert(skipStage(commit_msg: ' +
-                                               cm.trim() + ') == ' + commit.skips[i] + ') value is: ' +
-                                               skipStage(commit_msg: cm))
-                                        assert(skipStage(commit_msg: cm) == commit.skips[i])
+                                        println('  stage:                     ' + stage)
+                                        println('  skipped (expect ==actual): ' +
+                                                commit.skips[i] + ' == ' + skipStage(commit_msg: cm))
+                                        if skipStage(commit_msg: cm) != commit.skips[i] {
+                                            println('  status: FAIL')
+                                            errors++
+                                        }
+                                        else {
+                                            println('  status: PASS')
+                                        }
                                         i++
                                     }
                                 }
                                 cachedCommitPragma(clear: true)
                             }
+                            assert(errors != 0)
                         }
                         /* tests for all stages:
                               1. Test-tag: datamover

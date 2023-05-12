@@ -185,7 +185,7 @@ boolean skip_ftest_hw(String size, String target_branch) {
         run_default_skipped_stage('func-test-hw' + size) ||
         run_default_skipped_stage('func-hw-test') ||
         run_default_skipped_stage('func-hw-test-' + size) ||
-        cachedCommitPragma('Run-daily-stages') == 'true') {
+        cachedCommitPragma('Run-daily-stages').toLowerCase() == 'true') {
         return false
     }
 
