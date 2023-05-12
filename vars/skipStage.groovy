@@ -161,8 +161,8 @@ boolean skip_ftest_hw(String size, String target_branch) {
         return true
     }
     if (paramsValue('CI_' + size.replace('-', '_') + '_TEST', false) ||
-        !skip_stage_pragma('func-hw-test-' + size, true) ||
-        !skip_stage_pragma('func-test', true)) {
+        !skip_stage_pragma('func-hw-test-' + size, 'true') ||
+        !skip_stage_pragma('func-test', 'true')) {
         // Checked build with params checkbox or commit pragma forcing stage to run
         return false
     }
