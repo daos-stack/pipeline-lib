@@ -428,7 +428,7 @@ pipeline {
                                         // println('  stage:                    ' + stage)
                                         // println('  skipped (expect==actual): ' +
                                         //         commit.skips[i] + ' == ' + skipStage(commit_msg: cm))
-                                        actual_skip.add(skipStage(commit_msg: cm))
+                                        actual_skips.add(skipStage(commit_msg: cm))
                                         if (skipStage(commit_msg: cm) != commit.skips[i]) {
                                             println('  status: FAIL, stage: ' + stage)
                                             errors++
@@ -441,7 +441,7 @@ pipeline {
                                 }
                                 println('')
                                 println('expected skips: ' + commit.skips)
-                                println('actual skips:   ' + commit.skips)
+                                println('actual skips:   ' + actual_skips)
                                 println('')
                                 cachedCommitPragma(clear: true)
                             }
