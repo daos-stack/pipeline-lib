@@ -133,7 +133,7 @@ boolean skip_ftest(String distro, String target_branch) {
         return true
     }
 
-    // Run this stage if enabled by default or requested by the user
+    // Run this stage if requested by the user
     if (run_default_skipped_stage('test') ||
         run_default_skipped_stage('func-test') ||
         run_default_skipped_stage('func-test-vm') ||
@@ -142,13 +142,14 @@ boolean skip_ftest(String distro, String target_branch) {
         return false
     }
 
-    // Disable running the non-EL8 Functional VM stage in PRs
-
-    // Run the stage if enabled by default or via build params unless it this
-    // is either:
+    // Run the stage if its build parameter is either:
+    //   1) enabled by default
+    //   2) selected by the user
+    //   3) not defined
+    // unless it is either:
     //   1) a PR running on any OS besides EL8
     //   2) running on ubuntu
-    if (paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', false) &&
+    if (paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true) &&
         /* groovylint-disable-next-line UnnecessaryGetter */
         !((isPr() && distro != 'el8') ||
           distro == 'ubuntu20')) {
@@ -188,11 +189,14 @@ boolean skip_ftest_hw(String size, String target_branch) {
         return false
     }
 
-    // Run the stage if enabled by default or via build params unless it this
-    // is either a:
+    // Run the stage if its build parameter is either:
+    //   1) enabled by default
+    //   2) selected by the user
+    //   3) not defined
+    // unless it is either a:
     //   1) PR running the Functional Hardware Medium UCX provider stage
     //   2) build not started by the user/timer in the master or release branch
-    if (paramsValue('CI_' + size.replace('-', '_') + '_TEST', false) &&
+    if (paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) &&
         /* groovylint-disable-next-line UnnecessaryGetter */
         !((isPr() && size == 'medium-ucx-provider') ||
           (main_branch() && !(startedByTimer() || startedByUser())))) {

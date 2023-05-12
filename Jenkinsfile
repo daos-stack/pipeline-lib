@@ -418,9 +418,9 @@ pipeline {
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         // Useful for debugging since Jenkins'
                                         // assert() is pretty lame
-                                        //println('For stage: ' + stage + ', assert(skipStage(commit_msg: ' +
-                                        //        cm.trim() + ') == ' + commit.skips[i] + ') value is: ' +
-                                        //        skipStage(commit_msg: cm))
+                                        println('For stage: ' + stage + ', assert(skipStage(commit_msg: ' +
+                                               cm.trim() + ') == ' + commit.skips[i] + ') value is: ' +
+                                               skipStage(commit_msg: cm))
                                         assert(skipStage(commit_msg: cm) == commit.skips[i])
                                         i++
                                     }
