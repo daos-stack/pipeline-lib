@@ -361,16 +361,48 @@ pipeline {
                                       'Functional on CentOS 7',
                                       'Functional on EL 8',
                                       'Functional Hardware Medium',
+                                      'Functional Hardware Medium Verbs Provider',
+                                      'Functional Hardware Medium UCX Provider',
                                       'Functional Hardware Large']
-                            commits = [[pragmas: ['Skip-func-test-leap15: false'],
+                            commits = [[pragmas: [''],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [false, isPr(), false, !isPr(), !isPr(), !isPr()]],
-                                       [pragmas: [''],
+                                        skips: [isPr(), isPr(), false, !isPr(), !isPr(), isPr(), !isPr()]],
+                                       [pragmas: ['Skip-test: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr()]],
+                                        skips: [true, true, true, true, true, true, true]],
+                                       [pragmas: ['Skip-func-test: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, true, true, true, true, true, true]],
+                                       [pragmas: ['Skip-func-test-vm: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, true, true, !isPr(), !isPr(), isPr(), !isPr()]],
+                                       [pragmas: ['Skip-func-test-vm-all: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, true, true, !isPr(), !isPr(), isPr(), !isPr()]],
+                                       [pragmas: ['Skip-func-test-el8: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), true, !isPr(), !isPr(), isPr(), !isPr()]],
+                                       [pragmas: ['Skip-func-test-leap15: false'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [false, isPr(), false, !isPr(), !isPr(), true, !isPr()]],
+                                       [pragmas: ['Skip-func-test-hw: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), false, true, true, true, true]],
+                                       [pragmas: ['Skip-func-test-hw-medium: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), false, true, !isPr(), isPr(), !isPr()]],
+                                       [pragmas: ['Skip-func-test-hw-medium-ucx-provider: false'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr(), !isPr()]],
+                                       [pragmas: ['Skip-func-hw-test: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), false, true, true, true, true]],
                                        [pragmas: ['Skip-func-hw-test-medium: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, true, !isPr(), !isPr()]]]
+                                        skips: [isPr(), isPr(), false, true, !isPr(), isPr(), !isPr()]],
+                                       [pragmas: ['Skip-func-hw-test-medium-ucx-provider: false'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr(), !isPr()]]]
                             commits.each { commit ->
                                 cm = 'Test commit\n\n'
                                 commit.pragmas.each { pragma ->

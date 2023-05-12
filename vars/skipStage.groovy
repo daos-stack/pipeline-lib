@@ -114,33 +114,49 @@ boolean skip_scan_rpms(String distro, String target_branch) {
            quickFunctional()
 }
 
+boolean main_branch() {
+    // Is this a master or release branch
+    return env.BRANCH_NAME == 'master' ||
+           env.BRANCH_NAME.startsWith('release/')
+}
+
+boolean no_tests_to_run(distro) {
+    // Determine if the stage should be skipped because it was already ran or
+    // contains no tests to run.
+    return already_passed() || !testsInStage() ||
+           (docOnlyChange(target_branch) && prRepos(distro) == '')
+}
+
 boolean skip_ftest(String distro, String target_branch) {
-    // Defaults for skipped stages and pragmas to override them
-    // must be checked first before parameters are checked
-    // because the defaults are based on which branch
-    // is being run.
-    if (already_passed()) {
+    // Should the stage be skipped because it already ran or has no tests
+    if no_tests_to_run(distro) {
         return true
     }
-    if (run_default_skipped_stage('func-test-' + distro) ||
-        run_default_skipped_stage('func-test-vm-all')) {
-        // Forced to run due to a (Skip) pragma set to false
+
+    // Run this stage if enabled by default or requested by the user
+    if (run_default_skipped_stage('test') ||
+        run_default_skipped_stage('func-test') ||
+        run_default_skipped_stage('func-test-vm') ||
+        run_default_skipped_stage('func-test-vm-all') ||
+        run_default_skipped_stage('func-test-' + distro)) {
         return false
     }
-    // If a parameter exists to enable a build, then use it.
-    // The params.CI_MORE_FUNCTIONAL_PR_TESTS allows enabling
-    // tests that are not run in PRs.
-    return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true) ||
-           distro == 'ubuntu20' ||
-           skip_stage_pragma('func-test') ||
-           skip_stage_pragma('func-test-vm') ||
-           skip_stage_pragma('func-test-vm-all') ||
-           !testsInStage() ||
-           skip_stage_pragma('func-test-' + distro) ||
-           (docOnlyChange(target_branch) &&
-            prRepos(distro) == '') ||
-           /* groovylint-disable-next-line UnnecessaryGetter */
-           (isPr() && distro != 'el8')
+
+    // Disable running the non-EL8 Functional VM stage in PRs
+
+    // Run the stage if enabled by default or via build params unless it this
+    // is either:
+    //   1) a PR running on any OS besides EL8
+    //   2) running on ubuntu
+    if (paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', false) &&
+        /* groovylint-disable-next-line UnnecessaryGetter */
+        !((isPr() && distro != 'el8') ||
+          distro == 'ubuntu20')) {
+        return false
+    }
+
+    // Otherwise skip the branch
+    return true
 }
 
 boolean skip_ftest_valgrind(String distro, String target_branch) {
@@ -156,27 +172,35 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
 }
 
 boolean skip_ftest_hw(String size, String target_branch) {
-    if (already_passed() || !testsInStage()) {
-        // Stage has already run or there are no tests to run in the stage - always skip
+    // Should the stage be skipped because it already ran or has no tests
+    if no_tests_to_run(hwDistroTarget(size)) {
         return true
     }
-    if (paramsValue('CI_' + size.replace('-', '_') + '_TEST', false) ||
-        !skip_stage_pragma('func-hw-test-' + size, 'true') ||
-        !skip_stage_pragma('func-test', 'true')) {
-        // Checked build with params checkbox or commit pragma forcing stage to run
+
+    // Run this stage if requested by the user
+    if (run_default_skipped_stage('test') ||
+        run_default_skipped_stage('func-test') ||
+        run_default_skipped_stage('func-test-hw') ||
+        run_default_skipped_stage('func-test-hw' + size) ||
+        run_default_skipped_stage('func-hw-test') ||
+        run_default_skipped_stage('func-hw-test-' + size) ||
+        cachedCommitPragma('Run-daily-stages') == 'true') {
         return false
     }
-    return env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
-           skip_stage_pragma('func-hw-test-' + size) ||
-           skip_stage_pragma('func-test') ||
-           ((env.BRANCH_NAME == 'master' ||
-             env.BRANCH_NAME.startsWith('release/')) &&
-            !(startedByTimer() || startedByUser())) ||
-           cachedCommitPragma('Run-daily-stages') == 'true' ||
-           (docOnlyChange(target_branch) &&
-            prRepos(hwDistroTarget(size)) == '') ||
-           /* groovylint-disable-next-line UnnecessaryGetter */
-           (isPr() && size == 'medium-ucx-provider')
+
+    // Run the stage if enabled by default or via build params unless it this
+    // is either a:
+    //   1) PR running the Functional Hardware Medium UCX provider stage
+    //   2) build not started by the user/timer in the master or release branch
+    if (paramsValue('CI_' + size.replace('-', '_') + '_TEST', false) &&
+        /* groovylint-disable-next-line UnnecessaryGetter */
+        !((isPr() && size == 'medium-ucx-provider') ||
+          (main_branch() && !(startedByTimer() || startedByUser())))) {
+        return false
+    }
+
+    // Otherwise skip the branch
+    return true
 }
 
 boolean skip_if_unstable() {
