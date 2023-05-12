@@ -425,7 +425,7 @@ pipeline {
                                         println('  stage:                     ' + stage)
                                         println('  skipped (expect ==actual): ' +
                                                 commit.skips[i] + ' == ' + skipStage(commit_msg: cm))
-                                        if skipStage(commit_msg: cm) != commit.skips[i] {
+                                        if (skipStage(commit_msg: cm) != commit.skips[i]) {
                                             println('  status: FAIL')
                                             errors++
                                         }
