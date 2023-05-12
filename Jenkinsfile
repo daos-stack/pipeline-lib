@@ -425,9 +425,6 @@ pipeline {
                                              'UNIT_TEST=true',
                                              'pragmas=' + env.tmp_pragmas,
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
-                                        // println('  stage:                    ' + stage)
-                                        // println('  skipped (expect==actual): ' +
-                                        //         commit.skips[i] + ' == ' + skipStage(commit_msg: cm))
                                         actual_skips.add(skipStage(commit_msg: cm))
                                         if (skipStage(commit_msg: cm) != commit.skips[i]) {
                                             println('  status: FAIL, stage: ' + stage)
@@ -445,7 +442,7 @@ pipeline {
                                 println('')
                                 cachedCommitPragma(clear: true)
                             }
-                            assert(errors != 0)
+                            assert(errors == 0)
                         }
                         /* tests for all stages:
                               1. Test-tag: datamover
