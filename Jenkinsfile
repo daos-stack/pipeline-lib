@@ -412,8 +412,11 @@ pipeline {
                                 println('-------------------------')
                                 println('Unit test commit message:')
                                 println('')
-                                println(commit)
+                                println('  pragmas:        ' + commit.pragmas)
+                                println('  commit message: ' + cm)
+                                // println('expected skips: ' + commit.skips)
                                 println('')
+                                actual_skips = []
                                 i = 0
                                 // assign Map to env. var to serialize it
                                 env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
@@ -422,19 +425,24 @@ pipeline {
                                              'UNIT_TEST=true',
                                              'pragmas=' + env.tmp_pragmas,
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
-                                        println('  stage:                     ' + stage)
-                                        println('  skipped (expect ==actual): ' +
-                                                commit.skips[i] + ' == ' + skipStage(commit_msg: cm))
+                                        // println('  stage:                    ' + stage)
+                                        // println('  skipped (expect==actual): ' +
+                                        //         commit.skips[i] + ' == ' + skipStage(commit_msg: cm))
+                                        actual_skip.add(skipStage(commit_msg: cm))
                                         if (skipStage(commit_msg: cm) != commit.skips[i]) {
-                                            println('  status: FAIL')
+                                            println('  status: FAIL, stage: ' + stage)
                                             errors++
                                         }
                                         else {
-                                            println('  status: PASS')
+                                            println('  status: PASS, stage: ' + stage)
                                         }
                                         i++
                                     }
                                 }
+                                println('')
+                                println('expected skips: ' + commit.skips)
+                                println('actual skips:   ' + commit.skips)
+                                println('')
                                 cachedCommitPragma(clear: true)
                             }
                             assert(errors != 0)
