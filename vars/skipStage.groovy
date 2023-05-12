@@ -133,14 +133,19 @@ boolean skip_ftest(String distro, String target_branch) {
         return true
     }
 
+    // Skip this stage if requested by the user
+    if skip_stage_pragma('func-test-' + distro) {return true}
+    if skip_stage_pragma('func-test-vm-all') {return true}
+    if skip_stage_pragma('func-test-vm') {return true}
+    if skip_stage_pragma('func-test') {return true}
+    if skip_stage_pragma('test') {return true}
+
     // Run this stage if requested by the user
-    if (run_default_skipped_stage('test') ||
-        run_default_skipped_stage('func-test') ||
-        run_default_skipped_stage('func-test-vm') ||
-        run_default_skipped_stage('func-test-vm-all') ||
-        run_default_skipped_stage('func-test-' + distro)) {
-        return false
-    }
+    if run_default_skipped_stage('func-test-' + distro) {return false}
+    if run_default_skipped_stage('func-test-vm-all') {return false}
+    if run_default_skipped_stage('func-test-vm') {return false}
+    if run_default_skipped_stage('func-test') {return false}
+    if run_default_skipped_stage('test') {return false}
 
     // Run the stage if its build parameter is either:
     //   1) enabled by default
@@ -178,16 +183,22 @@ boolean skip_ftest_hw(String size, String target_branch) {
         return true
     }
 
+    // Skip this stage if requested by the user
+    if skip_stage_pragma('func-test-hw' + size) {return true}
+    if skip_stage_pragma('func-hw-test-' + size) {return true}
+    if skip_stage_pragma('func-test-hw') {return true}
+    if skip_stage_pragma('func-hw-test') {return true}
+    if skip_stage_pragma('func-test') {return true}
+    if skip_stage_pragma('test') {return true}
+    if cachedCommitPragma('Run-daily-stages').toLowerCase() == 'true' {return true}
+
     // Run this stage if requested by the user
-    if (run_default_skipped_stage('test') ||
-        run_default_skipped_stage('func-test') ||
-        run_default_skipped_stage('func-test-hw') ||
-        run_default_skipped_stage('func-test-hw' + size) ||
-        run_default_skipped_stage('func-hw-test') ||
-        run_default_skipped_stage('func-hw-test-' + size) ||
-        cachedCommitPragma('Run-daily-stages').toLowerCase() == 'true') {
-        return false
-    }
+    if run_default_skipped_stage('func-test-hw' + size) {return false}
+    if run_default_skipped_stage('func-hw-test-' + size) {return false}
+    if run_default_skipped_stage('func-test-hw') {return false}
+    if run_default_skipped_stage('func-hw-test') {return false}
+    if run_default_skipped_stage('func-test') {return false}
+    if run_default_skipped_stage('test') {return false}
 
     // Run the stage if its build parameter is either:
     //   1) enabled by default
