@@ -129,7 +129,9 @@ boolean no_tests_to_run(distro) {
 
 void test_print(message) {
     // Print the line if this is run in a unit test
-    if (env.UNIT_TEST && env.UNIT_TEST == 'true') {println(message)}
+    if (env.UNIT_TEST && env.UNIT_TEST == 'true') {
+        println(message)
+    }
 }
 
 boolean skip_ftest(String distro, String target_branch) {
