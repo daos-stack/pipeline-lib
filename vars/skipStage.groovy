@@ -348,6 +348,9 @@ boolean skip_build_bullseye(String target_branch, String distro) {
 
 /* groovylint-disable-next-line MethodSize */
 boolean call(Map config = [:]) {
+    test_print('test_print: env.UNIT_TEST = ' + env.UNIT_TEST)
+    println('println:    env.UNIT_TEST = ' + env.UNIT_TEST)
+
     if (config['stage']) {
         return skip_stage_pragma(config['stage'], config['def_val'])
     }
