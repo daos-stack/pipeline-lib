@@ -412,7 +412,7 @@ pipeline {
                                         skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr(), !isPr()]],
                                        [pragmas: ['Run-daily-stages: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, true, true, true, true, true]]]
+                                        skips: [false, false, false, false, false, false, false]]]
                             errors = 0
                             commits.each { commit ->
                                 cm = 'Test commit\n\n'
@@ -435,13 +435,7 @@ pipeline {
                                              'pragmas=' + env.tmp_pragmas,
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         actual_skips.add(skipStage(commit_msg: cm))
-                                        if (actual_skips[i] != commit.skips[i]) {
-                                            println('  status: FAIL, stage: ' + stage)
-                                            errors++
-                                        }
-                                        else {
-                                            println('  status: PASS, stage: ' + stage)
-                                        }
+                                        if (actual_skips[i] != commit.skips[i]) {errors++}
                                         i++
                                     }
                                 }
@@ -452,8 +446,8 @@ pipeline {
                                 stages.each { stage ->
                                     result = 'PASS'
                                     expect = 'run '
-                                    if (commit.skips[i]) {expect = 'skip'}
                                     actual = 'run '
+                                    if (commit.skips[i]) {expect = 'skip'}
                                     if (actual_skips[i]) {actual = 'skip'}
                                     if (expect != actual) {result = 'FAIL'}
                                     println('  ' + result + '    ' + expect + '    ' + actual + '    ' + stage)
