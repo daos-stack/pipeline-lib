@@ -153,57 +153,16 @@ boolean skip_ftest(String distro, String target_branch) {
         return true
     }
 
-    // if (skip_stage_pragma('func-test-' + distro)) {
-    //     test_print('  skip_ftest: user request for this stage (' + distro + '), skipping ' + env.STAGE_NAME)
-    //     return true
-    // }
-    // if (skip_stage_pragma('func-test-vm-all')) {
-    //     test_print('  skip_ftest: user request for all VM stages, skipping ' + env.STAGE_NAME)
-    //     return true
-    // }
-    // if (skip_stage_pragma('func-test-vm')) {
-    //     test_print('  skip_ftest: user request for all VM stages, skipping ' + env.STAGE_NAME)
-    //     return true
-    // }
-    // if (skip_stage_pragma('func-test')) {
-    //     test_print('  skip_ftest: user request for all func stages, skipping ' + env.STAGE_NAME)
-    //     return true
-    // }
-    // if (skip_stage_pragma('test')) {
-    //     test_print('  skip_ftest: user request for all test stages, skipping ' + env.STAGE_NAME)
-    //     return true
-    // }
-
     // Run this stage if requested by the user commit pragma
     if (run_default_skipped_stage('func-test-' + distro) ||
         run_default_skipped_stage('func-test-vm-all') ||
         run_default_skipped_stage('func-test-vm') ||
         run_default_skipped_stage('func-test') ||
-        run_default_skipped_stage('test')) {
+        run_default_skipped_stage('test') ||
+        cachedCommitPragma('Run-daily-stages').toLowerCase() == 'true') {
         test_print('  skip_ftest: user requested run of ' + env.STAGE_NAME)
         return false
     }
-
-    // if (run_default_skipped_stage('func-test-' + distro)) {
-    //     test_print('  skip_ftest: user request for this stages (' + distro + '), running ' + env.STAGE_NAME)
-    //     return false
-    // }
-    // if (run_default_skipped_stage('func-test-vm-all')) {
-    //     test_print('  skip_ftest: user request for all VM stages, running ' + env.STAGE_NAME)
-    //     return false
-    // }
-    // if (run_default_skipped_stage('func-test-vm')) {
-    //     test_print('  skip_ftest: user request for all VM stages, running ' + env.STAGE_NAME)
-    //     return false
-    // }
-    // if (run_default_skipped_stage('func-test')) {
-    //     test_print('  skip_ftest: user request for all func stages, running ' + env.STAGE_NAME)
-    //     return false
-    // }
-    // if (run_default_skipped_stage('test')) {
-    //     test_print('  skip_ftest: user request for all test stages, running ' + env.STAGE_NAME)
-    //     return false
-    // }
 
     // Run the stage if its build parameter is either:
     //   1) enabled by default
@@ -244,58 +203,26 @@ boolean skip_ftest_hw(String size, String target_branch) {
         return true
     }
 
-    // Skip this stage if requested by the user
-    if (skip_stage_pragma('func-test-hw-' + size)) {
-        test_print('  skip_ftest_hw: user request for this stage (' + size + '), skipping ' + env.STAGE_NAME)
-        return true
-    }
-    if (skip_stage_pragma('func-hw-test-' + size)) {
-        test_print('  skip_ftest_hw: user request for this stage (' + size + '), skipping ' + env.STAGE_NAME)
-        return true
-    }
-    if (skip_stage_pragma('func-test-hw')) {
-        test_print('  skip_ftest_hw: user request for all HW stages, skipping ' + env.STAGE_NAME)
-        return true
-    }
-    if (skip_stage_pragma('func-hw-test')) {
-        test_print('  skip_ftest_hw: user request for all HW stages, skipping ' + env.STAGE_NAME)
-        return true
-    }
-    if (skip_stage_pragma('func-test')) {
-        test_print('  skip_ftest_hw: user request for all func stages, skipping ' + env.STAGE_NAME)
-        return true
-    }
-    if (skip_stage_pragma('test')) {
-        test_print('  skip_ftest_hw: user request for all test stages, skipping ' + env.STAGE_NAME)
-        return true
-    }
-    if (cachedCommitPragma('Run-daily-stages').toLowerCase() == 'true') {
+    // Skip this stage if requested by the user commit pragma
+    if (skip_stage_pragma('func-test-hw-' + size) ||
+        skip_stage_pragma('func-hw-test-' + size) ||
+        skip_stage_pragma('func-test-hw') ||
+        skip_stage_pragma('func-hw-test') ||
+        skip_stage_pragma('func-test') ||
+        skip_stage_pragma('test')) {
+        test_print('  skip_ftest_hw: user requested skip of ' + env.STAGE_NAME)
         return true
     }
 
-    // Run this stage if requested by the user
-    if (run_default_skipped_stage('func-test-hw-' + size)) {
-        test_print('  skip_ftest_hw: user request for this stage (' + size + '), running ' + env.STAGE_NAME)
-        return false
-    }
-    if (run_default_skipped_stage('func-hw-test-' + size)) {
-        test_print('  skip_ftest_hw: user request for this stage (' + size + '), running ' + env.STAGE_NAME)
-        return false
-    }
-    if (run_default_skipped_stage('func-test-hw')) {
-        test_print('  skip_ftest_hw: user request for all HW stages, running ' + env.STAGE_NAME)
-        return false
-    }
-    if (run_default_skipped_stage('func-hw-test')) {
-        test_print('  skip_ftest_hw: user request for all HW stages, running ' + env.STAGE_NAME)
-        return false
-    }
-    if (run_default_skipped_stage('func-test')) {
-        test_print('  skip_ftest_hw: user request for all func stages, running ' + env.STAGE_NAME)
-        return false
-    }
-    if (run_default_skipped_stage('test')) {
-        test_print('  skip_ftest_hw: user request for all test stages, running ' + env.STAGE_NAME)
+    // Run this stage if requested by the user commit pragmas
+    if (run_default_skipped_stage('func-test-hw-' + size) ||
+        run_default_skipped_stage('func-hw-test-' + size) ||
+        run_default_skipped_stage('func-test-hw') ||
+        run_default_skipped_stage('func-hw-test') ||
+        run_default_skipped_stage('func-test') ||
+        run_default_skipped_stage('test') ||
+        cachedCommitPragma('Run-daily-stages').toLowerCase() == 'true') {
+        test_print('  skip_ftest_hw: user requested run of ' + env.STAGE_NAME)
         return false
     }
 

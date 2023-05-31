@@ -409,7 +409,10 @@ pipeline {
                                         skips: [isPr(), isPr(), false, true, !isPr(), isPr(), !isPr()]],
                                        [pragmas: ['Skip-func-hw-test-medium-ucx-provider: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr(), !isPr()]]]
+                                        skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr(), !isPr()]],
+                                       [pragmas: ['Run-daily-stages: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, true, true, true, true, true, true]]]
                             errors = 0
                             commits.each { commit ->
                                 cm = 'Test commit\n\n'
