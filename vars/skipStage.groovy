@@ -84,10 +84,7 @@ boolean already_passed(String stage_name = env.STAGE_NAME, String postfix='') {
 // Determine if a stage has been specified to skip with a commit pragma
 String skip_stage_pragma(String stage, String def_val='false') {
     test_print('  skip_stage_pragma: Skip-' + stage + ' = ' + cachedCommitPragma('Skip-' + stage, def_val).toLowerCase())
-    if (cachedCommitPragma('Skip-' + stage, def_val).toLowerCase() == 'true') {
-        return true
-    }
-    return false
+    return cachedCommitPragma('Skip-' + stage, def_val).toLowerCase() == 'true'
 }
 
 // Determine if a stage that defaults to being skipped has been forced to run
@@ -229,7 +226,7 @@ boolean skip_ftest_hw(String size, String target_branch) {
     }
 
     // Skip this stage if requested by the user
-    if (skip_stage_pragma('func-test-hw' + size)) {
+    if (skip_stage_pragma('func-test-hw-' + size)) {
         test_print('  skip_ftest_hw: user request for this stage (' + size + '), skipping ' + env.STAGE_NAME)
         return true
     }
@@ -258,7 +255,7 @@ boolean skip_ftest_hw(String size, String target_branch) {
     }
 
     // Run this stage if requested by the user
-    if (run_default_skipped_stage('func-test-hw' + size)) {
+    if (run_default_skipped_stage('func-test-hw-' + size)) {
         test_print('  skip_ftest_hw: user request for this stage (' + size + '), running ' + env.STAGE_NAME)
         return false
     }
