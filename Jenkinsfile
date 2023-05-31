@@ -386,6 +386,12 @@ pipeline {
                                        [pragmas: ['Skip-func-test-leap15: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [false, isPr(), false, !isPr(), !isPr(), true, !isPr()]],
+                                       [pragmas: ['Skip-func-test: true\nSkip-func-test-el8: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, true, true, true, true, true, true]],
+                                       [pragmas: ['Skip-func-test-leap15: false\nSkip-func-test-el7: false'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [false, false, false, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-func-test-hw: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [isPr(), isPr(), false, true, true, true, true]],
