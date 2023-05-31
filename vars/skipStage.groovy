@@ -137,51 +137,51 @@ void test_print(message) {
 boolean skip_ftest(String distro, String target_branch) {
     // Should the stage be skipped because it already ran or has no tests
     if (no_tests_to_run(distro, target_branch)) {
-        test_print('skip_ftest: no tests to run, skipping ' + env.STAGE_NAME)
+        test_print('  skip_ftest: no tests to run, skipping ' + env.STAGE_NAME)
         return true
     }
 
     // Skip this stage if requested by the user
     if (skip_stage_pragma('func-test-' + distro)) {
-        test_print('skip_ftest: user request for this stage, skipping ' + env.STAGE_NAME)
+        test_print('  skip_ftest: user request for this stage (' + distro + '), skipping ' + env.STAGE_NAME)
         return true
     }
     if (skip_stage_pragma('func-test-vm-all')) {
-        test_print('skip_ftest: user request for all VM stages, skipping ' + env.STAGE_NAME)
+        test_print('  skip_ftest: user request for all VM stages, skipping ' + env.STAGE_NAME)
         return true
     }
     if (skip_stage_pragma('func-test-vm')) {
-        test_print('skip_ftest: user request for all VM stages, skipping ' + env.STAGE_NAME)
+        test_print('  skip_ftest: user request for all VM stages, skipping ' + env.STAGE_NAME)
         return true
     }
     if (skip_stage_pragma('func-test')) {
-        test_print('skip_ftest: user request for all func stages, skipping ' + env.STAGE_NAME)
+        test_print('  skip_ftest: user request for all func stages, skipping ' + env.STAGE_NAME)
         return true
     }
     if (skip_stage_pragma('test')) {
-        test_print('skip_ftest: user request for all test stages, skipping ' + env.STAGE_NAME)
+        test_print('  skip_ftest: user request for all test stages, skipping ' + env.STAGE_NAME)
         return true
     }
 
     // Run this stage if requested by the user
     if (run_default_skipped_stage('func-test-' + distro)) {
-        test_print('skip_ftest: user request for this stages, running ' + env.STAGE_NAME)
+        test_print('  skip_ftest: user request for this stages (' + distro + '), running ' + env.STAGE_NAME)
         return false
     }
     if (run_default_skipped_stage('func-test-vm-all')) {
-        test_print('skip_ftest: user request for all VM stages, running ' + env.STAGE_NAME)
+        test_print('  skip_ftest: user request for all VM stages, running ' + env.STAGE_NAME)
         return false
     }
     if (run_default_skipped_stage('func-test-vm')) {
-        test_print('skip_ftest: user request for all VM stages, running ' + env.STAGE_NAME)
+        test_print('  skip_ftest: user request for all VM stages, running ' + env.STAGE_NAME)
         return false
     }
     if (run_default_skipped_stage('func-test')) {
-        test_print('skip_ftest: user request for all func stages, running ' + env.STAGE_NAME)
+        test_print('  skip_ftest: user request for all func stages, running ' + env.STAGE_NAME)
         return false
     }
     if (run_default_skipped_stage('test')) {
-        test_print('skip_ftest: user request for all test stages, running ' + env.STAGE_NAME)
+        test_print('  skip_ftest: user request for all test stages, running ' + env.STAGE_NAME)
         return false
     }
 
@@ -196,12 +196,12 @@ boolean skip_ftest(String distro, String target_branch) {
         /* groovylint-disable-next-line UnnecessaryGetter */
         !((isPr() && distro != 'el8') ||
           distro == 'ubuntu20')) {
-        test_print('skip_ftest: enabled by checkbox or other, running ' + env.STAGE_NAME)
+        test_print('  skip_ftest: enabled by checkbox or other, running ' + env.STAGE_NAME)
         return false
     }
 
     // Otherwise skip the branch
-    test_print('skip_ftest: default, skipping ' + env.STAGE_NAME)
+    test_print('  skip_ftest: default, skipping ' + env.STAGE_NAME)
     return true
 }
 
@@ -220,33 +220,33 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
 boolean skip_ftest_hw(String size, String target_branch) {
     // Should the stage be skipped because it already ran or has no tests
     if (no_tests_to_run(hwDistroTarget(size), target_branch)) {
-        test_print('skip_ftest: no tests to run, skipping ' + env.STAGE_NAME)
+        test_print('  skip_ftest_hw: no tests to run, skipping ' + env.STAGE_NAME)
         return true
     }
 
     // Skip this stage if requested by the user
     if (skip_stage_pragma('func-test-hw' + size)) {
-        test_print('skip_ftest: user request for this stage, skipping ' + env.STAGE_NAME)
+        test_print('  skip_ftest_hw: user request for this stage (' + size + '), skipping ' + env.STAGE_NAME)
         return true
     }
     if (skip_stage_pragma('func-hw-test-' + size)) {
-        test_print('skip_ftest: user request for this stage, skipping ' + env.STAGE_NAME)
+        test_print('  skip_ftest_hw: user request for this stage (' + size + '), skipping ' + env.STAGE_NAME)
         return true
     }
     if (skip_stage_pragma('func-test-hw')) {
-        test_print('skip_ftest: user request for all HW stages, skipping ' + env.STAGE_NAME)
+        test_print('  skip_ftest_hw: user request for all HW stages, skipping ' + env.STAGE_NAME)
         return true
     }
     if (skip_stage_pragma('func-hw-test')) {
-        test_print('skip_ftest: user request for all HW stages, skipping ' + env.STAGE_NAME)
+        test_print('  skip_ftest_hw: user request for all HW stages, skipping ' + env.STAGE_NAME)
         return true
     }
     if (skip_stage_pragma('func-test')) {
-        test_print('skip_ftest: user request for all func stages, skipping ' + env.STAGE_NAME)
+        test_print('  skip_ftest_hw: user request for all func stages, skipping ' + env.STAGE_NAME)
         return true
     }
     if (skip_stage_pragma('test')) {
-        test_print('skip_ftest: user request for all test stages, skipping ' + env.STAGE_NAME)
+        test_print('  skip_ftest_hw: user request for all test stages, skipping ' + env.STAGE_NAME)
         return true
     }
     if (cachedCommitPragma('Run-daily-stages').toLowerCase() == 'true') {
@@ -255,27 +255,27 @@ boolean skip_ftest_hw(String size, String target_branch) {
 
     // Run this stage if requested by the user
     if (run_default_skipped_stage('func-test-hw' + size)) {
-        test_print('skip_ftest: user request for this stage, running ' + env.STAGE_NAME)
+        test_print('  skip_ftest_hw: user request for this stage (' + size + '), running ' + env.STAGE_NAME)
         return false
     }
     if (run_default_skipped_stage('func-hw-test-' + size)) {
-        test_print('skip_ftest: user request for this stage, running ' + env.STAGE_NAME)
+        test_print('  skip_ftest_hw: user request for this stage (' + size + '), running ' + env.STAGE_NAME)
         return false
     }
     if (run_default_skipped_stage('func-test-hw')) {
-        test_print('skip_ftest: user request for all HW stages, running ' + env.STAGE_NAME)
+        test_print('  skip_ftest_hw: user request for all HW stages, running ' + env.STAGE_NAME)
         return false
     }
     if (run_default_skipped_stage('func-hw-test')) {
-        test_print('skip_ftest: user request for all HW stages, running ' + env.STAGE_NAME)
+        test_print('  skip_ftest_hw: user request for all HW stages, running ' + env.STAGE_NAME)
         return false
     }
     if (run_default_skipped_stage('func-test')) {
-        test_print('skip_ftest: user request for all func stages, running ' + env.STAGE_NAME)
+        test_print('  skip_ftest_hw: user request for all func stages, running ' + env.STAGE_NAME)
         return false
     }
     if (run_default_skipped_stage('test')) {
-        test_print('skip_ftest: user request for all test stages, running ' + env.STAGE_NAME)
+        test_print('  skip_ftest_hw: user request for all test stages, running ' + env.STAGE_NAME)
         return false
     }
 
@@ -290,12 +290,12 @@ boolean skip_ftest_hw(String size, String target_branch) {
         /* groovylint-disable-next-line UnnecessaryGetter */
         !((isPr() && size == 'medium-ucx-provider') ||
           (main_branch() && !(startedByTimer() || startedByUser())))) {
-        test_print('skip_ftest: enabled by checkbox or other, running ' + env.STAGE_NAME)
+        test_print('  skip_ftest_hw: enabled by checkbox or other, running ' + env.STAGE_NAME)
         return false
     }
 
     // Otherwise skip the branch
-    test_print('skip_ftest: default, skipping ' + env.STAGE_NAME)
+    test_print('  skip_ftest_hw: default, skipping ' + env.STAGE_NAME)
     return true
 }
 

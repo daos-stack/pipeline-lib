@@ -438,8 +438,19 @@ pipeline {
                                     }
                                 }
                                 println('')
-                                println('expected skips: ' + commit.skips)
-                                println('actual skips:   ' + actual_skips)
+                                println('  Expect  Actual  Stage')
+                                println('  ------  ------  ----------------------------------------------')
+                                i = 0
+                                stages.each { stage ->
+                                    expect = 'run '
+                                    if (commit.skips[i]) {expect = 'skip'}
+                                    actual = 'run '
+                                    if (actual_skips[i]) {actual = 'skip'}
+                                    println('  ' + expect + '    ' + actual + '    ' + stage)
+                                    i++
+                                }
+                                // println('  expected skips: ' + commit.skips)
+                                // println('  actual skips:   ' + actual_skips)
                                 println('')
                                 cachedCommitPragma(clear: true)
                             }
