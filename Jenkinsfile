@@ -424,7 +424,6 @@ pipeline {
                                 println('')
                                 println('  pragmas:        ' + commit.pragmas)
                                 println('  commit message: ' + cm)
-                                // println('expected skips: ' + commit.skips)
                                 println('')
                                 actual_skips = []
                                 i = 0
