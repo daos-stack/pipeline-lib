@@ -41,6 +41,7 @@ void call(Map config = [:]) {
     String results_map = 'results_map_' + sanitizedStageName()
     unstash name: results_map
     Map results = readYaml file: results_map
+    List artifact_list = config.get('artifacts', ['run_test.sh/*'])
 
     String testResults = stage_info.get('testResults', 'test_results/*.xml')
     if (testResults != 'None' ) {
@@ -52,7 +53,7 @@ void call(Map config = [:]) {
         junit testResults: testResults,
               healthScaleFactor: health_scale
     }
-    if (stage_info['with_valgrind']) {
+    if (stage_info['with_valgrind'] || stage_info['NLT']) {
         String suite = sanitizedStageName()
         int vgfail = 0
         String testdata
@@ -68,6 +69,8 @@ void call(Map config = [:]) {
                           message: 'Valgrind Memcheck error detected',
                           testdata: testdata,
                           ignoreFailure: results['ignore_failure']
+        String memcheck = sanitizedStageName() + '_memcheck_logs.tar.gz'
+        artifact_list.add(memcheck)
     }
     stepResult name: description,
                context: context,
@@ -76,7 +79,6 @@ void call(Map config = [:]) {
                junit_files: testResults,
                ignore_failure: results['ignore_failure']
 
-    List artifact_list = config.get('artifacts', ['run_test.sh/*'])
     artifact_list.each { artifactPat ->
         println("Archiving Artifacts matching ${artifactPat}")
         archiveArtifacts artifacts: artifactPat,
