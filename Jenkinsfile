@@ -427,7 +427,7 @@ pipeline {
                                              'pragmas=' + env.tmp_pragmas,
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         actual_skips.add(skipStage(commit_msg: cm))
-                                        if (skipStage(commit_msg: cm) != commit.skips[i]) {
+                                        if (actual_skips[i] != commit.skips[i]) {
                                             println('  status: FAIL, stage: ' + stage)
                                             errors++
                                         }
@@ -438,19 +438,19 @@ pipeline {
                                     }
                                 }
                                 println('')
-                                println('  Expect  Actual  Stage')
-                                println('  ------  ------  ----------------------------------------------')
+                                println('  Result  Expect  Actual  Stage')
+                                println('  ------  ------  ------  ------------------------------------------')
                                 i = 0
                                 stages.each { stage ->
+                                    result = 'PASS'
                                     expect = 'run '
                                     if (commit.skips[i]) {expect = 'skip'}
                                     actual = 'run '
                                     if (actual_skips[i]) {actual = 'skip'}
-                                    println('  ' + expect + '    ' + actual + '    ' + stage)
+                                    if (expect != actual) {result = 'FAIL'}
+                                    println('  ' + result + '    ' + expect + '    ' + actual + '    ' + stage)
                                     i++
                                 }
-                                // println('  expected skips: ' + commit.skips)
-                                // println('  actual skips:   ' + actual_skips)
                                 println('')
                                 cachedCommitPragma(clear: true)
                             }

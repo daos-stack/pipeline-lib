@@ -83,7 +83,11 @@ boolean already_passed(String stage_name = env.STAGE_NAME, String postfix='') {
 
 // Determine if a stage has been specified to skip with a commit pragma
 String skip_stage_pragma(String stage, String def_val='false') {
-    return cachedCommitPragma('Skip-' + stage, def_val).toLowerCase() == 'true'
+    test_print('  skip_stage_pragma: Skip-' + stage + ' = ' + cachedCommitPragma('Skip-' + stage, def_val).toLowerCase())
+    if (cachedCommitPragma('Skip-' + stage, def_val).toLowerCase() == 'true') {
+        return true
+    }
+    return false
 }
 
 // Determine if a stage that defaults to being skipped has been forced to run
