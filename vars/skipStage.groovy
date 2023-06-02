@@ -116,13 +116,13 @@ boolean skip_scan_rpms(String distro, String target_branch) {
            quickFunctional()
 }
 
-boolean main_branch() {
+boolean landing_branch() {
     // Is this a master or release branch
     return env.BRANCH_NAME == 'master' ||
            env.BRANCH_NAME.startsWith('release/')
 }
 
-boolean no_tests_to_run(distro, String target_branch) {
+boolean no_tests_to_run(String distro, String target_branch) {
     // Determine if the stage should be skipped because it was already ran or
     // contains no tests to run.
     return already_passed() || !testsInStage() ||
@@ -141,6 +141,13 @@ boolean skip_ftest(String distro, String target_branch) {
     if (no_tests_to_run(distro, target_branch)) {
         test_print('  skip_ftest: no tests to run, skipping ' + env.STAGE_NAME)
         return true
+    }
+
+    /* groovylint-disable-next-line UnnecessaryGetter */
+    if (startedByTimer() || startedByUser()) {
+        // When the stage is started manually or via a timer skipping the stage is
+        // controlled by the build parameter and commit pragmas are ignored
+        return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true)
     }
 
     // Skip this stage if requested by the user commit pragma
@@ -203,6 +210,13 @@ boolean skip_ftest_hw(String size, String target_branch) {
         return true
     }
 
+    /* groovylint-disable-next-line UnnecessaryGetter */
+    if (startedByTimer() || startedByUser()) {
+        // When the stage is started manually or via a timer skipping the stage is
+        // controlled by the build parameter and commit pragmas are ignored
+        return !paramsValue('CI_' + size.replace('-', '_') + '_TEST', true)
+    }
+
     // Skip this stage if requested by the user commit pragma
     if (skip_stage_pragma('func-test-hw-' + size) ||
         skip_stage_pragma('func-hw-test-' + size) ||
@@ -236,7 +250,7 @@ boolean skip_ftest_hw(String size, String target_branch) {
     if (paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) &&
         /* groovylint-disable-next-line UnnecessaryGetter */
         !((isPr() && size == 'medium-ucx-provider') ||
-          (main_branch() && !(startedByTimer() || startedByUser())))) {
+          (landing_branch() && !(startedByTimer() || startedByUser())))) {
         test_print('  skip_ftest_hw: enabled by checkbox or other, running ' + env.STAGE_NAME)
         return false
     }
