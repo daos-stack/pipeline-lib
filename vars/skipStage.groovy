@@ -143,10 +143,9 @@ boolean skip_ftest(String distro, String target_branch) {
         return true
     }
 
-    /* groovylint-disable-next-line UnnecessaryGetter */
+    // When the stage is started manually or via a timer skipping the stage is
+    // controlled by the build parameter and commit pragmas are ignored
     if (startedByTimer() || startedByUser()) {
-        // When the stage is started manually or via a timer skipping the stage is
-        // controlled by the build parameter and commit pragmas are ignored
         return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true)
     }
 
@@ -210,10 +209,9 @@ boolean skip_ftest_hw(String size, String target_branch) {
         return true
     }
 
-    /* groovylint-disable-next-line UnnecessaryGetter */
+    // When the stage is started manually or via a timer skipping the stage is
+    // controlled by the build parameter and commit pragmas are ignored
     if (startedByTimer() || startedByUser()) {
-        // When the stage is started manually or via a timer skipping the stage is
-        // controlled by the build parameter and commit pragmas are ignored
         return !paramsValue('CI_' + size.replace('-', '_') + '_TEST', true)
     }
 
