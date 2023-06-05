@@ -145,7 +145,7 @@ boolean skip_ftest(String distro, String target_branch) {
 
     // When the stage is started manually or via a timer skipping the stage is
     // controlled by the build parameter and commit pragmas are ignored
-    if (startedByTimer() || startedByUser()) {
+    if ((startedByTimer() || startedByUser()) && !startedByUpstream()) {
         return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true)
     }
 
@@ -211,7 +211,7 @@ boolean skip_ftest_hw(String size, String target_branch) {
 
     // When the stage is started manually or via a timer skipping the stage is
     // controlled by the build parameter and commit pragmas are ignored
-    if (startedByTimer() || startedByUser()) {
+    if ((startedByTimer() || startedByUser()) && !startedByUpstream()) {
         return !paramsValue('CI_' + size.replace('-', '_') + '_TEST', true)
     }
 
