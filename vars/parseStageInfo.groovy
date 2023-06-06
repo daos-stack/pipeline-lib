@@ -274,34 +274,42 @@ Map call(Map config = [:]) {
     }
 
     // Determine which tests tags to use
-    String tag
-    if (startedByUser() || startedByUpstream()) {
-      // Test tags defined by the build parameters override all other tags
-      tag = get_build_params_tags()
-    }
-    if (!tag && startedByTimer()) {
-      // Stage defined tags take precedence in timed builds
-      tag = config['test_tag']
-      if (!tag) {
-        // Otherwise use the default timed build tags
-        tag = 'pr daily_regression'
-        if (env.BRANCH_NAME.startsWith('weekly-testing')) {
-          tag = 'full_regression'
+    //                   config        Build Param    Commit Pragma
+    // Started by        'test_tag'    (TestTag)      (Test-tag)       Default       Use
+    // --------------    ----------    ----------     -------------    ----------    ----------
+    // PR | Upstream     None          None           None             defaul_tag    defaul_tag
+    // PR | Upstream     None          None           commit_tag       defaul_tag    commit_tag
+    // PR | Upstream     None          param_tag      None             defaul_tag    param_tag
+    // PR | Upstream     None          param_tag      commit_tag       defaul_tag    commit_tag
+    // Manual | Timer    None          None           <any>            defaul_tag    defaul_tag
+    // Manual | Timer    None          param_tag      <any>            defaul_tag    param_tag
+    // <any>             config_tag    <any>          <any>            <any>         config_tag
+    //
+    String tag = config['test_tag']
+    if (!tag) {
+      if (startedByUser() || startedByTimer()) {
+        // Get tags from the build parameters
+        tag = get_build_params_tags()
+        if (!tag) {
+          // Default to the pr tag for any other build stage
+          tag = 'pr'
         }
       }
-    } else if (!tag) {
-      if (env.BRANCH_NAME.matches(testBranchRE())) {
-        tag = 'always_passes'
-      } else {
-        // Tags defined by commit pragmas have priority in user PRs
+      else {
+        // Get tags from the commit pragmas
         tag = get_commit_pragma_tags(result['pragma_suffix'])
         if (!tag) {
-          // Followed by stage defined tags
-          tag = config['test_tag']
-          /* groovylint-disable-next-line CouldBeElvis */
+          // Get tags from the build parameters
+          tag = get_build_params_tags()
           if (!tag) {
-            // Otherwise use the default PR tag
-            tag = 'pr'
+            if (startedByUpstream()) {
+              // Default to run simple tests for dowstream builds
+              tag = 'always_passes'
+            }
+            else {
+              // Default to the pr tag for any other build stage
+              tag = 'pr'
+            }
           }
         }
       }
