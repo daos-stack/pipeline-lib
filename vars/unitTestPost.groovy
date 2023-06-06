@@ -69,7 +69,7 @@ void call(Map config = [:]) {
                           message: 'Valgrind Memcheck error detected',
                           testdata: testdata,
                           ignoreFailure: results['ignore_failure']
-        String memcheck = sanitizedStageName() + '_memcheck_logs.tar.gz'
+        String memcheck = sanitizedStageName() + '_memcheck_results.tar.bz2'
         artifact_list.add(memcheck)
     }
     stepResult name: description,
