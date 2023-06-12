@@ -13,8 +13,8 @@ String call() {
 
 String call(String distro) {
     String branch = 'master'
-    if (env.BRANCH_NAME.endsWith('2.2')) {
-        branch = 'release/2.2'
+    if (env.BRANCH_NAME.matches('[0-9]+.[0-9]+$')) {
+        branch = env.BRANCH_NAME.replace('.*([0-9]+.[0-9]+)$', 'release/\1')
     }
 
     return distroVersion(distro, branch)
@@ -22,8 +22,10 @@ String call(String distro) {
 
 String call(String distro, String branch) {
     return ['el8':      ['master':      '8.7',
+                         'release/2.4': '8.7',
                          'release/2.2': '8.6'],
             'leap15':   ['master':      '15.4',
+                         'release/2.4': '15.4',
                          'release/2.2': '15.4'],
             'ubuntu20': ['master':      '20.04']][distro][branch]
 }

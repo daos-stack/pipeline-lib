@@ -285,7 +285,7 @@ Map call(Map config = [:]) {
       if (!tag) {
         // Otherwise use the default timed build tags
         tag = 'pr daily_regression'
-        if (env.BRANCH_NAME.startsWith('weekly-testing')) {
+        if (env.BRANCH_NAME.matches(testBranchRE('weekly'))) {
           tag = 'full_regression'
         }
       }

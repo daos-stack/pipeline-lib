@@ -103,7 +103,7 @@ boolean skip_build_on_landing_branch(String target_branch) {
 
 boolean skip_scan_rpms(String distro, String target_branch) {
     return already_passed() ||
-           target_branch == 'weekly-testing' ||
+           target_branch.matches(testBranchRE('weekly')) ||
            rpmTestVersion() != '' ||
            skip_stage_pragma('scan-rpms') ||
            skip_stage_pragma('scan-' + distro + '-rpms') ||
@@ -152,7 +152,7 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
            skip_ftest(distro, target_branch) ||
            /* groovylint-disable-next-line UnnecessaryGetter */
            isPr() ||
-           target_branch.startsWith('weekly-testing')
+           target_branch.matches(testBranchRE('weekly'))
 }
 
 boolean skip_ftest_hw(String size, String target_branch) {
@@ -163,7 +163,7 @@ boolean skip_ftest_hw(String size, String target_branch) {
            skip_stage_pragma('func-hw-test-' + size) ||
            !testsInStage() ||
            ((env.BRANCH_NAME == 'master' ||
-             env.BRANCH_NAME.startsWith('release/')) &&
+             env.BRANCH_NAME.matches(testBranchRE('release'))) &&
             !(startedByTimer() || startedByUser())) ||
            cachedCommitPragma('Run-daily-stages') == 'true' ||
            (docOnlyChange(target_branch) &&
@@ -177,7 +177,7 @@ boolean skip_if_unstable() {
         cachedCommitPragma('Allow-unstable-test').toLowerCase() == 'true' ||
         env.BRANCH_NAME == 'master' ||
         env.BRANCH_NAME.matches(testBranchRE()) ||
-        env.BRANCH_NAME.startsWith('release/')) {
+        env.BRANCH_NAME.matches(testBranchRE('release'))) {
         return false
     }
 
@@ -223,7 +223,7 @@ boolean call(Map config = [:]) {
                    (!isPr() && !startedByUpstream())
         case 'Pre-build':
             return docOnlyChange(target_branch) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch.matches(testBranchRE('weekly')) ||
                    rpmTestVersion() != '' ||
                    quickBuild()
         case 'checkpatch':
@@ -255,14 +255,14 @@ boolean call(Map config = [:]) {
         case 'Build RPM on Leap 15':
         case 'Build RPM on Leap 15.4':
             return paramsValue('CI_RPM_leap15_NOBUILD', false) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch.matches(testBranchRE('weekly')) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
                    prRepos('leap15').contains('daos@') ||
                    skip_stage_pragma('build-leap15-rpm')
         case 'Build DEB on Ubuntu 20.04':
             return paramsValue('CI_RPM_ubuntu20_NOBUILD', false) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch.matches(testBranchRE('weekly')) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
                    prRepos('ubuntu20').contains('daos@') ||
@@ -350,7 +350,7 @@ boolean call(Map config = [:]) {
                    quickBuild()
         case 'Build on Ubuntu 20.04 with Clang':
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch.matches(testBranchRE('weekly')) ||
                    skip_stage_pragma('build-ubuntu-clang') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
@@ -365,7 +365,7 @@ boolean call(Map config = [:]) {
         case 'Build on Leap 15 with Intel-C and TARGET_PREFIX':
         case 'Build on Leap 15.4 with Intel-C and TARGET_PREFIX':
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch.matches(testBranchRE('weekly')) ||
                    skip_stage_pragma('build-leap15-icc') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
@@ -416,7 +416,7 @@ boolean call(Map config = [:]) {
                    skip_if_unstable()
         case 'Test on CentOS 7 [in] Vagrant':
             return skip_stage_pragma('vagrant-test', 'true') &&
-                   !env.BRANCH_NAME.startsWith('weekly-testing') ||
+                   !env.BRANCH_NAME.matches(testBranchRE('weekly')) ||
                    already_passed()
         case 'Coverity on CentOS 7':
         case 'Coverity on CentOS 8':
@@ -456,7 +456,7 @@ boolean call(Map config = [:]) {
                    already_passed()
         case 'Test CentOS 7 RPMs':
             return !paramsValue('CI_RPMS_el7_TEST', true) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch.matches(testBranchRE('weekly')) ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-centos-rpms') ||
@@ -468,7 +468,7 @@ boolean call(Map config = [:]) {
                    already_passed()
         case 'Test CentOS 8.3.2011 RPMs':
             return !paramsValue('CI_RPMS_centos8.3.2011_TEST', true) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch.matches(testBranchRE('weekly')) ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-centos-8.3-rpms') ||
@@ -480,7 +480,7 @@ boolean call(Map config = [:]) {
         case 'Test CentOS 8.4.2105 RPMs':
         case 'Test EL 8.4 RPMs':
             return !paramsValue('CI_RPMS_el8.4.2105_TEST', true) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch.matches(testBranchRE('weekly')) ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-el-8.4-rpms') ||
@@ -492,7 +492,7 @@ boolean call(Map config = [:]) {
         case 'Test CentOS 8.5.2111 RPMs':
         case 'Test EL 8.5 RPMs':
             return !paramsValue('CI_RPMS_el8.5.2111_TEST', true) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch.matches(testBranchRE('weekly')) ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-el-8.5-rpms') ||
