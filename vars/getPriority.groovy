@@ -8,7 +8,7 @@
    */
 
 def call() {
-    if (env.BRANCH_NAME.matches(testBranchRE())) {
+    if (env.BRANCH_NAME =~ testBranchRE()) {
         string p = '2'
     } else {
         string p = ''

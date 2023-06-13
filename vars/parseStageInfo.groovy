@@ -285,12 +285,12 @@ Map call(Map config = [:]) {
       if (!tag) {
         // Otherwise use the default timed build tags
         tag = 'pr daily_regression'
-        if (env.BRANCH_NAME.matches(testBranchRE('weekly'))) {
+        if (env.BRANCH_NAME =~ branchTypeRE('weekly')) {
           tag = 'full_regression'
         }
       }
     } else if (!tag) {
-      if (env.BRANCH_NAME.matches(testBranchRE())) {
+      if (env.BRANCH_NAME =~ branchTypeRE('testing')) {
         tag = 'always_passes'
       } else {
         // Tags defined by commit pragmas have priority in user PRs

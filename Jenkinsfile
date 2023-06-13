@@ -248,58 +248,6 @@ pipeline {
                         }
                     }
                 } //stage('publishToRepository DEB tests')
-                stage('provisionNodes with release/2.4 Repo') {
-                    when {
-                        beforeAgent true
-                        expression { env.NO_CI_TESTING != 'true' }
-                    }
-                    agent {
-                        label 'ci_vm1'
-                    }
-                    steps {
-                        job_step_update(
-                            provisionNodes(NODELIST: env.NODELIST,
-                                           distro: 'el8',
-                                           profile: 'daos_ci',
-                                           node_count: '1',
-                                           snapshot: true,
-                                           inst_repos: 'daos@release/2.4'))
-                        job_step_update(
-                            /* groovylint-disable-next-line GStringExpressionWithinString */
-                            runTest(script: '''NODE=${NODELIST%%,*}
-                                               ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
-                                               yum -y --disablerepo=\\* --enablerepo=build\\* makecache"''',
-                                    junit_files: null,
-                                    failure_artifacts: env.STAGE_NAME))
-                    }
-                    // runTest handles SCM notification via stepResult
-                } //stage('provisionNodes with release/2.4 Repo')
-                stage('provisionNodes with release/2.2 Repo') {
-                    when {
-                        beforeAgent true
-                        expression { env.NO_CI_TESTING != 'true' }
-                    }
-                    agent {
-                        label 'ci_vm1'
-                    }
-                    steps {
-                        job_step_update(
-                            provisionNodes(NODELIST: env.NODELIST,
-                                           distro: 'el8',
-                                           profile: 'daos_ci',
-                                           node_count: '1',
-                                           snapshot: true,
-                                           inst_repos: 'daos@release/2.2'))
-                        job_step_update(
-                            /* groovylint-disable-next-line GStringExpressionWithinString */
-                            runTest(script: '''NODE=${NODELIST%%,*}
-                                               ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
-                                               yum -y --disablerepo=\\* --enablerepo=build\\* makecache"''',
-                                    junit_files: null,
-                                    failure_artifacts: env.STAGE_NAME))
-                    }
-                    // runTest handles SCM notification via stepResult
-                } //stage('provisionNodes with release/2.2 Repo')
                 stage('provisionNodes with master Repo') {
                     when {
                         beforeAgent true
