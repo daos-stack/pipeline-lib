@@ -152,7 +152,7 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
            skip_ftest(distro, target_branch) ||
            /* groovylint-disable-next-line UnnecessaryGetter */
            isPr() ||
-           target_branch =~ branchTypeRE('weekly'))
+           target_branch =~ branchTypeRE('weekly')
 }
 
 boolean skip_ftest_hw(String size, String target_branch) {
