@@ -13,8 +13,8 @@ String call() {
 
 String call(String distro) {
     String branch = 'master'
-    if (env.BRANCH_NAME =~ '/[0-9]+\.[0-9]+') {
-        branch = env.BRANCH_NAME.replace('.*([0-9]+\.[0-9]+).*', 'release/\1')
+    if (env.BRANCH_NAME =~ '/\\d+\\.\\d+') {
+        branch = env.BRANCH_NAME.replace('.*(\\d+\\.\\d+).*', 'release/\1')
     }
 
     return distroVersion(distro, branch)
