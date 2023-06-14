@@ -20,7 +20,6 @@
 //@Library(value='pipeline-lib@my_branch_name') _
 @Library(value=['pipeline-lib@pahender/DAOS-13648', 'trusted-pipeline-lib@pahender/DAOS-13648']) _
 
-
 /* groovylint-disable-next-line CompileStatic */
 job_status_internal = [:]
 
