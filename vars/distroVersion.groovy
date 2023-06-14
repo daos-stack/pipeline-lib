@@ -13,7 +13,9 @@ String call() {
 
 String call(String distro) {
     String branch = 'master'
-    if (env.BRANCH_NAME =~ '/\\d+\\.\\d+') {
+    if ((env.BRANCH_NAME =~ branchTypeRE('release') ||
+         env.BRANCH_NAME =~ branchTypeRE('testing')) &&
+        (env.BRANCH_NAME =~ '/\\d+\\.\\d+')) {
         branch = env.BRANCH_NAME.replace('.*(\\d+\\.\\d+).*', 'release/\1')
     }
 
