@@ -659,6 +659,7 @@ void call(Map pipeline_args) {
                         axis {
                             name 'TEST_BRANCH'
                             values 'master',
+                                   'release/2.4',
                                    'release/2.2'
                         }
                     }
