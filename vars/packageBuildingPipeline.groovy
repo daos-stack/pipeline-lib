@@ -302,7 +302,8 @@ void call(Map pipeline_args) {
                                 label 'docker_runner'
                                 args '--group-add mock' +
                                      ' --cap-add=SYS_ADMIN' +
-                                     ' --privileged=true'
+                                     ' --privileged=true' +
+                                     ' --tmpfs /tmp:rw,relatime,suid,dev,exec,size=6G'
                                 additionalBuildArgs dockerBuildArgs()
                             }
                         }
@@ -381,7 +382,8 @@ void call(Map pipeline_args) {
                                 label 'docker_runner'
                                 args '--group-add mock' +
                                      ' --cap-add=SYS_ADMIN' +
-                                     ' --privileged=true'
+                                     ' --privileged=true' +
+                                     ' --tmpfs /tmp:rw,relatime,suid,dev,exec,size=6G'
                                 additionalBuildArgs dockerBuildArgs()
                             }
                         }
@@ -459,7 +461,8 @@ void call(Map pipeline_args) {
                                 label 'docker_runner'
                                 args '--group-add mock' +
                                      ' --cap-add=SYS_ADMIN' +
-                                     ' --privileged=true'
+                                     ' --privileged=true' +
+                                     ' --tmpfs /tmp:rw,relatime,suid,dev,exec,size=6G'
                                 additionalBuildArgs dockerBuildArgs()
                             }
                         }
