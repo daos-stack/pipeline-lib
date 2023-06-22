@@ -78,9 +78,11 @@ void call(Map config = [:]) {
             stash name: target + '-required-mercury-rpm-version',
               includes: target + '-required-mercury-rpm-version'
         }
-
-        stash name: target + '-rpm-version',
-              includes: target + '-rpm-version'
+        String rpm_version_file = target + '-rpm-version'
+        if (fileExists(rpm_version_file)) {
+            stash name: rpm_version_file,
+                  includes: rpm_version_file
+        }
 
         String product = config.get('product', 'daos-stack')
         publishToRepository product: product,

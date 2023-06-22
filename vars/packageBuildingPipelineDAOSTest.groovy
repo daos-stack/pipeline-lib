@@ -1,6 +1,6 @@
 #!/usr/bin/groovy
 /* groovylint-disable DuplicateMapLiteral, DuplicateStringLiteral, NestedBlockDepth, VariableName */
-/* Copyright (C) 2019-2022 Intel Corporation
+/* Copyright (C) 2019-2023 Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -90,8 +90,6 @@ void call(Map pipeline_args) {
          */
 
         environment {
-            QUICKBUILD = sh(script: 'git show -s --format=%B | grep "^Quick-build: true"',
-                            returnStatus: true)
             PACKAGING_BRANCH = commitPragma('Packaging-branch', 'master')
         }
         stages {
@@ -120,7 +118,10 @@ void call(Map pipeline_args) {
                 }
             }
             stage('Cancel Previous Builds') {
-                when { changeRequest() }
+                when {
+                    beforeAgent true
+                    expression { !skipStage() && changeRequest() }
+                }
                 steps {
                     cancelPreviousBuilds()
                 }
@@ -136,9 +137,7 @@ void call(Map pipeline_args) {
             stage('Lint') {
                 when {
                     beforeAgent true
-                    allOf {
-                        expression { return env.QUICKBUILD == '1' }
-                    }
+                    expression { !skipStage() }
                 }
                 parallel {
                     stage('RPM SPEC Lint') {
@@ -209,6 +208,10 @@ void call(Map pipeline_args) {
                         }
                     }
                     stage('Check Packaging') {
+                        when {
+                            beforeAgent true
+                            expression { !skipStage() }
+                        }
                         agent { label 'lightweight' }
                         steps {
                             sh label: 'Get submdule status',
@@ -246,7 +249,9 @@ void call(Map pipeline_args) {
                     stage('Coverity') {
                         when {
                             beforeAgent true
-                            expression { pipeline_args.get('coverity', '') != '' }
+                            expression {
+                                !skipStage() && pipeline_args.get('coverity', '') != ''
+                            }
                         }
                         agent {
                             dockerfile {
@@ -292,12 +297,10 @@ void call(Map pipeline_args) {
                             }
                         }
                     } //stage('Coverity') {
-                    stage('Build on CentOS 7') {
+                    stage('Build RPM on CentOS 7') {
                         when {
                             beforeAgent true
-                            allOf {
-                                expression { distros.contains('centos7') }
-                            }
+                            expression { !skipStage() && distros.contains('centos7') }
                         }
                         agent {
                             dockerfile {
@@ -369,21 +372,20 @@ void call(Map pipeline_args) {
                                 archiveArtifacts artifacts: 'artifacts/centos7/**'
                             }
                         }
-                    } //stage('Build on CentOS 7')
-                    stage('Build on EL 8') {
+                    } //stage('Build RPM on CentOS 7')
+                    stage('Build RPM on EL 8') {
                         when {
                             beforeAgent true
-                            allOf {
-                                expression { distros.contains('el8') }
-                            }
+                            expression { !skipStage() && distros.contains('el8') }
                         }
                         agent {
                             dockerfile {
                                 filename 'packaging/Dockerfile.mockbuild'
                                 label 'docker_runner'
-                                args '--group-add mock' +
-                                     ' --cap-add=SYS_ADMIN' +
-                                     ' --privileged=true'
+                                args '--group-add mock'      +
+                                     ' --cap-add=SYS_ADMIN'  +
+                                     ' --privileged=true'    +
+                                     ' -v /scratch:/scratch'
                                 additionalBuildArgs dockerBuildArgs()
                             }
                         }
@@ -446,22 +448,97 @@ void call(Map pipeline_args) {
                                 archiveArtifacts artifacts: 'artifacts/el8/**'
                             }
                         }
-                    } //stage('Build on EL 8')
-                    stage('Build on Leap 15.4') {
+                    } //stage('Build RPM on EL 8')
+                    stage('Build RPM on EL 9') {
                         when {
                             beforeAgent true
-                            allOf {
-                                expression { distros.contains('leap15') }
-                            }
+                            expression { !skipStage() && distros.contains('el9') }
                         }
                         agent {
                             dockerfile {
                                 filename 'packaging/Dockerfile.mockbuild'
                                 label 'docker_runner'
-                                args '--group-add mock' +
+                                args '--group-add mock'     +
                                      ' --cap-add=SYS_ADMIN' +
-                                     ' --privileged=true'
+                                     ' --privileged=true'   +
+                                     ' -v /scratch:/scratch'
                                 additionalBuildArgs dockerBuildArgs()
+                            }
+                        }
+                        steps {
+                            sh label: 'Build package',
+                               script: '''rm -rf artifacts/el9/
+                                          mkdir -p artifacts/el9/
+                                          make CHROOT_NAME="rocky+epel-9-x86_64" ''' +
+                                              'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + ' ' +
+                                       pipeline_args.get('make args', '') + ' chrootbuild ' +
+                                       pipeline_args.get('add_make_targets', '')
+                        }
+                        post {
+                            success {
+                                rpmlintMockResults('rocky+epel-9-x86_64',
+                                                   pipeline_args.get('rpmlint_rpms_allow_errors', false),
+                                                   pipeline_args.get('rpmlint_rpms_skip', false),
+                                                   pipeline_args.get('make args', ''))
+                                sh label: 'Collect artifacts',
+                                   script: '''(cd /var/lib/mock/rocky+epel-9-x86_64/result/ &&
+                                              cp -r . $OLDPWD/artifacts/el9/)\n''' +
+                                              pipeline_args.get('add_archiving_cmds', '').replace('<distro>', 'el9') +
+                                             '\ncreaterepo artifacts/el9/'
+                                publishToRepository product: package_name,
+                                                    format: 'yum',
+                                                    maturity: 'stable',
+                                                    tech: 'el-9',
+                                                    repo_dir: 'artifacts/el9/',
+                                                    publish_branch: publish_branch
+                                archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
+                                                                              'no-optional-artifacts-to-archive'),
+                                                            allowEmptyArchive: true
+                            }
+                            unsuccessful {
+                                sh label: 'Build Log',
+                                   script: '''mockroot=/var/lib/mock/rocky+epel-9-x86_64
+                                              ls -l $mockroot/result/
+                                              cat $mockroot/result/{root,build}.log
+                                              artdir=$PWD/artifacts/el9
+                                              cp -af _topdir/SRPMS $artdir
+                                              (cd $mockroot/result/ &&
+                                               cp -r . $artdir)'''
+                            }
+                            always {
+                                sh label: 'Collect config.log(s)',
+                                   script: '(if cd /var/lib/mock/rocky+epel-9-x86_64/root/builddir/build/BUILD/*/; ' +
+                                          '''then
+                                                   find . -name configure -printf %h\\\\n | \
+                                                   while read dir; do
+                                                       if [ ! -f $dir/config.log ]; then
+                                                           continue
+                                                       fi
+                                                       tdir="$OLDPWD/artifacts/el9/autoconf-logs/$dir"
+                                                       mkdir -p $tdir
+                                                       cp -a $dir/config.log $tdir/
+                                                   done
+                                               fi)'''
+                            }
+                            cleanup {
+                                archiveArtifacts artifacts: 'artifacts/el9/**'
+                            }
+                        }
+                    } //stage('Build RPM on EL 9')
+                    stage('Build RPM on Leap 15.4') {
+                        when {
+                            beforeAgent true
+                            expression { !skipStage() && distros.contains('leap15') }
+                        }
+                        agent {
+                            dockerfile {
+                                filename 'packaging/Dockerfile.mockbuild'
+                                label 'docker_runner'
+                                args '--group-add mock'     +
+                                     ' --cap-add=SYS_ADMIN' +
+                                     ' --privileged=true'   +
+                                     ' -v /scratch:/scratch'
+                                additionalBuildArgs dockerBuildArgs() + '--build-arg FVERSION=37'
                             }
                         }
                         steps {
@@ -524,15 +601,15 @@ void call(Map pipeline_args) {
                                 archiveArtifacts artifacts: 'artifacts/leap15/**'
                             }
                         }
-                    } //stage('Build on Leap 15')
-                    stage('Build on Ubuntu 20.04') {
+                    } //stage('Build RPM on Leap 15')
+                    stage('Build RPM on Ubuntu 20.04') {
                         when {
                             beforeAgent true
-                            allOf {
-                                expression { distros.contains('ubuntu20.04') }
-                                expression { env.DAOS_STACK_REPO_PUB_KEY != null }
-                                expression { env.DAOS_STACK_REPO_SUPPORT != null }
-                                expression { env.DAOS_STACK_REPO_UBUNTU_20_04_LIST != null }
+                            expression {
+                                !skipStage() && distros.contains('ubuntu20.04') &&
+                                env.DAOS_STACK_REPO_PUB_KEY != null &&
+                                env.DAOS_STACK_REPO_SUPPORT != null &&
+                                env.DAOS_STACK_REPO_UBUNTU_20_04_LIST != null
                             }
                         }
                         agent {
@@ -585,13 +662,11 @@ void call(Map pipeline_args) {
                                                  allowEmptyArchive: true
                             }
                         }
-                    } //stage('Build on Ubuntu 20.04')
-                    stage('Build on Ubuntu rolling') {
+                    } //stage('Build RPM on Ubuntu 20.04')
+                    stage('Build RPM on Ubuntu rolling') {
                         when {
                             beforeAgent true
-                            allOf {
-                                expression { distros.contains('ubuntu_rolling') }
-                            }
+                            expression { !skipStage() && distros.contains('ubuntu_rolling') }
                         }
                         agent {
                             dockerfile {
@@ -643,7 +718,7 @@ void call(Map pipeline_args) {
                                 archiveArtifacts artifacts: 'artifacts/ubuntu_rolling/**'
                             }
                         }
-                    } //stage('Build on Ubuntu rolling')
+                    } //stage('Build RPM on Ubuntu rolling')
                 } // parallel
             } //stage('Build')
             stage('Test') {
@@ -659,6 +734,7 @@ void call(Map pipeline_args) {
                         axis {
                             name 'TEST_BRANCH'
                             values 'master',
+                                   'release/2.4',
                                    'release/2.2'
                         }
                     }
@@ -713,7 +789,7 @@ void call(Map pipeline_args) {
                                                 fi
                                                 pipeline_libs="''' + cachedCommitPragma('Test-libs') + '''"
                                                 # remove any triggers so that this test branch doesn't run weekly, etc.
-                                                sed -i -e '/triggers/,/}/d' Jenkinsfile
+                                                sed -i -e '/triggers/,/^$/d' Jenkinsfile
                                                 git commit -m 'Remove triggers' Jenkinsfile
                                                 if [ -n "$pipeline_libs" ]; then
                                                     sed -i -e "/\\/\\/@Library/c\\

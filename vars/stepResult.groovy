@@ -48,7 +48,7 @@ Void call(Map config= [:]) {
   if (config['junit_files'] && config['result'] != 'FAILURE') {
     log_url = env.JOB_URL - ~/job\/[^\/]*\/$/ +
               "/view/change-requests/job/${env.BRANCH_NAME}/" +
-              "${env.BUILD_ID}/testReport/(root)/"
+              "${env.BUILD_ID}/testReport/"
   } else {
     def h = new doGetHttpRequest()
     resp = h.doGetHttpRequest(env.JOB_URL - ~/\/job\/[^\/]*\/$/ +

@@ -4,6 +4,9 @@
    * testBranchRE step method
    */
 
-def call() {
-    return '^[-0-9A-Za-z.]+-testing(-(tcp|ucx))?(-2.2)?$'
+String call() {
+    // Match any *-testing branch
+    // Also support older branch names not ending in '-testing'
+    return(/^[-\w.]+-testing(?:-(?:tcp|ucx))?(?:-2\.2)?$/)
 }
+

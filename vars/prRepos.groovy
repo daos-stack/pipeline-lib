@@ -1,3 +1,4 @@
+/* groovylint-disable VariableName */
 // vars/prRepos.groovy
 
 /**
@@ -10,28 +11,28 @@
  * Method to return the list of PR-repos:
  */
 
-String call() {
-    return prRepos(parseStageInfo()['target'])
-}
+String call(String distro=null) {
+    String _distro = distro ?: parseStageInfo()['target']
+    String repos = ''
 
-String call(String distro) {
-    String repos = ""
     if (params.CI_PR_REPOS) {
         repos = params.CI_PR_REPOS
-    } else {
+    } else if (_distro) {
         // TODO: add parameter support for per-distro CI_PR_REPOS
-        if (distro.startsWith('el7') || distro.startsWith('centos7')) {
+        if (_distro.startsWith('el7') || _distro.startsWith('centos7')) {
             repos = cachedCommitPragma('PR-repos-el7')
-        } else if (distro.startsWith('el8') || distro.startsWith('centos8') ||
-                   distro.startsWith('rocky8') || distro.startsWith('almalinux8') ||
-                   distro.startsWith('rhel8')) {
+        } else if (_distro.startsWith('el8') || _distro.startsWith('centos8') ||
+                   _distro.startsWith('rocky8') || _distro.startsWith('almalinux8') ||
+                   _distro.startsWith('rhel8')) {
             repos = cachedCommitPragma('PR-repos-el8')
-        } else if (distro.startsWith('leap15')) {
+        } else if (_distro.startsWith('el9')) {
+            repos = cachedCommitPragma('PR-repos-el9')
+        } else if (_distro.startsWith('leap15')) {
             repos = cachedCommitPragma('PR-repos-leap15')
-        } else if (distro.startsWith('ubuntu20')) {
+        } else if (_distro.startsWith('ubuntu20')) {
             repos = cachedCommitPragma('PR-repos-ubuntu20')
         } else {
-            error 'prRepos not implemented for ' + distro
+            error 'prRepos not implemented for ' + _distro
         }
     }
     return [repos,
