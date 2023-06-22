@@ -300,7 +300,7 @@ Map call(Map config = [:]) {
                 if (!tag) {
                     // Followed by stage defined tags
                     tag = config['test_tag']
-                /* groovylint-disable-next-line CouldBeElvis */
+                    /* groovylint-disable-next-line CouldBeElvis */
                     if (!tag) {
                         // Otherwise use the default PR tag
                         tag = 'pr'
@@ -344,13 +344,13 @@ Map call(Map config = [:]) {
         // Assemble the stage test tags - add the cluster size to each tag group
         result['test_tag'] = ''
         for (group in tag.split(' ')) {
-        if (group == '+') {
-            // The '+' is a special string in the tag field for defining multiple groups of tags
-            result['test_tag'] += group + ' '
-        }
-        else {
-            result['test_tag'] += group + ',' + cluster_size + ' '
-        }
+            if (group == '+') {
+                // The '+' is a special string in the tag field for defining multiple groups of tags
+                result['test_tag'] += group + ' '
+            }
+            else {
+                result['test_tag'] += group + ',' + cluster_size + ' '
+            }
         }
         result['test_tag'] = result['test_tag'].trim()
 
