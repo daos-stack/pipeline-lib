@@ -51,10 +51,11 @@ Map foo = [:]
 /* groovylint-disable-next-line MethodSize, ParameterName */
 void call(Map pipeline_args) {
     // Map of targets to Dockerfiles for the matrix
-    Map dockerfile_map = ['centos7': 'Dockerfile.mockbuild',
-                          'el8': 'Dockerfile.mockbuild',
-                          'leap15': 'Dockerfile.mockbuild',
-                          'ubuntu20.04': 'Dockerfile.ubuntu.20.04']
+    Map dockerfile_map = ['centos7':     ['dockerfile': 'Dockerfile.mockbuild',    'dockerbuildargs': ''],
+                          'el8':         ['dockerfile': 'Dockerfile.mockbuild',    'dockerbuildargs': ''],
+                          'leap15':      ['dockerfile': 'Dockerfile.mockbuild',
+                                          'dockerbuildargs': ' --build-arg FVERSION=37'],
+                          'ubuntu20.04': ['dockerfile': 'Dockerfile.ubuntu.20.04', 'dockerbuildargs': '']]
 
     /* groovylint-disable-next-line CouldBeElvis */
     if (!pipeline_args) {
@@ -749,11 +750,11 @@ void call(Map pipeline_args) {
                     }
                     agent {
                         dockerfile {
-                            filename 'packaging/' + dockerfile_map[env.TARGET]
+                            filename 'packaging/' + dockerfile_map[env.TARGET]['dockerfile']
                             label 'docker_runner'
                             args ' --cap-add=SYS_ADMIN' +
                                  ' --privileged=true'
-                            additionalBuildArgs dockerBuildArgs()
+                            additionalBuildArgs dockerBuildArgs() +  dockerfile_map[env.TARGET]['dockerbuildargs']
                         }
                     }
                     stages {
