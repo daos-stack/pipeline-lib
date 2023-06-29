@@ -243,12 +243,12 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build') ||
                    rpmTestVersion() != '' ||
                    (quickFunctional() &&
-                   prReposContains(null, 'daos'))
+                   prReposContains(null, jobName()))
         case 'Build RPM on CentOS 7':
             return paramsValue('CI_RPM_centos7_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
-                   prReposContains('centos7', 'daos') ||
+                   prReposContains('centos7', jobName()) ||
                    skip_stage_pragma('build-centos7-rpm')
         case 'Build RPM on EL 8':
         case 'Build RPM on EL 8.5':
@@ -256,13 +256,13 @@ boolean call(Map config = [:]) {
             return paramsValue('CI_RPM_el8_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('el8') == '') ||
-                   prReposContains('el8', 'daos') ||
+                   prReposContains('el8', jobName()) ||
                    skip_stage_pragma('build-el8-rpm')
         case 'Build RPM on EL 9':
             return paramsValue('CI_RPM_el9_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('el9') == '') ||
-                   prReposContains('el9', 'daos') ||
+                   prReposContains('el9', jobName()) ||
                    skip_stage_pragma('build-el9-rpm')
         case 'Build RPM on Leap 15':
         case 'Build RPM on Leap 15.4':
@@ -270,14 +270,14 @@ boolean call(Map config = [:]) {
                    target_branch =~ branchTypeRE('weekly') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
-                   prReposContains('leap15', 'daos') ||
+                   prReposContains('leap15', jobName()) ||
                    skip_stage_pragma('build-leap15-rpm')
         case 'Build DEB on Ubuntu 20.04':
             return paramsValue('CI_RPM_ubuntu20_NOBUILD', false) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
-                   prReposContains('ubuntu20', 'daos') ||
+                   prReposContains('ubuntu20', jobName()) ||
                    skip_stage_pragma('build-ubuntu20-rpm')
         case 'Build on CentOS 8':
         case 'Build on EL 8':
