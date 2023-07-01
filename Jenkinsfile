@@ -253,7 +253,8 @@ pipeline {
                         beforeAgent true
                         expression {
                             env.NO_CI_TESTING != 'true' &&
-                            cachedCommitPragma('Skip-el9-provisioning-test') != 'true'
+                            cachedCommitPragma('Skip-el9-provisioning-test') != 'true' &&
+                            daosLatestVersion('master') != ''
                         }
                     }
                     agent {
@@ -293,7 +294,10 @@ pipeline {
                 stage('provisionNodes on EL 8 with slurm') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != 'true' }
+                        expression {
+                            env.NO_CI_TESTING != 'true' &&
+                            daosLatestVersion('master') != ''
+                        }
                     }
                     agent {
                         label 'ci_vm1'
@@ -322,7 +326,10 @@ pipeline {
                 stage('provisionNodes with slurm Leap15') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != 'true' }
+                        expression {
+                            env.NO_CI_TESTING != 'true' &&
+                            daosLatestVersion('master') != ''
+                        }
                     }
                     agent {
                         label 'ci_vm1'
