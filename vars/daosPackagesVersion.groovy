@@ -31,24 +31,6 @@ String normalize_distro(String distro) {
     return distro
 }
 
-String rpm_dist(String distro) {
-    if (distro.startsWith('el7') || distro.startsWith('centos7')) {
-        return '.el7'
-    } else if (distro.startsWith('el8') || distro.startsWith('centos8') ||
-               distro.startsWith('rocky8') || distro.startsWith('almalinux8') ||
-               distro.startsWith('rhel8')) {
-        return '.el8'
-    } else if (distro.startsWith('el9') || distro.startsWith('centos9') ||
-               distro.startsWith('rocky9') || distro.startsWith('almalinux9') ||
-               distro.startsWith('rhel9')) {
-        return '.el9'
-    } else if (distro.startsWith('leap15')) {
-        return '.suse.lp' + parseStageInfo()['distro_version'].replaceAll('\\.', '')
-    }
-    error("Don't know what the RPM %{dist} is for ${distro}")
-    return
-}
-
 String call(String next_version) {
     return daosPackagesVersion(parseStageInfo()['target'], next_version)
 }
@@ -64,7 +46,7 @@ String call(String distro, String next_version) {
         String dist = ''
         if (version.indexOf('-') > -1) {
             // only tack on the %{dist} if the release was specified
-            dist = rpm_dist(_distro)
+            dist = rpmDistValue(_distro)
         }
         return version + dist
     }
@@ -72,12 +54,12 @@ String call(String distro, String next_version) {
     if (target_branch =~ testBranchRE()) {
         // weekly-test just wants the latest for the branch
         if (rpm_version_cache != '' && rpm_version_cache != 'locked') {
-            return rpm_version_cache + rpm_dist(_distro)
+            return rpm_version_cache + rpmDistValue(_distro)
         }
         if (rpm_version_cache == '') {
             // no cached value and nobody's getting it
             rpm_version_cache = 'locked'
-            rpm_version_cache = daosLatestVersion(next_version)
+            rpm_version_cache = daosLatestVersion(next_version, _distro)
         } else {
             // somebody else is getting it, wait for them
             Integer i = 30
@@ -86,10 +68,10 @@ String call(String distro, String next_version) {
                 sleep(10)
             }
             if (rpm_version_cache == 'locked') {
-                rpm_version_cache = daosLatestVersion(next_version)
+                rpm_version_cache = daosLatestVersion(next_version, _distro)
             }
         }
-        return rpm_version_cache + rpm_dist(_distro)
+        return rpm_version_cache + rpmDistValue(_distro)
     }
 
     /* what's the query to get the highest 1.0.x package?

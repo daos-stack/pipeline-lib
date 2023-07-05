@@ -115,6 +115,15 @@ pipeline {
         }
         stage('Test') {
             parallel {
+                stage('daosLatestVersion() tests') {
+                    steps {
+                        script {
+                            assert(daosLatestVersion('master', 'el8').startsWith('2.5.'))
+                            assert(daosLatestVersion('release/2.4', 'el8').startsWith('2.3.'))
+                            assert(daosLatestVersion('release/2.2', 'el8').startsWith('2.2.'))
+                        }
+                    }
+                }
                 stage('grep JUnit results tests failure case') {
                     agent {
                         docker {

@@ -819,7 +819,7 @@ void call(Map pipeline_args) {
                                                           value: ('load_mpi test_core_files ' +
                                                                    pipeline_args.get('test-tag', '')).trim()),
                                                    string(name: 'CI_RPM_TEST_VERSION',
-                                                          value: daosLatestVersion(env.TEST_BRANCH)),
+                                                          value: daosLatestVersion(env.TEST_BRANCH, 'el8')),
                                                    string(name: 'CI_PROVISIONING_POOL', value: 'default'),
                                                    string(name: 'CI_BUILD_DESCRIPTION',
                                                           value: 'Dependency Validation Build Test'),
