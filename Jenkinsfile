@@ -127,7 +127,7 @@ pipeline {
                 }
                 stage('distroVersion() tests') {
                     steps {
-                        withEnv('[BRANCH_NAME=release2.4]') {
+                        withEnv(['BRANCH_NAME=release2.4']) {
                             script {
                                 assert(distroVersion('el8').startsWith('8'))
                             }
