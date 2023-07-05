@@ -9,4 +9,3 @@ String call() {
     // Also support older branch names not ending in '-testing'
     return(/^[-\w.]+-testing(?:-(?:tcp|ucx))?(?:-2\.2)?$/)
 }
-
