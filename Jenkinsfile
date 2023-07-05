@@ -132,9 +132,9 @@ pipeline {
                                 assert(distroVersion('el8').startsWith('8'))
                             }
                         }
-                        withEnv('[BRANCH_NAME=master]') {
+                        withEnv(['BRANCH_NAME=master']) {
                             script {
-                                assert(distroVersion('el8').startsWith('9'))
+                                assert(distroVersion('el9').startsWith('9'))
                             }
                         }
                     }
