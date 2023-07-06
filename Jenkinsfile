@@ -128,21 +128,27 @@ pipeline {
                 stage('distroVersion() tests') {
                     steps {
                         withEnv(['BRANCH_NAME=release/2.4']) {
-                            String dv = distroVersion('el8')
-                            if (dv == null || dv.startswith('8')) {
-                                error("dv returned %s, expected '8'")
+                            script {
+                                String dv = distroVersion('el8')
+                                if (dv == null || dv.startswith('8')) {
+                                    error("dv returned %s, expected '8'")
+                                }
                             }
                         }
                         withEnv(['BRANCH_NAME=release/2.2']) {
-                            String dv = distroVersion('leap15')
-                            if (dv == null || dv.startswith('15')) {
-                                error("dv returned %s, expected '15'")
+                            script {
+                                String dv = distroVersion('leap15')
+                                if (dv == null || dv.startswith('15')) {
+                                    error("dv returned %s, expected '15'")
+                                }
                             }
                         }
                         withEnv(['BRANCH_NAME=master']) {
-                            String dv = distroVersion('el9')
-                            if (dv == null || dv.startswith('9')) {
-                                error("dv returned %s, expected '9'")
+                            script {
+                                String dv = distroVersion('el9')
+                                if (dv == null || dv.startswith('9')) {
+                                    error("dv returned %s, expected '9'")
+                                }
                             }
                         }
                     }
