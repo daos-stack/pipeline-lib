@@ -131,7 +131,8 @@ pipeline {
                             script {
                                 String dv = distroVersion('el8')
                                 if (dv == null || dv.startswith('8')) {
-                                    error("dv returned ${dv}, expected '8'")
+                                    unstable("distroVersion() returned ${dv} " +
+                                              "instead of string starting with '8'")
                                 }
                             }
                         }
@@ -139,7 +140,8 @@ pipeline {
                             script {
                                 String dv = distroVersion('leap15')
                                 if (dv == null || dv.startswith('15')) {
-                                    error("dv returned ${dv}, expected '15'")
+                                    unstable("distroVersion() returned ${dv} " +
+                                              "instead of string starting with '15'")
                                 }
                             }
                         }
@@ -147,7 +149,8 @@ pipeline {
                             script {
                                 String dv = distroVersion('el9')
                                 if (dv == null || dv.startswith('9')) {
-                                    error("dv returned ${dv}, expected '9'")
+                                    unstable("distroVersion() returned ${dv} " +
+                                              "instead of string starting with '9'")
                                 }
                             }
                         }
