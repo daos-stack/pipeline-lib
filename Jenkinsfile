@@ -130,7 +130,7 @@ pipeline {
                         withEnv(['BRANCH_NAME=release/2.4']) {
                             script {
                                 String dv = distroVersion('el8')
-                                if (dv == null || dv.startswith('8')) {
+                                if (dv == null || dv.startsWith('8')) {
                                     unstable("distroVersion() returned ${dv} " +
                                               "instead of string starting with '8'")
                                 }
@@ -139,7 +139,7 @@ pipeline {
                         withEnv(['BRANCH_NAME=release/2.2']) {
                             script {
                                 String dv = distroVersion('leap15')
-                                if (dv == null || dv.startswith('15')) {
+                                if (dv == null || dv.startsWith('15')) {
                                     unstable("distroVersion() returned ${dv} " +
                                               "instead of string starting with '15'")
                                 }
