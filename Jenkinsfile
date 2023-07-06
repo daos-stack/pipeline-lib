@@ -129,17 +129,23 @@ pipeline {
                     steps {
                         withEnv(['BRANCH_NAME=release/2.4']) {
                             script {
-                                assert(distroVersion('el8').startsWith('8'))
+                                String dv = distroVersion('el8')
+                                assert(dv != null)
+                                assert(dv.startsWith('8'))
                             }
                         }
                         withEnv(['BRANCH_NAME=release/2.2']) {
                             script {
-                                assert(distroVersion('leap15').startsWith('15'))
+                                String dv = distroVersion('leap15')
+                                assert(dv != null)
+                                assert(dv.startsWith('15'))
                             }
                         }
                         withEnv(['BRANCH_NAME=master']) {
                             script {
-                                assert(distroVersion('el9').startsWith('9'))
+                                String dv = distroVersion('el9')
+                                assert(dv != null)
+                                assert(dv.startsWith('9'))
                             }
                         }
                     }
