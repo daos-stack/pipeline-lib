@@ -132,6 +132,11 @@ pipeline {
                                 assert(distroVersion('el8').startsWith('8'))
                             }
                         }
+                        withEnv(['BRANCH_NAME=release/2.2']) {
+                            script {
+                                assert(distroVersion('leap15').startsWith('15'))
+                            }
+                        }
                         withEnv(['BRANCH_NAME=master']) {
                             script {
                                 assert(distroVersion('el9').startsWith('9'))
