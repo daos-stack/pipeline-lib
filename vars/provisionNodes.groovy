@@ -101,7 +101,6 @@ Map call(Map config = [:]) {
     } else {
         distro_type = distro
     }
-    println("ProvisionNodes: distro=${distro} distro_type=${distro_type}")
 
     String inst_rpms = config.get('inst_rpms', '')
     String inst_repos = config.get('inst_repos', '')

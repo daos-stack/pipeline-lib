@@ -137,8 +137,6 @@ Map call(Map config = [:]) {
         }
     }
 
-    println("unitTest/PN: ci_target=${stage_info['ci_target']} " +
-            "version=${stage_info['distro_version']}")
     Map runData = provisionNodes(
                  NODELIST: nodelist,
                  node_count: stage_info['node_count'],
