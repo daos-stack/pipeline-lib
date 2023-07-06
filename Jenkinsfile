@@ -148,7 +148,7 @@ pipeline {
                         withEnv(['BRANCH_NAME=master']) {
                             script {
                                 String dv = distroVersion('el9')
-                                if (dv == null || !dv.startswith('9')) {
+                                if (dv == null || !dv.startsWith('9')) {
                                     unstable("distroVersion() returned ${dv} " +
                                               "instead of string starting with '9'")
                                 }
