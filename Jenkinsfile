@@ -124,6 +124,37 @@ pipeline {
                         }
                     }
                 }
+                stage('distroVersion() tests') {
+                    steps {
+                        withEnv(['BRANCH_NAME=release/2.4']) {
+                            script {
+                                String dv = distroVersion('el8')
+                                if (dv == null || !dv.startsWith('8')) {
+                                    unstable("distroVersion() returned ${dv} " +
+                                              "instead of string starting with '8'")
+                                }
+                            }
+                        }
+                        withEnv(['BRANCH_NAME=release/2.2']) {
+                            script {
+                                String dv = distroVersion('leap15')
+                                if (dv == null || !dv.startsWith('15')) {
+                                    unstable("distroVersion() returned ${dv} " +
+                                              "instead of string starting with '15'")
+                                }
+                            }
+                        }
+                        withEnv(['BRANCH_NAME=master']) {
+                            script {
+                                String dv = distroVersion('el9')
+                                if (dv == null || !dv.startsWith('9')) {
+                                    unstable("distroVersion() returned ${dv} " +
+                                              "instead of string starting with '9'")
+                                }
+                            }
+                        }
+                    }
+                }
                 stage('grep JUnit results tests failure case') {
                     agent {
                         docker {

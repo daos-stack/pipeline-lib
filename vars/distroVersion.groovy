@@ -17,7 +17,7 @@ String call(String distro) {
          env.BRANCH_NAME =~ branchTypeRE('downstream') ||
          env.BRANCH_NAME =~ branchTypeRE('testing')) &&
         (env.BRANCH_NAME =~ '/\\d+\\.\\d+')) {
-        branch = env.BRANCH_NAME.replace('.*(\\d+\\.\\d+).*', '\1')
+        branch = env.BRANCH_NAME.replaceFirst(/^.*(\d+\.\d+).*$/, '\$1')
     }
 
     return distroVersion(distro, branch)
