@@ -92,13 +92,20 @@ void call(Map config = [:]) {
     sh(label: 'Install Launchable',
        script: 'pip3 install --user --upgrade launchable~=1.0')
 
-    withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
-        sh(label: 'Submit test results to Launchable',
-           /* groovylint-disable-next-line GStringExpressionWithinString */
-           script: 'if ls -l "' + env.STAGE_NAME + '''"/*/*/xunit1_results.xml 2>/dev/null; then
-                        export PATH=$PATH:$HOME/.local/bin
-                        launchable record tests --build ${BUILD_TAG//%2F/-} pytest ''' +
-                                   '"' + env.STAGE_NAME + '''"/*/*/xunit1_results.xml
-                    fi''')
+    try {
+        withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
+            sh(label: 'Submit test results to Launchable',
+            /* groovylint-disable-next-line GStringExpressionWithinString */
+            script: 'if ls -l "' + env.STAGE_NAME + '''"/*/*/xunit1_results.xml 2>/dev/null; then
+                            export PATH=$PATH:$HOME/.local/bin
+                            launchable record tests --build ${BUILD_TAG//%2F/-} pytest ''' +
+                                    '"' + env.STAGE_NAME + '''"/*/*/xunit1_results.xml
+                        fi''')
+            }
+    /* groovylint-disable-next-line CatchException */
+    } catch (Exception error) {
+        println(
+            "Ignoring failure to record " + env.STAGE_NAME + " tests with launchable: " +
+            error.getMessage())
     }
 }
