@@ -4,14 +4,12 @@
 /**
  * testsInStage.groovy
  *
- * testsInStage variable
- */
-
-/**
  * Method to return true/false if the stage has tests that match the tags
+ *
+ * @param tags String of functional test tags to use to check for matching tests
+ * @return boolean true if there are tests that match the tags
  */
-
-boolean call() {
+boolean call(String tags) {
     if (env.UNIT_TEST && env.UNIT_TEST == 'true') {
         println('Unit testing, so exiting "Get test list" with true')
         return true
@@ -30,11 +28,11 @@ boolean call() {
                              exit 0
                          fi
                          if [ -x list_tests.py ]; then
-                             if ./list_tests.py ''' + parseStageInfo()['test_tag'] + '''; then
+                             if ./list_tests.py ''' + tags + '''; then
                                  exit 0
                              fi
                          else
-                             if ./launch.py --list ''' + parseStageInfo()['test_tag'] + '''; then
+                             if ./launch.py --list ''' + tags + '''; then
                                  exit 0
                              fi
                          fi

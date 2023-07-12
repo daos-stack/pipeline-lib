@@ -36,40 +36,6 @@
  *                             Default determined by this function below.
  */
 
-String get_build_params_tags() {
-    // Get the tags defined by the build parameter entry for this stage
-    if (params.TestTag && params.TestTag != '') {
-        return params.TestTag
-    }
-    return ''
-}
-
-String get_commit_pragma_tags(String pragma_suffix) {
-    // Get the test tags defined in the commit message
-    String pragma_tag
-
-    // Use the tags defined by the stage-specific 'Test-tag-<stage>:' commit message pragma.  If those
-    // are not specified use the tags defined by the general 'Test-tag:' commit message pragma.
-    pragma_tag = commitPragma('Test-tag' + pragma_suffix, commitPragma('Test-tag', null))
-    if (pragma_tag) {
-        return pragma_tag
-    }
-
-    // If neither of the 'Test-tag*:' commit message pragmas are specified, use the 'Features:'
-    // commit message pragma to define the tags to use.
-    String features = commitPragma('Features', null)
-    if (features) {
-        // Features extend the standard pr testing tags to include tests run in daily or weekly builds
-        // that test the specified feature.
-        pragma_tag = 'pr'
-        for (feature in features.split(' ')) {
-            pragma_tag += ' daily_regression,' + feature
-            pragma_tag += ' full_regression,' + feature
-        }
-    }
-    return pragma_tag
-}
-
 String get_default_nvme() {
     // Get the default test nvme setting
     if (env.BRANCH_NAME.startsWith('feature/vos_on_blob')) {
@@ -112,12 +78,12 @@ Map call(Map config = [:]) {
         } else if (stage_name.contains('EL 8')) {
             result['target'] = 'el8'
             result['distro_version'] = cachedCommitPragma('EL8-version',
-                                                    distroVersion(result['target']))
+                                                          distroVersion(result['target']))
             new_ci_target = cachedCommitPragma('EL8-target', result['target'])
         } else if (stage_name.contains('EL 9')) {
             result['target'] = 'el9'
             result['distro_version'] = cachedCommitPragma('EL9-version',
-                                                    distroVersion(result['target']))
+                                                          distroVersion(result['target']))
             new_ci_target = cachedCommitPragma('EL9-target', result['target'])
         } else if (stage_name.contains('Leap 15.3')) {
             result['target'] = 'leap15'
@@ -130,7 +96,7 @@ Map call(Map config = [:]) {
         } else if (stage_name.contains('Leap 15')) {
             result['target'] = 'leap15'
             result['distro_version'] = cachedCommitPragma('LEAP15-version',
-                                                    distroVersion(result['target']))
+                                                          distroVersion(result['target']))
             new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
         } else if (stage_name.contains('Ubuntu 18')) {
             result['target'] = 'ubuntu18.04'
@@ -145,7 +111,7 @@ Map call(Map config = [:]) {
             //       all other pipelines are ready for it
             result['target'] = 'ubuntu20.04'
             result['distro_version'] = cachedCommitPragma('UBUNTU20-version',
-                                                    distroVersion(result['target']))
+                                                          distroVersion(result['target']))
             new_ci_target = cachedCommitPragma('UBUNTU20-target', result['target'])
         } else {
             // also for: if (stage_name.contains('CentOS 7')) {
@@ -155,9 +121,8 @@ Map call(Map config = [:]) {
             new_ci_target = cachedCommitPragma('EL7-target', result['target'])
         }
     }
-    new_ci_target = paramsValue('CI_' +
-                              result['target'].toString().toUpperCase() +
-                              '_TARGET', new_ci_target)
+    new_ci_target = paramsValue(
+        'CI_' + result['target'].toString().toUpperCase() + '_TARGET', new_ci_target)
     if (new_ci_target) {
         result['ci_target'] = new_ci_target
     } else {
@@ -165,10 +130,10 @@ Map call(Map config = [:]) {
     }
 
     if (result['ci_target'].startsWith('el') ||
-      result['ci_target'].startsWith('centos') ||
-      result['ci_target'].startsWith('rocky') ||
-      result['ci_target'].startsWith('rhel') ||
-      result['ci_target'].startsWith('almalinux')) {
+        result['ci_target'].startsWith('centos') ||
+        result['ci_target'].startsWith('rocky') ||
+        result['ci_target'].startsWith('rhel') ||
+        result['ci_target'].startsWith('almalinux')) {
         result['java_pkg'] = 'java-1.8.0-openjdk'
     } else if (result['ci_target'].startsWith('ubuntu')) {
         result['java_pkg'] = 'openjdk-8-jdk'
@@ -214,8 +179,7 @@ Map call(Map config = [:]) {
     if (config['log_to_file']) {
         result['log_to_file'] = config['log_to_file']
     } else {
-        result['log_to_file'] = result['target'] + '-' +
-                            result['compiler']
+        result['log_to_file'] = result['target'] + '-' + result['compiler']
         if (result['build_type']) {
             result['log_to_file'] += '-' + result['build_type']
         }
@@ -234,8 +198,7 @@ Map call(Map config = [:]) {
         result['node_count'] = 9
         cluster_size = '-hw'
         result['pragma_suffix'] = '-vm'
-        result['always_script'] = config.get('always_script',
-                                         'ci/functional/job_cleanup.sh')
+        result['always_script'] = config.get('always_script', 'ci/functional/job_cleanup.sh')
         if (stage_name.contains('Hardware')) {
             cluster_size = 'hw,large'
             result['pragma_suffix'] = '-hw-large'
@@ -244,7 +207,7 @@ Map call(Map config = [:]) {
                 result['node_count'] = 3
                 cluster_size = 'hw,small'
                 result['pragma_suffix'] = '-hw-small'
-      } else if (stage_name.contains('Medium')) {
+            } else if (stage_name.contains('Medium')) {
                 result['node_count'] = 5
                 cluster_size = 'hw,medium,-provider'
                 result['pragma_suffix'] = '-hw-medium'
@@ -254,16 +217,16 @@ Map call(Map config = [:]) {
                         result['pragma_suffix'] += '-verbs-provider'
                         ftest_arg_provider = 'ofi+verbs'
                     }
-          else if (stage_name.contains('UCX')) {
+                    else if (stage_name.contains('UCX')) {
                         result['pragma_suffix'] += '-ucx-provider'
                         ftest_arg_provider = 'ucx+dc_x'
-          }
-          else if (stage_name.contains('TCP')) {
+                    }
+                    else if (stage_name.contains('TCP')) {
                         result['pragma_suffix'] += '-tcp-provider'
                         ftest_arg_provider = 'ofi+tcp'
-          }
+                    }
                 }
-      } else if (stage_name.contains('Hardware 24')) {
+            } else if (stage_name.contains('Hardware 24')) {
                 result['node_count'] = 24
                 cluster_size = 'hw,24'
                 result['pragma_suffix'] = '-hw-24'
@@ -275,90 +238,35 @@ Map call(Map config = [:]) {
             config['test_tag'] = 'memcheck'
         }
 
-        // Determine which tests tags to use
-        String tag
-        if (startedByUser() || startedByUpstream()) {
-            // Test tags defined by the build parameters override all other tags
-            tag = get_build_params_tags()
-        }
-        if (!tag && startedByTimer()) {
-            // Stage defined tags take precedence in timed builds
-            tag = config['test_tag']
-            if (!tag) {
-                // Otherwise use the default timed build tags
-                tag = 'pr daily_regression'
-                if (env.BRANCH_NAME =~ branchTypeRE('weekly')) {
-                    tag = 'full_regression'
-                }
-            }
-    } else if (!tag) {
-            if (env.BRANCH_NAME =~ branchTypeRE('testing')) {
-                tag = 'always_passes'
-      } else {
-                // Tags defined by commit pragmas have priority in user PRs
-                tag = get_commit_pragma_tags(result['pragma_suffix'])
-                if (!tag) {
-                    // Followed by stage defined tags
-                    tag = config['test_tag']
-          /* groovylint-disable-next-line CouldBeElvis */
-                    if (!tag) {
-                        // Otherwise use the default PR tag
-                        tag = 'pr'
-                    }
-                }
+        // Get the ftest arguments
+        default_tags = 'pr'
+        if (startedByTimer()) {
+            default_tags = 'pr daily_regression'
+            if (env.BRANCH_NAME =~ branchTypeRE('weekly')) {
+                default_tags = 'full_regression'
             }
         }
-        if (tag) {
-            tag = tag.trim()
+        else if (env.BRANCH_NAME =~ branchTypeRE('testing')) {
+            default_tags = 'always_passes'
+        }
+        functional_args = getFunctionalArgs(
+            result['pragma_suffix'], cluster_size, default_tags, ftest_arg_nvme, null)
+        if (functional_args['test_tag']) {
+            result['test_tag'] = functional_args['test_tag']
+        }
+        if (functional_args['ftest_arg']) {
+            result['ftest_arg'] = functional_args['ftest_arg']
+        }
+        if (functional_args['stage_rpms']) {
+            result['stage_rpms'] = functional_args['stage_rpms']
         }
 
-        // Get the ftest --nvme argument from either the build parameters or commit pragmas
-        ftest_arg_nvme = params.TestNvme ?: cachedCommitPragma(
-      'Test-nvme' + result['pragma_suffix'], cachedCommitPragma('Test-nvme', ftest_arg_nvme))
-
-        // Get the ftest --repeat argument from either the build parameters or commit pragmas
-        ftest_arg_repeat = params.TestRepeat ?: cachedCommitPragma(
-      'Test-repeat' + result['pragma_suffix'], cachedCommitPragma('Test-repeat', null))
-
-        // Get the ftest --provider argument from either the build parameters or commit pragmas if not
-        // already defined by the stage
-        ftest_arg_provider = ftest_arg_provider ?: params.TestProvider ?:
-            cachedCommitPragma(('Test-provider' + result['pragma_suffix']),
-            cachedCommitPragma('Test-provider', null))
-
-        // Assemble the ftest args
-        result['ftest_arg'] = ''
-        if (ftest_arg_nvme) {
-            result['ftest_arg'] += ' --nvme=' + ftest_arg_nvme
-        }
-        if (ftest_arg_repeat) {
-            result['ftest_arg'] += ' --repeat=' + ftest_arg_repeat
-        }
-        if (ftest_arg_provider) {
-            result['ftest_arg'] += ' --provider=' +  ftest_arg_provider
-        }
-        if (result['ftest_tag']) {
-            result['ftest_tag'] = result['ftest_tag'].trim()
-        }
-
-        // Assemble the stage test tags - add the cluster size to each tag group
-        result['test_tag'] = ''
-        for (group in tag.split(' ')) {
-            result['test_tag'] += group + ',' + cluster_size + ' '
-        }
-        result['test_tag'] = result['test_tag'].trim()
-
-        // Determine any additional rpms needed for this stage
-        result['stage_rpms'] = ''
-        if (ftest_arg_provider && ftest_arg_provider.contains('ucx')) {
-            result['stage_rpms'] = 'mercury-ucx'
-        }
-  } else if (stage_name.contains('Storage')) {
+    } else if (stage_name.contains('Storage')) {
         if (env.NODELIST) {
             List node_list = env.NODELIST.split(',')
             result['node_count'] = node_list.size()
         }
-  } // else if (stage_name.contains('Storage'))
+    } // else if (stage_name.contains('Storage'))
     if (config['test']) {
         result['test'] = config['test']
     }
@@ -374,10 +282,8 @@ Map call(Map config = [:]) {
 
     if (stage_name.contains('NLT')) {
         result['NLT'] = true
-        result['valgrind_pattern'] = config.get('valgrind_pattern',
-                                                '*memcheck.xml')
-        result['always_script'] = config.get('always_script',
-                                             'ci/unit/test_nlt_post.sh')
+        result['valgrind_pattern'] = config.get('valgrind_pattern', '*memcheck.xml')
+        result['always_script'] = config.get('always_script', 'ci/unit/test_nlt_post.sh')
         result['testResults'] = config.get('testResults', 'nlt-junit.xml')
         result['with_valgrind'] = 'memcheck'
     } else {
@@ -388,8 +294,7 @@ Map call(Map config = [:]) {
     }
     if (stage_name.contains('Unit Test')) {
         result['testResults'] = config.get('testResults', 'test_results/*.xml')
-        result['always_script'] = config.get('always_script',
-                                             'ci/unit/test_post_always.sh')
+        result['always_script'] = config.get('always_script', 'ci/unit/test_post_always.sh')
         if (stage_name.contains('memcheck')) {
             result['with_valgrind'] = 'memcheck'
         }
