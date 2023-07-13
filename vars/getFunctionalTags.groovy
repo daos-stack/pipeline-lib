@@ -62,7 +62,7 @@ Map call(String pragma_suffix, String stage_tags, String default_tags) {
         requested_tags = tags.trim()
     }
     for (group in requested_tags.split(' ')) {
-        stage_tags += group + (group != '+' : ',' + stage_tags ? '') + ' '
+        stage_tags += group + (group != '+' ? ',' + stage_tags : '') + ' '
     }
 
     return stage_tags.trim()
