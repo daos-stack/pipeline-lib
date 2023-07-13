@@ -47,7 +47,7 @@ String get_commit_pragma_tags(String pragma_suffix) {
  */
 Map call(String pragma_suffix, String stage_tags, String default_tags) {
     String requested_tags = ''
-    String stage_tags = ''
+    String tags = ''
 
     // Define the test tags to use in this stage
     if (startedByUser() || startedByTimer() || startedByUpstream()) {
@@ -62,8 +62,8 @@ Map call(String pragma_suffix, String stage_tags, String default_tags) {
         requested_tags = tags.trim()
     }
     for (group in requested_tags.split(' ')) {
-        stage_tags += group + (group != '+' ? ',' + stage_tags : '') + ' '
+        tags += group + (group != '+' ? ',' + stage_tags : '') + ' '
     }
 
-    return stage_tags.trim()
+    return tags.trim()
 }
