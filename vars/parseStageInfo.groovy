@@ -189,59 +189,44 @@ Map call(Map config = [:]) {
     // Unless otherwise specified, all tests will only use one node.
     result['node_count'] = 1
 
-    String cluster_size = ''
     String ftest_arg_nvme = ''
     String ftest_arg_repeat = ''
     String ftest_arg_provider = ''
     if (stage_name.contains('Functional')) {
         result['test'] = 'Functional'
         result['node_count'] = 9
-        cluster_size = '-hw'
-        result['pragma_suffix'] = '-vm'
         result['always_script'] = config.get('always_script', 'ci/functional/job_cleanup.sh')
         if (stage_name.contains('Hardware')) {
-            cluster_size = 'hw,large'
-            result['pragma_suffix'] = '-hw-large'
             ftest_arg_nvme = get_default_nvme()
             if (stage_name.contains('Small')) {
                 result['node_count'] = 3
-                cluster_size = 'hw,small'
-                result['pragma_suffix'] = '-hw-small'
             } else if (stage_name.contains('Medium')) {
                 result['node_count'] = 5
-                cluster_size = 'hw,medium,-provider'
-                result['pragma_suffix'] = '-hw-medium'
                 if (stage_name.contains('Provider')) {
-                    cluster_size = 'hw,medium,provider'
                     if (stage_name.contains('Verbs')) {
-                        result['pragma_suffix'] += '-verbs-provider'
                         ftest_arg_provider = 'ofi+verbs'
                     }
                     else if (stage_name.contains('UCX')) {
-                        result['pragma_suffix'] += '-ucx-provider'
                         ftest_arg_provider = 'ucx+dc_x'
                     }
                     else if (stage_name.contains('TCP')) {
-                        result['pragma_suffix'] += '-tcp-provider'
                         ftest_arg_provider = 'ofi+tcp'
                     }
                 }
             } else if (stage_name.contains('Hardware 24')) {
                 result['node_count'] = 24
-                cluster_size = 'hw,24'
-                result['pragma_suffix'] = '-hw-24'
             }
         }
         if (stage_name.contains('with Valgrind')) {
-            result['pragma_suffix'] = '-valgrind'
             result['with_valgrind'] = 'memcheck'
             config['test_tag'] = 'memcheck'
         }
+        result['pragma_suffix'] = getPragmaSuffix()
 
         // Get the ftest tags
         Map kwargs = [:]
         kwargs['pragma_suffix'] = result['pragma_suffix']
-        kwargs['stage_tags'] = cluster_size
+        kwargs['stage_tags'] = getFunctionalStageTags()
         kwargs['default_tags'] = config['test_tag']
         if (!kwargs['default_tags']) {
             if (startedByTimer() && env.BRANCH_NAME =~ branchTypeRE('weekly')) {
@@ -258,7 +243,7 @@ Map call(Map config = [:]) {
 
         // Get the ftest arguments
         kwargs['default_nvme'] = ftest_arg_nvme
-        kwargs['provider'] = null
+        kwargs['provider'] = ftest_arg_provider
         functional_args = getFunctionalArgs(kwargs)
         if (functional_args['ftest_arg']) {
             result['ftest_arg'] = functional_args['ftest_arg']
