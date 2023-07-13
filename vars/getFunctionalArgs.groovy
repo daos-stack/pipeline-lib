@@ -5,45 +5,27 @@
  *
  * Get a map of arguments used to run the functional tests in the stage.
  *
- * @param pragma_suffix commit pragma suffix for this stage, e.g. '-hw-large'
- * @param stage_tags launch.py tags to use to limit functional tests to those that fit the stage
- * @param default_tags default launch.py tags to use when no parameter or commit pragma tags exist
- * @param nvme default launch.py --nvme argument to use
- * @param provider default launch.py --provider argument to use
- * @return Map values to use with runTestFunctional
+ * @param kwargs Map containing the following optional arguments:
+ *      pragma_suffix   commit pragma suffix for this stage, e.g. '-hw-large'
+ *      stage_tags      launch.py tags to use to limit functional tests to those that fit the stage
+ *      default_tags    launch.py tag argument to use when no parameter or commit pragma tags exist
+ *      default_nvme    launch.py --nvme argument to use when no parameter or commit pragma exist
+ *      provider        launch.py --provider argument to use
+ * @return Map values to use with runTestFunctional:
+ *      ftest_arg       String of launch.py arguments to use when running the fuctional tests
+ *      stage_rpms      String of additional packages to install when running functional tests
  */
-Map call(String pragma_suffix, String stage_tags, String default_tags, String nvme,
-         String provider) {
+Map call(Map kwargs = [:]) {
     Map result = [:]
-    result['test_tag'] = getFunctionalTags(pragma_suffix, stage_tags, default_tags)
-    result['ftest_arg'] = ''
-    result['stage_rpms'] = ''
+    String launch_nvme = getFunctionalNvme(kwargs)
+    String launch_provider = getFunctionalProvider(kwargs)
+    String launch_repeat = getFunctionalRepeat(kwargs)
 
-    // Get the launch.py --nvme argument from either the build parameters or commit pragmas
-    String launch_nvme = params.TestNvme ?: cachedCommitPragma(
-        'Test-nvme' + pragma_suffix, cachedCommitPragma('Test-nvme', nvme))
-    if (launch_nvme) {
-        result['ftest_arg'] += ' --nvme=' + launch_nvme
+    // Include any additional rpms required for the provider
+    if (launch_provider.contains('ucx')) {
+        result['stage_rpms'] = 'mercury-ucx'
     }
 
-    // Get the launch.py --provider argument from either the build parameters or commit pragmas
-    String launch_provider = provider ?: params.TestProvider ?: cachedCommitPragma(
-        'Test-provider' + pragma_suffix, cachedCommitPragma('Test-provider', null))
-    if (launch_provider) {
-        result['ftest_arg'] += ' --provider=' +  launch_provider
-
-        // Include any additional rpms required for the provider
-        if (launch_provider.contains('ucx')) {
-            result['stage_rpms'] = 'mercury-ucx'
-        }
-    }
-
-    // Get the launch.py --repeat argument from either the build parameters or commit pragmas
-    String launch_repeat = params.TestRepeat ?: cachedCommitPragma(
-        'Test-repeat' + pragma_suffix, cachedCommitPragma('Test-repeat', null))
-    if (launch_repeat) {
-        result['ftest_arg'] += ' --repeat=' + launch_repeat
-    }
-
+    result['ftest_arg'] = [launch_nvme, launch_provider, launch_repeat].join(' ').trim()
     return result
 }

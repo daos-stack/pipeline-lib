@@ -238,22 +238,28 @@ Map call(Map config = [:]) {
             config['test_tag'] = 'memcheck'
         }
 
-        // Get the ftest arguments
-        default_tags = 'pr'
-        if (startedByTimer()) {
-            default_tags = 'pr daily_regression'
-            if (env.BRANCH_NAME =~ branchTypeRE('weekly')) {
-                default_tags = 'full_regression'
+        // Get the ftest tags
+        Map kwargs = [:]
+        kwargs['pragma_suffix'] = result['pragma_suffix']
+        kwargs['stage_tags'] = cluster_size
+        kwargs['default_tags'] = config['test_tag']
+        if (!kwargs['default_tags']) {
+            if (startedByTimer() && env.BRANCH_NAME =~ branchTypeRE('weekly')) {
+                kwargs['default_tags'] = 'full_regression'
+            } else if (startedByTimer()) {
+                kwargs['default_tags'] = 'pr daily_regression'
+            } else if (env.BRANCH_NAME =~ branchTypeRE('testing')) {
+                kwargs['default_tags'] = 'always_passes'
+            } else {
+                kwargs['default_tags'] = 'pr'
             }
         }
-        else if (env.BRANCH_NAME =~ branchTypeRE('testing')) {
-            default_tags = 'always_passes'
-        }
-        functional_args = getFunctionalArgs(
-            result['pragma_suffix'], cluster_size, default_tags, ftest_arg_nvme, null)
-        if (functional_args['test_tag']) {
-            result['test_tag'] = functional_args['test_tag']
-        }
+        result['test_tag'] = getFunctionalTags(kwargs)
+
+        // Get the ftest arguments
+        kwargs['default_nvme'] = ftest_arg_nvme
+        kwargs['provider'] = null
+        functional_args = getFunctionalArgs(kwargs)
         if (functional_args['ftest_arg']) {
             result['ftest_arg'] = functional_args['ftest_arg']
         }
