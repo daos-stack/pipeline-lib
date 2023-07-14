@@ -7,8 +7,6 @@
  *
  * @param kwargs Map containing the following optional arguments:
  *      pragma_suffix   commit pragma suffix for this stage, e.g. '-hw-large'
- *      stage_tags      launch.py tags to use to limit functional tests to those that fit the stage
- *      default_tags    launch.py tag argument to use when no parameter or commit pragma tags exist
  *      default_nvme    launch.py --nvme argument to use when no parameter or commit pragma exist
  *      provider        launch.py --provider argument to use
  * @return Map values to use with runTestFunctional:
