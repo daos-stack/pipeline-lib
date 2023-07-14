@@ -16,7 +16,7 @@ Map call(Map kwargs = [:]) {
         'Test-provider' + pragma_suffix, cachedCommitPragma('Test-provider', null))
 
     if (launch_provider) {
-        result['ftest_arg'] += ' --provider=' +  launch_provider
+        launch_provider = '--provider=' +  launch_provider
     }
     return launch_provider
 }

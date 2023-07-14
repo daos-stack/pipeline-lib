@@ -15,7 +15,7 @@ Map call(Map kwargs = [:]) {
         'Test-repeat' + pragma_suffix, cachedCommitPragma('Test-repeat', null))
 
     if (launch_repeat) {
-        result['ftest_arg'] += ' --repeat=' + launch_repeat
+        launch_repeat = '--repeat=' + launch_repeat
     }
     return launch_repeat
 }

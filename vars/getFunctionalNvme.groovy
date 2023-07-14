@@ -19,7 +19,7 @@ Map call(Map kwargs = [:]) {
         'Test-nvme' + pragma_suffix, cachedCommitPragma('Test-nvme', default_nvme))
 
     if (launch_nvme) {
-        launch_nvme += ' --nvme=' + launch_nvme
+        launch_nvme = '--nvme=' + launch_nvme
     }
     return launch_nvme
 }

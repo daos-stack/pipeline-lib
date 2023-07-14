@@ -51,7 +51,6 @@ Map call(Map kwargs = [:]) {
     String stage_tags = kwargs.get('stage_tags', getFunctionalStageTags())
     String default_tags = kwargs.get('default_tags', '')
     String requested_tags = ''
-    String tags = ''
 
     // Define the test tags to use in this stage
     if (startedByUser() || startedByUpstream()) {
@@ -67,8 +66,11 @@ Map call(Map kwargs = [:]) {
         requested_tags = get_commit_pragma_tags(pragma_suffix) ?: default_tags
     }
     if (requested_tags) {
-        requested_tags = tags.trim()
+        requested_tags = requested_tags.trim()
     }
+
+    // Add the stage tags to each requested tag
+    String tags = ''
     for (group in requested_tags.split(' ')) {
         tags += group + (group != '+' ? ',' + stage_tags : '') + ' '
     }
