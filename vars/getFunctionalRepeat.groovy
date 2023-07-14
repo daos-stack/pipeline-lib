@@ -12,7 +12,7 @@
 Map call(Map kwargs = [:]) {
     String pragma_suffix = kwargs.get('pragma_suffix', getPragmaSuffix())
     String launch_repeat = params.TestRepeat ?: cachedCommitPragma(
-        'Test-repeat' + pragma_suffix, cachedCommitPragma('Test-repeat', null))
+        'Test-repeat' + pragma_suffix, cachedCommitPragma('Test-repeat', ''))
 
     if (launch_repeat) {
         launch_repeat = '--repeat=' + launch_repeat

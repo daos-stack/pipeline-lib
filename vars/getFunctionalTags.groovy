@@ -28,11 +28,11 @@ Map call(Map kwargs = [:]) {
     }
     if (!requested_tags) {
         // Builds started from a commit should first use any commit pragma 'Test-tag*:' tags if defined
-        requested_tags = commitPragma('Test-tag' + pragma_suffix, commitPragma('Test-tag', null))
+        requested_tags = commitPragma('Test-tag' + pragma_suffix, commitPragma('Test-tag', ''))
     }
     if (!requested_tags) {
         // Builds started from a commit should then use any commit pragma 'Features:' tags if defined
-        String features = commitPragma('Features', null)
+        String features = commitPragma('Features', '')
         if (features) {
             // Features extend the standard pr testing tags to include tests run in daily or weekly builds
             // that test the specified feature.

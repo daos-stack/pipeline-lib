@@ -13,7 +13,7 @@
 Map call(Map kwargs = [:]) {
     String pragma_suffix = kwargs.get('pragma_suffix', getPragmaSuffix())
     String launch_provider = kwargs['provider'] ?: params.TestProvider ?: cachedCommitPragma(
-        'Test-provider' + pragma_suffix, cachedCommitPragma('Test-provider', null))
+        'Test-provider' + pragma_suffix, cachedCommitPragma('Test-provider', ''))
 
     if (launch_provider) {
         launch_provider = '--provider=' +  launch_provider
