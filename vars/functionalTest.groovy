@@ -108,13 +108,21 @@ Map call(Map config = [:]) {
                 fi
                 pip3 list --user || true
                 '''
-    withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
-        sh label: 'Send build data',
-        /* groovylint-disable-next-line GStringExpressionWithinString */
-        script: '''export PATH=$PATH:$HOME/.local/bin
-                   launchable record build --name ${BUILD_TAG//%2F/-} --source src=.
-                   launchable subset --time 60m --build ${BUILD_TAG//%2F/-} ''' +
-                  '--get-tests-from-previous-sessions --rest=rest.txt raw > subset.txt'
+
+    try {
+        withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
+            sh label: 'Send build data',
+            /* groovylint-disable-next-line GStringExpressionWithinString */
+            script: '''export PATH=$PATH:$HOME/.local/bin
+                    launchable record build --name ${BUILD_TAG//%2F/-} --source src=.
+                    launchable subset --time 60m --build ${BUILD_TAG//%2F/-} ''' +
+                    '--get-tests-from-previous-sessions --rest=rest.txt raw > subset.txt'
+        }
+    /* groovylint-disable-next-line CatchException */
+    } catch (Exception error) {
+        println(
+            "Ignoring failure to record " + env.STAGE_NAME + " tests with launchable: " +
+            error.getMessage())
     }
 
     Map runtestData = [:]
@@ -124,7 +132,7 @@ Map call(Map config = [:]) {
     } else {
         runtestData = runTestFunctional p
     }
-    runtestData.each{ resultKey, data -> runData[resultKey] = data }
+    runtestData.each { resultKey, data -> runData[resultKey] = data }
 
     int runTime = durationSeconds(startDate)
     runData['funtionaltest_time'] = runTime

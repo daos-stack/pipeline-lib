@@ -83,7 +83,7 @@ Map afterTest(Map config, Map testRunInfo) {
     // Need to pre-check the Valgrind files here also
     int zero = 0
     String vgrcs
-    String target_dir = 'unit_test_memcheck_logs'
+    String memcheck_dir = sanitizedStageName() + '_memcheck_results'
     String valgrind_pattern = config['valgrind_pattern']
 
     String testResults = config['testResults']
@@ -92,7 +92,7 @@ Map afterTest(Map config, Map testRunInfo) {
     } else {
         result['result'] = checkJunitFiles(testResults: testResults)
     }
-    if (config['with_valgrind']) {
+    if (config['with_valgrind'] || config['NLT']) {
         vgrcs = sh label: 'Check for Valgrind errors',
                    script: "grep -E '<error( |>)' ${valgrind_pattern} || true",
                    returnStdout: true
@@ -103,9 +103,9 @@ Map afterTest(Map config, Map testRunInfo) {
         fileOperations([fileCopyOperation(excludes: '',
                                       flattenFiles: false,
                                       includes: valgrind_pattern,
-                                      targetLocation: target_dir)])
+                                      targetLocation: memcheck_dir)])
         sh label: 'Create tarball of Valgrind xml files',
-           script: "tar -czf ${target_dir}.tar.gz ${target_dir}"
+           script: "tar -cjf ${memcheck_dir}.tar.bz2 ${memcheck_dir}"
     }
 
     if (config['ignore_failure'] && (result['result'] != 'SUCCESS')) {
@@ -144,7 +144,6 @@ Map call(Map config = [:]) {
                           /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: inst_rpms)
-
     String target_stash = "${stage_info['target']}-${stage_info['compiler']}"
     if (stage_info['build_type']) {
         target_stash += '-' + stage_info['build_type']
@@ -201,6 +200,7 @@ Map call(Map config = [:]) {
                                            'unit-test-*memcheck.xml')
     p['testResults'] = stage_info.get('testResults', 'test_results/*.xml')
     p['with_valgrind'] = with_valgrind
+    p['NLT'] = stage_info['NLT']
     runTestData = afterTest(p, runData)
     runTestData.each { resultKey, data -> runData[resultKey] = data }
 

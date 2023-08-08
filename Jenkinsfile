@@ -116,6 +116,46 @@ pipeline {
         }
         stage('Test') {
             parallel {
+                stage('daosLatestVersion() tests') {
+                    steps {
+                        script {
+                            assert(daosLatestVersion('master', 'el8').startsWith('2.5.'))
+                            assert(daosLatestVersion('release/2.4', 'el8').startsWith('2.3.'))
+                            assert(daosLatestVersion('release/2.2', 'el8').startsWith('2.2.'))
+                        }
+                    }
+                }
+                stage('distroVersion() tests') {
+                    steps {
+                        withEnv(['BRANCH_NAME=release/2.4']) {
+                            script {
+                                String dv = distroVersion('el8')
+                                if (dv == null || !dv.startsWith('8')) {
+                                    unstable("distroVersion() returned ${dv} " +
+                                              "instead of string starting with '8'")
+                                }
+                            }
+                        }
+                        withEnv(['BRANCH_NAME=release/2.2']) {
+                            script {
+                                String dv = distroVersion('leap15')
+                                if (dv == null || !dv.startsWith('15')) {
+                                    unstable("distroVersion() returned ${dv} " +
+                                              "instead of string starting with '15'")
+                                }
+                            }
+                        }
+                        withEnv(['BRANCH_NAME=master']) {
+                            script {
+                                String dv = distroVersion('el9')
+                                if (dv == null || !dv.startsWith('9')) {
+                                    unstable("distroVersion() returned ${dv} " +
+                                              "instead of string starting with '9'")
+                                }
+                            }
+                        }
+                    }
+                }
                 stage('grep JUnit results tests failure case') {
                     agent {
                         docker {
@@ -249,10 +289,14 @@ pipeline {
                         }
                     }
                 } //stage('publishToRepository DEB tests')
-                stage('provisionNodes with release/2.2 Repo') {
+                stage('provisionNodes on EL 9 with master Repo') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != 'true' }
+                        expression {
+                            env.NO_CI_TESTING != 'true' &&
+                            cachedCommitPragma('Skip-el9-provisioning-test') != 'true' &&
+                            daosLatestVersion('master') != ''
+                        }
                     }
                     agent {
                         label 'ci_vm1'
@@ -260,37 +304,11 @@ pipeline {
                     steps {
                         job_step_update(
                             provisionNodes(NODELIST: env.NODELIST,
-                                           distro: 'el8',
-                                           profile: 'daos_ci',
-                                           node_count: '1',
-                                           snapshot: true,
-                                           inst_repos: 'daos@release/2.2'))
-                        job_step_update(
-                            /* groovylint-disable-next-line GStringExpressionWithinString */
-                            runTest(script: '''NODE=${NODELIST%%,*}
-                                               ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
-                                               yum -y --disablerepo=\\* --enablerepo=build\\* makecache"''',
-                                    junit_files: null,
-                                    failure_artifacts: env.STAGE_NAME))
-                    }
-                    // runTest handles SCM notification via stepResult
-                } //stage('provisionNodes with release/0.9 Repo')
-                stage('provisionNodes with master Repo') {
-                    when {
-                        beforeAgent true
-                        expression { env.NO_CI_TESTING != 'true' }
-                    }
-                    agent {
-                        label 'ci_vm1'
-                    }
-                    steps {
-                        job_step_update(
-                            provisionNodes(NODELIST: env.NODELIST,
-                                           distro: 'el8',
+                                           distro: parseStageInfo()['target'],
                                            profile: 'daos_ci',
                                            node_count: 1,
                                            snapshot: true,
-                                           inst_repos: 'daos@master'))
+                                           inst_repos: prReposContains('daos') ?  prRepos() : 'daos@master'))
                         job_step_update(
                             /* groovylint-disable-next-line GStringExpressionWithinString */
                             runTest(script: '''NODE=${NODELIST%%,*}
@@ -299,12 +317,28 @@ pipeline {
                                     junit_files: null,
                                     failure_artifacts: env.STAGE_NAME))
                     }
+                    post {
+                        unsuccessful {
+                            sh label: 'Failure debug',
+                               /* groovylint-disable-next-line GStringExpressionWithinString */
+                               script: '''NODE=${NODELIST%%,*}
+                                          ssh $SSH_KEY_ARGS jenkins@$NODE "set -eux
+                                          ls -l /etc/yum.repos.d/ || true
+                                          for file in /etc/yum.repos.d/*.repo; do
+                                              echo \"---- \\$file ----\"
+                                              cat \"\\$file\"
+                                          done"'''
+                        }
+                    }
                     // runTest handles SCM notification via stepResult
-                } // stage('provisionNodes with master Repo')
-                stage('provisionNodes with slurm EL8') {
+                } // stage('provisionNodes on EL 9 with master Repo')
+                stage('provisionNodes on EL 8 with slurm') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != 'true' }
+                        expression {
+                            env.NO_CI_TESTING != 'true' &&
+                            daosLatestVersion('master') != ''
+                        }
                     }
                     agent {
                         label 'ci_vm1'
@@ -312,10 +346,11 @@ pipeline {
                     steps {
                         job_step_update(
                             provisionNodes(NODELIST: env.NODELIST,
-                                           distro: 'el8',
+                                           distro: parseStageInfo()['target'],
                                            profile: 'daos_ci',
                                            node_count: 1,
                                            snapshot: true,
+                                           inst_repos: prReposContains('daos') ?  prRepos() : 'daos@master',
                                            inst_rpms: 'slurm' +
                                                       ' slurm-slurmctld slurm-slurmd' +
                                                       ' ipmctl'))
@@ -332,7 +367,10 @@ pipeline {
                 stage('provisionNodes with slurm Leap15') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != 'true' }
+                        expression {
+                            env.NO_CI_TESTING != 'true' &&
+                            daosLatestVersion('master') != ''
+                        }
                     }
                     agent {
                         label 'ci_vm1'
@@ -340,10 +378,11 @@ pipeline {
                     steps {
                         job_step_update(
                             provisionNodes(NODELIST: env.NODELIST,
-                                           distro: 'opensuse15',
+                                           distro: parseStageInfo()['target'],
                                            profile: 'daos_ci',
                                            node_count: 1,
                                            snapshot: true,
+                                           inst_repos: prReposContains('daos') ?  prRepos() : 'daos@master',
                                            inst_rpms: 'slurm ipmctl'))
                         job_step_update(
                             /* groovylint-disable-next-line GStringExpressionWithinString */
@@ -535,8 +574,10 @@ pipeline {
                     axis {
                         name 'TEST_BRANCH'
                         values 'master',
+                               'release/2.4',
                                'release/2.2',
                                'weekly-testing',
+                               'weekly-2.4-testing',
                                'weekly-testing-2.2'
                     }
                 }
@@ -616,7 +657,7 @@ pipeline {
                                   parameters: [string(name: 'TestTag',
                                                       value: 'load_mpi test_core_files test_pool_info_query'),
                                                string(name: 'CI_RPM_TEST_VERSION',
-                                                      value: cachedCommitPragma('Test-skip-build', 'true') == 'true' ?
+                                                      value: cachedCommitPragma('Test-skip-build', 'false') == 'true' ?
                                                                daosLatestVersion(env.TEST_BRANCH) : ''),
                                                booleanParam(name: 'CI_UNIT_TEST', value: false),
                                                booleanParam(name: 'CI_FI_el8_TEST', value: true),

@@ -22,22 +22,13 @@ String normalize_distro(String distro) {
         distro.startsWith('rhel8')) {
         return 'el8'
     }
+    if (distro.startsWith('el9') || distro.startsWith('centos9') ||
+        distro.startsWith('rocky9') || distro.startsWith('almalinux9') ||
+        distro.startsWith('rhel9')) {
+        return 'el9'
+    }
 
     return distro
-}
-
-String rpm_dist(String distro) {
-    if (distro.startsWith('el7') || distro.startsWith('centos7')) {
-        return '.el7'
-    } else if (distro.startsWith('el8') || distro.startsWith('centos8') ||
-               distro.startsWith('rocky8') || distro.startsWith('almalinux8') ||
-               distro.startsWith('rhel8')) {
-        return '.el8'
-    } else if (distro.startsWith('leap15')) {
-        return '.suse.lp' + parseStageInfo()['distro_version'].replaceAll('\\.', '')
-    }
-    error("Don't know what the RPM %{dist} is for ${distro}")
-    return
 }
 
 String call(String next_version) {
@@ -55,20 +46,20 @@ String call(String distro, String next_version) {
         String dist = ''
         if (version.indexOf('-') > -1) {
             // only tack on the %{dist} if the release was specified
-            dist = rpm_dist(_distro)
+            dist = rpmDistValue(_distro)
         }
         return version + dist
     }
 
-    if (target_branch.matches(testBranchRE())) {
+    if (target_branch =~ testBranchRE()) {
         // weekly-test just wants the latest for the branch
         if (rpm_version_cache != '' && rpm_version_cache != 'locked') {
-            return rpm_version_cache + rpm_dist(_distro)
+            return rpm_version_cache + rpmDistValue(_distro)
         }
         if (rpm_version_cache == '') {
             // no cached value and nobody's getting it
             rpm_version_cache = 'locked'
-            rpm_version_cache = daosLatestVersion(next_version)
+            rpm_version_cache = daosLatestVersion(next_version, _distro)
         } else {
             // somebody else is getting it, wait for them
             Integer i = 30
@@ -77,10 +68,10 @@ String call(String distro, String next_version) {
                 sleep(10)
             }
             if (rpm_version_cache == 'locked') {
-                rpm_version_cache = daosLatestVersion(next_version)
+                rpm_version_cache = daosLatestVersion(next_version, _distro)
             }
         }
-        return rpm_version_cache + rpm_dist(_distro)
+        return rpm_version_cache + rpmDistValue(_distro)
     }
 
     /* what's the query to get the highest 1.0.x package?
@@ -96,6 +87,7 @@ String call(String distro, String next_version) {
         _distro = _distro[0..dot - 1]
     }
 
+    // Everything below here is deprecated and should be removed shortly
     String err_msg = null
     /* TODO: the stage info should tell us the name of the distro that the
      * packages to be tested were built on and stashed in
@@ -117,21 +109,21 @@ String call(String distro, String next_version) {
             version_file = _distro
         /* groovylint-disable-next-line CatchException */
         } catch (Exception e2) {
-            err_msg = "Don't know how to determine package version for " + _distro
+            print('Ingoring missing but deprecated ' + _distro + '-rpm-version' + ' stash')
+            return ''
         }
     }
 
-    if (!err_msg) {
-        version = readFile(version_file + '-rpm-version').trim()
-        if (version != '') {
-            return version
-        }
-        err_msg = 'Unable to read a version from ' + version_file + '-rpm-version'
+    version = readFile(version_file + '-rpm-version').trim()
+    if (version != '') {
+        return version
     }
+
+    err_msg = 'Unable to read a version from ' + version_file + '-rpm-version'
 
     sh('ls -l ' + version_file + '-rpm-version || true; ' +
        'cat ' + version_file + '-rpm-version || true;')
 
     error err_msg
-    return
+    return ''
 }

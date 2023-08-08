@@ -10,9 +10,8 @@
  * Method to return the name of the running job
  */
 
-def call() {
-
-  def jobNameParts = env.JOB_NAME.tokenize('/') as String[]
-  jobNameParts.length < 2 ? env.JOB_NAME : jobNameParts[jobNameParts.length - 2]
-
+String call() {
+    // JOB_NAME=daos-stack/mpich/PR-65
+    String[] jobNameParts = env.JOB_NAME.split('/')
+    return jobNameParts.length < 2 ? env.JOB_NAME : jobNameParts[jobNameParts.length - 2]
 }

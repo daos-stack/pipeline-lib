@@ -83,14 +83,12 @@ boolean already_passed(String stage_name = env.STAGE_NAME, String postfix='') {
 
 // Determine if a stage has been specified to skip with a commit pragma
 String skip_stage_pragma(String stage, String def_val='false') {
-    test_print('  skip_stage_pragma: Skip-' + stage + ' = ' + cachedCommitPragma('Skip-' + stage, def_val).toLowerCase())
     return cachedCommitPragma('Skip-' + stage, def_val).toLowerCase() == 'true'
 }
 
 // Determine if a stage that defaults to being skipped has been forced to run
 // (i.e. due to a commit pragma)
 String run_default_skipped_stage(String stage) {
-    test_print('  run_default_skipped_stage: Skip-' + stage + ' = ' + cachedCommitPragma('Skip-' + stage).toLowerCase())
     return cachedCommitPragma('Skip-' + stage).toLowerCase() == 'false'
 }
 
@@ -105,7 +103,7 @@ boolean skip_build_on_landing_branch(String target_branch) {
 
 boolean skip_scan_rpms(String distro, String target_branch) {
     return already_passed() ||
-           target_branch == 'weekly-testing' ||
+           target_branch =~ branchTypeRE('weekly') ||
            rpmTestVersion() != '' ||
            skip_stage_pragma('scan-rpms') ||
            skip_stage_pragma('scan-' + distro + '-rpms') ||
@@ -116,78 +114,34 @@ boolean skip_scan_rpms(String distro, String target_branch) {
            quickFunctional()
 }
 
-boolean landing_branch() {
-    // Is this a master or release branch
-    return env.BRANCH_NAME == 'master' ||
-           env.BRANCH_NAME.startsWith('release/')
-}
-
-boolean no_tests_to_run(String distro, String target_branch) {
-    // Determine if the stage should be skipped because it was already ran or
-    // contains no tests to run.
-    return already_passed() || !testsInStage() ||
-           (docOnlyChange(target_branch) && prRepos(distro) == '')
-}
-
-void test_print(message) {
-    // Print the line if this is run in a unit test
-    if (env.UNIT_TEST && env.UNIT_TEST == 'true') {
-        println(message)
-    }
-}
-
 boolean skip_ftest(String distro, String target_branch) {
-    // Should the stage be skipped because it already ran or has no tests
-    if (no_tests_to_run(distro, target_branch)) {
-        test_print('  skip_ftest: no tests to run, skipping ' + env.STAGE_NAME)
+    // Defaults for skipped stages and pragmas to override them
+    // must be checked first before parameters are checked
+    // because the defaults are based on which branch
+    // is being run.
+    if (already_passed()) {
         return true
     }
-
-    // When the stage is started manually or via a timer skipping the stage is
-    // controlled by the build parameter and commit pragmas are ignored
-    if ((startedByTimer() || startedByUser()) && !startedByUpstream()) {
-        return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true)
-    }
-
-    // Skip this stage if requested by the user commit pragma
-    if (skip_stage_pragma('func-test-' + distro) ||
-        skip_stage_pragma('func-test-vm-all') ||
-        skip_stage_pragma('func-test-vm') ||
-        skip_stage_pragma('func-test') ||
-        skip_stage_pragma('test')) {
-        test_print('  skip_ftest: user requested skip of ' + env.STAGE_NAME)
-        return true
-    }
-
-    // Run this stage if requested by the user commit pragma
     if (run_default_skipped_stage('func-test-' + distro) ||
-        run_default_skipped_stage('func-test-vm-all') ||
-        run_default_skipped_stage('func-test-vm') ||
-        run_default_skipped_stage('func-test') ||
-        run_default_skipped_stage('test') ||
-        cachedCommitPragma('Run-daily-stages').toLowerCase() == 'true') {
-        test_print('  skip_ftest: user requested run of ' + env.STAGE_NAME)
+        run_default_skipped_stage('func-test-vm-all')) {
+        // Forced to run due to a (Skip) pragma set to false
         return false
     }
-
-    // Run the stage if its build parameter is either:
-    //   1) enabled by default
-    //   2) selected by the user
-    //   3) not defined
-    // unless it is either:
-    //   1) a PR running on any OS besides EL8
-    //   2) running on ubuntu
-    if (paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true) &&
-        /* groovylint-disable-next-line UnnecessaryGetter */
-        !((isPr() && distro != 'el8') ||
-          distro == 'ubuntu20')) {
-        test_print('  skip_ftest: enabled by checkbox or other, running ' + env.STAGE_NAME)
-        return false
-    }
-
-    // Otherwise skip the branch
-    test_print('  skip_ftest: default, skipping ' + env.STAGE_NAME)
-    return true
+    // If a parameter exists to enable a build, then use it.
+    // The params.CI_MORE_FUNCTIONAL_PR_TESTS allows enabling
+    // tests that are not run in PRs.
+    return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true) ||
+           distro == 'ubuntu20' ||
+           skip_stage_pragma('build-' + distro + '-rpm') ||
+           skip_stage_pragma('func-test') ||
+           skip_stage_pragma('func-test-vm') ||
+           skip_stage_pragma('func-test-vm-all') ||
+           !testsInStage() ||
+           skip_stage_pragma('func-test-' + distro) ||
+           (docOnlyChange(target_branch) &&
+            prRepos(distro) == '') ||
+           /* groovylint-disable-next-line UnnecessaryGetter */
+           (isPr() && !(distro in ['el8']))
 }
 
 boolean skip_ftest_valgrind(String distro, String target_branch) {
@@ -199,71 +153,44 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
            skip_ftest(distro, target_branch) ||
            /* groovylint-disable-next-line UnnecessaryGetter */
            isPr() ||
-           target_branch.startsWith('weekly-testing')
+           target_branch =~ branchTypeRE('weekly')
 }
 
-boolean skip_ftest_hw(String size, String target_branch) {
-    // Should the stage be skipped because it already ran or has no tests
-    if (no_tests_to_run(hwDistroTarget(size), target_branch)) {
-        test_print('  skip_ftest_hw: no tests to run, skipping ' + env.STAGE_NAME)
+boolean skip_ftest_hw(String size, String distro, String target_branch) {
+    // Defaults for skipped stages and pragmas to override them
+    // must be checked first before parameters are checked
+    // because the defaults are based on which branch
+    // is being run.
+    if (already_passed()) {
         return true
     }
-
-    // When the stage is started manually or via a timer skipping the stage is
-    // controlled by the build parameter and commit pragmas are ignored
-    if ((startedByTimer() || startedByUser()) && !startedByUpstream()) {
-        return !paramsValue('CI_' + size.replace('-', '_') + '_TEST', true)
-    }
-
-    // Skip this stage if requested by the user commit pragma
-    if (skip_stage_pragma('func-test-hw-' + size) ||
-        skip_stage_pragma('func-hw-test-' + size) ||
-        skip_stage_pragma('func-test-hw') ||
-        skip_stage_pragma('func-hw-test') ||
-        skip_stage_pragma('func-test') ||
-        skip_stage_pragma('test')) {
-        test_print('  skip_ftest_hw: user requested skip of ' + env.STAGE_NAME)
-        return true
-    }
-
-    // Run this stage if requested by the user commit pragmas
-    if (run_default_skipped_stage('func-test-hw-' + size) ||
-        run_default_skipped_stage('func-hw-test-' + size) ||
-        run_default_skipped_stage('func-test-hw') ||
-        run_default_skipped_stage('func-hw-test') ||
-        run_default_skipped_stage('func-test') ||
-        run_default_skipped_stage('test') ||
-        cachedCommitPragma('Run-daily-stages').toLowerCase() == 'true') {
-        test_print('  skip_ftest_hw: user requested run of ' + env.STAGE_NAME)
+    if (run_default_skipped_stage('func-hw-test-' + size)) {
+        // Forced to run due to a (Skip) pragma set to false
         return false
     }
-
-    // Run the stage if its build parameter is either:
-    //   1) enabled by default
-    //   2) selected by the user
-    //   3) not defined
-    // unless it is either a:
-    //   1) PR running the Functional Hardware Medium UCX provider stage
-    //   2) build not started by the user/timer in the master or release branch
-    if (paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) &&
-        /* groovylint-disable-next-line UnnecessaryGetter */
-        !((isPr() && size == 'medium-ucx-provider') ||
-          (landing_branch() && !(startedByTimer() || startedByUser())))) {
-        test_print('  skip_ftest_hw: enabled by checkbox or other, running ' + env.STAGE_NAME)
-        return false
-    }
-
-    // Otherwise skip the branch
-    test_print('  skip_ftest_hw: default, skipping ' + env.STAGE_NAME)
-    return true
+    // If a parameter exists to enable a build, then use it.
+    return !paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
+           env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
+           skip_stage_pragma('build-' + distro + '-rpm') ||
+           skip_stage_pragma('func-test') ||
+           skip_stage_pragma('func-hw-test-' + size) ||
+           !testsInStage() ||
+           ((env.BRANCH_NAME == 'master' ||
+             env.BRANCH_NAME =~ branchTypeRE('release')) &&
+            !(startedByTimer() || startedByUser())) ||
+           cachedCommitPragma('Run-daily-stages') == 'true' ||
+           (docOnlyChange(target_branch) &&
+            prRepos(hwDistroTarget(size)) == '') ||
+           /* groovylint-disable-next-line UnnecessaryGetter */
+           (isPr() && size == 'medium-ucx-provider')
 }
 
 boolean skip_if_unstable() {
     if (paramsValue('CI_ALLOW_UNSTABLE_TEST', false) ||
         cachedCommitPragma('Allow-unstable-test').toLowerCase() == 'true' ||
         env.BRANCH_NAME == 'master' ||
-        env.BRANCH_NAME.matches(testBranchRE()) ||
-        env.BRANCH_NAME.startsWith('release/')) {
+        env.BRANCH_NAME =~ branchTypeRE('testing') ||
+        env.BRANCH_NAME =~ branchTypeRE('release')) {
         return false
     }
 
@@ -307,9 +234,13 @@ boolean call(Map config = [:]) {
             return cachedCommitPragma('Cancel-prev-build') == 'false' ||
                    /* groovylint-disable-next-line UnnecessaryGetter */
                    (!isPr() && !startedByUpstream())
+        case 'Check Packaging':
+            return skip_stage_pragma('packaging-check')
+        case 'Lint':
+            return quickBuild()
         case 'Pre-build':
             return docOnlyChange(target_branch) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch =~ branchTypeRE('weekly') ||
                    rpmTestVersion() != '' ||
                    quickBuild()
         case 'checkpatch':
@@ -323,12 +254,12 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build') ||
                    rpmTestVersion() != '' ||
                    (quickFunctional() &&
-                    cachedCommitPragma('PR-repos').trim().contains('daos@'))
+                   prReposContains(null, jobName()))
         case 'Build RPM on CentOS 7':
             return paramsValue('CI_RPM_centos7_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
-                    prRepos('centos7').contains('daos@') ||
+                   prReposContains('centos7', jobName()) ||
                    skip_stage_pragma('build-centos7-rpm')
         case 'Build RPM on EL 8':
         case 'Build RPM on EL 8.5':
@@ -336,22 +267,28 @@ boolean call(Map config = [:]) {
             return paramsValue('CI_RPM_el8_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('el8') == '') ||
-                   prRepos('el8').contains('daos@') ||
+                   prReposContains('el8', jobName()) ||
                    skip_stage_pragma('build-el8-rpm')
+        case 'Build RPM on EL 9':
+            return paramsValue('CI_RPM_el9_NOBUILD', false) ||
+                   (docOnlyChange(target_branch) &&
+                    prRepos('el9') == '') ||
+                   prReposContains('el9', jobName()) ||
+                   skip_stage_pragma('build-el9-rpm')
         case 'Build RPM on Leap 15':
         case 'Build RPM on Leap 15.4':
             return paramsValue('CI_RPM_leap15_NOBUILD', false) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch =~ branchTypeRE('weekly') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
-                   prRepos('leap15').contains('daos@') ||
+                   prReposContains('leap15', jobName()) ||
                    skip_stage_pragma('build-leap15-rpm')
         case 'Build DEB on Ubuntu 20.04':
             return paramsValue('CI_RPM_ubuntu20_NOBUILD', false) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch =~ branchTypeRE('weekly') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
-                   prRepos('ubuntu20').contains('daos@') ||
+                   prReposContains('ubuntu20', jobName()) ||
                    skip_stage_pragma('build-ubuntu20-rpm')
         case 'Build on CentOS 8':
         case 'Build on EL 8':
@@ -436,7 +373,7 @@ boolean call(Map config = [:]) {
                    quickBuild()
         case 'Build on Ubuntu 20.04 with Clang':
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('build-ubuntu-clang') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
@@ -451,7 +388,7 @@ boolean call(Map config = [:]) {
         case 'Build on Leap 15 with Intel-C and TARGET_PREFIX':
         case 'Build on Leap 15.4 with Intel-C and TARGET_PREFIX':
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('build-leap15-icc') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
@@ -495,18 +432,19 @@ boolean call(Map config = [:]) {
                    (skip_stage_pragma('build') &&
                     rpmTestVersion() == '') ||
                    skip_stage_pragma('test') ||
-                   (env.BRANCH_NAME.matches(testBranchRE()) &&
+                   (env.BRANCH_NAME =~ branchTypeRE('testing') &&
                     !startedByTimer() &&
                     !startedByUpstream() &&
                     !startedByUser()) ||
                    skip_if_unstable()
         case 'Test on CentOS 7 [in] Vagrant':
             return skip_stage_pragma('vagrant-test', 'true') &&
-                   !env.BRANCH_NAME.startsWith('weekly-testing') ||
+                   !env.BRANCH_NAME =~ branchTypeRE('weekly') ||
                    already_passed()
         case 'Coverity on CentOS 7':
         case 'Coverity on CentOS 8':
         case 'Coverity on EL 8':
+        case 'Coverity':
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    rpmTestVersion() != '' ||
                    skip_stage_pragma('coverity-test', 'true') ||
@@ -523,6 +461,8 @@ boolean call(Map config = [:]) {
         case 'Functional on CentOS 8':
         case 'Functional on EL 8':
             return skip_ftest('el8', target_branch)
+        case 'Functional on EL 9':
+            return skip_ftest('el9', target_branch)
         case 'Functional on Leap 15':
         case 'Functional on Leap 15.4':
             return skip_ftest('leap15', target_branch)
@@ -542,7 +482,7 @@ boolean call(Map config = [:]) {
                    already_passed()
         case 'Test CentOS 7 RPMs':
             return !paramsValue('CI_RPMS_el7_TEST', true) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-centos-rpms') ||
@@ -554,7 +494,7 @@ boolean call(Map config = [:]) {
                    already_passed()
         case 'Test CentOS 8.3.2011 RPMs':
             return !paramsValue('CI_RPMS_centos8.3.2011_TEST', true) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-centos-8.3-rpms') ||
@@ -566,7 +506,7 @@ boolean call(Map config = [:]) {
         case 'Test CentOS 8.4.2105 RPMs':
         case 'Test EL 8.4 RPMs':
             return !paramsValue('CI_RPMS_el8.4.2105_TEST', true) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-el-8.4-rpms') ||
@@ -578,7 +518,7 @@ boolean call(Map config = [:]) {
         case 'Test CentOS 8.5.2111 RPMs':
         case 'Test EL 8.5 RPMs':
             return !paramsValue('CI_RPMS_el8.5.2111_TEST', true) ||
-                   target_branch == 'weekly-testing' ||
+                   target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-el-8.5-rpms') ||
@@ -609,29 +549,29 @@ boolean call(Map config = [:]) {
                    (skip_stage_pragma('build') &&
                     rpmTestVersion() == '') ||
                    skip_stage_pragma('test') ||
-                   (env.BRANCH_NAME.matches(testBranchRE()) &&
+                   (env.BRANCH_NAME =~ branchTypeRE('testing') &&
                     !startedByTimer() &&
                     !startedByUpstream() &&
                     !startedByUser()) ||
                    skip_if_unstable()
         case 'Functional_Hardware_Small':
         case 'Functional Hardware Small':
-            return skip_ftest_hw('small', target_branch)
+            return skip_ftest_hw('small', 'el8', target_branch)
         case 'Functional_Hardware_Medium':
         case 'Functional Hardware Medium':
-            return skip_ftest_hw('medium', target_branch)
+            return skip_ftest_hw('medium', 'el8', target_branch)
         case 'Functional Hardware Medium TCP Provider':
-            return skip_ftest_hw('medium-tcp-provider', target_branch)
+            return skip_ftest_hw('medium-tcp-provider', 'el8', target_branch)
         case 'Functional Hardware Medium Verbs Provider':
-            return skip_ftest_hw('medium-verbs-provider', target_branch)
+            return skip_ftest_hw('medium-verbs-provider', 'el8', target_branch)
         case 'Functional Hardware Medium UCX Provider':
-            return skip_ftest_hw('medium-ucx-provider', target_branch)
+            return skip_ftest_hw('medium-ucx-provider', 'el8', target_branch)
         case 'Functional_Hardware_Large':
         case 'Functional Hardware Large':
-            return skip_ftest_hw('large', target_branch)
+            return skip_ftest_hw('large', 'el8', target_branch)
         case 'Functional_Hardware_24':
         case 'Functional Hardware 24':
-            return skip_ftest_hw('24', target_branch)
+            return skip_ftest_hw('24', 'el8', target_branch)
         case 'Bullseye Report':
         case 'Bullseye Report on CentOS 8':
         case 'Bullseye Report on EL 8':
@@ -641,5 +581,6 @@ boolean call(Map config = [:]) {
             return skip_stage_pragma('daos-build-and-test')
         default:
             println("Don't know how to skip stage \"${env.STAGE_NAME}\", not skipping")
+            return false
     }
 }
