@@ -115,13 +115,12 @@ boolean skip_scan_rpms(String distro, String target_branch) {
 }
 
 boolean skip_ftest(String distro, String target_branch) {
-    // Defaults for skipped stages and pragmas to override them
-    // must be checked first before parameters are checked
-    // because the defaults are based on which branch
-    // is being run.
-    if (already_passed()) {
+    // Skip the functional vm test stage if it has already passed or
+    // there are no tests matching the tags for the stage
+    if (already_passed() || !testsInStage()) {
         return true
     }
+    // Run the functional vm test stage if explicitly requested by the user
     if (run_default_skipped_stage('func-test-' + distro) ||
         run_default_skipped_stage('func-test-vm-all')) {
         // Forced to run due to a (Skip) pragma set to false
@@ -136,7 +135,6 @@ boolean skip_ftest(String distro, String target_branch) {
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||
            skip_stage_pragma('func-test-vm-all') ||
-           !testsInStage() ||
            skip_stage_pragma('func-test-' + distro) ||
            (docOnlyChange(target_branch) &&
             prRepos(distro) == '') ||
@@ -157,24 +155,21 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
 }
 
 boolean skip_ftest_hw(String size, String distro, String target_branch) {
-    // Defaults for skipped stages and pragmas to override them
-    // must be checked first before parameters are checked
-    // because the defaults are based on which branch
-    // is being run.
-    if (already_passed()) {
+    // Skip the functional hardware test stage if it has already passed or
+    // there are no tests matching the tags for the stage
+    if (already_passed() || !testsInStage()) {
         return true
     }
+    // Run the functional hardware test stage if explicitly requested by the user
     if (run_default_skipped_stage('func-hw-test-' + size)) {
         // Forced to run due to a (Skip) pragma set to false
         return false
     }
-    // If a parameter exists to enable a build, then use it.
     return !paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
            env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
            skip_stage_pragma('build-' + distro + '-rpm') ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-hw-test-' + size) ||
-           !testsInStage() ||
            ((env.BRANCH_NAME == 'master' ||
              env.BRANCH_NAME =~ branchTypeRE('release')) &&
             !(startedByTimer() || startedByUser())) ||
