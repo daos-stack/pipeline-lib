@@ -229,6 +229,7 @@ boolean call(Map config = [:]) {
     }
 
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
+    String hw_distro = hwDistroTarget2().join("")
 
     switch (env.STAGE_NAME) {
         case 'Cancel Previous Builds':
@@ -557,22 +558,22 @@ boolean call(Map config = [:]) {
                    skip_if_unstable()
         case 'Functional_Hardware_Small':
         case 'Functional Hardware Small':
-            return skip_ftest_hw('small', 'el8', target_branch)
+            return skip_ftest_hw('small', hw_distro, target_branch)
         case 'Functional_Hardware_Medium':
         case 'Functional Hardware Medium':
-            return skip_ftest_hw('medium', 'el8', target_branch)
+            return skip_ftest_hw('medium', hw_distro, target_branch)
         case 'Functional Hardware Medium TCP Provider':
-            return skip_ftest_hw('medium-tcp-provider', 'el8', target_branch)
+            return skip_ftest_hw('medium-tcp-provider', hw_distro, target_branch)
         case 'Functional Hardware Medium Verbs Provider':
-            return skip_ftest_hw('medium-verbs-provider', 'el8', target_branch)
+            return skip_ftest_hw('medium-verbs-provider', hw_distro, target_branch)
         case 'Functional Hardware Medium UCX Provider':
-            return skip_ftest_hw('medium-ucx-provider', 'el8', target_branch)
+            return skip_ftest_hw('medium-ucx-provider', hw_distro, target_branch)
         case 'Functional_Hardware_Large':
         case 'Functional Hardware Large':
-            return skip_ftest_hw('large', 'el8', target_branch)
+            return skip_ftest_hw('large', hw_distro, target_branch)
         case 'Functional_Hardware_24':
         case 'Functional Hardware 24':
-            return skip_ftest_hw('24', 'el8', target_branch)
+            return skip_ftest_hw('24', hw_distro, target_branch)
         case 'Bullseye Report':
         case 'Bullseye Report on CentOS 8':
         case 'Bullseye Report on EL 8':
