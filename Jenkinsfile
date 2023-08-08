@@ -451,7 +451,13 @@ pipeline {
                                         skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr(), !isPr()]],
                                        [pragmas: ['Run-daily-stages: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [false, false, false, false, false, false, false]]]
+                                        skips: [false, false, false, false, false, false, false]],
+                                       [pragmas: ['Skip-build-el8-rpm: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), true, true, true, true, true]],
+                                       [pragmas: ['Skip-build-leap15-rpm: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, isPr(), false, !isPr(), !isPr(), isPr(), !isPr()]]]
                             errors = 0
                             commits.each { commit ->
                                 cm = 'Test commit\n\n'

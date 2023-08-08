@@ -132,6 +132,7 @@ boolean skip_ftest(String distro, String target_branch) {
     return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true) ||
            distro == 'ubuntu20' ||
            skip_stage_pragma('build-' + distro + '-rpm') ||
+           skip_stage_pragma('test') ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||
            skip_stage_pragma('func-test-vm-all') ||
@@ -161,14 +162,19 @@ boolean skip_ftest_hw(String size, String distro, String target_branch) {
         return true
     }
     // Run the functional hardware test stage if explicitly requested by the user
-    if (run_default_skipped_stage('func-hw-test-' + size)) {
+    if (run_default_skipped_stage('func-hw-test-' + size) ||
+        run_default_skipped_stage('func-test-hw-' + size)) {
         // Forced to run due to a (Skip) pragma set to false
         return false
     }
     return !paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
            env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
            skip_stage_pragma('build-' + distro + '-rpm') ||
+           skip_stage_pragma('test') ||
            skip_stage_pragma('func-test') ||
+           skip_stage_pragma('func-test-hw') ||
+           skip_stage_pragma('func-test-hw-' + size) ||
+           skip_stage_pragma('func-hw-test') ||
            skip_stage_pragma('func-hw-test-' + size) ||
            ((env.BRANCH_NAME == 'master' ||
              env.BRANCH_NAME =~ branchTypeRE('release')) &&
