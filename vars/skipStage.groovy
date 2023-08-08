@@ -163,7 +163,8 @@ boolean skip_ftest_hw(String size, String distro, String target_branch) {
     }
     // Run the functional hardware test stage if explicitly requested by the user
     if (run_default_skipped_stage('func-hw-test-' + size) ||
-        run_default_skipped_stage('func-test-hw-' + size)) {
+        run_default_skipped_stage('func-test-hw-' + size) ||
+        cachedCommitPragma('Run-daily-stages').toLowerCase() == 'true') {
         // Forced to run due to a (Skip) pragma set to false
         return false
     }
@@ -179,7 +180,6 @@ boolean skip_ftest_hw(String size, String distro, String target_branch) {
            ((env.BRANCH_NAME == 'master' ||
              env.BRANCH_NAME =~ branchTypeRE('release')) &&
             !(startedByTimer() || startedByUser())) ||
-           cachedCommitPragma('Run-daily-stages') == 'true' ||
            (docOnlyChange(target_branch) &&
             prRepos(hwDistroTarget(size)) == '') ||
            /* groovylint-disable-next-line UnnecessaryGetter */
