@@ -155,7 +155,7 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
            target_branch =~ branchTypeRE('weekly')
 }
 
-boolean skip_ftest_hw(String size, String distro, String target_branch) {
+boolean skip_ftest_hw(String size, String target_branch) {
     // Skip the functional hardware test stage if it has already passed or
     // there are no tests matching the tags for the stage
     if (already_passed() || !testsInStage()) {
@@ -168,6 +168,7 @@ boolean skip_ftest_hw(String size, String distro, String target_branch) {
         // Forced to run due to a (Skip) pragma set to false
         return false
     }
+    String distro = hwDistroTarget()
     return !paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
            env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
            skip_stage_pragma('build-' + distro + '-rpm') ||
@@ -229,7 +230,6 @@ boolean call(Map config = [:]) {
     }
 
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
-    String hw_distro = hwDistroTarget2().join("")
 
     switch (env.STAGE_NAME) {
         case 'Cancel Previous Builds':
@@ -558,22 +558,22 @@ boolean call(Map config = [:]) {
                    skip_if_unstable()
         case 'Functional_Hardware_Small':
         case 'Functional Hardware Small':
-            return skip_ftest_hw('small', hw_distro, target_branch)
+            return skip_ftest_hw('small', target_branch)
         case 'Functional_Hardware_Medium':
         case 'Functional Hardware Medium':
-            return skip_ftest_hw('medium', hw_distro, target_branch)
+            return skip_ftest_hw('medium', target_branch)
         case 'Functional Hardware Medium TCP Provider':
-            return skip_ftest_hw('medium-tcp-provider', hw_distro, target_branch)
+            return skip_ftest_hw('medium-tcp-provider', target_branch)
         case 'Functional Hardware Medium Verbs Provider':
-            return skip_ftest_hw('medium-verbs-provider', hw_distro, target_branch)
+            return skip_ftest_hw('medium-verbs-provider', target_branch)
         case 'Functional Hardware Medium UCX Provider':
-            return skip_ftest_hw('medium-ucx-provider', hw_distro, target_branch)
+            return skip_ftest_hw('medium-ucx-provider', target_branch)
         case 'Functional_Hardware_Large':
         case 'Functional Hardware Large':
-            return skip_ftest_hw('large', hw_distro, target_branch)
+            return skip_ftest_hw('large', target_branch)
         case 'Functional_Hardware_24':
         case 'Functional Hardware 24':
-            return skip_ftest_hw('24', hw_distro, target_branch)
+            return skip_ftest_hw('24', target_branch)
         case 'Bullseye Report':
         case 'Bullseye Report on CentOS 8':
         case 'Bullseye Report on EL 8':
