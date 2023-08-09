@@ -168,7 +168,7 @@ boolean skip_ftest_hw(String size, String target_branch) {
         // Forced to run due to a (Skip) pragma set to false
         return false
     }
-    String distro = hwDistroTarget()
+    String distro = hwDistroTarget(size)
     return !paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
            env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
            skip_stage_pragma('build-' + distro + '-rpm') ||
@@ -182,7 +182,7 @@ boolean skip_ftest_hw(String size, String target_branch) {
              env.BRANCH_NAME =~ branchTypeRE('release')) &&
             !(startedByTimer() || startedByUser())) ||
            (docOnlyChange(target_branch) &&
-            prRepos(hwDistroTarget(size)) == '') ||
+            prRepos(distro) == '') ||
            /* groovylint-disable-next-line UnnecessaryGetter */
            (isPr() && size == 'medium-ucx-provider')
 }
