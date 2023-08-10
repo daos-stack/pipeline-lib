@@ -4,12 +4,11 @@
  * run.groovy
  *
  * Wrapper for publishToRepositorySystem.
- * 
+ *
  * The publishToRepositorySystem must be provided as a shared
  * groovy library local to the running Jenkins for this routine.
  *
  * If it is not provided this routine will not do anything.
- *
  *
  * @param config Map of parameters passed
  * @return none
@@ -34,7 +33,7 @@
  *                          and master.
  */
 
-def call(Map config = [:]) {
+void call(Map config = [:]) {
     if (env.REPOSITORY_URL == null) {
         println('No REPOSITORY_URL environment variable configured.')
         return
