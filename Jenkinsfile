@@ -400,21 +400,76 @@ pipeline {
                                       'Functional on CentOS 7',
                                       'Functional on EL 8',
                                       'Functional Hardware Medium',
+                                      'Functional Hardware Medium Verbs Provider',
+                                      'Functional Hardware Medium UCX Provider',
                                       'Functional Hardware Large']
-                            commits = [[pragmas: ['Skip-func-test-leap15: false'],
+                            commits = [[pragmas: [''],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [false, isPr(), false, !isPr(), !isPr(), !isPr()]],
-                                       [pragmas: [''],
+                                        skips: [isPr(), isPr(), false, !isPr(), !isPr(), isPr(), !isPr()]],
+                                       [pragmas: ['Skip-test: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr()]],
+                                        skips: [true, true, true, true, true, true, true]],
+                                       [pragmas: ['Skip-func-test: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, true, true, true, true, true, true]],
+                                       [pragmas: ['Skip-func-test-vm: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, true, true, !isPr(), !isPr(), isPr(), !isPr()]],
+                                       [pragmas: ['Skip-func-test-vm-all: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, true, true, !isPr(), !isPr(), isPr(), !isPr()]],
+                                       [pragmas: ['Skip-func-test-el8: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), true, !isPr(), !isPr(), isPr(), !isPr()]],
+                                       [pragmas: ['Skip-func-test-leap15: false'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [false, isPr(), false, !isPr(), !isPr(), true, !isPr()]],
+                                       [pragmas: ['Skip-func-test: true\nSkip-func-test-el8: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, true, true, true, true, true, true]],
+                                       [pragmas: ['Skip-func-test-leap15: false\nSkip-func-test-el7: false'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [false, false, false, !isPr(), !isPr(), true, !isPr()]],
+                                       [pragmas: ['Skip-func-test-hw: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), false, true, true, true, true]],
+                                       [pragmas: ['Skip-func-test-hw-medium: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), false, true, !isPr(), isPr(), !isPr()]],
+                                       [pragmas: ['Skip-func-test-hw-medium-ucx-provider: false'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr(), !isPr()]],
+                                       [pragmas: ['Skip-func-hw-test: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), false, true, true, true, true]],
                                        [pragmas: ['Skip-func-hw-test-medium: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, true, !isPr(), !isPr()]]]
+                                        skips: [isPr(), isPr(), false, true, !isPr(), isPr(), !isPr()]],
+                                       [pragmas: ['Skip-func-hw-test-medium-ucx-provider: false'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr(), !isPr()]],
+                                       [pragmas: ['Run-daily-stages: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), false, false, false, false, false]],
+                                       [pragmas: ['Skip-build-el8-rpm: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [isPr(), isPr(), true, true, true, true, true]],
+                                       [pragmas: ['Skip-build-leap15-rpm: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, isPr(), false, !isPr(), !isPr(), isPr(), !isPr()]]]
+                            errors = 0
                             commits.each { commit ->
                                 cm = 'Test commit\n\n'
                                 commit.pragmas.each { pragma ->
                                     cm += "${pragma}\n"
                                 }
+                                println('-------------------------')
+                                println('Unit test commit message:')
+                                println('')
+                                println('  pragmas:        ' + commit.pragmas)
+                                println('  commit message: ' + cm)
+                                println('')
+                                actual_skips = []
                                 i = 0
                                 // assign Map to env. var to serialize it
                                 env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
@@ -423,17 +478,29 @@ pipeline {
                                              'UNIT_TEST=true',
                                              'pragmas=' + env.tmp_pragmas,
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
-                                        // Useful for debugging since Jenkins'
-                                        // assert() is pretty lame
-                                        //println('For stage: ' + stage + ', assert(skipStage(commit_msg: ' +
-                                        //        cm.trim() + ') == ' + commit.skips[i] + ') value is: ' +
-                                        //        skipStage(commit_msg: cm))
-                                        assert(skipStage(commit_msg: cm) == commit.skips[i])
+                                        actual_skips.add(skipStage(commit_msg: cm))
+                                        if (actual_skips[i] != commit.skips[i]) {errors++}
                                         i++
                                     }
                                 }
+                                println('')
+                                println('  Result  Expect  Actual  Stage')
+                                println('  ------  ------  ------  ------------------------------------------')
+                                i = 0
+                                stages.each { stage ->
+                                    result = 'PASS'
+                                    expect = 'run '
+                                    actual = 'run '
+                                    if (commit.skips[i]) {expect = 'skip'}
+                                    if (actual_skips[i]) {actual = 'skip'}
+                                    if (expect != actual) {result = 'FAIL'}
+                                    println('  ' + result + '    ' + expect + '    ' + actual + '    ' + stage)
+                                    i++
+                                }
+                                println('')
                                 cachedCommitPragma(clear: true)
                             }
+                            assert(errors == 0)
                         }
                         /* tests for all stages:
                               1. Test-tag: datamover

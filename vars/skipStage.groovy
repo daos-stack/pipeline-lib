@@ -115,13 +115,12 @@ boolean skip_scan_rpms(String distro, String target_branch) {
 }
 
 boolean skip_ftest(String distro, String target_branch) {
-    // Defaults for skipped stages and pragmas to override them
-    // must be checked first before parameters are checked
-    // because the defaults are based on which branch
-    // is being run.
-    if (already_passed()) {
+    // Skip the functional vm test stage if it has already passed or
+    // there are no tests matching the tags for the stage
+    if (already_passed() || !testsInStage()) {
         return true
     }
+    // Run the functional vm test stage if explicitly requested by the user
     if (run_default_skipped_stage('func-test-' + distro) ||
         run_default_skipped_stage('func-test-vm-all')) {
         // Forced to run due to a (Skip) pragma set to false
@@ -133,11 +132,10 @@ boolean skip_ftest(String distro, String target_branch) {
     return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true) ||
            // Temporarily skip EL9 until it's completely landed.
            distro in ['el9', 'ubuntu20'] ||
-           skip_stage_pragma('build-' + distro + '-rpm') ||
+           skip_stage_pragma('test') ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||
            skip_stage_pragma('func-test-vm-all') ||
-           !testsInStage() ||
            skip_stage_pragma('func-test-' + distro) ||
            (docOnlyChange(target_branch) &&
             prRepos(distro) == '') ||
@@ -158,18 +156,33 @@ boolean skip_ftest_valgrind(String distro, String target_branch) {
 }
 
 boolean skip_ftest_hw(String size, String target_branch) {
-    return already_passed() ||
+    // Skip the functional hardware test stage if it has already passed or
+    // there are no tests matching the tags for the stage
+    if (already_passed() || !testsInStage()) {
+        return true
+    }
+    // Run the functional hardware test stage if explicitly requested by the user
+    if (run_default_skipped_stage('func-hw-test-' + size) ||
+        run_default_skipped_stage('func-test-hw-' + size) ||
+        cachedCommitPragma('Run-daily-stages').toLowerCase() == 'true') {
+        // Forced to run due to a (Skip) pragma set to false
+        return false
+    }
+    String distro = hwDistroTarget(size)
+    return !paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
            env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
-           !paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
+           skip_stage_pragma('build-' + distro + '-rpm') ||
+           skip_stage_pragma('test') ||
            skip_stage_pragma('func-test') ||
+           skip_stage_pragma('func-test-hw') ||
+           skip_stage_pragma('func-test-hw-' + size) ||
+           skip_stage_pragma('func-hw-test') ||
            skip_stage_pragma('func-hw-test-' + size) ||
-           !testsInStage() ||
            ((env.BRANCH_NAME == 'master' ||
              env.BRANCH_NAME =~ branchTypeRE('release')) &&
             !(startedByTimer() || startedByUser())) ||
-           cachedCommitPragma('Run-daily-stages') == 'true' ||
            (docOnlyChange(target_branch) &&
-            prRepos(hwDistroTarget(size)) == '') ||
+            prRepos(distro) == '') ||
            /* groovylint-disable-next-line UnnecessaryGetter */
            (isPr() && size == 'medium-ucx-provider')
 }
