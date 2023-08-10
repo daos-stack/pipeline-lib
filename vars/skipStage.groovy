@@ -130,8 +130,8 @@ boolean skip_ftest(String distro, String target_branch) {
     // The params.CI_MORE_FUNCTIONAL_PR_TESTS allows enabling
     // tests that are not run in PRs.
     return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true) ||
-           distro == 'ubuntu20' ||
-           skip_stage_pragma('build-' + distro + '-rpm') ||
+           // Temporarily skip EL9 until it's completely landed.
+           distro in ['el9', 'ubuntu20'] ||
            skip_stage_pragma('test') ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||

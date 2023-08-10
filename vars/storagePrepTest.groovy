@@ -73,7 +73,7 @@ Map call(Map config = [:]) {
 
     if (!fileExists('ci/storage/test_main.sh')) {
         println('No storage Prep script found!')
-        return
+        return [:]
     }
 
     config['script'] = 'export NODE_COUNT="' + stage_info['node_count'] + '"\n ' +

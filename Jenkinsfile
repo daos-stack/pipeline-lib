@@ -230,7 +230,7 @@ pipeline {
                                       env.BUILD_ID,
                             format: 'yum',
                             maturity: 'test',
-                            tech: 'el-8',
+                            tech: 'el9',
                             repo_dir: 'artifact/artifacts/el8',
                             download_dir: 'artifact/download',
                             test: true)
