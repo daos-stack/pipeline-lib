@@ -132,6 +132,7 @@ boolean skip_ftest(String distro, String target_branch, String tags) {
     return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true) ||
            // Temporarily skip EL9 until it's completely landed.
            distro in ['el9', 'ubuntu20'] ||
+           skip_stage_pragma('build-' + distro + '-rpm') ||
            skip_stage_pragma('test') ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||
