@@ -456,10 +456,10 @@ pipeline {
                                        [pragmas: ['Skip-build-el8-rpm: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [isPr(), isPr(), true, isPr(), true, true, true, true]],
-                                       [pragmas: ['Skip-build-el9-rpm: true\nSkip-func-test-el9: false'],
+                                       [pragmas: ['Skip-build-el9-rpm: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [isPr(), isPr(), false, true, !isPr(), !isPr(), isPr(), !isPr()]],
-                                       [pragmas: ['Skip-build-leap15-rpm: true\nSkip-func-test-leap15: false'],
+                                       [pragmas: ['Skip-build-leap15-rpm: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [true, isPr(), false, isPr(), !isPr(), !isPr(), isPr(), !isPr()]]]
                             errors = 0
