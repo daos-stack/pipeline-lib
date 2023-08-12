@@ -52,7 +52,7 @@ Map call(Map config = [:]) {
         test_rpms = true
     }
     config['script'] = 'TEST_TAG="' + config['test_tag'] + '" ' +
-                       "FTEST_ARG=${stage_info.get('ftest_arg', '')} " +
+                       'FTEST_ARG="' + config.get('ftest_arg', '') + '" ' +
                        'PRAGMA_SUFFIX="' + config['pragma_suffix'] + '" ' +
                        'NODE_COUNT="' + config['node_count'] + '" ' +
                        'OPERATIONS_EMAIL="' + env.OPERATIONS_EMAIL + '" ' +
