@@ -486,9 +486,7 @@ pipeline {
                                 println('-------------------------')
                                 println('Unit test commit message:')
                                 println('')
-                                println('  pragmas:        ' + commit.pragmas)
-                                println('  commit message: ' + cm)
-                                println('')
+                                println(cm)
                                 actual_skips = []
                                 i = 0
                                 // assign Map to env. var to serialize it
