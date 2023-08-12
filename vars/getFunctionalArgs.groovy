@@ -25,9 +25,5 @@ Map call(Map kwargs = [:]) {
     }
 
     result['ftest_arg'] = [launch_nvme, launch_provider, launch_repeat].join(' ').trim()
-    println('getFunctionalArgs: launch_nvme     = ' + launch_nvme)
-    println('getFunctionalArgs: launch_provider = ' + launch_provider)
-    println('getFunctionalArgs: launch_repeat   = ' + launch_repeat)
-    println('getFunctionalArgs: ftest_arg       = ' + result['ftest_arg'])
     return result
 }
