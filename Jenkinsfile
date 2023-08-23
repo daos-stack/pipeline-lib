@@ -399,64 +399,83 @@ pipeline {
                             stages = ['Functional on Leap 15',
                                       'Functional on CentOS 7',
                                       'Functional on EL 8',
+                                      'Functional on EL 9',
                                       'Functional Hardware Medium',
                                       'Functional Hardware Medium Verbs Provider',
                                       'Functional Hardware Medium UCX Provider',
                                       'Functional Hardware Large']
                             commits = [[pragmas: [''],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, !isPr(), !isPr(), isPr(), !isPr()]],
+                                        skips: [isPr(), isPr(), false, isPr(), !isPr(), !isPr(), isPr(), !isPr()]],
                                        [pragmas: ['Skip-test: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, true, true, true, true, true]],
+                                        skips: [true, true, true, true, true, true, true, true]],
                                        [pragmas: ['Skip-func-test: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, true, true, true, true, true]],
+                                        skips: [true, true, true, true, true, true, true, true]],
                                        [pragmas: ['Skip-func-test-vm: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, true, !isPr(), !isPr(), isPr(), !isPr()]],
+                                        skips: [true, true, true, true, !isPr(), !isPr(), isPr(), !isPr()]],
                                        [pragmas: ['Skip-func-test-vm-all: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, true, !isPr(), !isPr(), isPr(), !isPr()]],
-                                       [pragmas: ['Skip-func-test-el8: true'],
+                                        skips: [true, true, true, true, !isPr(), !isPr(), isPr(), !isPr()]],
+                                       [pragmas: ['Skip-func-test-leap15: true\n' +
+                                                  'Skip-func-test-el7: true\n' +
+                                                  'Skip-func-test-el8: true\n' +
+                                                  'Skip-func-test-el9: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), true, !isPr(), !isPr(), isPr(), !isPr()]],
-                                       [pragmas: ['Skip-func-test-leap15: false'],
+                                        skips: [true, true, true, true, !isPr(), !isPr(), true, !isPr()]],
+                                       [pragmas: ['Skip-func-test-leap15: false\n' +
+                                                  'Skip-func-test-el7: false\n' +
+                                                  'Skip-func-test-el8: false\n' +
+                                                  'Skip-func-test-el9: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [false, isPr(), false, !isPr(), !isPr(), true, !isPr()]],
-                                       [pragmas: ['Skip-func-test: true\nSkip-func-test-el8: true'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, true, true, true, true, true]],
-                                       [pragmas: ['Skip-func-test-leap15: false\nSkip-func-test-el7: false'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [false, false, false, !isPr(), !isPr(), true, !isPr()]],
+                                        skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-func-test-hw: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, true, true, true, true]],
-                                       [pragmas: ['Skip-func-test-hw-medium: true'],
+                                        skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
+                                       [pragmas: ['Skip-func-test-hw-medium: true\n' +
+                                                  'Skip-func-test-hw-medium-verbs-provider: true\n' +
+                                                  'Skip-func-test-hw-medium-ucx-provider: true\n' +
+                                                  'Skip-func-test-hw-large: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, true, !isPr(), isPr(), !isPr()]],
-                                       [pragmas: ['Skip-func-test-hw-medium-ucx-provider: false'],
+                                        skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
+                                       [pragmas: ['Skip-func-test-hw-medium: false\n' +
+                                                  'Skip-func-test-hw-medium-verbs-provider: false\n' +
+                                                  'Skip-func-test-hw-medium-ucx-provider: false\n' +
+                                                  'Skip-func-test-hw-large: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr(), !isPr()]],
+                                        skips: [isPr(), isPr(), false, isPr(), false, false, false, false]],
                                        [pragmas: ['Skip-func-hw-test: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, true, true, true, true]],
-                                       [pragmas: ['Skip-func-hw-test-medium: true'],
+                                        skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
+                                       [pragmas: ['Skip-func-hw-test-medium: true\n' +
+                                                  'Skip-func-hw-test-medium-verbs-provider: true\n' +
+                                                  'Skip-func-hw-test-medium-ucx-provider: true\n' +
+                                                  'Skip-func-hw-test-large: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, true, !isPr(), isPr(), !isPr()]],
-                                       [pragmas: ['Skip-func-hw-test-medium-ucx-provider: false'],
+                                        skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
+                                       [pragmas: ['Skip-func-hw-test-medium: false\n' +
+                                                  'Skip-func-hw-test-medium-verbs-provider: false\n' +
+                                                  'Skip-func-hw-test-medium-ucx-provider: false\n' +
+                                                  'Skip-func-hw-test-large: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, !isPr(), !isPr(), !isPr(), !isPr()]],
+                                        skips: [isPr(), isPr(), false, isPr(), false, false, false, false]],
                                        [pragmas: ['Run-daily-stages: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, false, false, false, false]],
-                                       [pragmas: ['Skip-build-el8-rpm: true'],
+                                        skips: [isPr(), isPr(), false, isPr(), false, false, false, false]],
+                                       [pragmas: ['Skip-build-leap15-rpm: true\n' +
+                                                  'Skip-build-el7-rpm: true\n' +
+                                                  'Skip-build-el8-rpm: true\n' +
+                                                  'Skip-build-el9-rpm: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), true, true, true, true, true]],
-                                       [pragmas: ['Skip-build-leap15-rpm: true'],
+                                        skips: [true, true, true, true, true, true, true, true]],
+                                       [pragmas: ['Skip-build-leap15-rpm: false\n' +
+                                                  'Skip-build-el7-rpm: false\n' +
+                                                  'Skip-build-el8-rpm: false\n' +
+                                                  'Skip-build-el9-rpm: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, isPr(), false, !isPr(), !isPr(), isPr(), !isPr()]]]
+                                        skips: [isPr(), isPr(), false, isPr(), !isPr(), !isPr(), isPr(), !isPr()]]]
                             errors = 0
                             commits.each { commit ->
                                 cm = 'Test commit\n\n'
@@ -466,9 +485,7 @@ pipeline {
                                 println('-------------------------')
                                 println('Unit test commit message:')
                                 println('')
-                                println('  pragmas:        ' + commit.pragmas)
-                                println('  commit message: ' + cm)
-                                println('')
+                                println(cm)
                                 actual_skips = []
                                 i = 0
                                 // assign Map to env. var to serialize it

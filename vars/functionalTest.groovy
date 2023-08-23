@@ -52,6 +52,9 @@
    *
    * config['test_tag']          Avocado tag to test.
    *                             Default determined by parseStageInfo().
+   *
+   * config['ftest_arg']         Functional test launch.py arguments.
+   *                             Default determined by parseStageInfo().
    */
 
 Map call(Map config = [:]) {
@@ -84,15 +87,15 @@ Map call(Map config = [:]) {
         stashes.add("${target_compiler}-build-vars")
     }
 
-    Map p = [:]
-    p['stashes'] = stashes
-    p['test_rpms'] = config.get('test_rpms', env.TEST_RPMS)
-    p['pragma_suffix'] = stage_info['pragma_suffix']
-    p['test_tag'] =  config.get('test_tag', stage_info['test_tag'])
-    p['node_count'] = stage_info['node_count']
-    p['ftest_arg'] = stage_info['ftest_arg']
-    p['context'] = context
-    p['description'] = description
+    Map run_test_config = [:]
+    run_test_config['stashes'] = stashes
+    run_test_config['test_rpms'] = config.get('test_rpms', env.TEST_RPMS)
+    run_test_config['pragma_suffix'] = stage_info['pragma_suffix']
+    run_test_config['test_tag'] =  config.get('test_tag', stage_info['test_tag'])
+    run_test_config['node_count'] = stage_info['node_count']
+    run_test_config['ftest_arg'] = config.get('ftest_arg', stage_info['ftest_arg'])
+    run_test_config['context'] = context
+    run_test_config['description'] = description
 
     sh label: 'Install Launchable',
      script: '''# can't use --upgrade with pip3 because it tries to upgrade everything
@@ -128,9 +131,9 @@ Map call(Map config = [:]) {
     Map runtestData = [:]
     if (config.get('test_function', 'runTestFunctional') ==
       'runTestFunctionalV2') {
-        runtestData = runTestFunctionalV2 p
+        runtestData = runTestFunctionalV2 run_test_config
     } else {
-        runtestData = runTestFunctional p
+        runtestData = runTestFunctional run_test_config
     }
     runtestData.each { resultKey, data -> runData[resultKey] = data }
 

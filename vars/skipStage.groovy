@@ -114,10 +114,10 @@ boolean skip_scan_rpms(String distro, String target_branch) {
            quickFunctional()
 }
 
-boolean skip_ftest(String distro, String target_branch) {
+boolean skip_ftest(String distro, String target_branch, String tags) {
     // Skip the functional vm test stage if it has already passed or
     // there are no tests matching the tags for the stage
-    if (already_passed() || !testsInStage()) {
+    if (already_passed() || !testsInStage(tags)) {
         return true
     }
     // Run the functional vm test stage if explicitly requested by the user
@@ -132,6 +132,7 @@ boolean skip_ftest(String distro, String target_branch) {
     return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true) ||
            // Temporarily skip EL9 until it's completely landed.
            distro in ['el9', 'ubuntu20'] ||
+           skip_stage_pragma('build-' + distro + '-rpm') ||
            skip_stage_pragma('test') ||
            skip_stage_pragma('func-test') ||
            skip_stage_pragma('func-test-vm') ||
@@ -143,22 +144,22 @@ boolean skip_ftest(String distro, String target_branch) {
            (isPr() && !(distro in ['el8']))
 }
 
-boolean skip_ftest_valgrind(String distro, String target_branch) {
+boolean skip_ftest_valgrind(String distro, String target_branch, String tags) {
     // Check if the default for skipping this stage been overriden
     // otherwise always skip this stage (DAOS-10585)
     return already_passed() ||
            !run_default_skipped_stage('func-test-vm-valgrind') ||
            !paramsValue('CI_FUNCTIONAL_' + distro + '_VALGRIND_TEST', false) ||
-           skip_ftest(distro, target_branch) ||
+           skip_ftest(distro, target_branch, tags) ||
            /* groovylint-disable-next-line UnnecessaryGetter */
            isPr() ||
            target_branch =~ branchTypeRE('weekly')
 }
 
-boolean skip_ftest_hw(String size, String target_branch) {
+boolean skip_ftest_hw(String size, String target_branch, String tags) {
     // Skip the functional hardware test stage if it has already passed or
     // there are no tests matching the tags for the stage
-    if (already_passed() || !testsInStage()) {
+    if (already_passed() || !testsInStage(tags)) {
         return true
     }
     // Run the functional hardware test stage if explicitly requested by the user
@@ -230,6 +231,7 @@ boolean call(Map config = [:]) {
     }
 
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
+    String tags = config['tags'] ?: parseStageInfo()['test_tag']
 
     switch (env.STAGE_NAME) {
         case 'Cancel Previous Builds':
@@ -454,23 +456,23 @@ boolean call(Map config = [:]) {
                    docOnlyChange(target_branch) ||
                    skip_stage_pragma('build')
         case 'Functional on CentOS 7':
-            return skip_ftest('el7', target_branch)
+            return skip_ftest('el7', target_branch, tags)
         case 'Functional on CentOS 7 with Valgrind':
-            return skip_ftest_valgrind('el7', target_branch)
+            return skip_ftest_valgrind('el7', target_branch, tags)
         case 'Functional on CentOS 8 with Valgrind':
         case 'Functional on EL 8 with Valgrind':
-            return skip_ftest_valgrind('el8', target_branch)
+            return skip_ftest_valgrind('el8', target_branch, tags)
         case 'Functional on CentOS 8':
         case 'Functional on EL 8':
-            return skip_ftest('el8', target_branch)
+            return skip_ftest('el8', target_branch, tags)
         case 'Functional on EL 9':
-            return skip_ftest('el9', target_branch)
+            return skip_ftest('el9', target_branch, tags)
         case 'Functional on Leap 15':
         case 'Functional on Leap 15.4':
-            return skip_ftest('leap15', target_branch)
+            return skip_ftest('leap15', target_branch, tags)
         case 'Functional on Ubuntu 20.04':
             /* we don't do any testing on Ubuntu yet
-            skip_ftest('ubuntu20', target_branch) */
+            skip_ftest('ubuntu20', target_branch, tags) */
             return true
         case 'Fault injection testing':
         case 'Fault injection testing on CentOS 8':
@@ -558,22 +560,22 @@ boolean call(Map config = [:]) {
                    skip_if_unstable()
         case 'Functional_Hardware_Small':
         case 'Functional Hardware Small':
-            return skip_ftest_hw('small', target_branch)
+            return skip_ftest_hw('small', target_branch, tags)
         case 'Functional_Hardware_Medium':
         case 'Functional Hardware Medium':
-            return skip_ftest_hw('medium', target_branch)
+            return skip_ftest_hw('medium', target_branch, tags)
         case 'Functional Hardware Medium TCP Provider':
-            return skip_ftest_hw('medium-tcp-provider', target_branch)
+            return skip_ftest_hw('medium-tcp-provider', target_branch, tags)
         case 'Functional Hardware Medium Verbs Provider':
-            return skip_ftest_hw('medium-verbs-provider', target_branch)
+            return skip_ftest_hw('medium-verbs-provider', target_branch, tags)
         case 'Functional Hardware Medium UCX Provider':
-            return skip_ftest_hw('medium-ucx-provider', target_branch)
+            return skip_ftest_hw('medium-ucx-provider', target_branch, tags)
         case 'Functional_Hardware_Large':
         case 'Functional Hardware Large':
-            return skip_ftest_hw('large', target_branch)
+            return skip_ftest_hw('large', target_branch, tags)
         case 'Functional_Hardware_24':
         case 'Functional Hardware 24':
-            return skip_ftest_hw('24', target_branch)
+            return skip_ftest_hw('24', target_branch, tags)
         case 'Bullseye Report':
         case 'Bullseye Report on CentOS 8':
         case 'Bullseye Report on EL 8':
