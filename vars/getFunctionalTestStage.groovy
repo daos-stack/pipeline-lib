@@ -24,11 +24,13 @@ Map call(Map kwargs = [:]) {
 
     return {
         stage("${name}") {
+            println("[${name}] Start stage")
             if (skipStage()) {
-                println("The ${name} stage has been skipped by skipStage()")
+                println("[${name}] Stage skipped by skipStage()")
             } else {
                 node(label) {
                     try {
+                        println("[${name}] Running functionalTest()")
                         job_step_update(
                             functionalTest(
                                 inst_repos: daosRepos(),
@@ -37,11 +39,13 @@ Map call(Map kwargs = [:]) {
                                 ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
                                 test_function: 'runTestFunctionalV2'))
                     } finally {
+                        println("[${name}] Running functionalTestPostV2()")
                         functionalTestPostV2()
                         job_status_update()
                     }
                 }
             }
+            println("[${name}] End stage")
         }
     }
 }
