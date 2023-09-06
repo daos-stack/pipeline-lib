@@ -15,12 +15,12 @@
  * @return Map values that define a scripted stage to run in a pipeline
  */
 Map call(Map kwargs = [:]) {
-    String label = kwargs.get('label', 'ci_nvme9')
-    String name = kwargs.get('name', 'Functional Hardware Large')
-    String next_version = kwargs.get('next_version', '1000')
-    String tags = kwargs.get('tags', 'pr')
-    String tags = kwargs.get('nvme', 'auto')
-    String tags = kwargs.get('provider', 'ofi+verbs;ofi_rxm')
+    String label = kwargs.get('label', 'ci_vm9')
+    String name = kwargs.get('name', 'Functional on EL 8')
+    String next_version = kwargs.get('next_version', null)
+    String tags = kwargs.get('tags', '')
+    String nvme = kwargs.get('nvme', '')
+    String provider = kwargs.get('provider', '')
 
     return {
         stage("${name}") {
