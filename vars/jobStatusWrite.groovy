@@ -8,10 +8,12 @@
  * @param job_status Map containing the status of the job
  */
 Void call(Map job_status) {
+    String jobName = env.JOB_NAME.replace('/', '_') + '_' + env.BUILD_NUMBER
+    echo "[jobStatus] Writing result for ${jobName}"
     if (!env.DAOS_STACK_JOB_STATUS_DIR) {
+        echo "[jobStatus] The DAOS_STACK_JOB_STATUS_DIR is undefined"
         return
     }
-    String jobName = env.JOB_NAME.replace('/', '_') + '_' + env.BUILD_NUMBER
     String dirName = env.DAOS_STACK_JOB_STATUS_DIR + '/' + jobName + '/'
     String job_status_text = writeYaml data: job_status, returnText: true
 

@@ -21,6 +21,7 @@ Map call(Map kwargs = [:]) {
     String tags = kwargs.get('tags', '')
     String nvme = kwargs.get('nvme', '')
     String provider = kwargs.get('provider', '')
+    Map job_status = kwargs.get('job_status', [:])
 
     return {
         stage("${name}") {
@@ -28,10 +29,12 @@ Map call(Map kwargs = [:]) {
             if (skipStage()) {
                 echo "[${name}] Stage skipped by skipStage()"
             } else {
+                String key = jobStatusKey(name)
                 node(label) {
                     try {
                         echo "[${name}] Running functionalTest()"
-                        job_step_update(
+                        job_status << jobStatusUpdate(
+                            key,
                             functionalTest(
                                 inst_repos: daosRepos(),
                                 inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
@@ -41,10 +44,11 @@ Map call(Map kwargs = [:]) {
                     } finally {
                         echo "[${name}] Running functionalTestPostV2()"
                         functionalTestPostV2()
-                        job_status_update()
+                        job_status << jobStatusUpdate(key)
                     }
                 }
             }
+            echo "[${name}] Job status: ${job_status}"
             echo "[${name}] End stage"
         }
     }

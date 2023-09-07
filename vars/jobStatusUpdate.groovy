@@ -9,6 +9,7 @@
  * @return a Map of 
  */
 Void call(String key, Map result) {
+    echo "[jobStatus] Updating result for ${key}"
     Map job_status = [key: [:]]
     if (result in Map) {
         job_status.key << result
@@ -19,7 +20,14 @@ Void call(String key, Map result) {
 }
 
 Void call(Map result) {
+    if result == null) {
+        return job_status_update()
+    }
     return job_status_update(jobStatusKey(env.STAGE_NAME), result)
+}
+
+Void call(String key) {
+    return job_status_update(key, currentBuild.currentResult)
 }
 
 Void call() {
