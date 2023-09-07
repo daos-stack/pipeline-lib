@@ -41,21 +41,21 @@ Map call(String key, String result) {
  */
 Map call(Map result) {
     if (result == null) {
-        return job_status_update()
+        return jobStatusUpdate()
     }
-    return job_status_update(jobStatusKey(env.STAGE_NAME), result)
+    return jobStatusUpdate(jobStatusKey(env.STAGE_NAME), result)
 }
 
 /**
  * jobStatusUpdate.groovy
  *
- * Update the job status with the a key.
+ * Update the job status with the a String of test results.
  *
- * @param key String the santized stage name key for the job result
+ * @param result String of the test result from the stage
  * @return a Map of test results for this stage
  */
-Map call(String key) {
-    return job_status_update(key, currentBuild.currentResult)
+Map call(String result) {
+    return jobStatusUpdate(jobStatusKey(env.STAGE_NAME), result)
 }
 
 /**
