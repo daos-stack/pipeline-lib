@@ -40,7 +40,7 @@ Map call(String key, String result) {
  * @return a Map of test results for this stage
  */
 Map call(Map result) {
-    if result == null) {
+    if (result == null) {
         return job_status_update()
     }
     return job_status_update(jobStatusKey(env.STAGE_NAME), result)
