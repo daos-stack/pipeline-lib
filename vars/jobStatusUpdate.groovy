@@ -12,7 +12,7 @@
 Map call(String key, Map result) {
     echo "[jobStatus] Updating result for ${key}"
     Map job_status = ["${key}": [:]]
-    job_status."${key}" << result
+    job_status["${key}"] << result
     return job_status
 }
 
