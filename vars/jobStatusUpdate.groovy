@@ -3,32 +3,16 @@
 /**
  * jobStatusUpdate.groovy
  *
- * Update the job status with a key and Map of test results.
+ * Update the job status with a Map of test results.
  *
- * @param key String the santized stage name key for the job result
- *        result Map of test results from the stage
- * @return a Map of test results for this stage
+ * @param job_result Map of results for the entire job keyed for this stage
+ *        stage String for the name of the stage
+ *        result Map of results for the stage
  */
-Map call(String key, Map result) {
-    echo "[jobStatus] Updating result for ${key}"
-    Map job_status = ["${key}": [:]]
-    job_status["${key}"] << result
-    return job_status
-}
-
-/**
- * jobStatusUpdate.groovy
- *
- * Update the job status with a key and string of test results.
- *
- * @param key String the santized stage name key for the job result
- *        result String of the test result from the stage
- * @return a Map of test results for this stage
- */
-Map call(String key, String result) {
-    echo "[jobStatus] Updating result for ${key}"
-    Map job_status = ["${key}": ['result': result]]
-    return job_status
+Void call(Map job_result, String stage, Map result) {
+    echo "[jobStatus] Updating job result for stage ${stage} with result: ${result}"
+    key = jobStatusKey(stage)
+    InvokerHelper.setProperties(job_result."${key}", result)
 }
 
 /**
@@ -36,35 +20,102 @@ Map call(String key, String result) {
  *
  * Update the job status with a Map of test results.
  *
- * @param result Map of test results from the stage
- * @return a Map of test results for this stage
+ * @param job_result Map of results for the entire job keyed for this stage
+ *        stage String for the name of the stage
+ *        result String of results for the stage
  */
-Map call(Map result) {
-    if (result == null) {
-        return jobStatusUpdate()
-    }
-    return jobStatusUpdate(jobStatusKey(env.STAGE_NAME), result)
+Void call(Map job_result, String stage, String result) {
+    Map result_map = ['result': result]
+    jobStatusUpdate(job_result, stage, result_map)
 }
 
 /**
  * jobStatusUpdate.groovy
  *
- * Update the job status with the a String of test results.
+ * Update the job status with a Map of test results.
  *
- * @param result String of the test result from the stage
- * @return a Map of test results for this stage
+ * @param job_result Map of results for the entire job keyed for this stage
  */
-Map call(String result) {
-    return jobStatusUpdate(jobStatusKey(env.STAGE_NAME), result)
+Void call(Map job_result, String stage) {
+    jobStatusUpdate(job_result, stage, currentBuild.currentResult)
 }
 
 /**
  * jobStatusUpdate.groovy
  *
- * Update the job status.
+ * Update the job status with a Map of test results.
  *
- * @return a Map of test results for this stage
+ * @param job_result Map of results for the entire job keyed for this stage
  */
-Map call() {
-    return jobStatusUpdate(jobStatusKey(env.STAGE_NAME), currentBuild.currentResult)
+Void call(Map job_result) {
+    jobStatusUpdate(job_result, env.STAGE_NAME)
 }
+
+// /**
+//  * jobStatusUpdate.groovy
+//  *
+//  * Update the job status with a key and Map of test results.
+//  *
+//  * @param key String the santized stage name key for the job result
+//  *        result Map of test results from the stage
+//  * @return a Map of test results for this stage
+//  */
+// Map call(String key, Map result) {
+//     echo "[jobStatus] Updating result for ${key}"
+//     Map job_status = ["${key}": [:]]
+//     InvokerHelper.setProperties(job_status["${key}"], result)
+//     return job_status
+// }
+
+// /**
+//  * jobStatusUpdate.groovy
+//  *
+//  * Update the job status with a key and string of test results.
+//  *
+//  * @param key String the santized stage name key for the job result
+//  *        result String of the test result from the stage
+//  * @return a Map of test results for this stage
+//  */
+// Map call(String key, String result) {
+//     echo "[jobStatus] Updating result for ${key}"
+//     Map job_status = ["${key}": ['result': result]]
+//     return job_status
+// }
+
+// /**
+//  * jobStatusUpdate.groovy
+//  *
+//  * Update the job status with a Map of test results.
+//  *
+//  * @param result Map of test results from the stage
+//  * @return a Map of test results for this stage
+//  */
+// Map call(Map result) {
+//     if (result == null) {
+//         return jobStatusUpdate()
+//     }
+//     return jobStatusUpdate(jobStatusKey(env.STAGE_NAME), result)
+// }
+
+// /**
+//  * jobStatusUpdate.groovy
+//  *
+//  * Update the job status with the a String of test results.
+//  *
+//  * @param result String of the test result from the stage
+//  * @return a Map of test results for this stage
+//  */
+// Map call(String result) {
+//     return jobStatusUpdate(jobStatusKey(env.STAGE_NAME), result)
+// }
+
+// /**
+//  * jobStatusUpdate.groovy
+//  *
+//  * Update the job status.
+//  *
+//  * @return a Map of test results for this stage
+//  */
+// Map call() {
+//     return jobStatusUpdate(jobStatusKey(env.STAGE_NAME), currentBuild.currentResult)
+// }
