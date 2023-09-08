@@ -11,8 +11,8 @@
  */
 Map call(String key, Map result) {
     echo "[jobStatus] Updating result for ${key}"
-    Map job_status = [key: [:]]
-    job_status.key << result
+    Map job_status = ["${key}": [:]]
+    job_status."${key}" << result
     return job_status
 }
 
@@ -27,7 +27,7 @@ Map call(String key, Map result) {
  */
 Map call(String key, String result) {
     echo "[jobStatus] Updating result for ${key}"
-    Map job_status = [key: ['result': result]]
+    Map job_status = ["${key}": ['result': result]]
     return job_status
 }
 

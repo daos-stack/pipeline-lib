@@ -22,6 +22,7 @@ Map call(Map kwargs = [:]) {
     String nvme = kwargs.get('nvme', '')
     String provider = kwargs.get('provider', '')
     Map job_status = kwargs.get('job_status', [:])
+    Map status = [:]
 
     return {
         stage("${name}") {
@@ -32,17 +33,21 @@ Map call(Map kwargs = [:]) {
                 node(label) {
                     try {
                         echo "[${name}] Running functionalTest()"
-                        job_status << jobStatusUpdate(
+                        // job_status << jobStatusUpdate(
+                        status = jobStatusUpdate(
                             functionalTest(
                                 inst_repos: daosRepos(),
                                 inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
                                 test_tag: getFunctionalTags(default_tags: tags),
                                 ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
                                 test_function: 'runTestFunctionalV2'))
+                        echo "[${name}] Job status update (test) ${status}"
                     } finally {
                         echo "[${name}] Running functionalTestPostV2()"
                         functionalTestPostV2()
-                        job_status << jobStatusUpdate()
+                        // job_status << jobStatusUpdate()
+                        status = jobStatusUpdate()
+                        echo "[${name}] Job status update (finally) ${status}"
                     }
                 }
             }
