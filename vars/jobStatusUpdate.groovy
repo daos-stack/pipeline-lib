@@ -11,8 +11,8 @@
  */
 Void call(Map job_result, String stage, Map result) {
     echo "[jobStatus] Updating job result for stage ${stage} with result: ${result}"
-    stage_key = jobStatusKey(stage)
-    if (!job_result.contains("${stage_key}")) {
+    String stage_key = jobStatusKey(stage)
+    if (!job_result.containsKey("${stage_key}")) {
         job_result."${stage_key}" = [:]
     }
     result.each { key, value ->
