@@ -32,19 +32,27 @@ Map call(Map kwargs = [:]) {
                 node(label) {
                     try {
                         echo "[${name}] Running functionalTest()"
-                        jobStatusUpdate(
-                            job_status,
-                            name,
-                            functionalTest(
-                                inst_repos: daosRepos(),
-                                inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
-                                test_tag: getFunctionalTags(default_tags: tags),
-                                ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
-                                test_function: 'runTestFunctionalV2'))
+                        result = functionalTest(
+                            inst_repos: daosRepos(),
+                            inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
+                            test_tag: getFunctionalTags(default_tags: tags),
+                            ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
+                            test_function: 'runTestFunctionalV2')
+                        echo "[${name}] Result: ${result}"
+                        // jobStatusUpdate(job_status, name, result)
+                        // jobStatusUpdate(
+                        //     job_status,
+                        //     name,
+                        //     functionalTest(
+                        //         inst_repos: daosRepos(),
+                        //         inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
+                        //         test_tag: getFunctionalTags(default_tags: tags),
+                        //         ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
+                        //         test_function: 'runTestFunctionalV2'))
                     } finally {
                         echo "[${name}] Running functionalTestPostV2()"
                         functionalTestPostV2()
-                        jobStatusUpdate(job_status, name)
+                        // jobStatusUpdate(job_status, name)
                     }
                 }
             }
