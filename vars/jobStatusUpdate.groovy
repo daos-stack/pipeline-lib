@@ -12,6 +12,9 @@
 Void call(Map job_result, String stage, Map result) {
     echo "[jobStatus] Updating job result for stage ${stage} with result: ${result}"
     stage_key = jobStatusKey(stage)
+    if (!job_result.contains("${stage_key}")) {
+        job_result."${stage_key}" = [:]
+    }
     result.each { key, value ->
         job_result."${stage_key}"."${key}" = value
     }
@@ -37,6 +40,7 @@ Void call(Map job_result, String stage, String result) {
  * Update the job status with a Map of test results.
  *
  * @param job_result Map of results for the entire job keyed for this stage
+ *        stage String for the name of the stage
  */
 Void call(Map job_result, String stage) {
     jobStatusUpdate(job_result, stage, currentBuild.currentResult)
