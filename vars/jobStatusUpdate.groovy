@@ -1,7 +1,5 @@
 // vars/jobStatusUpdate.groovy
 
-import org.codehaus.groovy.runtime.InvokerHelper
-
 /**
  * jobStatusUpdate.groovy
  *
@@ -13,8 +11,10 @@ import org.codehaus.groovy.runtime.InvokerHelper
  */
 Void call(Map job_result, String stage, Map result) {
     echo "[jobStatus] Updating job result for stage ${stage} with result: ${result}"
-    key = jobStatusKey(stage)
-    InvokerHelper.setProperties(job_result."${key}", result)
+    stage_key = jobStatusKey(stage)
+    result.each { key, value ->
+        job_result."${stage_key}"."${key}" = value
+    }
 }
 
 /**
