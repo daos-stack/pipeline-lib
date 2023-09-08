@@ -1,5 +1,7 @@
 // vars/jobStatusUpdate.groovy
 
+import org.codehaus.groovy.runtime.InvokerHelper
+
 /**
  * jobStatusUpdate.groovy
  *
