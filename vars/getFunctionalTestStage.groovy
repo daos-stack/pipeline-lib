@@ -23,9 +23,16 @@ Map call(Map kwargs = [:]) {
     String provider = kwargs.get('provider', '')
     // Map job_status = kwargs.get('job_status', [:])
 
+    String inst_repos = daosRepos()
+    String inst_rpms = functionalPackages(1, next_version, 'tests-internal')
+    String test_tag = getFunctionalTags(default_tags: tags)
+    String ftest_arg = getFunctionalArgs(default_nvme: nvme, provider: provider)
+
     return {
         stage("${name}") {
             echo "[${name}] Start stage: label=${label}, tags=${tags}, nvme=${nvme}, provider=${provider}"
+            echo "[${name}] Install parameters: inst_repos=${inst_repos}, inst_rpms=${inst_rpms}"
+            echo "[${name}] Test parameters:    test_tag=${test_tag}, ftest_arg=${ftest_arg}"
             // if (skipStage()) {
             //     echo "[${name}] Stage skipped by skipStage()"
             // } else {
