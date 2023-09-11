@@ -33,12 +33,12 @@ Map call(Map kwargs = [:]) {
             echo "[${name}] Start stage: label=${label}, tags=${tags}, nvme=${nvme}, provider=${provider}"
             echo "[${name}] Install parameters: inst_repos=${inst_repos}, inst_rpms=${inst_rpms}"
             echo "[${name}] Test parameters:    test_tag=${test_tag}, ftest_arg=${ftest_arg}"
-            // if (skipStage()) {
-            //     echo "[${name}] Stage skipped by skipStage()"
-            // } else {
-            //     node(label) {
-            //         try {
-            //             echo "[${name}] Running functionalTest()"
+            if (skipStage()) {
+                echo "[${name}] Stage skipped by skipStage()"
+            } else {
+                node(label) {
+                    try {
+                        echo "[${name}] Running functionalTest()"
             //             result = functionalTest(
             //                 inst_repos: daosRepos(),
             //                 inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
@@ -56,13 +56,13 @@ Map call(Map kwargs = [:]) {
             //             //         test_tag: getFunctionalTags(default_tags: tags),
             //             //         ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
             //             //         test_function: 'runTestFunctionalV2'))
-            //         } finally {
-            //             echo "[${name}] Running functionalTestPostV2()"
-            //             functionalTestPostV2()
-            //             // jobStatusUpdate(job_status, name)
-            //         }
-            //     }
-            // }
+                    } finally {
+                        echo "[${name}] Running functionalTestPostV2()"
+                        // functionalTestPostV2()
+                        // jobStatusUpdate(job_status, name)
+                    }
+                }
+            }
             // echo "[${name}] Job status: ${job_status}"
             echo "[${name}] End stage"
         }
