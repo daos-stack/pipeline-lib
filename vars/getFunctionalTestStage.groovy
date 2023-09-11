@@ -26,36 +26,36 @@ Map call(Map kwargs = [:]) {
     return {
         stage("${name}") {
             echo "[${name}] Start stage"
-            if (skipStage()) {
-                echo "[${name}] Stage skipped by skipStage()"
-            } else {
-                node(label) {
-                    try {
-                        echo "[${name}] Running functionalTest()"
-                        result = functionalTest(
-                            inst_repos: daosRepos(),
-                            inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
-                            test_tag: getFunctionalTags(default_tags: tags),
-                            ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
-                            test_function: 'runTestFunctionalV2')
-                        echo "[${name}] Result: ${result}"
-                        // jobStatusUpdate(job_status, name, result)
-                        // jobStatusUpdate(
-                        //     job_status,
-                        //     name,
-                        //     functionalTest(
-                        //         inst_repos: daosRepos(),
-                        //         inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
-                        //         test_tag: getFunctionalTags(default_tags: tags),
-                        //         ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
-                        //         test_function: 'runTestFunctionalV2'))
-                    } finally {
-                        echo "[${name}] Running functionalTestPostV2()"
-                        functionalTestPostV2()
-                        // jobStatusUpdate(job_status, name)
-                    }
-                }
-            }
+            // if (skipStage()) {
+            //     echo "[${name}] Stage skipped by skipStage()"
+            // } else {
+            //     node(label) {
+            //         try {
+            //             echo "[${name}] Running functionalTest()"
+            //             result = functionalTest(
+            //                 inst_repos: daosRepos(),
+            //                 inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
+            //                 test_tag: getFunctionalTags(default_tags: tags),
+            //                 ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
+            //                 test_function: 'runTestFunctionalV2')
+            //             echo "[${name}] Result: ${result}"
+            //             // jobStatusUpdate(job_status, name, result)
+            //             // jobStatusUpdate(
+            //             //     job_status,
+            //             //     name,
+            //             //     functionalTest(
+            //             //         inst_repos: daosRepos(),
+            //             //         inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
+            //             //         test_tag: getFunctionalTags(default_tags: tags),
+            //             //         ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
+            //             //         test_function: 'runTestFunctionalV2'))
+            //         } finally {
+            //             echo "[${name}] Running functionalTestPostV2()"
+            //             functionalTestPostV2()
+            //             // jobStatusUpdate(job_status, name)
+            //         }
+            //     }
+            // }
             echo "[${name}] Job status: ${job_status}"
             echo "[${name}] End stage"
         }
