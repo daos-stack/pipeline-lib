@@ -25,7 +25,7 @@ Map call(Map kwargs = [:]) {
 
     return {
         stage("${name}") {
-            echo "[${name}] Start stage"
+            echo "[${name}] Start stage: label=${label}, tags=${tags}, nvme=${nvme}, provider=${provider}"
             // if (skipStage()) {
             //     echo "[${name}] Stage skipped by skipStage()"
             // } else {
