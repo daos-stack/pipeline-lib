@@ -21,7 +21,7 @@ Map call(Map kwargs = [:]) {
     String tags = kwargs.get('tags', '')
     String nvme = kwargs.get('nvme', '')
     String provider = kwargs.get('provider', '')
-    Map job_status = kwargs.get('job_status', [:])
+    // Map job_status = kwargs.get('job_status', [:])
 
     return {
         stage("${name}") {
@@ -56,7 +56,7 @@ Map call(Map kwargs = [:]) {
             //         }
             //     }
             // }
-            echo "[${name}] Job status: ${job_status}"
+            // echo "[${name}] Job status: ${job_status}"
             echo "[${name}] End stage"
         }
     }
