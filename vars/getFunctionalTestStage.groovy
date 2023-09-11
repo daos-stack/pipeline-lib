@@ -39,13 +39,13 @@ Map call(Map kwargs = [:]) {
                 node(label) {
                     try {
                         echo "[${name}] Running functionalTest()"
-            //             result = functionalTest(
-            //                 inst_repos: daosRepos(),
-            //                 inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
-            //                 test_tag: getFunctionalTags(default_tags: tags),
-            //                 ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
-            //                 test_function: 'runTestFunctionalV2')
-            //             echo "[${name}] Result: ${result}"
+                        result = functionalTest(
+                            inst_repos: daosRepos(),
+                            inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
+                            test_tag: getFunctionalTags(default_tags: tags),
+                            ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
+                            test_function: 'runTestFunctionalV2')
+                        echo "[${name}] Result: ${result}"
             //             // jobStatusUpdate(job_status, name, result)
             //             // jobStatusUpdate(
             //             //     job_status,
