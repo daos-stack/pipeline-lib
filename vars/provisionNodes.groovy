@@ -120,10 +120,17 @@ Map call(Map config = [:]) {
         }
     }
 
-    if (!fileExists('ci/provisioning/log_cleanup.sh') ||
-      !fileExists('ci/provisioning/post_provision_config.sh')) {
+    debug_pwd = pwd()
+    println "[provisionNodes] WORKSPACE=${WORKSPACE}, env.WORKSPACE=${env.WORKSPACE}, pwd=${debug_pwd}"
+
+    if (!fileExists("${WORKSPACE}/ci/provisioning/log_cleanup.sh") ||
+        !fileExists("${WORKSPACE}/ci/provisioning/post_provision_config.sh")) {
         return provisionNodesV1(config)
-      }
+    }
+    // if (!fileExists('ci/provisioning/log_cleanup.sh') ||
+    //   !fileExists('ci/provisioning/post_provision_config.sh')) {
+    //     return provisionNodesV1(config)
+    //   }
 
     String cleanup_logs = 'NODESTRING=' + nodeString + ' ' +
                         'ci/provisioning/log_cleanup.sh'
