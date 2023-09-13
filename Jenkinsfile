@@ -118,8 +118,8 @@ pipeline {
                 stage('daosLatestVersion() tests') {
                     steps {
                         script {
-                            assert(daosLatestVersion('master', 'el8').startsWith('2.5.'))
-                            assert(daosLatestVersion('release/2.4', 'el8').startsWith('2.3.'))
+                            assert(daosLatestVersion('master', 'el8').matches(/2.5\.\d+.*/))
+                            assert(daosLatestVersion('release/2.4', 'el8').matches(/2.[34]\.\d+.*/))
                             assert(daosLatestVersion('release/2.2', 'el8').startsWith('2.2.'))
                         }
                     }
