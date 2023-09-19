@@ -34,7 +34,7 @@ Map call(Map kwargs = [:]) {
             echo "[${name}] Install parameters: inst_repos=${inst_repos}, inst_rpms=${inst_rpms}"
             echo "[${name}] Test parameters:    test_tag=${test_tag}, ftest_arg=${ftest_arg}"
 
-            sh(label: 'Functional Test Checkout Branch', script: "git checkout ${env.TEST_BRANCH}")
+            checkoutScm()
 
             if (skipStage()) {
                 echo "[${name}] Stage skipped by skipStage()"
