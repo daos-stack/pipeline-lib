@@ -131,8 +131,8 @@ Map call(Map config = [:]) {
     println "[provisionNodes] provisioning/log_cleanup.sh            exists: ${exists_lc_1}, exists w/ WORKSPACE: ${exists_lc_2}"
     println "[provisionNodes] provisioning/post_provision_config.sh  exists: ${exists_pc_1}, exists w/ WORKSPACE: ${exists_pc_2}"
 
-    sh(script: 'ls -al ci/provisioning/', label: 'List provisioning scripts')
-    sh(script: "ls -al ${WORKSPACE}/ci/provisioning/", label: 'List provisioning scripts')
+    sh(script: 'ls -al', label: 'List provisioning scripts')
+    sh(script: "ls -al ${WORKSPACE}", label: 'List provisioning scripts')
 
     // if (!fileExists("${WORKSPACE}/ci/provisioning/log_cleanup.sh") ||
     //     !fileExists("${WORKSPACE}/ci/provisioning/post_provision_config.sh")) {

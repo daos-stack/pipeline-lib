@@ -34,12 +34,13 @@ Map call(Map kwargs = [:]) {
             echo "[${name}] Install parameters: inst_repos=${inst_repos}, inst_rpms=${inst_rpms}"
             echo "[${name}] Test parameters:    test_tag=${test_tag}, ftest_arg=${ftest_arg}"
 
-            checkoutScm()
+            // checkoutScm(cleanAfterCheckout: False)
 
             if (skipStage()) {
                 echo "[${name}] Stage skipped by skipStage()"
             } else {
                 node(label) {
+                    def PWD = pwd();
                     try {
                         echo "[${name}] Running functionalTest()"
                         result = functionalTest(
