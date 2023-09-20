@@ -137,7 +137,7 @@ Map call(Map config = [:]) {
 
     if (!fileExists("${WORKSPACE}/ci")) {
         println '[provisionNodes] Calling checkoutScm()'
-        checkoutScm(cleanAfterCheckout: False)
+        checkoutScm(cleanAfterCheckout: false)
     }
 
     println '[provisionNodes] After checkoutScm()'
