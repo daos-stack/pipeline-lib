@@ -120,42 +120,15 @@ Map call(Map config = [:]) {
         }
     }
 
-    debug_pwd = pwd()
-    println "[provisionNodes] WORKSPACE:     ${WORKSPACE}"
-    println "[provisionNodes] env.WORKSPACE: ${env.WORKSPACE}"
-    println "[provisionNodes] pwd:           ${debug_pwd}"
-    exists_lc_1 = fileExists('/ci/provisioning/log_cleanup.sh')
-    exists_lc_2 = fileExists("${WORKSPACE}/ci/provisioning/log_cleanup.sh")
-    exists_pc_1 = fileExists('/ci/provisioning/post_provision_config.sh')
-    exists_pc_2 = fileExists("${WORKSPACE}/ci/provisioning/post_provision_config.sh")
-    println "[provisionNodes] provisioning/log_cleanup.sh            exists: ${exists_lc_1}, exists w/ WORKSPACE: ${exists_lc_2}"
-    println "[provisionNodes] provisioning/post_provision_config.sh  exists: ${exists_pc_1}, exists w/ WORKSPACE: ${exists_pc_2}"
-
-    println '[provisionNodes] Before checkoutScm()'
-    sh(script: 'ls -al', label: 'List provisioning scripts')
-    sh(script: "ls -al ${WORKSPACE}", label: 'List provisioning scripts')
-
     if (!fileExists("${WORKSPACE}/ci")) {
-        println '[provisionNodes] Calling checkoutScm()'
+        // Required when running from a scripted pipeline
         checkoutScm(cleanAfterCheckout: false)
     }
-
-    println '[provisionNodes] After checkoutScm()'
-    sh(script: 'ls -al', label: 'List provisioning scripts')
-    sh(script: "ls -al ${WORKSPACE}", label: 'List provisioning scripts')
-
-    // if (!fileExists("${WORKSPACE}/ci/provisioning/log_cleanup.sh") ||
-    //     !fileExists("${WORKSPACE}/ci/provisioning/post_provision_config.sh")) {
-    //     println "[provisionNodes] Calling provisionNodesV1"
-    //     return provisionNodesV1(config)
-    // }
     if (!fileExists('ci/provisioning/log_cleanup.sh') ||
         !fileExists('ci/provisioning/post_provision_config.sh')) {
-           println "[provisionNodes] Calling provisionNodesV1"
         return provisionNodesV1(config)
-      }
+    }
 
-    println "[provisionNodes] Continuing ..."
     String cleanup_logs = 'NODESTRING=' + nodeString + ' ' +
                         'ci/provisioning/log_cleanup.sh'
 

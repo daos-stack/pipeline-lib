@@ -21,7 +21,7 @@ Map call(Map kwargs = [:]) {
     String tags = kwargs.get('tags', '')
     String nvme = kwargs.get('nvme', '')
     String provider = kwargs.get('provider', '')
-    // Map job_status = kwargs.get('job_status', [:])
+    Map job_status = kwargs.get('job_status', [:])
 
     String inst_repos = daosRepos()
     String inst_rpms = functionalPackages(1, next_version, 'tests-internal')
@@ -38,8 +38,6 @@ Map call(Map kwargs = [:]) {
                 echo "[${name}] Stage skipped by skipStage()"
             } else {
                 node(label) {
-                    // def PWD = pwd();
-                    // checkoutScm(cleanAfterCheckout: False)
                     try {
                         echo "[${name}] Running functionalTest()"
                         result = functionalTest(
@@ -49,7 +47,7 @@ Map call(Map kwargs = [:]) {
                             ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
                             test_function: 'runTestFunctionalV2')
                         echo "[${name}] Result: ${result}"
-            //             // jobStatusUpdate(job_status, name, result)
+                        jobStatusUpdate(job_status, name, result)
             //             // jobStatusUpdate(
             //             //     job_status,
             //             //     name,
@@ -61,12 +59,12 @@ Map call(Map kwargs = [:]) {
             //             //         test_function: 'runTestFunctionalV2'))
                     } finally {
                         echo "[${name}] Running functionalTestPostV2()"
-                        // functionalTestPostV2()
-                        // jobStatusUpdate(job_status, name)
+                        functionalTestPostV2()
+                        jobStatusUpdate(job_status, name)
                     }
                 }
             }
-            // echo "[${name}] Job status: ${job_status}"
+            echo "[${name}] Job status: ${job_status}"
             echo "[${name}] End stage"
         }
     }
