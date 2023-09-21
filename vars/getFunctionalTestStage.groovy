@@ -23,40 +23,23 @@ Map call(Map kwargs = [:]) {
     String provider = kwargs.get('provider', '')
     Map job_status = kwargs.get('job_status', [:])
 
-    String inst_repos = daosRepos()
-    String inst_rpms = functionalPackages(1, next_version, 'tests-internal')
-    String test_tag = getFunctionalTags(default_tags: tags)
-    String ftest_arg = getFunctionalArgs(default_nvme: nvme, provider: provider)
-
     return {
         stage("${name}") {
-            echo "[${name}] Start stage: label=${label}, tags=${tags}, nvme=${nvme}, provider=${provider}"
-            echo "[${name}] Install parameters: inst_repos=${inst_repos}, inst_rpms=${inst_rpms}"
-            echo "[${name}] Test parameters:    test_tag=${test_tag}, ftest_arg=${ftest_arg}"
-
             if (skipStage()) {
                 echo "[${name}] Stage skipped by skipStage()"
             } else {
                 node(label) {
                     try {
-                        echo "[${name}] Running functionalTest()"
-                        result = functionalTest(
-                            inst_repos: daosRepos(),
-                            inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
-                            test_tag: getFunctionalTags(default_tags: tags),
-                            ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
-                            test_function: 'runTestFunctionalV2')
-                        echo "[${name}] Result: ${result}"
-                        jobStatusUpdate(job_status, name, result)
-            //             // jobStatusUpdate(
-            //             //     job_status,
-            //             //     name,
-            //             //     functionalTest(
-            //             //         inst_repos: daosRepos(),
-            //             //         inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
-            //             //         test_tag: getFunctionalTags(default_tags: tags),
-            //             //         ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
-            //             //         test_function: 'runTestFunctionalV2'))
+                        echo "[${name}] Running functionalTest() on ${label}"
+                        jobStatusUpdate(
+                            job_status,
+                            name,
+                            functionalTest(
+                                inst_repos: daosRepos(),
+                                inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
+                                test_tag: getFunctionalTags(default_tags: tags),
+                                ftest_arg: getFunctionalArgs(default_nvme: nvme, provider: provider),
+                                test_function: 'runTestFunctionalV2'))
                     } finally {
                         echo "[${name}] Running functionalTestPostV2()"
                         functionalTestPostV2()
@@ -65,7 +48,6 @@ Map call(Map kwargs = [:]) {
                 }
             }
             echo "[${name}] Job status: ${job_status}"
-            echo "[${name}] End stage"
         }
     }
 }
