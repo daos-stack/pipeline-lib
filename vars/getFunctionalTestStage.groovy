@@ -20,7 +20,7 @@
 Map call(Map kwargs = [:]) {
     String name = kwargs.get('name')
     String pragma_suffix = kwargs.get('pragma_suffix')
-    String label = cachedCommitPragma('Test-label-' + suffix, kwargs.get('label'))
+    String label = cachedCommitPragma('Test-label-' + pragma_suffix, kwargs.get('label'))
     String next_version = kwargs.get('next_version', null)
     String stage_tags = kwargs.get('stage_tags')
     String default_tags = kwargs.get('default_tags')
