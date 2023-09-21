@@ -232,6 +232,15 @@ boolean call(Map config = [:]) {
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
     String tags = config['tags'] ?: parseStageInfo()['test_tag']
 
+    if (config['distro']) {
+        // Directly determine if a Functional VM stage should be skipped
+        return skip_ftest(config['distro'], target_branch, tags)
+    }
+    if (config['hw_size']) {
+        // Directly determine if a Functional HW stage should be skipped
+        return skip_ftest_hw(config['hw_size'], target_branch, tags)
+    }
+
     switch (env.STAGE_NAME) {
         case 'Cancel Previous Builds':
             return cachedCommitPragma('Cancel-prev-build') == 'false' ||
@@ -563,8 +572,6 @@ boolean call(Map config = [:]) {
         case 'Functional_Hardware_Medium':
         case 'Functional Hardware Medium':
             return skip_ftest_hw('medium', target_branch, tags)
-        case 'Functional Hardware Medium MD on SSD':
-            return skip_ftest_hw('medium-md-on-ssd', target_branch, tags)
         case 'Functional Hardware Medium TCP Provider':
             return skip_ftest_hw('medium-tcp-provider', target_branch, tags)
         case 'Functional Hardware Medium Verbs Provider':
