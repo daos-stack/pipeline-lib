@@ -15,9 +15,12 @@
  *      default_nvme    launch.py --nvme argument to use when no parameter or commit pragma exist
  *      provider        launch.py --provider argument to use
  *      distro          functional test stage distro (VM)
+ *      job_status      Map of status for each stage in the job/build
  * @return a scripted stage to run in a pipeline
  */
 Map call(Map kwargs = [:]) {
+    echo '[getFunctionalTestStage] Start'
+
     String name = kwargs.get('name')
     String pragma_suffix = kwargs.get('pragma_suffix')
     String label = cachedCommitPragma('Test-label-' + pragma_suffix, kwargs.get('label'))
@@ -39,6 +42,21 @@ Map call(Map kwargs = [:]) {
         skip_config['hw_size'] = pragma_suffix.replace('hw-', '')
     }
 
+    echo "[getFunctionalTestStage] Parameters:"
+    echo "[getFunctionalTestStage]   name:          ${name}"
+    echo "[getFunctionalTestStage]   pragma_suffix: ${pragma_suffix}"
+    echo "[getFunctionalTestStage]   label:         ${label}"
+    echo "[getFunctionalTestStage]   next_version:  ${next_version}"
+    echo "[getFunctionalTestStage]   stage_tags:    ${stage_tags}"
+    echo "[getFunctionalTestStage]   default_tags:  ${default_tags}"
+    echo "[getFunctionalTestStage]   tags:          ${tags}"
+    echo "[getFunctionalTestStage]   default_nvme:  ${default_nvme}"
+    echo "[getFunctionalTestStage]   provider:      ${provider}"
+    echo "[getFunctionalTestStage]   distro:        ${distro}"
+    echo "[getFunctionalTestStage]   job_status:    ${job_status}"
+    echo "[getFunctionalTestStage]   skip_config:   ${skip_config}"
+    echo "[getFunctionalTestStage] Start stage ${name}"
+
     return {
         stage("${name}") {
             if (skipStage(skip_config)) {
@@ -47,18 +65,28 @@ Map call(Map kwargs = [:]) {
                 node(label) {
                     try {
                         echo "[${name}] Running functionalTest() on ${label} with tags=${tags}"
-                        jobStatusUpdate(
-                            job_status,
-                            name,
-                            functionalTest(
-                                inst_repos: daosRepos(),
-                                inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
-                                test_tag: tags,
-                                ftest_arg: getFunctionalArgs(
-                                    pragma_suffix: pragma_suffix,
-                                    default_nvme: default_nvme,
-                                    provider: provider),
-                                test_function: 'runTestFunctionalV2'))
+                        result = functionalTest(
+                            inst_repos: daosRepos(),
+                            inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
+                            test_tag: tags,
+                            ftest_arg: getFunctionalArgs(
+                                pragma_suffix: pragma_suffix,
+                                default_nvme: default_nvme,
+                                provider: provider),
+                            test_function: 'runTestFunctionalV2')
+                        jobStatusUpdate(job_status, name, result)
+                        // jobStatusUpdate(
+                        //     job_status,
+                        //     name,
+                        //     functionalTest(
+                        //         inst_repos: daosRepos(),
+                        //         inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
+                        //         test_tag: tags,
+                        //         ftest_arg: getFunctionalArgs(
+                        //             pragma_suffix: pragma_suffix,
+                        //             default_nvme: default_nvme,
+                        //             provider: provider),
+                        //         test_function: 'runTestFunctionalV2'))
                     } finally {
                         echo "[${name}] Running functionalTestPostV2()"
                         functionalTestPostV2()
