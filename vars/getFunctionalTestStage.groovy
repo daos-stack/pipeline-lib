@@ -22,7 +22,7 @@
 Map call(Map kwargs = [:]) {
     String name = kwargs.get('name')
     String pragma_suffix = kwargs.get('pragma_suffix')
-    String label = kwargs.get('label'))
+    String label = kwargs.get('label')
     String next_version = kwargs.get('next_version', null)
     String stage_tags = kwargs.get('stage_tags')
     String timer_tags = kwargs.get('timer_tags')
