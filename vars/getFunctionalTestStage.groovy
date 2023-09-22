@@ -30,7 +30,7 @@ Map call(Map kwargs = [:]) {
     String default_nvme = kwargs.get('default_nvme')
     String provider = kwargs.get('provider', '')
     String distro = kwargs.get('distro')
-    Map job_status = kwargs.get('job_status', [:])
+    // Map job_status = kwargs.get('job_status', [:])
 
     return {
         stage("${name}") {
@@ -66,7 +66,7 @@ Map call(Map kwargs = [:]) {
             echo "[getFunctionalTestStage]   default_nvme:  ${default_nvme}"
             echo "[getFunctionalTestStage]   provider:      ${provider}"
             echo "[getFunctionalTestStage]   distro:        ${distro}"
-            echo "[getFunctionalTestStage]   job_status:    ${job_status}"
+            // echo "[getFunctionalTestStage]   job_status:    ${job_status}"
             // echo "[getFunctionalTestStage]   skip_config:   ${skip_config}"
             echo "[getFunctionalTestStage] Start stage ${name}"
 
@@ -105,7 +105,7 @@ Map call(Map kwargs = [:]) {
             //         }
             //     }
             // }
-            echo "[${name}] Job status: ${job_status}"
+            // echo "[${name}] Job status: ${job_status}"
         }
     }
 }
