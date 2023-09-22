@@ -36,23 +36,23 @@ Map call(Map kwargs = [:]) {
         stage("${name}") {
             label = cachedCommitPragma('Test-label-' + pragma_suffix, label)
 
-            // Get the tags for thge stage. Use the timer_tags if the build has been started by a timer.
-            // Otherwise use either the build parameter, commit pragma, or default tags. All tags are
-            // comnbined with the stage tags to ensure only tests that 'fit' the cluster will be run.
-            if if (startedByTimer() && timer_tags) {
-                default_tags = timer_tags
-            }
-            String tags = getFunctionalTags(
-                pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
+            // // Get the tags for thge stage. Use the timer_tags if the build has been started by a timer.
+            // // Otherwise use either the build parameter, commit pragma, or default tags. All tags are
+            // // comnbined with the stage tags to ensure only tests that 'fit' the cluster will be run.
+            // if if (startedByTimer() && timer_tags) {
+            //     default_tags = timer_tags
+            // }
+            // String tags = getFunctionalTags(
+            //     pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
 
-            // Setup the arguments for the skipStage() groovy script to directly call the appropraite skip
-            // stage logic. This no longer requires the stage name to be defined in skipStage().
-            Map skip_config = ['tags': tags]
-            if (kwargs['distro']) {
-                skip_config['distro'] = kwargs['distro']
-            } else if (pragma_suffix.startsWith('hw-')) {
-                skip_config['hw_size'] = pragma_suffix.replace('hw-', '')
-            }
+            // // Setup the arguments for the skipStage() groovy script to directly call the appropraite skip
+            // // stage logic. This no longer requires the stage name to be defined in skipStage().
+            // Map skip_config = ['tags': tags]
+            // if (kwargs['distro']) {
+            //     skip_config['distro'] = kwargs['distro']
+            // } else if (pragma_suffix.startsWith('hw-')) {
+            //     skip_config['hw_size'] = pragma_suffix.replace('hw-', '')
+            // }
 
             echo "[getFunctionalTestStage] Parameters:"
             echo "[getFunctionalTestStage]   name:          ${name}"
@@ -67,44 +67,44 @@ Map call(Map kwargs = [:]) {
             echo "[getFunctionalTestStage]   provider:      ${provider}"
             echo "[getFunctionalTestStage]   distro:        ${distro}"
             echo "[getFunctionalTestStage]   job_status:    ${job_status}"
-            echo "[getFunctionalTestStage]   skip_config:   ${skip_config}"
+            // echo "[getFunctionalTestStage]   skip_config:   ${skip_config}"
             echo "[getFunctionalTestStage] Start stage ${name}"
 
-            if (skipStage(skip_config)) {
-                echo "[${name}] Stage skipped by skipStage(${skip_config})"
-            } else {
-                node(label) {
-                    try {
-                        echo "[${name}] Running functionalTest() on ${label} with tags=${tags}"
-                        result = functionalTest(
-                            inst_repos: daosRepos(),
-                            inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
-                            test_tag: tags,
-                            ftest_arg: getFunctionalArgs(
-                                pragma_suffix: pragma_suffix,
-                                default_nvme: default_nvme,
-                                provider: provider),
-                            test_function: 'runTestFunctionalV2')
-                        jobStatusUpdate(job_status, name, result)
-                        // jobStatusUpdate(
-                        //     job_status,
-                        //     name,
-                        //     functionalTest(
-                        //         inst_repos: daosRepos(),
-                        //         inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
-                        //         test_tag: tags,
-                        //         ftest_arg: getFunctionalArgs(
-                        //             pragma_suffix: pragma_suffix,
-                        //             default_nvme: default_nvme,
-                        //             provider: provider),
-                        //         test_function: 'runTestFunctionalV2'))
-                    } finally {
-                        echo "[${name}] Running functionalTestPostV2()"
-                        functionalTestPostV2()
-                        jobStatusUpdate(job_status, name)
-                    }
-                }
-            }
+            // if (skipStage(skip_config)) {
+            //     echo "[${name}] Stage skipped by skipStage(${skip_config})"
+            // } else {
+            //     node(label) {
+            //         try {
+            //             echo "[${name}] Running functionalTest() on ${label} with tags=${tags}"
+            //             result = functionalTest(
+            //                 inst_repos: daosRepos(),
+            //                 inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
+            //                 test_tag: tags,
+            //                 ftest_arg: getFunctionalArgs(
+            //                     pragma_suffix: pragma_suffix,
+            //                     default_nvme: default_nvme,
+            //                     provider: provider),
+            //                 test_function: 'runTestFunctionalV2')
+            //             jobStatusUpdate(job_status, name, result)
+            //             // jobStatusUpdate(
+            //             //     job_status,
+            //             //     name,
+            //             //     functionalTest(
+            //             //         inst_repos: daosRepos(),
+            //             //         inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
+            //             //         test_tag: tags,
+            //             //         ftest_arg: getFunctionalArgs(
+            //             //             pragma_suffix: pragma_suffix,
+            //             //             default_nvme: default_nvme,
+            //             //             provider: provider),
+            //             //         test_function: 'runTestFunctionalV2'))
+            //         } finally {
+            //             echo "[${name}] Running functionalTestPostV2()"
+            //             functionalTestPostV2()
+            //             jobStatusUpdate(job_status, name)
+            //         }
+            //     }
+            // }
             echo "[${name}] Job status: ${job_status}"
         }
     }
