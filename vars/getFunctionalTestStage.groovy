@@ -34,7 +34,7 @@ Map call(Map kwargs = [:]) {
 
     return {
         stage("${name}") {
-            label = cachedCommitPragma('Test-label-' + pragma_suffix, label)
+            // label = cachedCommitPragma('Test-label-' + pragma_suffix, label)
 
             // // Get the tags for thge stage. Use the timer_tags if the build has been started by a timer.
             // // Otherwise use either the build parameter, commit pragma, or default tags. All tags are
@@ -54,7 +54,7 @@ Map call(Map kwargs = [:]) {
             //     skip_config['hw_size'] = pragma_suffix.replace('hw-', '')
             // }
 
-            echo "[getFunctionalTestStage] Parameters:"
+            echo '[getFunctionalTestStage] Parameters:'
             echo "[getFunctionalTestStage]   name:          ${name}"
             echo "[getFunctionalTestStage]   pragma_suffix: ${pragma_suffix}"
             echo "[getFunctionalTestStage]   label:         ${label}"
@@ -62,7 +62,7 @@ Map call(Map kwargs = [:]) {
             echo "[getFunctionalTestStage]   stage_tags:    ${stage_tags}"
             echo "[getFunctionalTestStage]   timer_tags:    ${timer_tags}"
             echo "[getFunctionalTestStage]   default_tags:  ${default_tags}"
-            echo "[getFunctionalTestStage]   tags:          ${tags}"
+            // echo "[getFunctionalTestStage]   tags:          ${tags}"
             echo "[getFunctionalTestStage]   default_nvme:  ${default_nvme}"
             echo "[getFunctionalTestStage]   provider:      ${provider}"
             echo "[getFunctionalTestStage]   distro:        ${distro}"
