@@ -21,11 +21,29 @@
  */
 Map call(Map kwargs = [:]) {
     String name = kwargs.get('name')
+    String pragma_suffix = kwargs.get('pragma_suffix')
+    String label = kwargs.get('label')
+    String next_version = kwargs.get('next_version', null)
+    String stage_tags = kwargs.get('stage_tags')
+    String timer_tags = kwargs.get('timer_tags')
+    String default_tags = kwargs.get('default_tags')
+    String default_nvme = kwargs.get('default_nvme')
+    String provider = kwargs.get('provider', '')
+    String distro = kwargs.get('distro')
 
     return {
         stage("${name}") {
             echo '[getFunctionalTestStage] Parameters:'
             echo "[getFunctionalTestStage]   name:          ${name}"
+            echo "[getFunctionalTestStage]   pragma_suffix: ${pragma_suffix}"
+            echo "[getFunctionalTestStage]   label:         ${label}"
+            echo "[getFunctionalTestStage]   next_version:  ${next_version}"
+            echo "[getFunctionalTestStage]   stage_tags:    ${stage_tags}"
+            echo "[getFunctionalTestStage]   timer_tags:    ${timer_tags}"
+            echo "[getFunctionalTestStage]   default_tags:  ${default_tags}"
+            echo "[getFunctionalTestStage]   default_nvme:  ${default_nvme}"
+            echo "[getFunctionalTestStage]   provider:      ${provider}"
+            echo "[getFunctionalTestStage]   distro:        ${distro}"
         }
     }
 }
