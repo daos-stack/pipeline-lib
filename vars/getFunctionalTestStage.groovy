@@ -45,14 +45,14 @@ Map call(Map kwargs = [:]) {
             echo "[getFunctionalTestStage]   provider:      ${provider}"
             echo "[getFunctionalTestStage]   distro:        ${distro}"
 
-            // label = cachedCommitPragma("Test-label-${pragma_suffix}", default_label)
+            label = cachedCommitPragma("Test-label-${pragma_suffix}", default_label)
 
-            // echo "[getFunctionalTestStage]   label:         ${label}"
+            echo "[getFunctionalTestStage]   label:         ${label}"
 
             // Get the tags for thge stage. Use the timer_tags if the build has been started by a timer.
             // Otherwise use either the build parameter, commit pragma, or default tags. All tags are
             // comnbined with the stage tags to ensure only tests that 'fit' the cluster will be run.
-            if if (startedByTimer() && timer_tags) {
+            if (startedByTimer() && timer_tags) {
                 default_tags = timer_tags
             }
         }
