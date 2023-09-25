@@ -53,14 +53,15 @@ Map call(Map kwargs = [:]) {
                 skip_config['hw_size'] = pragma_suffix.replace('hw-', '')
             }
 
+            echo "[${name}] Start with ${skip_config}"
             if (skipStage(skip_config)) {
                 echo "[${name}] Stage skipped by skipStage(${skip_config})"
             } else {
                 node(cachedCommitPragma("Test-label-${pragma_suffix}", label)) {
                     // Ensure access to the ci/provisioning files exist
-                    // if (!fileExists("${WORKSPACE}/ci")) {
-                    //     checkoutScm(cleanAfterCheckout: false)
-                    // }
+                    if (!fileExists("${WORKSPACE}/ci")) {
+                        checkoutScm(cleanAfterCheckout: false)
+                    }
                     try {
                         echo "[${name}] Running functionalTest() on ${label} with tags=${tags}"
                         jobStatusUpdate(
@@ -82,7 +83,7 @@ Map call(Map kwargs = [:]) {
                     }
                 }
             }
-            echo "[${name}] Complete: ${job_status}"
+            echo "[${name}] Finished with ${job_status}"
         }
     }
 }

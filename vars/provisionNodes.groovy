@@ -120,10 +120,6 @@ Map call(Map config = [:]) {
         }
     }
 
-    if (!fileExists("${WORKSPACE}/ci")) {
-        // Required when running from a scripted pipeline
-        checkoutScm(cleanAfterCheckout: false)
-    }
     if (!fileExists('ci/provisioning/log_cleanup.sh') ||
         !fileExists('ci/provisioning/post_provision_config.sh')) {
         return provisionNodesV1(config)
