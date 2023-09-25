@@ -47,10 +47,12 @@ Map call(Map kwargs = [:]) {
             // Setup the arguments for the skipStage() groovy script to directly call the correct
             // skip stage logic. The stage name is no longer required to be defined in skipStage().
             Map skip_config = ['tags': tags]
-            if (kwargs['distro']) {
-                skip_config['distro'] = kwargs['distro']
-            } else if (pragma_suffix.startsWith('hw-')) {
+            if (pragma_suffix.startsWith('hw-')) {
+                // With this param set skip_ftest_hw() will be called by skipStage()
                 skip_config['hw_size'] = pragma_suffix.replace('hw-', '')
+            } else if (kwargs['distro']) {
+                // With this param set skip_ftest() will be called by skipStage()
+                skip_config['distro'] = kwargs['distro']
             }
 
             echo "[${name}] Start with ${skip_config}"
