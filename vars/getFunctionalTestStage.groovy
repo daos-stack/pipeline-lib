@@ -22,7 +22,7 @@
 Map call(Map kwargs = [:]) {
     String name = kwargs.get('name')
     String pragma_suffix = kwargs.get('pragma_suffix')
-    String label = kwargs.get('label')
+    String default_label = kwargs.get('label')
     String next_version = kwargs.get('next_version', null)
     String stage_tags = kwargs.get('stage_tags')
     String timer_tags = kwargs.get('timer_tags')
@@ -36,7 +36,7 @@ Map call(Map kwargs = [:]) {
             echo '[getFunctionalTestStage] Parameters:'
             echo "[getFunctionalTestStage]   name:          ${name}"
             echo "[getFunctionalTestStage]   pragma_suffix: ${pragma_suffix}"
-            echo "[getFunctionalTestStage]   label:         ${label}"
+            echo "[getFunctionalTestStage]   default_label: ${default_label}"
             echo "[getFunctionalTestStage]   next_version:  ${next_version}"
             echo "[getFunctionalTestStage]   stage_tags:    ${stage_tags}"
             echo "[getFunctionalTestStage]   timer_tags:    ${timer_tags}"
@@ -45,7 +45,7 @@ Map call(Map kwargs = [:]) {
             echo "[getFunctionalTestStage]   provider:      ${provider}"
             echo "[getFunctionalTestStage]   distro:        ${distro}"
 
-            label = cachedCommitPragma('Test-label-' + pragma_suffix, label)
+            label = cachedCommitPragma("Test-label-${pragma_suffix}", default_label)
 
             echo "[getFunctionalTestStage]   label:         ${label}"
 
