@@ -117,7 +117,8 @@ boolean skip_scan_rpms(String distro, String target_branch) {
 boolean skip_ftest(String distro, String target_branch, String tags) {
     // Skip the functional vm test stage if it has already passed or
     // there are no tests matching the tags for the stage
-    if (already_passed() || !testsInStage(tags)) {
+    if (already_passed() || !testsInStage(tags) ||
+        cachedCommitPragma('Run-GHA').toLowerCase() == 'true') {
         return true
     }
     // Run the functional vm test stage if explicitly requested by the user
@@ -158,7 +159,8 @@ boolean skip_ftest_valgrind(String distro, String target_branch, String tags) {
 boolean skip_ftest_hw(String size, String target_branch, String tags) {
     // Skip the functional hardware test stage if it has already passed or
     // there are no tests matching the tags for the stage
-    if (already_passed() || !testsInStage(tags)) {
+    if (already_passed() || !testsInStage(tags) ||
+        cachedCommitPragma('Run-GHA').toLowerCase() == 'true') {
         return true
     }
     // Run the functional hardware test stage if explicitly requested by the user
