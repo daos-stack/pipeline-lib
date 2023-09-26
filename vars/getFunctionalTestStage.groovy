@@ -13,7 +13,6 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      label           functional test stage default cluster label
  *      next_version    next daos package version
  *      stage_tags      functional test stage tags always used and combined with all other tags
- *      timer_tags      functional test stage tags to use when the stage is started by a timer
  *      default_tags    launch.py tags argument to use when no parameter or commit pragma exist
  *      default_nvme    launch.py --nvme argument to use when no parameter or commit pragma exist
  *      provider        launch.py --provider argument to use
@@ -27,7 +26,6 @@ Map call(Map kwargs = [:]) {
     String label = kwargs.get('label')
     String next_version = kwargs.get('next_version', null)
     String stage_tags = kwargs.get('stage_tags')
-    String timer_tags = kwargs.get('timer_tags')
     String default_tags = kwargs.get('default_tags')
     String default_nvme = kwargs.get('default_nvme')
     String provider = kwargs.get('provider', '')
@@ -36,13 +34,9 @@ Map call(Map kwargs = [:]) {
 
     return {
         stage("${name}") {
-            // Get the tags for thge stage. Use the timer_tags if the build has been started by a
-            // timer. Otherwise use either the build parameter, commit pragma, or default tags. All
-            // tags are combined with the stage tags to ensure only tests that 'fit' the cluster
-            // will be run.
-            if (startedByTimer() && timer_tags) {
-                default_tags = timer_tags
-            }
+            // Get the tags for thge stage. Use either the build parameter, commit pragma, or
+            // default tags. All tags are combined with the stage tags to ensure only tests that
+            // 'fit' the cluster will be run.
             String tags = getFunctionalTags(
                 pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
 
