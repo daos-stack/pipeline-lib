@@ -150,7 +150,8 @@ boolean skip_ftest_valgrind(String distro, String target_branch, String tags) {
     return already_passed() ||
            !run_default_skipped_stage('func-test-vm-valgrind') ||
            !paramsValue('CI_FUNCTIONAL_' + distro + '_VALGRIND_TEST', false) ||
-           skip_ftest(distro, target_branch, tags) ||
+           (skip_ftest(distro, target_branch, tags) &&
+            cachedCommitPragma('Run-GHA').toLowerCase() != 'true') ||
            /* groovylint-disable-next-line UnnecessaryGetter */
            isPr() ||
            target_branch =~ branchTypeRE('weekly')
