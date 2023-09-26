@@ -1,5 +1,7 @@
 // vars/getFunctionalTestStage.groovy
 
+import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
+
 /**
  * getFunctionalTestStage.groovy
  *
@@ -7,7 +9,7 @@
  *
  * @param kwargs Map containing the following optional arguments (empty strings yield defaults):
  *      name            functional test stage name
- *      pragma_suffix   functional test stage commit pragma suffix 
+ *      pragma_suffix   functional test stage commit pragma suffix, e.g. '-hw-medium'
  *      label           functional test stage default cluster label
  *      next_version    next daos package version
  *      stage_tags      functional test stage tags always used and combined with all other tags
@@ -20,7 +22,7 @@
  * @return a scripted stage to run in a pipeline
  */
 Map call(Map kwargs = [:]) {
-    String name = kwargs.get('name')
+    String name = kwargs.get('name', 'Unknown Functional Test Stage')
     String pragma_suffix = kwargs.get('pragma_suffix')
     String label = kwargs.get('label')
     String next_version = kwargs.get('next_version', null)
@@ -36,7 +38,7 @@ Map call(Map kwargs = [:]) {
         stage("${name}") {
             // Get the tags for thge stage. Use the timer_tags if the build has been started by a
             // timer. Otherwise use either the build parameter, commit pragma, or default tags. All
-            // tags are comnbined with the stage tags to ensure only tests that 'fit' the cluster
+            // tags are combined with the stage tags to ensure only tests that 'fit' the cluster
             // will be run.
             if (startedByTimer() && timer_tags) {
                 default_tags = timer_tags
@@ -47,9 +49,9 @@ Map call(Map kwargs = [:]) {
             // Setup the arguments for the skipStage() groovy script to directly call the correct
             // skip stage logic. The stage name is no longer required to be defined in skipStage().
             Map skip_config = ['tags': tags]
-            if (pragma_suffix.startsWith('hw-')) {
+            if (pragma_suffix.startsWith('-hw-')) {
                 // With this param set skip_ftest_hw() will be called by skipStage()
-                skip_config['hw_size'] = pragma_suffix.replace('hw-', '')
+                skip_config['hw_size'] = pragma_suffix.replace('-hw-', '')
             } else if (kwargs['distro']) {
                 // With this param set skip_ftest() will be called by skipStage()
                 skip_config['distro'] = kwargs['distro']
@@ -58,12 +60,12 @@ Map call(Map kwargs = [:]) {
             echo "[${name}] Start with ${skip_config}"
             if (skipStage(skip_config)) {
                 echo "[${name}] Stage skipped by skipStage(${skip_config})"
+                Utils.markStageSkippedForConditional("${name}")
             } else {
-                node(cachedCommitPragma("Test-label-${pragma_suffix}", label)) {
+                node(cachedCommitPragma("Test-label${pragma_suffix}", label)) {
                     // Ensure access to the ci/provisioning files exist
-                    if (!fileExists("${WORKSPACE}/ci")) {
-                        checkoutScm(cleanAfterCheckout: false)
-                    }
+                    echo "[${name}] Check out from version control"
+                    checkoutScm(cleanAfterCheckout: false)
                     try {
                         echo "[${name}] Running functionalTest() on ${label} with tags=${tags}"
                         jobStatusUpdate(
