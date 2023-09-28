@@ -52,11 +52,6 @@ Map call(Map kwargs = [:]) {
             }
 
             echo "[${name}] Start with ${skip_config}"
-
-            // Ensure access to current test files for the skip check
-            echo "[${name}] Check out from version control"
-            checkoutScm(cleanAfterCheckout: false)
-
             if (skipStage(skip_config)) {
                 echo "[${name}] Stage skipped by skipStage(${skip_config})"
                 Utils.markStageSkippedForConditional("${name}")
