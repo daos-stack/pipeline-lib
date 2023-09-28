@@ -52,12 +52,14 @@ Map call(Map kwargs = [:]) {
             }
 
             echo "[${name}] Start with ${skip_config}"
+            echo "[${name}] Check out from version control"
+            checkoutScm(cleanAfterCheckout: false)
             if (skipStage(skip_config)) {
                 echo "[${name}] Stage skipped by skipStage(${skip_config})"
                 Utils.markStageSkippedForConditional("${name}")
             } else {
                 node(cachedCommitPragma("Test-label${pragma_suffix}", label)) {
-                    // Ensure access to the ci/provisioning files exist
+                    // Ensure access to any branch provisioning scripts exist
                     echo "[${name}] Check out from version control"
                     checkoutScm(cleanAfterCheckout: false)
                     try {
@@ -66,7 +68,7 @@ Map call(Map kwargs = [:]) {
                             job_status,
                             name,
                             functionalTest(
-                                inst_repos: daosRepos(),
+                                inst_repos: daosRepos(distro),
                                 inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
                                 test_tag: tags,
                                 ftest_arg: getFunctionalArgs(
