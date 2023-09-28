@@ -52,8 +52,11 @@ Map call(Map kwargs = [:]) {
             }
 
             echo "[${name}] Start with ${skip_config}"
+
+            // Ensure access to current test files for the skip check
             echo "[${name}] Check out from version control"
             checkoutScm(cleanAfterCheckout: false)
+
             if (skipStage(skip_config)) {
                 echo "[${name}] Stage skipped by skipStage(${skip_config})"
                 Utils.markStageSkippedForConditional("${name}")
@@ -62,8 +65,13 @@ Map call(Map kwargs = [:]) {
                     // Ensure access to any branch provisioning scripts exist
                     echo "[${name}] Check out from version control"
                     checkoutScm(cleanAfterCheckout: false)
+
                     try {
                         echo "[${name}] Running functionalTest() on ${label} with tags=${tags}"
+                        Map functional_args = getFunctionalArgs(
+                            pragma_suffix: pragma_suffix,
+                            default_nvme: default_nvme,
+                            provider: provider)
                         jobStatusUpdate(
                             job_status,
                             name,
@@ -71,10 +79,7 @@ Map call(Map kwargs = [:]) {
                                 inst_repos: daosRepos(distro),
                                 inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
                                 test_tag: tags,
-                                ftest_arg: getFunctionalArgs(
-                                    pragma_suffix: pragma_suffix,
-                                    default_nvme: default_nvme,
-                                    provider: provider),
+                                ftest_arg: functional_args['ftest_arg'],
                                 test_function: 'runTestFunctionalV2'))
                     } finally {
                         echo "[${name}] Running functionalTestPostV2()"
