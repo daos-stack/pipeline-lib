@@ -234,14 +234,10 @@ boolean call(Map config = [:]) {
 
     if (config['hw_size']) {
         // Directly determine if a Functional HW stage should be skipped
-        echo "[${env.STAGE_NAME}] Check out from version control"
-        checkoutScm(cleanAfterCheckout: false)
         return skip_ftest_hw(config['hw_size'], target_branch, tags)
     }
     if (config['distro']) {
         // Directly determine if a Functional VM stage should be skipped
-        echo "[${env.STAGE_NAME}] Check out from version control"
-        checkoutScm(cleanAfterCheckout: false)
         return skip_ftest(config['distro'], target_branch, tags)
     }
 
