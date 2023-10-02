@@ -14,6 +14,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      next_version    next daos package version
  *      stage_tags      functional test stage tags always used and combined with all other tags
  *      default_tags    launch.py tags argument to use when no parameter or commit pragma exist
+ *      nvme            launch.py --nvme argument to use
  *      default_nvme    launch.py --nvme argument to use when no parameter or commit pragma exist
  *      provider        launch.py --provider argument to use
  *      distro          functional test stage distro (VM)
@@ -27,6 +28,7 @@ Map call(Map kwargs = [:]) {
     String next_version = kwargs.get('next_version', null)
     String stage_tags = kwargs.get('stage_tags')
     String default_tags = kwargs.get('default_tags')
+    String nvme = kwargs.get('nvme')
     String default_nvme = kwargs.get('default_nvme')
     String provider = kwargs.get('provider', '')
     String distro = kwargs.get('distro')
@@ -63,10 +65,6 @@ Map call(Map kwargs = [:]) {
 
                     try {
                         echo "[${name}] Running functionalTest() on ${label} with tags=${tags}"
-                        Map functional_args = getFunctionalArgs(
-                            pragma_suffix: pragma_suffix,
-                            default_nvme: default_nvme,
-                            provider: provider)
                         jobStatusUpdate(
                             job_status,
                             name,
@@ -74,7 +72,11 @@ Map call(Map kwargs = [:]) {
                                 inst_repos: daosRepos(distro),
                                 inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
                                 test_tag: tags,
-                                ftest_arg: functional_args['ftest_arg'],
+                                ftest_arg: getFunctionalArgs(
+                                    pragma_suffix: pragma_suffix,
+                                    nvme: nvme,
+                                    default_nvme: default_nvme,
+                                    provider: provider)['ftest_arg'],
                                 test_function: 'runTestFunctionalV2'))
                     } finally {
                         echo "[${name}] Running functionalTestPostV2()"
