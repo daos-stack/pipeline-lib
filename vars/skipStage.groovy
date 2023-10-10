@@ -117,7 +117,8 @@ boolean skip_scan_rpms(String distro, String target_branch) {
 boolean skip_ftest(String distro, String target_branch, String tags) {
     // Skip the functional vm test stage if it has already passed or
     // there are no tests matching the tags for the stage
-    if (already_passed() || !testsInStage(tags)) {
+    if (already_passed() || !testsInStage(tags) ||
+        cachedCommitPragma('Run-GHA').toLowerCase() == 'true') {
         return true
     }
     // Run the functional vm test stage if explicitly requested by the user
@@ -130,8 +131,7 @@ boolean skip_ftest(String distro, String target_branch, String tags) {
     // The params.CI_MORE_FUNCTIONAL_PR_TESTS allows enabling
     // tests that are not run in PRs.
     return !paramsValue('CI_FUNCTIONAL_' + distro + '_TEST', true) ||
-           // Temporarily skip EL9 until it's completely landed.
-           distro in ['el9', 'ubuntu20'] ||
+           distro in ['ubuntu20'] ||
            skip_stage_pragma('build-' + distro + '-rpm') ||
            skip_stage_pragma('test') ||
            skip_stage_pragma('func-test') ||
@@ -150,7 +150,8 @@ boolean skip_ftest_valgrind(String distro, String target_branch, String tags) {
     return already_passed() ||
            !run_default_skipped_stage('func-test-vm-valgrind') ||
            !paramsValue('CI_FUNCTIONAL_' + distro + '_VALGRIND_TEST', false) ||
-           skip_ftest(distro, target_branch, tags) ||
+           (skip_ftest(distro, target_branch, tags) &&
+            cachedCommitPragma('Run-GHA').toLowerCase() != 'true') ||
            /* groovylint-disable-next-line UnnecessaryGetter */
            isPr() ||
            target_branch =~ branchTypeRE('weekly')
@@ -159,7 +160,8 @@ boolean skip_ftest_valgrind(String distro, String target_branch, String tags) {
 boolean skip_ftest_hw(String size, String target_branch, String tags) {
     // Skip the functional hardware test stage if it has already passed or
     // there are no tests matching the tags for the stage
-    if (already_passed() || !testsInStage(tags)) {
+    if (already_passed() || !testsInStage(tags) ||
+        cachedCommitPragma('Run-GHA').toLowerCase() == 'true') {
         return true
     }
     // Run the functional hardware test stage if explicitly requested by the user
