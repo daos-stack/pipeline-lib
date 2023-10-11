@@ -18,6 +18,9 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      default_nvme    launch.py --nvme argument to use when no parameter or commit pragma exist
  *      provider        launch.py --provider argument to use
  *      distro          functional test stage distro (VM)
+ *      run_by_default  whether or not the stage should run by default
+ *      run_if_pr       whether or not the stage should run for PR builds
+ *      run_if_landing  whether or not the stage should run for landing builds
  *      job_status      Map of status for each stage in the job/build
  * @return a scripted stage to run in a pipeline
  */
@@ -32,6 +35,9 @@ Map call(Map kwargs = [:]) {
     String default_nvme = kwargs.get('default_nvme')
     String provider = kwargs.get('provider', '')
     String distro = kwargs.get('distro')
+    Boolean run_by_default = kwargs.get('run_by_default', true)
+    Boolean run_if_pr = kwargs.get('run_if_pr', false)
+    Boolean run_if_landing = kwargs.get('run_if_landing', false)
     Map job_status = kwargs.get('job_status', [:])
 
     return {
@@ -42,20 +48,16 @@ Map call(Map kwargs = [:]) {
             String tags = getFunctionalTags(
                 pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
 
-            // Setup the arguments for the skipStage() groovy script to directly call the correct
-            // skip stage logic. The stage name is no longer required to be defined in skipStage().
-            Map skip_config = ['tags': tags]
-            if (pragma_suffix.startsWith('-hw-')) {
-                // With this param set skip_ftest_hw() will be called by skipStage()
-                skip_config['hw_size'] = pragma_suffix.replace('-hw-', '')
-            } else if (kwargs['distro']) {
-                // With this param set skip_ftest() will be called by skipStage()
-                skip_config['distro'] = kwargs['distro']
-            }
-
-            echo "[${name}] Start with ${skip_config}"
-            if (skipStage(skip_config)) {
-                echo "[${name}] Stage skipped by skipStage(${skip_config})"
+            Map skip_kwargs = [
+                'tags': tags,
+                'pragma_suffix': pragma_suffix,
+                'distro': distro,
+                'run_by_default': run_by_default,
+                'run_if_pr': run_if_pr,
+                'run_if_landing': run_if_landing]
+            echo "[${name}] Determining if stage should be skipped with ${skip_kwargs}"
+            if (skipFunctionalTestStage(skip_kwargs)) {
+                echo "[${name}] Stage skipped by skipFunctionalTestStage()"
                 Utils.markStageSkippedForConditional("${name}")
             } else {
                 node(cachedCommitPragma("Test-label${pragma_suffix}", label)) {

@@ -235,15 +235,6 @@ boolean call(Map config = [:]) {
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
     String tags = config['tags'] ?: parseStageInfo()['test_tag']
 
-    if (config['hw_size']) {
-        // Directly determine if a Functional HW stage should be skipped
-        return skip_ftest_hw(config['hw_size'], target_branch, tags)
-    }
-    if (config['distro']) {
-        // Directly determine if a Functional VM stage should be skipped
-        return skip_ftest(config['distro'], target_branch, tags)
-    }
-
     switch (env.STAGE_NAME) {
         case 'Cancel Previous Builds':
             return cachedCommitPragma('Cancel-prev-build') == 'false' ||
