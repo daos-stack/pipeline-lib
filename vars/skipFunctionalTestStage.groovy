@@ -3,7 +3,7 @@
 /**
  * skipFunctionalTestStage.groovy
  *
- * Get a functional test stage in scripted syntax.
+ * Determine if a functional test stage should be skipped and log the reason.
  *
  * @param kwargs Map containing the following optional arguments (empty strings yield defaults):
  *      tags            functional test stage tags to run
@@ -81,7 +81,7 @@ Map call(Map kwargs = [:]) {
             return false
         }
     }
-    if (paramsValue("CI_${param_size}_TEST", true) && !enabled_by_default) {
+    if (paramsValue("CI_${param_size}_TEST", true) && !run_by_default) {
         echo "Running ${env.STAGE_NAME}: As requested by CI_${param_size}_TEST parameter"
         return false
     }
