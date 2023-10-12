@@ -55,7 +55,7 @@ Map call(Map kwargs = [:]) {
     }
 
     // Skip reasons the cannot be overriden
-    if (already_passed()) {
+    if (stageAlreadyPassed()) {
         echo "Skipping ${env.STAGE_NAME}: All tests passed in the previous build"
         return true
     }
