@@ -35,10 +35,9 @@ Map call(Map kwargs = [:]) {
             'Skip-test',
             'Skip-func-test',
             'Skip-func-test-vm',
-            "Skip-func-test-vm-${distro}"
+            "Skip-func-test-vm-${distro}",
             'Skip-func-test-vm-all',
-            "Skip-func-test-${distro}",
-        ]
+            "Skip-func-test-${distro}"]
     } else {
         // VM Functional test stage
         def override_pragmas = [
@@ -52,8 +51,7 @@ Map call(Map kwargs = [:]) {
             'Skip-func-test-hw',
             "Skip-func-test-hw-${size}",
             'Skip-func-hw-test',
-            "Skip-func-hw-test-${size}",
-        ]
+            "Skip-func-hw-test-${size}"]
     }
 
     // Skip reasons the cannot be overriden
