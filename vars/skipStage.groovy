@@ -157,7 +157,7 @@ boolean call(Map config = [:]) {
         return skip_stage_pragma(config['stage'], config['def_val'])
     }
 
-    if (stageAlreadyPassed(config['stage_name'] ?: env.STAGE_NAME, config['axes'] ?: '')) {
+    if (stageAlreadyPassed(stage_name: config['stage_name'], postfix: config['axes'])) {
         return true
     }
 

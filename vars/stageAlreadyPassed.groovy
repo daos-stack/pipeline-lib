@@ -1,7 +1,7 @@
 // vars/stageAlreadyPassed.groovy
 
 /**
- * stageAlreadyPassed
+ * stageAlreadyPassed.groovy
  *
  * Determine if a restarted functional test stage has already passed in a previous run.
  *
