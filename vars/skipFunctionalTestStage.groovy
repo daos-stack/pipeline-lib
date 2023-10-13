@@ -24,34 +24,25 @@ Map call(Map kwargs = [:]) {
     Boolean run_if_landing = kwargs['run_if_landing'] ?: false
 
     String param_size = size.replace('-', '_')
+    List override_pragmas = []
+    List skip_pragmas = ["Skip-build-${distro}-rpm", 'Skip-test', 'Skip-func-test']
     if (pragma_suffix.contains('-hw')) {
         // HW Functional test stage
-        def override_pragmas = [
-            "Skip-func-test-hw-${size}",
-            "Skip-func-hw-test-${size}",
-            'Run-daily-stages']
-        def skip_pragmas = [
-            "Skip-build-${distro}-rpm",
-            'Skip-test',
-            'Skip-func-test',
-            'Skip-func-test-vm',
-            "Skip-func-test-vm-${distro}",
-            'Skip-func-test-vm-all',
-            "Skip-func-test-${distro}"]
+        override_pragmas.add("Skip-func-test-hw-${size}")
+        override_pragmas.add("Skip-func-hw-test-${size}")
+        override_pragmas.add('Run-daily-stages')
+        skip_pragmas.add('Skip-func-test-hw')
+        skip_pragmas.add("Skip-func-test-hw-${size}")
+        skip_pragmas.add('Skip-func-hw-test')
+        skip_pragmas.add("Skip-func-hw-test-${size}")
     } else {
         // VM Functional test stage
-        def override_pragmas = [
-            "Skip-func-test-${distro}",
-            'Skip-func-test-vm',
-            'Skip-func-test-vm-all']
-        def skip_pragmas = [
-            "Skip-build-${distro}-rpm",
-            'Skip-test',
-            'Skip-func-test',
-            'Skip-func-test-hw',
-            "Skip-func-test-hw-${size}",
-            'Skip-func-hw-test',
-            "Skip-func-hw-test-${size}"]
+        override_pragmas.add("Skip-func-test-vm-${distro}")
+        override_pragmas.add("Skip-func-test-${distro}")
+        skip_pragmas.add('Skip-func-test-vm')
+        skip_pragmas.add("Skip-func-test-vm-${distro}")
+        skip_pragmas.add('Skip-func-test-vm-all')
+        skip_pragmas.add("Skip-func-test-${distro}")
     }
 
     // Skip reasons the cannot be overriden
