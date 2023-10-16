@@ -41,6 +41,7 @@ void call(Map config = [:]) {
     String results_map = 'results_map_' + sanitizedStageName()
     unstash name: results_map
     Map results = readYaml file: results_map
+
     List artifact_list = config.get('artifacts', ['run_test.sh/*'])
 
     String testResults = stage_info.get('testResults', 'test_results/*.xml')
@@ -123,5 +124,16 @@ void call(Map config = [:]) {
     if (cbcResult != currentBuild.currentResult &&
         currentBuild.resultIsWorseOrEqualTo('FAILURE')) {
         error 'unitTestPost detected a failure'
+    }
+
+    println results['result_code'].getClass()
+    println results['ignore_failure'].getClass()
+
+    if (results['result_code'] != 0  && !results['ignore_failure']) {
+        // Extra information for when this happens.
+        println("results: ${results}")
+        println results['result_code'].getClass()
+        println results['ignore_failure'].getClass()
+        error 'Failure detected in test run!'
     }
 }
