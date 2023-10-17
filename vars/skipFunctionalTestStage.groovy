@@ -23,6 +23,7 @@ Map call(Map kwargs = [:]) {
     Boolean run_if_pr = kwargs['run_if_pr'] ?: false
     Boolean run_if_landing = kwargs['run_if_landing'] ?: false
 
+    String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
     String param_size = size.replace('-', '_')
     List override_pragmas = []
     List skip_pragmas = ["Skip-build-${distro}-rpm", 'Skip-test', 'Skip-func-test']
