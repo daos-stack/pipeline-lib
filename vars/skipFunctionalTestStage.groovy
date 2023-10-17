@@ -58,8 +58,8 @@ Map call(Map kwargs = [:]) {
         echo "Skipping ${env.STAGE_NAME}: Run-GHA set to True"
         return true
     }
-    if (!(startedByTimer() || startedByUser()) && !run_if_landing) {
-        echo "Skipping ${env.STAGE_NAME}: For landing build on master/release branch"
+    if (!startedByTimer() && !startedByUser() && !run_if_landing) {
+        echo "Skipping ${env.STAGE_NAME}: In landing builds on master/release branch"
         return true
     }
 
