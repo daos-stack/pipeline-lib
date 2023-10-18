@@ -75,8 +75,11 @@ void call(Map config = [:]) {
             // TODO: Have Ubuntu support stashes with mercury target
             repo_format = 'apt'
         } else {
-            stash name: target + '-required-mercury-rpm-version',
-              includes: target + '-required-mercury-rpm-version'
+            String mercury_version_file = target + '-required-mercury-rpm-version'
+            if (fileExists(mercury_version_file)) {
+                stash name: mercury_version_file,
+                  includes: mercury_version_file
+            }
         }
         String rpm_version_file = target + '-rpm-version'
         if (fileExists(rpm_version_file)) {
