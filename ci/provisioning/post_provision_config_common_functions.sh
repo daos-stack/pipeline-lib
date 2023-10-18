@@ -55,6 +55,13 @@ send_mail() {
     local subject="$1"
     local message="${2:-}"
 
+    local recipients
+    if mail --help | grep s-nail; then
+        recipients="${OPERATIONS_EMAIL//, }"
+    else
+        recipients="${OPERATIONS_EMAIL}"
+    fi
+
     set +x
     {
         echo "Build: $BUILD_URL"
@@ -62,7 +69,7 @@ send_mail() {
         echo "Host:  $HOSTNAME"
         echo ""
         echo -e "$message"
-    } 2>&1 | mail -s "$subject" -r "$HOSTNAME"@intel.com "$OPERATIONS_EMAIL"
+    } 2>&1 | mail -s "$subject" -r "$HOSTNAME"@intel.com "$recipients"
     set -x
 }
 
@@ -188,14 +195,19 @@ set_local_repo() {
     rm -f "$REPOS_DIR"/daos_ci-"${ID}${VERSION_ID%%.*}".repo
     ln "$REPOS_DIR"/daos_ci-"${ID}${VERSION_ID%%.*}"{-"$repo_server",.repo}
 
-    if [ "$repo_server" = "artifactory" ] &&
-       { [[ \ $(pr_repos) = *\ daos@PR-* ]] || [ -z "$(rpm_test_version)" ]; } &&
-       [[ ! ${CHANGE_TARGET:-$BRANCH_NAME} =~ ^[-0-9A-Za-z]+-testing ]]; then
-        # Disable the daos repo so that the Jenkins job repo or a PR-repos*: repo is
-        # used for daos packages
-        dnf -y config-manager \
-            --disable daos-stack-daos-"${DISTRO_GENERIC}"-"${VERSION_ID%%.*}"-x86_64-stable-local-artifactory
+    if [ "$repo_server" = "artifactory" ]; then
+        if { [[ \ $(pr_repos) = *\ daos@PR-* ]] || [ -z "$(rpm_test_version)" ]; } &&
+           [[ ! ${CHANGE_TARGET:-$BRANCH_NAME} =~ ^[-.0-9A-Za-z]+-testing ]]; then
+            # Disable the daos repo so that the Jenkins job repo or a PR-repos*: repo is
+            # used for daos packages
+            dnf -y config-manager \
+                --disable daos-stack-daos-"${DISTRO_GENERIC}"-"${VERSION_ID%%.*}"-x86_64-stable-local-artifactory
+        fi
+        # Disable module filtering for our deps repo
+        deps_repo="daos-stack-deps-${DISTRO_GENERIC}-${VERSION_ID%%.*}-x86_64-stable-local-artifactory"
+        dnf config-manager --save --setopt "$deps_repo.module_hotfixes=true" "$deps_repo"
     fi
+
     dnf repolist
 }
 
@@ -246,6 +258,11 @@ post_provision_config_nodes() {
 
     # Reserve port ranges 31416-31516 for DAOS and CART servers
     echo 31416-31516 > /proc/sys/net/ipv4/ip_local_reserved_ports
+
+    # Remove DAOS dependencies to prevent masking packaging bugs
+    if rpm -qa | grep fuse3; then
+        dnf -y erase fuse3\*
+    fi
 
     if $CONFIG_POWER_ONLY; then
         rm -f "$REPOS_DIR"/*.hpdd.intel.com_job_daos-stack_job_*_job_*.repo
@@ -308,7 +325,7 @@ post_provision_config_nodes() {
     if [ -n "$INST_RPMS" ]; then
         # use eval here, rather than say, read -ra to take advantage of bash globbing
         eval "inst_rpms=($INST_RPMS)"
-        time dnf -y erase "${inst_rpms[@]}"
+        time dnf -y erase "${inst_rpms[@]}" libfabric
     fi
     rm -f /etc/profile.d/openmpi.sh
     rm -f /tmp/daos_control.log

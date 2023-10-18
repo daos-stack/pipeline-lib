@@ -67,14 +67,18 @@ Map call(Map config = [:]) {
             result['target'] = 'centos8.3'
             result['distro_version'] = cachedCommitPragma('EL8.3-version', '8.3')
             new_ci_target = cachedCommitPragma('EL8.3-target', result['target'])
-        } else if (stage_name.contains('EL 8.4')) {
-            result['target'] = 'el8.4'
-            result['distro_version'] = cachedCommitPragma('EL8.4-version', '8.4')
-            new_ci_target = cachedCommitPragma('EL8.4-target', result['target'])
         } else if (stage_name.contains('CentOS 8')) {
             result['target'] = 'centos8'
             result['distro_version'] = cachedCommitPragma('EL8-version', '8')
             new_ci_target = cachedCommitPragma('EL8-target', result['target'])
+        } else if (stage_name.contains('EL 8.4')) {
+            result['target'] = 'el8.4'
+            result['distro_version'] = cachedCommitPragma('EL8.4-version', '8.4')
+            new_ci_target = cachedCommitPragma('EL8.4-target', result['target'])
+        } else if (stage_name.contains('EL 8.6')) {
+            result['target'] = 'el8.6'
+            result['distro_version'] = cachedCommitPragma('EL8.6-version', '8.6')
+            new_ci_target = cachedCommitPragma('EL8.6-target', result['target'])
         } else if (stage_name.contains('EL 8')) {
             result['target'] = 'el8'
             result['distro_version'] = cachedCommitPragma('EL8-version',
@@ -92,6 +96,10 @@ Map call(Map config = [:]) {
         } else if (stage_name.contains('Leap 15.4')) {
             result['target'] = 'leap15'
             result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.4')
+            new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
+        } else if (stage_name.contains('Leap 15.5')) {
+            result['target'] = 'leap15'
+            result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.5')
             new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
         } else if (stage_name.contains('Leap 15')) {
             result['target'] = 'leap15'

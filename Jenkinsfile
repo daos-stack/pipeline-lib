@@ -120,6 +120,7 @@ pipeline {
                         script {
                             assert(daosLatestVersion('master', 'el8').matches(/2.5\.\d+.*/))
                             assert(daosLatestVersion('release/2.4', 'el8').matches(/2.[34]\.\d+.*/))
+                            assert(daosLatestVersion('release/2.2', 'el8').startsWith('2.2.'))
                         }
                     }
                 }
@@ -719,6 +720,8 @@ pipeline {
                                             passwordVariable: 'GH_PASS']]) {
                                 sh label: 'Create or update test branch',
                                    script: 'branch_name=' + test_branch(env.TEST_BRANCH) + '''
+                                            # To override downstream test branch:
+                                            # i.e. Test-master-branch: foo/bar
                                            source_branch=origin/''' +
                                            cachedCommitPragma("Test-${env.TEST_BRANCH}-branch",
                                                               env.TEST_BRANCH) + '''

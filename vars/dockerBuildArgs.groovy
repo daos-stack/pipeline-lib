@@ -155,7 +155,7 @@ String call(Map config = [:]) {
 
     // set BASE_DISTRO if necessary
     if (stage_info['target'] == 'leap15') {
-        ret_str += ' --build-arg BASE_DISTRO=opensuse/leap:' + stage_info['distro_version']
+        ret_str += ' --build-arg BASE_DISTRO=registry.opensuse.org/opensuse/leap-dnf:' + stage_info['distro_version']
     }
 
     ret_str += ' '

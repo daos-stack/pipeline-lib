@@ -42,47 +42,31 @@
    *                             'el8', 'leap15'.  Default based on parsing
    *                             environment variables for the stage.
    *
-   * config['test_script']       Script to build RPMs. 
+   * config['test_script']       Script to build RPMs.
    *                             Default 'ci/rpm/test_daos.sh'.
    *
    */
 
 Map call(Map config = [:]) {
 
-  Date startDate = new Date()
-  if (!config['daos_pkg_version']) {
-    error 'daos_pkg_version is required.'
-  }
-
-  String nodelist = config.get('NODELIST', env.NODELIST)
-  String context = config.get('context', 'test/' + env.STAGE_NAME)
-  String description = config.get('description', env.STAGE_NAME)
-  String test_script = config.get('test_script', 'ci/rpm/test_daos.sh')
-
-  Map stage_info = parseStageInfo(config)
-
-  Map runData = provisionNodes NODELIST: nodelist,
+  Map runData = provisionNodes NODELIST: config.get('NODELIST', env.NODELIST),
                                node_count: 1,
                                profile: config.get('profile', 'daos_ci'),
-                               distro: stage_info['ci_target'],
+                               distro: parseStageInfo(config)['ci_target'],
                                inst_repos: config.get('inst_repos', ''),
                                inst_rpms: config.get('inst_rpms', '')
 
-  String full_test_script = 'export DAOS_PKG_VERSION=' +
-                         config['daos_pkg_version'] + '\n' +
-                         test_script
 
-  def junit_files = config.get('junit_files', null)
-  def failure_artifacts = config.get('failure_artifacts', env.STAGE_NAME)
-  def ignore_failure = config.get('ignore_failure', false)
-  Map runtestData = runTest script: full_test_script,
-                    junit_files: junit_files,
-                    failure_artifacts: env.STAGE_NAME,
-                    ignore_failure: ignore_failure,
-                    description: description,
-                    context: context
+  Map runtestData = runTest script: 'export DAOS_PKG_VERSION="' +
+                                    config['daos_pkg_version'] + '"\n' +
+                                    config.get('test_script', 'ci/rpm/test_daos.sh'),
+                    junit_files: config.get('junit_files', null),
+                    failure_artifacts: config.get('failure_artifacts', env.STAGE_NAME),
+                    ignore_failure: config.get('ignore_failure', false),
+                    description: config.get('description', env.STAGE_NAME),
+                    context: config.get('context', 'test/' + env.STAGE_NAME)
   runtestData.each{ resultKey, data -> runData[resultKey] = data }
-  int runTime = durationSeconds(startDate)
-  runData['rpmtest_time'] = runTime
+  runData['rpmtest_time'] = durationSeconds(new Date())
+
   return runData
 }
