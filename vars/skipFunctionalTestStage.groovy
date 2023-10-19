@@ -59,6 +59,9 @@ Map call(Map kwargs = [:]) {
     echo "[${env.STAGE_NAME}]   started_by_timer=${started_by_timer}"
     echo "[${env.STAGE_NAME}]   started_by_user=${started_by_user}"
     echo "[${env.STAGE_NAME}]   started_by_upstream=${started_by_upstream}"
+    echo "[${env.STAGE_NAME}]   env.BRANCH_NAME=${env.BRANCH_NAME}"
+    echo "[${env.STAGE_NAME}]   env.GIT_BRANCH=${env.GIT_BRANCH}"
+    echo "[${env.STAGE_NAME}]   BuildCause=${currentBuild.getBuildCauses()[0].shortDescription}"
 
     // Skip reasons the cannot be overriden
     if (stageAlreadyPassed()) {
@@ -73,8 +76,9 @@ Map call(Map kwargs = [:]) {
         echo "[${env.STAGE_NAME}] Skipping stage - Run-GHA set to True"
         return true
     }
-    if (!started_by_timer && !started_by_user && !run_if_landing) {
-        echo "[${env.STAGE_NAME}] Skipping stage in a landing build"
+    if ((env.BRANCH_NAME == 'master' || env.BRANCH_NAME =~ branchTypeRE('release')) &&
+        !(started_by_timer || started_by_user) && !run_if_landing) {
+        echo "[${env.STAGE_NAME}] Skipping stage in a landing build on master/release branch"
         return true
     }
 
