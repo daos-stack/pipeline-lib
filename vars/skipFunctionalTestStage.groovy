@@ -48,59 +48,63 @@ Map call(Map kwargs = [:]) {
 
     // Skip reasons the cannot be overriden
     if (stageAlreadyPassed()) {
-        echo "Skipping ${env.STAGE_NAME}: All tests passed in the previous build"
+        echo "[${env.STAGE_NAME}] Skipping stage due to all tests passing in the previous build"
         return true
     }
     if (!testsInStage(tags)) {
-        echo "Skipping ${env.STAGE_NAME}: No tests detected matching the '${tags}' tags"
+        echo "[${env.STAGE_NAME}] Skipping stage due to detecting no tests matching the '${tags}' tags"
         return true
     }
     if (cachedCommitPragma('Run-GHA').toLowerCase() == 'true') {
-        echo "Skipping ${env.STAGE_NAME}: Run-GHA set to True"
+        echo "[${env.STAGE_NAME}] Skipping stage - Run-GHA set to True"
         return true
     }
-    if (!startedByTimer() && !startedByUser() && !run_if_landing) {
-        echo "Skipping ${env.STAGE_NAME}: In landing builds on master/release branch"
+    Boolean started_by_timer = startedByTimer()
+    Boolean started_by_user = startedByUser()
+    Boolean started_by_upstream = startedByUpstream()
+    if (!started_by_timer && !started_by_user && !run_if_landing) {
+        echo "[${env.STAGE_NAME}] Skipping stage in landing build [startedByTimer=${started_by_timer}, startedByUser=${started_by_user}, run_if_landing=${run_if_landing}, started_by_upstream=${started_by_upstream}]"
         return true
     }
 
     // Conditions for overriding skipping the stage
     for (override in override_pragmas) {
         if (cachedCommitPragma(override).toLowerCase() == 'false') {
-            echo "Running ${env.STAGE_NAME}: User requested run via ${override}"
+            echo "[${env.STAGE_NAME}] Running stage due to ${override} commit pragma"
             return false
         }
     }
     if (paramsValue("CI_${param_size}_TEST", true) && !run_by_default) {
-        echo "Running ${env.STAGE_NAME}: As requested by CI_${param_size}_TEST parameter"
+        echo "[${env.STAGE_NAME}] Running stage due to CI_${param_size}_TEST parameter"
         return false
     }
 
     // Overridable skip reasons
     if (docOnlyChange(target_branch) && prRepos(distro) == '') {
-        echo "Skipping ${env.STAGE_NAME}: Document only file changes"
+        echo "[${env.STAGE_NAME}] Skipping stage due to document only file changes"
         return true
     }
     if (!paramsValue("CI_${param_size}_TEST", true)) {
-        echo "Skipping ${env.STAGE_NAME}: As requested by CI_${param_size}_TEST parameter"
+        echo "[${env.STAGE_NAME}] Skipping stage due to CI_${param_size}_TEST parameter"
         return true
     }
     if (env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ) {
-        echo "Skipping ${env.STAGE_NAME}: As requested by DAOS_STACK_CI_HARDWARE_SKIP parameter"
+        echo "[${env.STAGE_NAME}] Skipping stage due to DAOS_STACK_CI_HARDWARE_SKIP parameter"
         return true
     }
     for (skip_pragma in skip_pragmas) {
         if (cachedCommitPragma(skip_pragma, 'false').toLowerCase() == 'true') {
-            echo "Skipping ${env.STAGE_NAME}: User requested skip via ${skip_pragma}"
+            echo "[${env.STAGE_NAME}] Skipping stage due to ${skip_pragma} commit pragma"
             return true
         }
     }
     /* groovylint-disable-next-line UnnecessaryGetter */
     if (isPr() && !run_if_pr) {
-        echo "Skipping ${env.STAGE_NAME}: For PR build (override with '${override_pragmas[0]}: false')"
+        echo "[${env.STAGE_NAME}] Skipping stage in PR build (override with '${override_pragmas[0]}: false')"
         return true
     }
 
     // Otherwise run the stage
+    echo "[${env.STAGE_NAME}] Running the stage"
     return false
 }
