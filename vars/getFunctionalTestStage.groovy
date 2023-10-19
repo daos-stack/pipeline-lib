@@ -55,7 +55,6 @@ Map call(Map kwargs = [:]) {
                 'run_by_default': run_by_default,
                 'run_if_pr': run_if_pr,
                 'run_if_landing': run_if_landing]
-            echo "[${name}] Determining if stage should be skipped with ${skip_kwargs}"
             if (skipFunctionalTestStage(skip_kwargs)) {
                 echo "[${name}] Stage skipped by skipFunctionalTestStage()"
                 Utils.markStageSkippedForConditional("${name}")

@@ -19,12 +19,14 @@ Map call(Map kwargs = [:]) {
     String pragma_suffix = kwargs['pragma_suffix'] ?: 'vm'
     String size = pragma_suffix.replace('-hw-', '')
     String distro = kwargs['distro'] ?: hwDistroTarget(size)
+    String param_size = size.replace('-', '_')
     Boolean run_by_default = kwargs['run_by_default'] ?: true
     Boolean run_if_pr = kwargs['run_if_pr'] ?: false
     Boolean run_if_landing = kwargs['run_if_landing'] ?: false
-
+    Boolean started_by_timer = startedByTimer()
+    Boolean started_by_user = startedByUser()
+    Boolean started_by_upstream = startedByUpstream()
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
-    String param_size = size.replace('-', '_')
     List override_pragmas = []
     List skip_pragmas = ["Skip-build-${distro}-rpm", 'Skip-test', 'Skip-func-test']
     if (pragma_suffix.contains('-hw')) {
@@ -46,6 +48,18 @@ Map call(Map kwargs = [:]) {
         skip_pragmas.add("Skip-func-test-${distro}")
     }
 
+    echo "[${env.STAGE_NAME}] Determining if stage should be skipped by skipFunctionalTestStage"
+    echo "[${env.STAGE_NAME}]   tags=${tags}"
+    echo "[${env.STAGE_NAME}]   pragma_suffix=${pragma_suffix}"
+    echo "[${env.STAGE_NAME}]   size=${size}"
+    echo "[${env.STAGE_NAME}]   distro=${distro} "
+    echo "[${env.STAGE_NAME}]   run_by_default=${run_by_default}"
+    echo "[${env.STAGE_NAME}]   run_if_pr=${run_if_pr}"
+    echo "[${env.STAGE_NAME}]   run_if_landing=${run_if_landing}"
+    echo "[${env.STAGE_NAME}]   started_by_timer=${started_by_timer}"
+    echo "[${env.STAGE_NAME}]   started_by_user=${started_by_user}"
+    echo "[${env.STAGE_NAME}]   started_by_upstream=${started_by_upstream}"
+
     // Skip reasons the cannot be overriden
     if (stageAlreadyPassed()) {
         echo "[${env.STAGE_NAME}] Skipping stage due to all tests passing in the previous build"
@@ -59,11 +73,8 @@ Map call(Map kwargs = [:]) {
         echo "[${env.STAGE_NAME}] Skipping stage - Run-GHA set to True"
         return true
     }
-    Boolean started_by_timer = startedByTimer()
-    Boolean started_by_user = startedByUser()
-    Boolean started_by_upstream = startedByUpstream()
     if (!started_by_timer && !started_by_user && !run_if_landing) {
-        echo "[${env.STAGE_NAME}] Skipping stage in landing build [startedByTimer=${started_by_timer}, startedByUser=${started_by_user}, run_if_landing=${run_if_landing}, started_by_upstream=${started_by_upstream}]"
+        echo "[${env.STAGE_NAME}] Skipping stage in a landing build"
         return true
     }
 
