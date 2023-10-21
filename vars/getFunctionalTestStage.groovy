@@ -18,7 +18,6 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      default_nvme    launch.py --nvme argument to use when no parameter or commit pragma exist
  *      provider        launch.py --provider argument to use
  *      distro          functional test stage distro (VM)
- *      run_by_default  whether or not the stage should run by default
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
  *      job_status      Map of status for each stage in the job/build
@@ -35,7 +34,6 @@ Map call(Map kwargs = [:]) {
     String default_nvme = kwargs.get('default_nvme')
     String provider = kwargs.get('provider', '')
     String distro = kwargs.get('distro')
-    Boolean run_by_default = kwargs.get('run_by_default', true)
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
     Map job_status = kwargs.get('job_status', [:])
@@ -52,7 +50,6 @@ Map call(Map kwargs = [:]) {
                 'tags': tags,
                 'pragma_suffix': pragma_suffix,
                 'distro': distro,
-                'run_by_default': run_by_default,
                 'run_if_pr': run_if_pr,
                 'run_if_landing': run_if_landing]
             if (skipFunctionalTestStage(skip_kwargs)) {

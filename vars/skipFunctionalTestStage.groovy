@@ -9,7 +9,6 @@
  *      tags            functional test stage tags to run
  *      pragma_suffix   functional test stage commit pragma suffix, e.g. '-hw-medium'
  *      distro          functional test stage distro (required for VM)
- *      run_by_default  whether or not the stage should run by default
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
  * @return a String reason why the stage should be skipped; empty if the stage should run
@@ -19,107 +18,130 @@ Map call(Map kwargs = [:]) {
     String pragma_suffix = kwargs['pragma_suffix'] ?: 'vm'
     String size = pragma_suffix.replace('-hw-', '')
     String distro = kwargs['distro'] ?: hwDistroTarget(size)
-    String param_size = size.replace('-', '_')
-    Boolean run_by_default = kwargs['run_by_default'] ?: true
-    Boolean run_if_pr = kwargs['run_if_pr'] ?: false
+    String build_param = "CI_${size.replace('-', '_')}_TEST"
+    Boolean build_param_set = paramsValue(build_param, true)
     Boolean run_if_landing = kwargs['run_if_landing'] ?: false
-    Boolean started_by_timer = startedByTimer()
-    Boolean started_by_user = startedByUser()
-    Boolean started_by_upstream = startedByUpstream()
-    String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
-    List override_pragmas = []
-    List skip_pragmas = ["Skip-build-${distro}-rpm", 'Skip-test', 'Skip-func-test']
-    if (pragma_suffix.contains('-hw')) {
-        // HW Functional test stage
-        override_pragmas.add("Skip-func-test-hw-${size}")
-        override_pragmas.add("Skip-func-hw-test-${size}")
-        override_pragmas.add('Run-daily-stages')
-        skip_pragmas.add('Skip-func-test-hw')
-        skip_pragmas.add("Skip-func-test-hw-${size}")
-        skip_pragmas.add('Skip-func-hw-test')
-        skip_pragmas.add("Skip-func-hw-test-${size}")
-    } else {
-        // VM Functional test stage
-        override_pragmas.add("Skip-func-test-vm-${distro}")
-        override_pragmas.add("Skip-func-test-${distro}")
-        skip_pragmas.add('Skip-func-test-vm')
-        skip_pragmas.add("Skip-func-test-vm-${distro}")
-        skip_pragmas.add('Skip-func-test-vm-all')
-        skip_pragmas.add("Skip-func-test-${distro}")
-    }
+    Boolean run_if_pr = kwargs['run_if_pr'] ?: false
 
-    echo "[${env.STAGE_NAME}] Determining if stage should be skipped by skipFunctionalTestStage"
-    echo "[${env.STAGE_NAME}]   tags=${tags}"
-    echo "[${env.STAGE_NAME}]   pragma_suffix=${pragma_suffix}"
-    echo "[${env.STAGE_NAME}]   size=${size}"
-    echo "[${env.STAGE_NAME}]   distro=${distro} "
-    echo "[${env.STAGE_NAME}]   run_by_default=${run_by_default}"
-    echo "[${env.STAGE_NAME}]   run_if_pr=${run_if_pr}"
-    echo "[${env.STAGE_NAME}]   run_if_landing=${run_if_landing}"
-    echo "[${env.STAGE_NAME}]   started_by_timer=${started_by_timer}"
-    echo "[${env.STAGE_NAME}]   started_by_user=${started_by_user}"
-    echo "[${env.STAGE_NAME}]   started_by_upstream=${started_by_upstream}"
-    echo "[${env.STAGE_NAME}]   env.BRANCH_NAME=${env.BRANCH_NAME}"
-    echo "[${env.STAGE_NAME}]   env.GIT_BRANCH=${env.GIT_BRANCH}"
-    echo "[${env.STAGE_NAME}]   BuildCause=${currentBuild.getBuildCauses()[0].shortDescription}"
+    echo "[${env.STAGE_NAME}] Running skipFunctionalTestStage: " +
+         "tags=${tags}, pragma_suffix=${pragma_suffix}, size=${size}, distro=${distro}, " +
+         "build_param=${build_param}, build_param_set=${build_param_set}, " +
+         "run_if_landing=${run_if_landing}, run_if_pr=${run_if_pr}, " +
+         "startedByUser()=${startedByUser()}, startedByTimer()=${startedByTimer()}, " +
+         "startedByUpstream()=${startedByUpstream()}"
 
-    // Skip reasons the cannot be overriden
+    // Regardless of hos the stage has been started always skip a stage that has either already
+    // passed or does not contain any tests match the tags.
     if (stageAlreadyPassed()) {
-        echo "[${env.STAGE_NAME}] Skipping stage due to all tests passing in the previous build"
+        echo "[${env.STAGE_NAME}] Skipping the stage due to all tests passing in the previous build"
         return true
     }
     if (!testsInStage(tags)) {
-        echo "[${env.STAGE_NAME}] Skipping stage due to detecting no tests matching the '${tags}' tags"
-        return true
-    }
-    if (cachedCommitPragma('Run-GHA').toLowerCase() == 'true') {
-        echo "[${env.STAGE_NAME}] Skipping stage - Run-GHA set to True"
-        return true
-    }
-    if ((env.BRANCH_NAME == 'master' || env.BRANCH_NAME =~ branchTypeRE('release')) &&
-        !(started_by_timer || started_by_user) && !run_if_landing) {
-        echo "[${env.STAGE_NAME}] Skipping stage in a landing build on master/release branch"
+        echo "[${env.STAGE_NAME}] Skipping the stage due to detecting no tests matching the '${tags}' tags"
         return true
     }
 
-    // Conditions for overriding skipping the stage
-    for (override in override_pragmas) {
-        if (cachedCommitPragma(override).toLowerCase() == 'false') {
-            echo "[${env.STAGE_NAME}] Running stage due to ${override} commit pragma"
-            return false
-        }
+    // If the stage has been started by the user, e.g. Build with Parameters, or a timer, or an
+    // upstream build then use the stage parameter (check box) to determine if the stage should
+    // be run or skipped.
+    if (startedByUser() && !build_param_set) {
+        echo "[${env.STAGE_NAME}] Skipping the stage in user started build due to ${build_param} param"
+        return true
     }
-    if (paramsValue("CI_${param_size}_TEST", true) && !run_by_default) {
-        echo "[${env.STAGE_NAME}] Running stage due to CI_${param_size}_TEST parameter"
+    if (startedByUser() && build_param_set) {
+        echo "[${env.STAGE_NAME}] Running the stage in user started build due to ${build_param} param"
+        return false
+    }
+    if (startedByTimer() && !build_param_set) {
+        echo "[${env.STAGE_NAME}] Skipping the stage in timer started build due to ${build_param} param"
+        return true
+    }
+    if (startedByTimer() && build_param_set) {
+        echo "[${env.STAGE_NAME}] Running the stage in timer started build due to ${build_param} param"
+        return false
+    }
+    if (startedByUpstream() && !build_param_set) {
+        echo "[${env.STAGE_NAME}] Skipping the stage in an upstream build due to ${build_param} param"
+        return true
+    }
+    if (startedByUpstream() && build_param_set) {
+        echo "[${env.STAGE_NAME}] Running the stage in an upstream build due to ${build_param} param"
         return false
     }
 
-    // Overridable skip reasons
-    if (docOnlyChange(target_branch) && prRepos(distro) == '') {
-        echo "[${env.STAGE_NAME}] Skipping stage due to document only file changes"
+    // If the stage is being run in a landing build use the 'run_if_landing' input to determine
+    // whether the stage should be run or skipped.
+    if (startedByLanding() && !run_if_landing) {
+        echo "[${env.STAGE_NAME}] Skipping the stage in a landing build on master/release branch"
         return true
     }
-    if (!paramsValue("CI_${param_size}_TEST", true)) {
-        echo "[${env.STAGE_NAME}] Skipping stage due to CI_${param_size}_TEST parameter"
-        return true
+    if (startedByLanding() && run_if_landing) {
+        echo "[${env.STAGE_NAME}] Running the stage in a landing build on master/release branch"
+        return false
     }
-    if (env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ) {
-        echo "[${env.STAGE_NAME}] Skipping stage due to DAOS_STACK_CI_HARDWARE_SKIP parameter"
-        return true
+
+    // If the stage is being run in a build started by a commit first use any set commit pragma to
+    // determine if the stage should be skipped.
+    List skip_pragmas = ["Skip-build-${distro}-rpm", 'Skip-test', 'Skip-func-test', 'Run-GHA']
+    List commit_pragmas = []
+    if (pragma_suffix.contains('-hw')) {
+        commit_pragmas.add("Skip-func-test-hw-${size}")
+        commit_pragmas.add("Skip-func-hw-test-${size}")
+        commit_pragmas.add('Skip-func-test-hw')
+        commit_pragmas.add('Skip-func-hw-test')
+        commit_pragmas.add('Run-daily-stages')
+    } else {
+        commit_pragmas.add("Skip-func-test-vm-${distro}")
+        commit_pragmas.add("Skip-func-test-${distro}")
+        commit_pragmas.add('Skip-func-test-vm')
+        commit_pragmas.add('Skip-func-test-vm-all')
     }
-    for (skip_pragma in skip_pragmas) {
-        if (cachedCommitPragma(skip_pragma, 'false').toLowerCase() == 'true') {
-            echo "[${env.STAGE_NAME}] Skipping stage due to ${skip_pragma} commit pragma"
+    for (commit_pragma in commit_pragmas + skip_pragmas) {
+        if (cachedCommitPragma(commit_pragma, 'false').toLowerCase() == 'true') {
+            echo "[${env.STAGE_NAME}] Skipping the stage in commit build due to ${commit_pragma} commit pragma"
             return true
         }
     }
+
+    // If the stage is being run in a build started by a commit next use any set commit pragma to
+    // determine if the stage should be run.
+    for (commit_pragma in commit_pragmas) {
+        if (cachedCommitPragma(commit_pragma, 'true').toLowerCase() == 'false') {
+            echo "[${env.STAGE_NAME}] Running the stage in commit build due to ${commit_pragma} commit pragma"
+            return false
+        }
+    }
+
+    // If the stage is being run in a build started by a commit with only documentation changes,
+    // skip the stage.
+    if (docOnlyChange(target_branch) && prRepos(distro) == '') {
+        echo "[${env.STAGE_NAME}] Skipping the stage in commit build due to document only file changes"
+        return true
+    }
+
+    // If the stage is being run in a build started by a commit skip the build if
+    // DAOS_STACK_CI_HARDWARE_SKIP is set.
+    if (env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ) {
+        echo "[${env.STAGE_NAME}] Skipping the stage in commit build due to DAOS_STACK_CI_HARDWARE_SKIP parameter"
+        return true
+    }
+
+    // If the stage is being run in a PR build started by a commit skip the stage if 'run_if_pr' is
+    // not set.
     /* groovylint-disable-next-line UnnecessaryGetter */
     if (isPr() && !run_if_pr) {
-        echo "[${env.STAGE_NAME}] Skipping stage in PR build (override with '${override_pragmas[0]}: false')"
+        echo "[${env.STAGE_NAME}] Skipping the stage in commit PR build (override with '${commit_pragmas[0]}: false')"
+        return true
+    }
+
+    // If the stage is being run in a build started by a commit skip finally use the stage
+    // parameter to determine if the stage should be skipped.
+    if (!run_by_build_param) {
+        echo "[${env.STAGE_NAME}] Skipping the stage in commit build due to ${build_param} param"
         return true
     }
 
     // Otherwise run the stage
-    echo "[${env.STAGE_NAME}] Running the stage"
+    echo "[${env.STAGE_NAME}] Running the stage in a commit build"
     return false
 }
