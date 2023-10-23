@@ -137,7 +137,7 @@ Map call(Map kwargs = [:]) {
 
     // If the stage is being run in a build started by a commit skip finally use the stage
     // parameter to determine if the stage should be skipped.
-    if (!run_by_build_param) {
+    if (!build_param_set) {
         echo "[${env.STAGE_NAME}] Skipping the stage in commit build due to ${build_param} param"
         return true
     }
