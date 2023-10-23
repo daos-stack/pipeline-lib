@@ -580,6 +580,93 @@ pipeline {
                                 }
                             }
                         }
+                        // Unit test for skipFunctionalTestStage()
+                        script {
+                            stages = [[name: 'Functional Hardware Medium', suffix: '-hw-medium'],
+                                      [name: 'Functional Hardware Medium Verbs Provider', suffix: '-hw-medium-verbs-provider'],
+                                      [name: 'Functional Hardware Medium UCX Provider', suffix: '-hw-medium-ucx-provider'],
+                                      [name: 'Functional Hardware Large', suffix: '-hw-large']]
+                            commits = [[pragmas: [''],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [!isPr(), !isPr(), true, !isPr()]],
+                                       [pragmas: ['Skip-test: true'],
+                                        skips: [true, true, true, true]],
+                                       [pragmas: ['Skip-func-test: true'],
+                                        skips: [true, true, true, true]],
+                                       [pragmas: ['Skip-func-test-hw: true'],
+                                        skips: [true, true, true, true]],
+                                       [pragmas: ['Skip-func-test-hw-medium: true\n' +
+                                                  'Skip-func-test-hw-medium-verbs-provider: true\n' +
+                                                  'Skip-func-test-hw-medium-ucx-provider: true\n' +
+                                                  'Skip-func-test-hw-large: true'],
+                                        skips: [true, true, true, true]],
+                                       [pragmas: ['Skip-func-test-hw-medium: false\n' +
+                                                  'Skip-func-test-hw-medium-verbs-provider: false\n' +
+                                                  'Skip-func-test-hw-medium-ucx-provider: false\n' +
+                                                  'Skip-func-test-hw-large: false'],
+                                        skips: [false, false, false, false]],
+                                       [pragmas: ['Skip-func-hw-test: true'],
+                                        skips: [true, true, true, true]],
+                                       [pragmas: ['Skip-func-hw-test-medium: true\n' +
+                                                  'Skip-func-hw-test-medium-verbs-provider: true\n' +
+                                                  'Skip-func-hw-test-medium-ucx-provider: true\n' +
+                                                  'Skip-func-hw-test-large: true'],
+                                        skips: [true, true, true, true]],
+                                       [pragmas: ['Skip-func-hw-test-medium: false\n' +
+                                                  'Skip-func-hw-test-medium-verbs-provider: false\n' +
+                                                  'Skip-func-hw-test-medium-ucx-provider: false\n' +
+                                                  'Skip-func-hw-test-large: false'],
+                                        skips: [false, false, false, false]],
+                                       [pragmas: ['Run-daily-stages: true'],
+                                        skips: [false, false, false, false]],
+                                       [pragmas: ['Skip-build-el8-rpm: true'],
+                                        skips: [true, true, true, true]],
+                                       [pragmas: ['Skip-build-el8-rpm: false'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [!isPr(), !isPr(), true, !isPr()]]]
+                            errors = 0
+                            commits.each { commit ->
+                                cm = 'Test commit\n\n'
+                                commit.pragmas.each { pragma ->
+                                    cm += "${pragma}\n"
+                                }
+                                println('-------------------------')
+                                println('Unit test commit message:')
+                                println('')
+                                println(cm)
+                                actual_skips = []
+                                i = 0
+                                // assign Map to env. var to serialize it
+                                env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
+                                stages.each { stage ->
+                                    withEnv(['STAGE_NAME=' + stage['name'],
+                                             'UNIT_TEST=true',
+                                             'pragmas=' + env.tmp_pragmas,
+                                             'COMMIT_MESSAGE=' + cm.stripIndent()]) {
+                                        actual_skips.add(skipFunctionalTestStage(tags: 'pr', pragma_suffix: stage['suffix']))
+                                        if (actual_skips[i] != commit.skips[i]) {errors++}
+                                        i++
+                                    }
+                                }
+                                println('')
+                                println('  Result  Expect  Actual  Stage')
+                                println('  ------  ------  ------  ------------------------------------------')
+                                i = 0
+                                stages.each { stage ->
+                                    result = 'PASS'
+                                    expect = 'run '
+                                    actual = 'run '
+                                    if (commit.skips[i]) {expect = 'skip'}
+                                    if (actual_skips[i]) {actual = 'skip'}
+                                    if (expect != actual) {result = 'FAIL'}
+                                    println('  ' + result + '    ' + expect + '    ' + actual + '    ' + stage['name'])
+                                    i++
+                                }
+                                println('')
+                                cachedCommitPragma(clear: true)
+                            }
+                            assert(errors == 0)
+                        }
                     } // steps
                 } // stage ('Commit Pragma tests')
             } // parallel

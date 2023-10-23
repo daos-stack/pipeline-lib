@@ -22,13 +22,14 @@ Map call(Map kwargs = [:]) {
     Boolean build_param_set = paramsValue(build_param, true)
     Boolean run_if_landing = kwargs['run_if_landing'] ?: false
     Boolean run_if_pr = kwargs['run_if_pr'] ?: false
+    String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
 
     echo "[${env.STAGE_NAME}] Running skipFunctionalTestStage: " +
          "tags=${tags}, pragma_suffix=${pragma_suffix}, size=${size}, distro=${distro}, " +
          "build_param=${build_param}, build_param_set=${build_param_set}, " +
          "run_if_landing=${run_if_landing}, run_if_pr=${run_if_pr}, " +
          "startedByUser()=${startedByUser()}, startedByTimer()=${startedByTimer()}, " +
-         "startedByUpstream()=${startedByUpstream()}"
+         "startedByUpstream()=${startedByUpstream()}, target_branch=${target_branch}"
 
     // Regardless of hos the stage has been started always skip a stage that has either already
     // passed or does not contain any tests match the tags.
