@@ -19,14 +19,14 @@ Map call(Map kwargs = [:]) {
     String size = pragma_suffix.replace('-hw-', '')
     String distro = kwargs['distro'] ?: hwDistroTarget(size)
     String build_param = "CI_${size.replace('-', '_')}_TEST"
-    Boolean build_param_set = paramsValue(build_param, true)
+    String build_param_value = paramsValue(build_param, '').toString()
     Boolean run_if_landing = kwargs['run_if_landing'] ?: false
     Boolean run_if_pr = kwargs['run_if_pr'] ?: false
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
 
     echo "[${env.STAGE_NAME}] Running skipFunctionalTestStage: " +
          "tags=${tags}, pragma_suffix=${pragma_suffix}, size=${size}, distro=${distro}, " +
-         "build_param=${build_param}, build_param_set=${build_param_set}, " +
+         "build_param=${build_param}, build_param_value=${build_param_value}, " +
          "run_if_landing=${run_if_landing}, run_if_pr=${run_if_pr}, " +
          "startedByUser()=${startedByUser()}, startedByTimer()=${startedByTimer()}, " +
          "startedByUpstream()=${startedByUpstream()}, target_branch=${target_branch}"
@@ -45,27 +45,27 @@ Map call(Map kwargs = [:]) {
     // If the stage has been started by the user, e.g. Build with Parameters, or a timer, or an
     // upstream build then use the stage parameter (check box) to determine if the stage should
     // be run or skipped.
-    if (startedByUser() && !build_param_set) {
+    if (startedByUser() && (build_param_value == 'false')) {
         echo "[${env.STAGE_NAME}] Skipping the stage in user started build due to ${build_param} param"
         return true
     }
-    if (startedByUser() && build_param_set) {
+    if (startedByUser() && (build_param_value == 'true')) {
         echo "[${env.STAGE_NAME}] Running the stage in user started build due to ${build_param} param"
         return false
     }
-    if (startedByTimer() && !build_param_set) {
+    if (startedByTimer() && (build_param_value == 'false')) {
         echo "[${env.STAGE_NAME}] Skipping the stage in timer started build due to ${build_param} param"
         return true
     }
-    if (startedByTimer() && build_param_set) {
+    if (startedByTimer() && (build_param_value == 'true')) {
         echo "[${env.STAGE_NAME}] Running the stage in timer started build due to ${build_param} param"
         return false
     }
-    if (startedByUpstream() && !build_param_set) {
+    if (startedByUpstream() && (build_param_value == 'false')) {
         echo "[${env.STAGE_NAME}] Skipping the stage in an upstream build due to ${build_param} param"
         return true
     }
-    if (startedByUpstream() && build_param_set) {
+    if (startedByUpstream() && (build_param_value == 'true')) {
         echo "[${env.STAGE_NAME}] Running the stage in an upstream build due to ${build_param} param"
         return false
     }
@@ -137,7 +137,7 @@ Map call(Map kwargs = [:]) {
 
     // If the stage is being run in a build started by a commit skip finally use the stage
     // parameter to determine if the stage should be skipped.
-    if (!build_param_set) {
+    if (build_param_value == 'false') {
         echo "[${env.STAGE_NAME}] Skipping the stage in commit build due to ${build_param} param"
         return true
     }

@@ -596,7 +596,7 @@ pipeline {
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
                                  build_param: 'false',
                                  pragma: '',
-                                 expect: false],
+                                 expect: true],
                                 [description: '03: CI_medium_TEST unset, run_if_pr=true',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
                                  build_param: '',
@@ -606,7 +606,7 @@ pipeline {
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
                                  build_param: 'true',
                                  pragma: '',
-                                 expect: false],
+                                 expect: true],
                                 [description: '05: CI_medium_TEST=false, run_if_pr=false',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
                                  build_param: 'false',
@@ -669,14 +669,15 @@ pipeline {
                                  expect: false],
                             ]
                             errors = 0
-                            sequences.each { sequence ->
+                            sequences.eachWithIndex { index, sequence ->
                                 commit_message = 'Test commit\n\n' + sequence['commit']
                                 withEnv(['STAGE_NAME=Functional Hardware Medium',
                                          'CI_medium_TEST=' + sequence['build_param'],
                                          'UNIT_TEST=true',
                                          'pragmas=' + env.tmp_pragmas,
                                          'COMMIT_MESSAGE=' + cm.stripIndent()]) {
-                                    sequence['actual'] = skipFunctionalTestStage(sequence['kwargs'])
+                                    sequences[index]['actual'] = skipFunctionalTestStage(sequence['kwargs'])
+                                    println('actual: ' + sequences[index]['actual'] + ' ' + sequence['actual'])
                                     if (sequence['expect'] != sequence['actual']) {errors++}
                                 }
                                 println('------------------------------------------------------------')
