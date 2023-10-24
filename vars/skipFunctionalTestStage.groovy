@@ -81,7 +81,7 @@ Map call(Map kwargs = [:]) {
         return false
     }
 
-    // If the stage is being run in a build started by a commit first use any set commit pragma to
+    // If the stage is being run in a build started by a commit, first use any set commit pragma to
     // determine if the stage should be skipped.
     List skip_pragmas = ["Skip-build-${distro}-rpm", 'Skip-test', 'Skip-func-test', 'Run-GHA']
     List commit_pragmas = []
@@ -98,17 +98,19 @@ Map call(Map kwargs = [:]) {
         commit_pragmas.add('Skip-func-test-vm-all')
     }
     for (commit_pragma in commit_pragmas + skip_pragmas) {
-        if (cachedCommitPragma(commit_pragma, 'false').toLowerCase() == 'true') {
-            echo "[${env.STAGE_NAME}] Skipping the stage in commit build due to ${commit_pragma} commit pragma"
+        value = 'true' ? commit_pragma.startsWith('Skip-') : 'false'
+        if (cachedCommitPragma(commit_pragma, 'false').toLowerCase() == value) {
+            echo "[${env.STAGE_NAME}] Skipping the stage in commit build due to '${commit_pragma}: ${value}' commit pragma"
             return true
         }
     }
 
-    // If the stage is being run in a build started by a commit next use any set commit pragma to
+    // If the stage is being run in a build started by a commit, next use any set commit pragma to
     // determine if the stage should be run.
     for (commit_pragma in commit_pragmas) {
-        if (cachedCommitPragma(commit_pragma, 'true').toLowerCase() == 'false') {
-            echo "[${env.STAGE_NAME}] Running the stage in commit build due to ${commit_pragma} commit pragma"
+        value = 'false' ? commit_pragma.startsWith('Skip-') : 'true'
+        if (cachedCommitPragma(commit_pragma, 'true').toLowerCase() == value) {
+            echo "[${env.STAGE_NAME}] Running the stage in commit build due to '${commit_pragma}: ${value}' commit pragma"
             return false
         }
     }
