@@ -111,7 +111,7 @@ Map call(Map kwargs = [:]) {
     // If the stage is being run in a build started by a commit, next use any set commit pragma to
     // determine if the stage should be run.
     for (commit_pragma in commit_pragmas) {
-        String value = 'false' ? commit_pragma.startsWith('Skip-') : 'true'
+        String value = 'false' ? (commit_pragma.startsWith('Skip-')) : 'true'
         if (env.UNIT_TEST && env.UNIT_TEST == 'true') {
             echo "[${env.STAGE_NAME}] Checking if ${commit_pragma} == ${value}"
         }
