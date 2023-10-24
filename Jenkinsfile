@@ -669,7 +669,7 @@ pipeline {
                                  expect: false],
                             ]
                             errors = 0
-                            sequences.eachWithIndex { index, sequence ->
+                            sequences.eachWithIndex { sequence, index ->
                                 commit_message = 'Test commit\n\n' + sequence['pragma']
                                 withEnv(['STAGE_NAME=Functional Hardware Medium',
                                          'CI_medium_TEST=' + sequence['build_param'],
