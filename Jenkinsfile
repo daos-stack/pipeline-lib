@@ -646,6 +646,7 @@ pipeline {
                             ]
                             errors = 0
                             sequences.eachWithIndex { sequence, index ->
+                                cachedCommitPragma(clear: true)
                                 println("${index}: ${sequence['description']}")
                                 commit_message = "Test commit\n\n${sequence['pragma']}\n"
                                 println(commit_message)
@@ -659,7 +660,6 @@ pipeline {
                                     if (sequence['expect'] != sequence['actual']) {errors++}
                                 }
                                 println('------------------------------------------------------------')
-                                cachedCommitPragma(clear: true)
                             }
                             println('')
                             println('  Result  Expect  Actual  Test')
