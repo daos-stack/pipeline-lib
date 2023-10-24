@@ -535,7 +535,7 @@ pipeline {
                         // lots more test cases could be cooked up, to be sure
                         script {
                             stages = [[name: 'Fake CentOS 7 Functional stage',
-                                       tag: '-hw'],
+                                       tag: 'vm'],
                                       [name: 'Fake CentOS 7 Functional Hardware Medium stage',
                                        tag: 'hw,medium,-provider'],
                                       [name: 'Fake CentOS 7 Functional Hardware Medium Provider stage',
