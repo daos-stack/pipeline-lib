@@ -31,7 +31,7 @@ Map call(Map kwargs = [:]) {
          "startedByUser()=${startedByUser()}, startedByTimer()=${startedByTimer()}, " +
          "startedByUpstream()=${startedByUpstream()}, target_branch=${target_branch}"
 
-    // Regardless of hos the stage has been started always skip a stage that has either already
+    // Regardless of how the stage has been started always skip a stage that has either already
     // passed or does not contain any tests match the tags.
     if (stageAlreadyPassed()) {
         echo "[${env.STAGE_NAME}] Skipping the stage due to all tests passing in the previous build"
@@ -43,8 +43,8 @@ Map call(Map kwargs = [:]) {
     }
 
     // If the stage has been started by the user, e.g. Build with Parameters, or a timer, or an
-    // upstream build then use the stage parameter (check box) to determine if the stage should
-    // be run or skipped.
+    // upstream build then use the stage's build parameter (check box) to determine if the stage
+    // should be run or skipped.
     if (startedByUser() && (build_param_value == 'false')) {
         echo "[${env.STAGE_NAME}] Skipping the stage in user started build due to ${build_param} param"
         return true
@@ -98,11 +98,8 @@ Map call(Map kwargs = [:]) {
         commit_pragmas.add('Skip-func-test-vm-all')
     }
     for (commit_pragma in commit_pragmas + skip_pragmas) {
-        String value = 'true'
-        if (commit_pragma.startsWith('Skip-') || (commit_pragma == 'Run-GHA')) {
-            value = 'false'
-        }
-        if (cachedCommitPragma(commit_pragma).toLowerCase() == value) {
+        String value = 'false' ? commit_pragma.startsWith('Run-') : 'true'
+        if (cachedCommitPragma(commit_pragma, '').toLowerCase() == value) {
             echo "[${env.STAGE_NAME}] Skipping the stage in commit build due to '${commit_pragma}: ${value}' commit pragma"
             return true
         }
@@ -111,11 +108,8 @@ Map call(Map kwargs = [:]) {
     // If the stage is being run in a build started by a commit, next use any set commit pragma to
     // determine if the stage should be run.
     for (commit_pragma in commit_pragmas) {
-        String value = 'false'
-        if (commit_pragma.startsWith('Skip-')) {
-            value = 'true'
-        }
-        if (cachedCommitPragma(commit_pragma).toLowerCase() == value) {
+        String value = 'true' ? commit_pragma.startsWith('Run-') : 'false'
+        if (cachedCommitPragma(commit_pragma, '').toLowerCase() == value) {
             echo "[${env.STAGE_NAME}] Running the stage in commit build due to '${commit_pragma}: ${value}' commit pragma"
             return false
         }
@@ -128,14 +122,14 @@ Map call(Map kwargs = [:]) {
         return true
     }
 
-    // If the stage is being run in a build started by a commit skip the build if
+    // If the stage is being run in a build started by a commit, skip the build if
     // DAOS_STACK_CI_HARDWARE_SKIP is set.
     if (env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ) {
         echo "[${env.STAGE_NAME}] Skipping the stage in commit build due to DAOS_STACK_CI_HARDWARE_SKIP parameter"
         return true
     }
 
-    // If the stage is being run in a PR build started by a commit skip the stage if 'run_if_pr' is
+    // If the stage is being run in a PR build started by a commit, skip the stage if 'run_if_pr' is
     // not set.
     /* groovylint-disable-next-line UnnecessaryGetter */
     if (isPr() && !run_if_pr) {
@@ -143,8 +137,8 @@ Map call(Map kwargs = [:]) {
         return true
     }
 
-    // If the stage is being run in a build started by a commit skip finally use the stage
-    // parameter to determine if the stage should be skipped.
+    // If the stage is being run in a build started by a commit skip, finally use the stage's
+    // build parameter to determine if the stage should be skipped.
     if (build_param_value == 'false') {
         echo "[${env.STAGE_NAME}] Skipping the stage in commit build due to ${build_param} param"
         return true
