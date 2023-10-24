@@ -100,7 +100,7 @@ Map call(Map kwargs = [:]) {
     for (commit_pragma in commit_pragmas + skip_pragmas) {
         String value = 'true' ? (commit_pragma.startsWith('Skip-') || (commit_pragma == 'Run-GHA')) : 'false'
         if (env.UNIT_TEST && env.UNIT_TEST == 'true') {
-            echo "[${env.STAGE_NAME}] Checking if ${commit_pragma} == ${value}"
+            echo "[${env.STAGE_NAME}] Checking if stage should be skipped with ${commit_pragma} == ${value}"
         }
         if (cachedCommitPragma(commit_pragma, '').toLowerCase() == value) {
             echo "[${env.STAGE_NAME}] Skipping the stage in commit build due to '${commit_pragma}: ${value}' commit pragma"
@@ -111,9 +111,12 @@ Map call(Map kwargs = [:]) {
     // If the stage is being run in a build started by a commit, next use any set commit pragma to
     // determine if the stage should be run.
     for (commit_pragma in commit_pragmas) {
-        String value = 'false' ? (commit_pragma.startsWith('Skip-')) : 'true'
+        String value = 'false'
+        if (commit_pragma.startsWith('Run-')) {
+            value = 'true'
+        }
         if (env.UNIT_TEST && env.UNIT_TEST == 'true') {
-            echo "[${env.STAGE_NAME}] Checking if ${commit_pragma} == ${value}"
+            echo "[${env.STAGE_NAME}] Checking if stage should be run with ${commit_pragma} == ${value}"
         }
         if (cachedCommitPragma(commit_pragma, '').toLowerCase() == value) {
             echo "[${env.STAGE_NAME}] Running the stage in commit build due to '${commit_pragma}: ${value}' commit pragma"
