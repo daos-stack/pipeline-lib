@@ -639,13 +639,13 @@ pipeline {
                             errors = 0
                             sequences.eachWithIndex { sequence, index ->
                                 println("${index}: ${sequence['description']}")
-                                commit_message = 'Test commit\n\n' + sequence['pragma']
+                                commit_message = "Test commit\n\n${sequence['pragma']}\n"
                                 withEnv(['STAGE_NAME=Functional Hardware Medium',
                                          'UNIT_TEST=true',
                                          'pragmas=' + env.tmp_pragmas,
-                                         'COMMIT_MESSAGE=' + cm.stripIndent()]) {
+                                         'COMMIT_MESSAGE=' + commit_message.stripIndent()]) {
                                     sequences[index]['actual'] = skipFunctionalTestStage(sequence['kwargs'])
-                                    println('actual: ' + sequences[index]['actual'] + ' ' + sequence['actual'])
+                                    println("skipFunctionalTestStage() -> ${sequence['actual']}")
                                     if (sequence['expect'] != sequence['actual']) {errors++}
                                 }
                                 println('------------------------------------------------------------')
@@ -660,7 +660,8 @@ pipeline {
                                 if (sequence['expect']) {expect = 'skip'}
                                 if (sequence['actual']) {actual = 'skip'}
                                 if (expect != actual) {result = 'FAIL'}
-                                println("  ${result}    ${expect}    ${actual}    ${index}: ${sequence['description']} (${sequence['kwargs']})")
+                                println("  ${result}    ${expect}    ${actual}    ${index}: " +
+                                        "${sequence['description']} (${sequence['kwargs']})")
                             }
                             cachedCommitPragma(clear: true)
                             assert(errors == 0)
