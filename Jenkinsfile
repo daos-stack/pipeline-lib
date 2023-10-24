@@ -640,6 +640,10 @@ pipeline {
                             sequences.eachWithIndex { sequence, index ->
                                 println("${index}: ${sequence['description']}")
                                 commit_message = "Test commit\n\n${sequence['pragma']}\n"
+                                println('Commit message:')
+                                println(commit_message)
+                                println('')
+                                env.tmp_pragmas = pragmasToEnv(commit_message.stripIndent())
                                 withEnv(['STAGE_NAME=Functional Hardware Medium',
                                          'UNIT_TEST=true',
                                          'pragmas=' + env.tmp_pragmas,
