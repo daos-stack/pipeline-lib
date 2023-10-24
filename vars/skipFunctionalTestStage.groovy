@@ -102,7 +102,7 @@ Map call(Map kwargs = [:]) {
         if (commit_pragma.startsWith('Skip-') || (commit_pragma == 'Run-GHA')) {
             value = 'false'
         }
-        if (cachedCommitPragma(commit_pragma, 'false').toLowerCase() == value) {
+        if (cachedCommitPragma(commit_pragma).toLowerCase() == value) {
             echo "[${env.STAGE_NAME}] Skipping the stage in commit build due to '${commit_pragma}: ${value}' commit pragma"
             return true
         }
@@ -115,7 +115,7 @@ Map call(Map kwargs = [:]) {
         if (commit_pragma.startsWith('Skip-')) {
             value = 'true'
         }
-        if (cachedCommitPragma(commit_pragma, 'true').toLowerCase() == value) {
+        if (cachedCommitPragma(commit_pragma).toLowerCase() == value) {
             echo "[${env.STAGE_NAME}] Running the stage in commit build due to '${commit_pragma}: ${value}' commit pragma"
             return false
         }
