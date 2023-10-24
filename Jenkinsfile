@@ -587,92 +587,60 @@ pipeline {
                             println('skipFunctionalTestStage() Unit Test')
                             println('------------------------------------------------------------')
                             sequences = [
-                                [description: '01: CI_medium_TEST=true, run_if_pr=true',
+                                [description: 'run_if_pr=true',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                                 build_param: 'true',
                                  pragma: '',
                                  expect: false],
-                                [description: '02: CI_medium_TEST=false, run_if_pr=true',
-                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                                 build_param: 'false',
-                                 pragma: '',
-                                 expect: true],
-                                [description: '03: CI_medium_TEST unset, run_if_pr=true',
-                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                                 build_param: '',
-                                 pragma: '',
-                                 expect: false],
-                                [description: '04: CI_medium_TEST=true, run_if_pr=false',
+                                [description: 'run_if_pr=false',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
-                                 build_param: 'true',
                                  pragma: '',
                                  expect: true],
-                                [description: '05: CI_medium_TEST=false, run_if_pr=false',
-                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
-                                 build_param: 'false',
-                                 pragma: '',
-                                 expect: true],
-                                [description: '06: CI_medium_TEST unset, run_if_pr=false',
-                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
-                                 build_param: '',
-                                 pragma: '',
-                                 expect: true],
-                                [description: '07: Distro set',
+                                [description: 'Distro set',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: 'el8', run_if_pr: true],
-                                 build_param: 'true',
                                  pragma: '',
                                  expect: false],
-                                [description: '08: Skip-test: true',
+                                [description: 'Skip-test: true',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                                 build_param: 'true',
                                  pragma: 'Skip-test: true',
                                  expect: true],
-                                [description: '09: Skip-func-test: true',
+                                [description: 'Skip-func-test: true',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                                 build_param: 'true',
                                  pragma: 'Skip-func-test: true',
                                  expect: true],
-                                [description: '10: Skip-func-test-hw: true',
+                                [description: 'Skip-func-test-hw: true',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                                 build_param: 'true',
                                  pragma: 'Skip-func-test-hw: true',
                                  expect: true],
-                                [description: '11: Skip-func-test-hw-medium: true',
+                                [description: 'Skip-func-test-hw-medium: true',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                                 build_param: 'true',
                                  pragma: 'Skip-func-test-hw-medium: true',
                                  expect: true],
-                                [description: '12: Skip-func-test-hw-medium: false',
+                                [description: 'Skip-func-test-hw-medium: false',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                                 build_param: 'true',
                                  pragma: 'Skip-func-test-hw-medium: false',
                                  expect: false],
-                                [description: '13: Skip-func-test-hw-large: true',
+                                [description: 'Skip-func-test-hw-large: true',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                                 build_param: 'true',
                                  pragma: 'Skip-func-test-hw-large: true',
                                  expect: false],
-                                [description: '14: Run-daily-stages: true',
+                                [description: 'Run-daily-stages: true',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                                 build_param: 'true',
                                  pragma: 'Run-daily-stages: true',
                                  expect: true],
-                                [description: '15: Skip-build-el8-rpm: true',
+                                [description: 'Skip-build-el8-rpm: true',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: 'el8', run_if_pr: true],
-                                 build_param: 'true',
                                  pragma: 'Skip-build-el8-rpm: true',
                                  expect: true],
-                                [description: '16: Skip-build-el9-rpm: true',
+                                [description: 'Skip-build-el9-rpm: true',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: 'el8', run_if_pr: true],
-                                 build_param: 'true',
                                  pragma: 'Skip-build-el9-rpm: true',
                                  expect: false],
                             ]
                             errors = 0
                             sequences.eachWithIndex { sequence, index ->
+                                println("${index}: ${sequence['description']}")
                                 commit_message = 'Test commit\n\n' + sequence['pragma']
                                 withEnv(['STAGE_NAME=Functional Hardware Medium',
-                                         'CI_medium_TEST=' + sequence['build_param'],
                                          'UNIT_TEST=true',
                                          'pragmas=' + env.tmp_pragmas,
                                          'COMMIT_MESSAGE=' + cm.stripIndent()]) {
@@ -685,14 +653,14 @@ pipeline {
                             println('')
                             println('  Result  Expect  Actual  Test')
                             println('  ------  ------  ------  ----------------------------------------------')
-                            sequences.each { sequence ->
+                            sequences.eachWithIndex { sequence, index ->
                                 result = 'PASS'
                                 expect = 'run '
                                 actual = 'run '
                                 if (sequence['expect']) {expect = 'skip'}
                                 if (sequence['actual']) {actual = 'skip'}
                                 if (expect != actual) {result = 'FAIL'}
-                                println('  ' + result + '    ' + expect + '    ' + actual + '    ' + sequence['description'] + ' (' + sequence['kwargs'] + ')')
+                                println("  ${result}    ${expect}    ${actual}    ${index}: ${sequence['description']} (${sequence['kwargs']})")
                             }
                             cachedCommitPragma(clear: true)
                             assert(errors == 0)
