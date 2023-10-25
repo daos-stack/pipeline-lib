@@ -98,7 +98,7 @@ Map call(Map kwargs = [:]) {
         commit_pragmas.add('Skip-func-test-vm-all')
     }
     for (commit_pragma in commit_pragmas + skip_pragmas) {
-        String value = 'true' ? (commit_pragma.startsWith('Skip-') || (commit_pragma == 'Run-GHA')) : 'false'
+        String value = (commit_pragma.startsWith('Skip-') || (commit_pragma == 'Run-GHA')) ? 'true' : 'false'
         if (env.UNIT_TEST && env.UNIT_TEST == 'true') {
             echo "[${env.STAGE_NAME}] Checking if stage should be skipped with ${commit_pragma} == ${value}"
         }
@@ -111,10 +111,7 @@ Map call(Map kwargs = [:]) {
     // If the stage is being run in a build started by a commit, next use any set commit pragma to
     // determine if the stage should be run.
     for (commit_pragma in commit_pragmas) {
-        String value = 'false'
-        if (commit_pragma.startsWith('Run-')) {
-            value = 'true'
-        }
+        String value = commit_pragma.startsWith('Run-') ? 'true' : 'false'
         if (env.UNIT_TEST && env.UNIT_TEST == 'true') {
             echo "[${env.STAGE_NAME}] Checking if stage should be run with ${commit_pragma} == ${value}"
         }
