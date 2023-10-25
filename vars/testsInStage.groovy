@@ -14,6 +14,7 @@ boolean call(String tags) {
         println('Unit testing, so exiting "Get test list" with true')
         return true
     }
+    String verbose = isPr() ? '--verbose ' : ''
     return sh(label: 'Get test list',
               /* groovylint-disable-next-line GStringExpressionWithinString */
               script: '''trap 'echo "Got an unhandled error, exiting as if a match was found"; exit 0' ERR
@@ -32,7 +33,7 @@ boolean call(String tags) {
                                  exit 0
                              fi
                          else
-                             if ./launch.py --list ''' + tags + '''; then
+                             if ./launch.py --list ''' + verbose + tags + '''; then
                                  exit 0
                              fi
                          fi
