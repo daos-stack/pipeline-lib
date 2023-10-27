@@ -183,7 +183,8 @@ Map call(Map config = [:]) {
     p['junit_files'] = config.get('junit_files', 'test_results/*.xml')
     p['context'] = config.get('context', 'test/' + env.STAGE_NAME)
     p['description'] = config.get('description', env.STAGE_NAME)
-    p['ignore_failure'] = config.get('ignore_failure', false)
+    // Do not let runTest abort the pipeline as want artifact/log collection.
+    p['ignore_failure'] = true
     // runTest no longer knows now to notify for Unit Tests
     p['notify_result'] = false
     int time = config.get('timeout_time', 120) as int
@@ -213,7 +214,8 @@ Map call(Map config = [:]) {
 
     // Update the stash after checking junit/valgrind
     String results_map = 'results_map_' + sanitizedStageName()
-    runData['ignore_failure'] = p['ignore_failure']
+    // Use the original ignore_failure setting for post section
+    runData['ignore_failure'] = config.get('ignore_failure', false)
     writeYaml file: results_map,
               data: runData,
               overwrite: true
