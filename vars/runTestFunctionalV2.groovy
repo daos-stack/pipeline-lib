@@ -80,8 +80,13 @@ Map call(Map config = [:]) {
 
     // Notify SCM result in post steps.
     config['notify_result'] = false
+    // Do not let runTest abort the pipeline as want artifact/log collection.
+    ignore_failure = config.get('ignore_failure', false)
+    config['ignore_failure'] = true
 
     Map runData = runTest(config)
+    // Restore the ignore failure setting
+    config['ignore_failure'] = ignore_failure
 
     String covfile = 'test.cov'
     if (!fileExists('test.cov')) {

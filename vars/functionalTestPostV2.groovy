@@ -64,6 +64,15 @@ void call(Map config = [:]) {
         results['result'] = checkJunitFiles(config)
     }
 
+    // Look for a hardware failure
+    String hardwareJunit = "${env.STAGE_NAME}/hardware_prep/*/results.xml"
+    String hardwareResult = checkJunitFiles(testResults: hardwareJunit)
+    if (hardwareResult == 'FAILURE') {
+        buildAgentControl(action: 'offline',
+                          message: 'Hardware test detected an error',
+                          subject: 'CI Test failure - Hardware issue.')
+    }
+
     String description = config.get('description', env.STAGE_NAME)
     String context = config.get('context', 'test/' + env.STAGE_NAME)
     String flow_name = config.get('flow_name', env.STAGE_NAME)
@@ -107,5 +116,8 @@ void call(Map config = [:]) {
         println(
             "Ignoring failure to record " + env.STAGE_NAME + " tests with launchable: " +
             error.getMessage())
+    }
+    if (!ignore_failure && results['result'] == 'FAILURE') {
+        error "Failure detected with test harness or hardware."
     }
 }
