@@ -80,6 +80,16 @@ String test_branch(String target) {
             '-' + target.replaceAll('/', '-')
 }
 
+def artifacts_selector() {
+    String pragma_val = cachedCommitPragma('libfabric-artifacts-selector', null)
+
+    if (pragma_val) {
+        return specific(pragma_val)
+    }
+
+    return lastSuccessful()
+}
+
 /* groovylint-disable-next-line CompileStatic */
 pipeline {
     agent { label 'lightweight' }
@@ -222,6 +232,7 @@ pipeline {
                     steps {
                         // Populate an artifact directory
                         copyArtifacts projectName: '/daos-stack/libfabric/master',
+                                      selector: artifacts_selector(),
                                       filter: 'artifacts/el8/**',
                                       target: 'artifact'
                         publishToRepository(
@@ -262,6 +273,7 @@ pipeline {
                     steps {
                         // Populate an artifact directory
                         copyArtifacts projectName: '/daos-stack/libfabric/master',
+                                      selector: artifacts_selector(),
                                       filter: 'artifacts/ubuntu20.04/**',
                                       target: 'artifact'
                         publishToRepository(
