@@ -120,7 +120,6 @@ pipeline {
                         script {
                             assert(daosLatestVersion('master', 'el8').matches(/2.5\.\d+.*/))
                             assert(daosLatestVersion('release/2.4', 'el8').matches(/2.[34]\.\d+.*/))
-                            assert(daosLatestVersion('release/2.2', 'el8').startsWith('2.2.'))
                         }
                     }
                 }
@@ -135,7 +134,7 @@ pipeline {
                                 }
                             }
                         }
-                        withEnv(['BRANCH_NAME=release/2.2']) {
+                        withEnv(['BRANCH_NAME=release/2.4']) {
                             script {
                                 String dv = distroVersion('leap15')
                                 if (dv == null || !dv.startsWith('15')) {
@@ -696,10 +695,8 @@ pipeline {
                         name 'TEST_BRANCH'
                         values 'master',
                                'release/2.4',
-                               'release/2.2',
                                'weekly-testing',
-                               'weekly-2.4-testing',
-                               'weekly-testing-2.2'
+                               'weekly-2.4-testing'
                     }
                 }
                 when {
