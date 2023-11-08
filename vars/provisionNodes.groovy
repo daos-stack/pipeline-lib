@@ -121,9 +121,9 @@ Map call(Map config = [:]) {
     }
 
     if (!fileExists('ci/provisioning/log_cleanup.sh') ||
-      !fileExists('ci/provisioning/post_provision_config.sh')) {
+        !fileExists('ci/provisioning/post_provision_config.sh')) {
         return provisionNodesV1(config)
-      }
+    }
 
     String cleanup_logs = 'NODESTRING=' + nodeString + ' ' +
                         'ci/provisioning/log_cleanup.sh'
