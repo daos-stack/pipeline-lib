@@ -7,6 +7,7 @@
  *
  * @param kwargs Map containing the following optional arguments:
  *      pragma_suffix   commit pragma suffix for this stage, e.g. '-hw-large'
+ *      nvme            launch.py --nvme argument to use
  *      default_nvme    launch.py --nvme argument to use when no parameter or commit pragma exist
  *      provider        launch.py --provider argument to use
  * @return Map values to use with runTestFunctional:
