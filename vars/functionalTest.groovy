@@ -71,6 +71,15 @@ Map call(Map config = [:]) {
         stage_inst_rpms = stage_info['stage_rpms'] + ' ' + stage_inst_rpms
     }
 
+    // Check for a mis-configured cluster
+    String[] nodes = nodelist.split(',')
+    if (nodes.size() < stage_info['node_count']) {
+        String message = "CI Cluster needs ${stage_info['node_count']} only has ${nodes.size()}"
+        buildAgentControl(action: 'offline',
+                          message: message,
+                          subject: 'CI Test failure - CI Configuration test issue.')
+    }
+
     Map runData = provisionNodes(
                  NODELIST: nodelist,
                  node_count: stage_info['node_count'],
