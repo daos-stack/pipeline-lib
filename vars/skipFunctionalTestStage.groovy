@@ -70,15 +70,19 @@ Map call(Map kwargs = [:]) {
         return false
     }
 
-    // If the stage is being run in a landing build use the 'run_if_landing' input to determine
-    // whether the stage should be run or skipped.
-    if (startedByLanding() && !run_if_landing) {
-        echo "[${env.STAGE_NAME}] Skipping the stage in a landing build on master/release branch"
-        return true
-    }
-    if (startedByLanding() && run_if_landing) {
-        echo "[${env.STAGE_NAME}] Running the stage in a landing build on master/release branch"
-        return false
+    if (env.UNIT_TEST && env.UNIT_TEST == 'true') {
+        echo "[${env.STAGE_NAME}] Ignoring the landing build check due to Unit Testing"
+    } else {
+        // If the stage is being run in a landing build use the 'run_if_landing' input to determine
+        // whether the stage should be run or skipped.
+        if (startedByLanding() && !run_if_landing) {
+            echo "[${env.STAGE_NAME}] Skipping the stage in a landing build on master/release branch"
+            return true
+        }
+        if (startedByLanding() && run_if_landing) {
+            echo "[${env.STAGE_NAME}] Running the stage in a landing build on master/release branch"
+            return false
+        }
     }
 
     // If the stage is being run in a build started by a commit, first use any set commit pragma to
