@@ -18,6 +18,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      default_nvme    launch.py --nvme argument to use when no parameter or commit pragma exist
  *      provider        launch.py --provider argument to use
  *      distro          functional test stage distro (VM)
+ *      base_branch     if specified, checkout sources from this branch before running tests
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
  *      job_status      Map of status for each stage in the job/build
@@ -34,6 +35,7 @@ Map call(Map kwargs = [:]) {
     String default_nvme = kwargs.get('default_nvme')
     String provider = kwargs.get('provider', '')
     String distro = kwargs.get('distro')
+    String base_branch = kwargs.get('base_branch')
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
     Map job_status = kwargs.get('job_status', [:])
@@ -59,7 +61,15 @@ Map call(Map kwargs = [:]) {
                 node(cachedCommitPragma("Test-label${pragma_suffix}", label)) {
                     // Ensure access to any branch provisioning scripts exist
                     echo "[${name}] Check out from version control"
-                    checkoutScm(cleanAfterCheckout: false)
+                    if (base_branch) {
+                        checkoutScm(
+                            url: 'https://github.com/daos-stack/daos.git',
+                            branch: base_branch,
+                            withSubmodules: true,
+                            cleanAfterCheckout: false)
+                    } else {
+                        checkoutScm(cleanAfterCheckout: false)
+                    }
 
                     try {
                         echo "[${name}] Running functionalTest() on ${label} with tags=${tags}"
