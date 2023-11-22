@@ -592,7 +592,7 @@ pipeline {
                                 [description: 'run_if_pr=false',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
                                  pragma: '',
-                                 expect: true],
+                                 expect: isPr()],
                                 [description: 'Distro set',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: 'el8', run_if_pr: true],
                                  pragma: '',
