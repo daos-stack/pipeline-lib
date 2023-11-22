@@ -734,8 +734,7 @@ void call(Map pipeline_args) {
                         axis {
                             name 'TEST_BRANCH'
                             values 'master',
-                                   'release/2.4',
-                                   'release/2.2'
+                                   'release/2.4'
                         }
                     }
                     when {
@@ -789,16 +788,18 @@ void call(Map pipeline_args) {
                                                 fi
                                                 pipeline_libs="''' + cachedCommitPragma('Test-libs') + '''"
                                                 # remove any triggers so that this test branch doesn't run weekly, etc.
-                                                sed -i -e '/triggers/,/^$/d' Jenkinsfile
-                                                git commit -m 'Remove triggers' Jenkinsfile
+                                                if grep triggers Jenkinsfile; then
+                                                    sed -i -e '/triggers/,/^$/d' Jenkinsfile
+                                                    msg=' and remove triggers'
+                                                fi
                                                 if [ -n "$pipeline_libs" ]; then
                                                     sed -i -e "/\\/\\/@Library/c\\
                                                         @Library(value=$pipeline_libs) _" Jenkinsfile
-                                                    git commit -m 'Pipeline-lib PRs' Jenkinsfile
+                                                    msg="Pipeline-lib PRs${msg:-}"
                                                 else
-                                                    git commit --allow-empty -m 'Clear any commit pragmas' ''' +
-                                                    '''Jenkinsfile
+                                                    msg="Clear any commit pragmas${msg:-}"
                                                 fi
+                                                git commit --allow-empty -m "${msg}" Jenkinsfile
                                                 git push -f origin $branch_name:$branch_name
                                                 sleep 10'''
                                 } // withCredentials
@@ -824,12 +825,15 @@ void call(Map pipeline_args) {
                                                    string(name: 'CI_PROVISIONING_POOL', value: 'default'),
                                                    string(name: 'CI_BUILD_DESCRIPTION',
                                                           value: 'Dependency Validation Build Test'),
+                                                   string(name: 'BuildPriority', value: getPriority()),
                                                    booleanParam(name: 'CI_FI_el8_TEST', value: false),
                                                    booleanParam(name: 'CI_FUNCTIONAL_el7_TEST',
                                                                 value: 'centos7' in distros),
                                                    booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
                                                    booleanParam(name: 'CI_FUNCTIONAL_el8_TEST',
                                                                 value: 'el8' in distros),
+                                                   booleanParam(name: 'CI_FUNCTIONAL_el9_TEST',
+                                                                value: 'el9' in distros),
                                                    booleanParam(name: 'CI_FUNCTIONAL_leap15_TEST',
                                                                 value: 'leap15' in distros),
                                                    booleanParam(name: 'CI_SCAN_RPMS_el7_TEST', value: false),

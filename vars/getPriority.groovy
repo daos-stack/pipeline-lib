@@ -7,12 +7,18 @@
    *
    */
 
-def call() {
+String call() {
+    String p = ''
     if (env.BRANCH_NAME =~ testBranchRE()) {
-        string p = '2'
+        p = '2'
     } else {
-        string p = ''
+        node(label: 'lightweight') {
+            if (fileExists('.git')) {
+                p = cachedCommitPragma('Priority')
+            }
+        }
     }
-    println("Setting build priroity to: " + p)
+
+    println("Setting build priority to: " + p)
     return p
 }

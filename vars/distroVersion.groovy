@@ -25,10 +25,10 @@ String call(String distro) {
 
 String call(String distro, String branch) {
     return ['el8':      ['master': '8.8',
-                         '2.4':    '8.6'],
+                         '2.4':    '8.8'],
             'el9':      ['master': '9.2'],
             'leap15':   ['master': '15.5',
-                         '2.4':    '15.4'],
+                         '2.4':    '15.5'],
             'ubuntu20': ['master': '20.04']][distro][branch]
 }
 
