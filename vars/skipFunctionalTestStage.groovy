@@ -15,10 +15,11 @@
  */
 Map call(Map kwargs = [:]) {
     String tags = kwargs['tags'] ?: parseStageInfo()['test_tag']
-    String pragma_suffix = kwargs['pragma_suffix'] ?: 'vm'
+    String pragma_suffix = kwargs['pragma_suffix'] ?: '-vm'
     String size = pragma_suffix.replace('-hw-', '')
     String distro = kwargs['distro'] ?: hwDistroTarget(size)
-    String build_param = "CI_${size.replace('-', '_')}_TEST"
+    String build_param = (pragma_suffix == '-vm') ?
+        "CI_FUNCTIONAL_${distro}_TEST" : "CI_${size.replace('-', '_')}_TEST"
     String build_param_value = paramsValue(build_param, '').toString()
     Boolean run_if_landing = kwargs['run_if_landing'] ?: false
     Boolean run_if_pr = kwargs['run_if_pr'] ?: false
