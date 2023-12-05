@@ -98,6 +98,13 @@ pipeline {
         copyArtifactPermission("/daos-stack/pipeline-lib/${env.BRANCH_NAME}")
     }
 
+    parameters {
+        string(name: 'BuildPriority',
+               /* groovylint-disable-next-line UnnecessaryGetter */
+               defaultValue: getPriority(),
+               description: 'Priority of this build.  DO NOT USE WITHOUT PERMISSION.')
+    }
+
     stages {
         stage('Get Commit Message') {
             steps {
@@ -744,22 +751,24 @@ pipeline {
                                                     echo "Error trying to create branch \$branch_name"
                                                     exit 1
                                                 fi
-                                                # if a PR...
-                                                if [ -n "\$CHANGE_BRANCH" ]; then
-                                                    # edit to use this PR as the pipeline-lib branch
-                                                    sed -i -e '/^\\/\\/@Library/s/^\\/\\///' """ +
-                                                          "-e \"/^@Library/s/'/\\\"/g\" " +
-                                                          "-e '/^@Library/s/-lib@.*/-lib@" +
-                                                        (env.CHANGE_BRANCH ?: '').replaceAll('\\/', '\\\\/') +
-                                                        "\") _/' Jenkinsfile" + '''
-                                                fi
-                                                if [ -n "$(git status -s)" ]; then
-                                                    git commit -m "Update pipeline-lib branch to self''' +
-                                                      (cachedCommitPragma('Test-skip-build', 'true') == 'true' ? '' :
-                                                               '\n\nSkip-unit-tests: true') + '''" Jenkinsfile
-                                                fi
                                             fi
-                                            git push -f origin $branch_name:$branch_name
+                                            # if a PR...
+                                            if [ -n "\$CHANGE_BRANCH" ]; then
+                                                # edit to use this PR as the pipeline-lib branch
+                                                sed -i -e '/^\\/\\/@Library/s/^\\/\\///' """ +
+                                                      "-e \"/^@Library/s/'/\\\"/g\" " +
+                                                      "-e '/^@Library/s/-lib@.*/-lib@" +
+                                                    (env.CHANGE_BRANCH ?: '').replaceAll('\\/', '\\\\/') +
+                                                    "\") _/' Jenkinsfile" + '''
+                                            fi
+                                            if [ -n "$(git status -s)" ]; then
+                                                git commit -m "Update pipeline-lib branch to self''' +
+                                                  (cachedCommitPragma('Test-skip-build', 'true') == 'true' ? '' :
+                                                           '\n\nSkip-unit-tests: true') + '''" Jenkinsfile
+                                                git push -f origin $branch_name:$branch_name
+                                            else
+                                                git show
+                                            fi
                                             sleep 10'''
                                 sh label: 'Delete local test branch',
                                    script: '''dir="daos-''' + env.TEST_BRANCH.replaceAll('/', '-') + '''"
@@ -780,6 +789,7 @@ pipeline {
                                                string(name: 'CI_RPM_TEST_VERSION',
                                                       value: cachedCommitPragma('Test-skip-build', 'false') == 'true' ?
                                                                daosLatestVersion(env.TEST_BRANCH) : ''),
+                                               string(name: 'BuildPriority', value: params.BuildPriority),
                                                booleanParam(name: 'CI_UNIT_TEST', value: false),
                                                booleanParam(name: 'CI_FI_el8_TEST', value: true),
                                                booleanParam(name: 'CI_FUNCTIONAL_el7_TEST', value: true),
