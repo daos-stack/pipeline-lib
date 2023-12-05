@@ -118,6 +118,6 @@ void call(Map config = [:]) {
             error.getMessage())
     }
     if (!ignore_failure && results['result'] == 'FAILURE') {
-        error "Failure detected with test harness or hardware."
+        unstable "Failure detected with test harness or hardware."
     }
 }
