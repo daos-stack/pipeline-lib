@@ -765,10 +765,10 @@ pipeline {
                                                 git commit -m "Update pipeline-lib branch to self''' +
                                                   (cachedCommitPragma('Test-skip-build', 'true') == 'true' ? '' :
                                                            '\n\nSkip-unit-tests: true') + '''" Jenkinsfile
-                                                git push -f origin $branch_name:$branch_name
                                             else
                                                 git show
                                             fi
+                                            git push -f origin $branch_name:$branch_name
                                             sleep 10'''
                                 sh label: 'Delete local test branch',
                                    script: '''dir="daos-''' + env.TEST_BRANCH.replaceAll('/', '-') + '''"
