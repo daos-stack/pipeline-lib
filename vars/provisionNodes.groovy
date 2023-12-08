@@ -105,7 +105,7 @@ Map call(Map config = [:]) {
     String inst_rpms = config.get('inst_rpms', '')
     String inst_repos = config.get('inst_repos', '')
 
-    echo "[${env.STAGE_NAME]}.provisionNodes] distro_type=${distro_type}, distro=${distro}, inst_repos=${inst_repos}, inst_rpms=${inst_rpms}"
+    echo "[${env.STAGE_NAME}.provisionNodes] distro_type=${distro_type}, distro=${distro}, inst_repos=${inst_repos}, inst_rpms=${inst_rpms}"
 
     List gpg_key_urls = []
     if (env.DAOS_STACK_REPO_SUPPORT != null) {
