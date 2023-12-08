@@ -70,6 +70,7 @@ Map call(Map config = [:]) {
     if (stage_info['stage_rpms']) {
         stage_inst_rpms = stage_info['stage_rpms'] + ' ' + stage_inst_rpms
     }
+    echo "[${description]}.functionalTest] inst_rpms=${inst_rpms}, stage_info[stage_rpms]=${stage_info['stage_rpms']}, stage_inst_rpms=${stage_inst_rpms}"
 
     // Check for a mis-configured cluster
     String[] nodes = nodelist.split(',')
