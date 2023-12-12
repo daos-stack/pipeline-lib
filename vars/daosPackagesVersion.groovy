@@ -39,6 +39,8 @@ String call(String distro, String next_version) {
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
     String _distro = distro
 
+    println('daosPackagesVersion(' + _distro + ', ' + next_version + ')')
+
     // build parameter (CI_RPM_TEST_VERSION) has highest priority, followed by commit pragma
     // TODO: this should actually be determined from the PR-repos artifacts
     String version = rpmTestVersion()
@@ -52,6 +54,7 @@ String call(String distro, String next_version) {
     }
 
     if (target_branch =~ testBranchRE()) {
+        println(target_branch + ' =~ ' + testBranchRE())
         // weekly-test just wants the latest for the branch
         if (rpm_version_cache != '' && rpm_version_cache != 'locked') {
             return rpm_version_cache + rpmDistValue(_distro)
@@ -71,8 +74,11 @@ String call(String distro, String next_version) {
                 rpm_version_cache = daosLatestVersion(next_version, _distro)
             }
         }
+        println('rpm_version_cache == ' + rpm_version_cache )
+        println('rpmDistValue(' + _distro + ') == ' + rpmDistValue(_distro))
         return rpm_version_cache + rpmDistValue(_distro)
     }
+    println(target_branch + ' !~ ' + testBranchRE())
 
     /* what's the query to get the highest 1.0.x package?
     if (target_branch == "weekly-testing-1.x") {
