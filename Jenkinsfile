@@ -127,7 +127,6 @@ pipeline {
                         script {
                             assert(daosLatestVersion('master', 'el8').matches(/2.5\.\d+.*/))
                             assert(daosLatestVersion('release/2.4', 'el8').matches(/2.[34]\.\d+.*/))
-                            assert(daosLatestVersion('release/2.2', 'el8').startsWith('2.2.'))
                         }
                     }
                 }
@@ -785,7 +784,8 @@ pipeline {
                             } // withCredentials
                             build job: 'daos-stack/daos/' + test_branch(env.TEST_BRANCH),
                                   parameters: [string(name: 'TestTag',
-                                                      value: 'load_mpi test_core_files test_pool_info_query'),
+                                                      value: cachedCommitPragma('Test-tag',
+                                                                                'load_mpi test_core_files test_pool_info_query')),
                                                string(name: 'CI_RPM_TEST_VERSION',
                                                       value: cachedCommitPragma('Test-skip-build', 'false') == 'true' ?
                                                                daosLatestVersion(env.TEST_BRANCH) : ''),
