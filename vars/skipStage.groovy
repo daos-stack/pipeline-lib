@@ -508,7 +508,7 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-leap-15.4-rpms', 'true') ||
                    docOnlyChange(target_branch) ||
-                   (paramsValue('CI_RPM_TEST_VERSION', '') != '') ||
+                   (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
         case 'Scan CentOS 7 RPMs':
             return skip_scan_rpms('centos7', target_branch)
