@@ -57,12 +57,16 @@ String call(String distro, String next_version) {
         println(target_branch + ' =~ ' + testBranchRE())
         // weekly-test just wants the latest for the branch
         if (rpm_version_cache != '' && rpm_version_cache != 'locked') {
+            println('1: rpm_version_cache == ' + rpm_version_cache )
+            println('1: rpmDistValue(' + _distro + ') == ' + rpmDistValue(_distro))
             return rpm_version_cache + rpmDistValue(_distro)
         }
         if (rpm_version_cache == '') {
             // no cached value and nobody's getting it
             rpm_version_cache = 'locked'
+            println('calling daosLatestVersion(' + next_version + ', ' + _distro + ')')
             rpm_version_cache = daosLatestVersion(next_version, _distro)
+            println('rpm_version_cache == ' + rpm_version_cache)
         } else {
             // somebody else is getting it, wait for them
             Integer i = 30
@@ -74,8 +78,8 @@ String call(String distro, String next_version) {
                 rpm_version_cache = daosLatestVersion(next_version, _distro)
             }
         }
-        println('rpm_version_cache == ' + rpm_version_cache )
-        println('rpmDistValue(' + _distro + ') == ' + rpmDistValue(_distro))
+        println('2: rpm_version_cache == ' + rpm_version_cache )
+        println('2: rpmDistValue(' + _distro + ') == ' + rpmDistValue(_distro))
         return rpm_version_cache + rpmDistValue(_distro)
     }
     println(target_branch + ' !~ ' + testBranchRE())
