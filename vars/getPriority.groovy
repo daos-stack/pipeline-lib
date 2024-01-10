@@ -13,9 +13,7 @@ String call() {
         p = '2'
     } else {
         node(label: 'lightweight') {
-            if (fileExists('.git')) {
-                p = cachedCommitPragma('Priority')
-            }
+            p = cachedCommitPragma('Priority')
         }
     }
 

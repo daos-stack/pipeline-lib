@@ -34,14 +34,11 @@ String call(String commit_message) {
  * Method to put the commit pragmas into the environment
  */
 Void call() {
-    String cmd = '''if [ -n "$GIT_CHECKOUT_DIR" ] && [ -d "$GIT_CHECKOUT_DIR" ]
-                    then
-                      cd "$GIT_CHECKOUT_DIR"
-                    fi
-                    git show -s --format=%B\n'''
-
-    env.COMMIT_MESSAGE = sh(label: 'pragmasToEnv: lookup commit message',
-                            script: cmd,
+    env.COMMIT_MESSAGE = sh(label: 'pragmasToEnv(): Get commit message',
+                            script: '''if [ -n "$GIT_CHECKOUT_DIR" ] && [ -d "$GIT_CHECKOUT_DIR" ]; then
+                                           cd "$GIT_CHECKOUT_DIR"
+                                       fi
+                                       git show -s --format=%B''',
                             returnStdout: true).trim()
     env.pragmas = pragmasToEnv(env.COMMIT_MESSAGE)
 
