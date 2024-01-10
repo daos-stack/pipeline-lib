@@ -25,6 +25,9 @@ String call(String commit_message) {
         }
     }
 
+    // put the pragms into the environment
+    env.pragmas = pragmas
+
     // note this converts the Map to a string in the format "{foo=bar}"
     // instead of the expected format of "[foo:bar]"
     return pragmas

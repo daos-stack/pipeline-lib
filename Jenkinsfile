@@ -253,7 +253,7 @@ pipeline {
                                       status: 'SUCCESS'
                         }
                     }
-                } //stage('publishToRepository RPM tests')
+                } // stage('publishToRepository RPM tests')
                 stage('publishToRepository DEB tests') {
                     when {
                         beforeAgent true
@@ -293,7 +293,7 @@ pipeline {
                                       status: 'SUCCESS'
                         }
                     }
-                } //stage('publishToRepository DEB tests')
+                } // stage('publishToRepository DEB tests')
                 stage('provisionNodes on EL 9 with master Repo') {
                     when {
                         beforeAgent true
@@ -368,8 +368,8 @@ pipeline {
                                     failure_artifacts: env.STAGE_NAME))
                     }
                     // runTest handles SCM notification via stepResult
-                } //stage('provisionNodes with slurm EL8')
-                stage('provisionNodes with slurm Leap15') {
+                } // stage('provisionNodes on EL 8 with slurm') {
+                stage('provisionNodes on Leap 15 with slurm') {
                     when {
                         beforeAgent true
                         expression {
@@ -398,7 +398,7 @@ pipeline {
                                     failure_artifacts: env.STAGE_NAME))
                     }
                     // runTest handles SCM notification via stepResult
-                } //stage('provisionNodes_with_slurm_leap15')
+                } // stage('provisionNodes on Leap 15 with slurm') {
                 stage('Commit Pragma tests') {
                     steps {
                         script {
@@ -744,6 +744,7 @@ pipeline {
                                                 cd \$dir
                                             fi
                                             if git checkout \$branch_name; then
+                                                git fetch origin
                                                 git rebase \$source_branch
                                             else
                                                 if ! git checkout -b \$branch_name \$source_branch; then
@@ -763,11 +764,13 @@ pipeline {
                                             if [ -n "$(git status -s)" ]; then
                                                 git commit -m "Update pipeline-lib branch to self''' +
                                                   (cachedCommitPragma('Test-skip-build', 'true') == 'true' ? '' :
-                                                           '\n\nSkip-unit-tests: true') + '''" Jenkinsfile
-                                                git push -f origin $branch_name:$branch_name
+                                                           '\n\nSkip-unit-tests: true') +
+                                                  (cachedCommitPragma('Test-downstream-test', 'true') == 'true' ? '' :
+                                                           '\n\nSkip-test: true') + '''" Jenkinsfile
                                             else
                                                 git show
                                             fi
+                                            git push -f origin $branch_name:$branch_name
                                             sleep 10'''
                                 sh label: 'Delete local test branch',
                                    script: '''dir="daos-''' + env.TEST_BRANCH.replaceAll('/', '-') + '''"
@@ -784,8 +787,10 @@ pipeline {
                             } // withCredentials
                             build job: 'daos-stack/daos/' + test_branch(env.TEST_BRANCH),
                                   parameters: [string(name: 'TestTag',
-                                                      value: cachedCommitPragma('Test-tag',
-                                                                                'load_mpi test_core_files test_pool_info_query')),
+                                                      value: cachedCommitPragma(
+                                                        'Test-tag',
+                                                        'load_mpi test_core_files ' +
+                                                        'test_pool_info_query')),
                                                string(name: 'CI_RPM_TEST_VERSION',
                                                       value: cachedCommitPragma('Test-skip-build', 'false') == 'true' ?
                                                                daosLatestVersion(env.TEST_BRANCH) : ''),
@@ -801,7 +806,7 @@ pipeline {
                                                booleanParam(name: 'CI_medium_TEST', value: true),
                                                booleanParam(name: 'CI_large_TEST', value: false)
                                               ]
-                        } //steps
+                        } // steps
                         post {
                             success {
                                 /* groovylint-disable-next-line DuplicateMapLiteral */

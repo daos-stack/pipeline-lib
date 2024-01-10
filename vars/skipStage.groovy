@@ -494,6 +494,7 @@ boolean call(Map config = [:]) {
                    (quickFunctional() &&
                     !paramsValue('CI_RPMS_el8_6_TEST', true) &&
                     !run_default_skipped_stage('test-el-8.6-rpms')) ||
+                   (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
         case 'Test Leap 15 RPMs':
         case 'Test Leap 15.2 RPMs':
@@ -504,10 +505,14 @@ boolean call(Map config = [:]) {
                    stageAlreadyPassed()
         case 'Test RPMs on Leap 15.4':
             return !paramsValue('CI_RPMS_leap15.4_TEST', true) ||
+                   target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-leap-15.4-rpms', 'true') ||
                    docOnlyChange(target_branch) ||
+                   (quickFunctional() &&
+                    !paramsValue('CI_RPMS_leap15_4_TEST', true) &&
+                    !run_default_skipped_stage('test-leap-15.4-rpms')) ||
                    (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
         case 'Scan CentOS 7 RPMs':
