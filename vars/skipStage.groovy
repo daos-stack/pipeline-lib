@@ -153,6 +153,7 @@ boolean skip_build_bullseye(String target_branch, String distro) {
 
 /* groovylint-disable-next-line MethodSize */
 boolean call(Map config = [:]) {
+    println('This is skipStage() for stage ' + env.STAGE_NAME + ' with config ' + config)
     if (config['stage']) {
         return skip_stage_pragma(config['stage'], config['def_val'])
     }
@@ -183,6 +184,11 @@ boolean call(Map config = [:]) {
         case 'Python Bandit check':
             return skip_stage_pragma('python-bandit')
         case 'Build':
+            println('skipStage debug: ' + env.BRANCH_NAME != target_branch + ', ' +
+                   skip_stage_pragma('build') + ', ' +
+                   (rpmTestVersion() != '') + ', ' +
+                   quickFunctional() + ', ' +
+                   prReposContains(null, jobName()))
             // always build branch landings as we depend on lastSuccessfulBuild
             // always having RPMs in it
             return (env.BRANCH_NAME != target_branch) &&

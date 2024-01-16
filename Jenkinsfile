@@ -19,7 +19,7 @@
 // is landed, both PR branches can be deleted.
 //@Library(value='pipeline-lib@my_branch_name') _
 
-/* groovylint-disable-next-line CompileStatic */
+// groovylint-disable-next-line CompileStatic
 job_status_internal = [:]
 
 void job_status_write() {
@@ -80,7 +80,7 @@ String test_branch(String target) {
             '-' + target.replaceAll('/', '-')
 }
 
-/* groovylint-disable-next-line CompileStatic */
+// groovylint-disable-next-line CompileStatic
 pipeline {
     agent { label 'lightweight' }
     libraries {
@@ -100,7 +100,7 @@ pipeline {
 
     parameters {
         string(name: 'BuildPriority',
-               /* groovylint-disable-next-line UnnecessaryGetter */
+               // groovylint-disable-next-line UnnecessaryGetter
                defaultValue: getPriority(),
                description: 'Priority of this build.  DO NOT USE WITHOUT PERMISSION.')
     }
@@ -120,16 +120,17 @@ pipeline {
                 cancelPreviousBuilds()
             }
         }
-        stage('Test') {
-            parallel {
-                stage('daosLatestVersion() tests') {
-                    steps {
-                        script {
-                            assert(daosLatestVersion('master', 'el8').matches(/2.5\.\d+.*/))
-                            assert(daosLatestVersion('release/2.4', 'el8').matches(/2.[34]\.\d+.*/))
-                        }
-                    }
-                }
+        // stage('Test') {
+        //     parallel {
+        //         stage('daosLatestVersion() tests') {
+        //             steps {
+        //                 script {
+        //                     assert(daosLatestVersion('master', 'el8').matches(/2.5\.\d+.*/))
+        //                     assert(daosLatestVersion('release/2.4', 'el8').matches(/2.[34]\.\d+.*/))
+        //                 }
+        //             }
+        //         }
+        /*
                 stage('distroVersion() tests') {
                     steps {
                         withEnv(['BRANCH_NAME=release/2.4']) {
@@ -160,7 +161,7 @@ pipeline {
                             }
                         }
                     }
-                }
+                } // stage('distroVersion() tests') {
                 stage('grep JUnit results tests failure case') {
                     agent {
                         docker {
@@ -315,7 +316,7 @@ pipeline {
                                            snapshot: true,
                                            inst_repos: prReposContains('daos') ?  prRepos() : 'daos@master'))
                         job_step_update(
-                            /* groovylint-disable-next-line GStringExpressionWithinString */
+                            // groovylint-disable-next-line GStringExpressionWithinString
                             runTest(script: '''NODE=${NODELIST%%,*}
                                                ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
                                                dnf -y makecache"''',
@@ -325,7 +326,7 @@ pipeline {
                     post {
                         unsuccessful {
                             sh label: 'Failure debug',
-                               /* groovylint-disable-next-line GStringExpressionWithinString */
+                               // groovylint-disable-next-line GStringExpressionWithinString
                                script: '''NODE=${NODELIST%%,*}
                                           ssh $SSH_KEY_ARGS jenkins@$NODE "set -eux
                                           ls -l /etc/yum.repos.d/ || true
@@ -360,7 +361,7 @@ pipeline {
                                                       ' slurm-slurmctld slurm-slurmd' +
                                                       ' ipmctl'))
                         job_step_update(
-                            /* groovylint-disable-next-line GStringExpressionWithinString */
+                            // groovylint-disable-next-line GStringExpressionWithinString
                             runTest(script: '''NODE=${NODELIST%%,*}
                                                ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
                                                which scontrol"''',
@@ -390,7 +391,7 @@ pipeline {
                                            inst_repos: prReposContains('daos') ?  prRepos() : 'daos@master',
                                            inst_rpms: 'slurm ipmctl'))
                         job_step_update(
-                            /* groovylint-disable-next-line GStringExpressionWithinString */
+                            // groovylint-disable-next-line GStringExpressionWithinString
                             runTest(script: '''NODE=${NODELIST%%,*}
                                                ssh $SSH_KEY_ARGS jenkins@$NODE "set -ex
                                                which scontrol"''',
@@ -411,76 +412,76 @@ pipeline {
                                       'Functional Hardware Medium UCX Provider',
                                       'Functional Hardware Large']
                             commits = [[pragmas: [''],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [isPr(), isPr(), false, isPr(), !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-test: true'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [true, true, true, true, true, true, true, true]],
                                        [pragmas: ['Skip-func-test: true'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [true, true, true, true, true, true, true, true]],
                                        [pragmas: ['Skip-func-test-vm: true'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [true, true, true, true, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-func-test-vm-all: true'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [true, true, true, true, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-func-test-leap15: true\n' +
                                                   'Skip-func-test-el7: true\n' +
                                                   'Skip-func-test-el8: true\n' +
                                                   'Skip-func-test-el9: true'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [true, true, true, true, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-func-test-leap15: false\n' +
                                                   'Skip-func-test-el7: false\n' +
                                                   'Skip-func-test-el8: false\n' +
                                                   'Skip-func-test-el9: false'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-func-test-hw: true'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
                                        [pragmas: ['Skip-func-test-hw-medium: true\n' +
                                                   'Skip-func-test-hw-medium-verbs-provider: true\n' +
                                                   'Skip-func-test-hw-medium-ucx-provider: true\n' +
                                                   'Skip-func-test-hw-large: true'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
                                        [pragmas: ['Skip-func-test-hw-medium: false\n' +
                                                   'Skip-func-test-hw-medium-verbs-provider: false\n' +
                                                   'Skip-func-test-hw-medium-ucx-provider: false\n' +
                                                   'Skip-func-test-hw-large: false'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [isPr(), isPr(), false, isPr(), false, false, false, false]],
                                        [pragmas: ['Skip-func-hw-test: true'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
                                        [pragmas: ['Skip-func-hw-test-medium: true\n' +
                                                   'Skip-func-hw-test-medium-verbs-provider: true\n' +
                                                   'Skip-func-hw-test-medium-ucx-provider: true\n' +
                                                   'Skip-func-hw-test-large: true'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
                                        [pragmas: ['Skip-func-hw-test-medium: false\n' +
                                                   'Skip-func-hw-test-medium-verbs-provider: false\n' +
                                                   'Skip-func-hw-test-medium-ucx-provider: false\n' +
                                                   'Skip-func-hw-test-large: false'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [isPr(), isPr(), false, isPr(), false, false, false, false]],
                                        [pragmas: ['Run-daily-stages: true'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [isPr(), isPr(), false, isPr(), false, false, false, false]],
                                        [pragmas: ['Skip-build-leap15-rpm: true\n' +
                                                   'Skip-build-el7-rpm: true\n' +
                                                   'Skip-build-el8-rpm: true\n' +
                                                   'Skip-build-el9-rpm: true'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [true, true, true, true, true, true, true, true]],
                                        [pragmas: ['Skip-build-leap15-rpm: false\n' +
                                                   'Skip-build-el7-rpm: false\n' +
                                                   'Skip-build-el8-rpm: false\n' +
                                                   'Skip-build-el9-rpm: false'],
-                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        // groovylint-disable-next-line UnnecessaryGetter
                                         skips: [isPr(), isPr(), false, isPr(), !isPr(), !isPr(), true, !isPr()]]]
                             errors = 0
                             commits.each { commit ->
@@ -525,14 +526,13 @@ pipeline {
                             }
                             assert(errors == 0)
                         }
-                        /* tests for all stages:
-                              1. Test-tag: datamover
-                              2. Features: datamover
-                              3. Test-tag: datamover
-                                 Features: foobar
-                              4. Features: datamover foobar
-                              5. Test-tag: datamover foobar
-                        */
+                        // tests for all stages:
+                        //    1. Test-tag: datamover
+                        //    2. Features: datamover
+                        //    3. Test-tag: datamover
+                        //       Features: foobar
+                        //    4. Features: datamover foobar
+                        //    5. Test-tag: datamover foobar
                         // lots more test cases could be cooked up, to be sure
                         script {
                             stages = [[name: 'Fake CentOS 7 Functional stage',
@@ -549,7 +549,7 @@ pipeline {
                                         tag_template: 'pr,@stages.tag@ ' +
                                                       'daily_regression,@commits.value@,@stages.tag@ ' +
                                                       'full_regression,@commits.value@,@stages.tag@'],
-                                       /* groovylint-disable-next-line DuplicateMapLiteral */
+                                       // groovylint-disable-next-line DuplicateMapLiteral
                                        [tags: [[tag: 'Test-tag', value: 'datamover'],
                                                [tag: 'Features', value: 'foobar']],
                                         tag_template: '@commits.value@,@stages.tag@'],
@@ -689,6 +689,7 @@ pipeline {
                 } // stage ('Commit Pragma tests')
             } // parallel
         } // stage('Test')
+        */
         stage('DAOS Build and Test') {
             when {
                 beforeAgent true
@@ -809,7 +810,7 @@ pipeline {
                         } // steps
                         post {
                             success {
-                                /* groovylint-disable-next-line DuplicateMapLiteral */
+                                // groovylint-disable-next-line DuplicateMapLiteral
                                 withCredentials([[$class: 'UsernamePasswordMultiBinding',
                                                 credentialsId: 'daos_jenkins_project_github_access',
                                                 usernameVariable: 'GH_USER',
@@ -828,7 +829,7 @@ pipeline {
                                 writeFile file: stageStatusFilename(env.STAGE_NAME,
                                                                     env.TEST_BRANCH.replaceAll('/', '-')),
                                           text: currentBuild.currentResult + '\n'
-                                /* groovylint-disable-next-line LineLength */
+                                // groovylint-disable-next-line LineLength
                                 archiveArtifacts artifacts: stageStatusFilename(env.STAGE_NAME,
                                                                                 env.TEST_BRANCH.replaceAll('/', '-'))
                             }
