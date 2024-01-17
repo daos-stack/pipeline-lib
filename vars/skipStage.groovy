@@ -157,10 +157,13 @@ boolean call(Map config = [:]) {
     if (config['stage']) {
         return skip_stage_pragma(config['stage'], config['def_val'])
     }
+    println('skipStage() was not given a config')
 
     if (stageAlreadyPassed(stage_name: config['stage_name'], postfix: config['axes'])) {
+        println('skipStage(): Already passed')
         return true
     }
+    println('skipStage(): Hasn not passed')
 
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
     String tags = config['tags'] ?: parseStageInfo()['test_tag']
