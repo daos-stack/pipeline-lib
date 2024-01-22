@@ -171,23 +171,30 @@ boolean call(Map config = [:]) {
     println('skipStage(): starting the switch(' + env.STAGE_NAME + ') statement')
     switch (env.STAGE_NAME) {
         case 'Cancel Previous Builds':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return cachedCommitPragma('Cancel-prev-build') == 'false' ||
                    /* groovylint-disable-next-line UnnecessaryGetter */
                    (!isPr() && !startedByUpstream())
         case 'Check Packaging':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_stage_pragma('packaging-check')
         case 'Lint':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return quickBuild()
         case 'Pre-build':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return docOnlyChange(target_branch) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    rpmTestVersion() != '' ||
                    quickBuild()
         case 'checkpatch':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_stage_pragma('checkpatch')
         case 'Python Bandit check':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_stage_pragma('python-bandit')
         case 'Build':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             println('skipStage debug: ' + env.BRANCH_NAME != target_branch + ', ' +
                    skip_stage_pragma('build') + ', ' +
                    (rpmTestVersion() != '') + ', ' +
@@ -201,28 +208,36 @@ boolean call(Map config = [:]) {
                    (quickFunctional() &&
                    prReposContains(null, jobName()))
         case 'Build RPM on CentOS 7':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_RPM_centos7_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
                    prReposContains('centos7', jobName()) ||
                    skip_stage_pragma('build-centos7-rpm')
         case 'Build RPM on EL 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build RPM on EL 8.5':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build RPM on CentOS 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_RPM_el8_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('el8') == '') ||
                    prReposContains('el8', jobName()) ||
                    skip_stage_pragma('build-el8-rpm')
         case 'Build RPM on EL 9':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_RPM_el9_NOBUILD', false) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('el9') == '') ||
                    prReposContains('el9', jobName()) ||
                    skip_stage_pragma('build-el9-rpm')
         case 'Build RPM on Leap 15':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build RPM on Leap 15.4':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build RPM on Leap 15.5':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_RPM_leap15_NOBUILD', false) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    (docOnlyChange(target_branch) &&
@@ -230,6 +245,7 @@ boolean call(Map config = [:]) {
                    prReposContains('leap15', jobName()) ||
                    skip_stage_pragma('build-leap15-rpm')
         case 'Build DEB on Ubuntu 20.04':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_RPM_ubuntu20_NOBUILD', false) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    (docOnlyChange(target_branch) &&
@@ -237,16 +253,24 @@ boolean call(Map config = [:]) {
                    prReposContains('ubuntu20', jobName()) ||
                    skip_stage_pragma('build-ubuntu20-rpm')
         case 'Build on CentOS 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on EL 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on EL 8.8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_build_on_el_gcc(target_branch, '8')
         case 'Build on CentOS 7 Bullseye':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_build_bullseye(target_branch, 'centos7')
         case 'Build on CentOS 8 Bullseye':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on EL 8 Bullseye':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on EL 8.8 Bullseye':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_build_bullseye(target_branch, 'el8')
         case 'Build on CentOS 7 debug':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             if (run_default_skipped_stage('build-centos7-gcc-debug')) {
                 return false
             }
@@ -255,35 +279,45 @@ boolean call(Map config = [:]) {
                     prRepos('centos7') == '') ||
                    quickBuild()
         case 'Build on CentOS 8 debug':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on EL 8 debug':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on EL 8.8 debug':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-centos7-gcc-debug') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('el8') == '') ||
                    quickBuild()
         case 'Build on CentOS 7 release':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-centos7-gcc-release', 'true') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
                    quickBuild()
         case 'Build on CentOS 7':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-centos7-gcc', 'false') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '') ||
                    quickFunctional()
         case 'Build on CentOS 8 release':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on EL 8 release':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on EL 8.8 release':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-el8-gcc-release', 'true') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('el8') == '') ||
                    quickBuild()
         case 'Build on CentOS 7 with Clang':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on CentOS 7 with Clang debug':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             if (run_default_skipped_stage('build-centos7-clang-debug')) {
                 return false
             }
@@ -292,11 +326,17 @@ boolean call(Map config = [:]) {
                    (docOnlyChange(target_branch) &&
                     prRepos('centos7') == '')
         case 'Build on CentOS 8 with Clang':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on CentOS 8 with Clang debug':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on EL 8 with Clang':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on EL 8.8 with Clang':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on EL 8 with Clang debug':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on EL 8.8 with Clang debug':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             if (run_default_skipped_stage('build-el8-clang-debug')) {
                 return false
             }
@@ -305,26 +345,33 @@ boolean call(Map config = [:]) {
                    (docOnlyChange(target_branch) &&
                     prRepos('el8') == '')
         case 'Build on Ubuntu 20.04':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_build_on_landing_branch(target_branch) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '')
         case 'Build on Leap 15 with Clang':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on Leap 15.4 with Clang':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on Leap 15.5 with Clang':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_build_on_landing_branch(target_branch) ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '')
         /* groovylint-disable-next-line DuplicateCaseStatement */
         case 'Build on CentOS 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on EL 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-el8-gcc-dev') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('el8') == '') ||
                    quickBuild()
         case 'Build on Ubuntu 20.04 with Clang':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('build-ubuntu-clang') ||
@@ -332,16 +379,22 @@ boolean call(Map config = [:]) {
                     prRepos('ubuntu20') == '') ||
                    quickBuild()
         case 'Build on Leap 15':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on Leap 15.4':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on Leap 15.5':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-leap15-gcc') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('leap15') == '') ||
                    quickBuild()
         case 'Build on Leap 15 with Intel-C and TARGET_PREFIX':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on Leap 15.4 with Intel-C and TARGET_PREFIX':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Build on Leap 15.5 with Intel-C and TARGET_PREFIX':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('build-leap15-icc') ||
@@ -349,6 +402,7 @@ boolean call(Map config = [:]) {
                     prRepos('leap15') == '') ||
                    quickBuild()
         case 'Unit Tests':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return  env.NO_CI_TESTING == 'true' ||
                     paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                     skip_stage_pragma('build') ||
@@ -357,38 +411,59 @@ boolean call(Map config = [:]) {
                     skip_build_on_el_gcc(target_branch, '8') ||
                     skip_stage_pragma('unit-tests')
         case 'NLT':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'NLT on CentOS 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'NLT on EL 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'NLT on EL 8.8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_stage_pragma('nlt') ||
                    quickBuild() ||
                    stageAlreadyPassed()
         case 'Unit Test Bullseye':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Unit Test Bullseye on CentOS 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Unit Test Bullseye on EL 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Unit Test Bullseye on EL 8.8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_stage_pragma('bullseye', 'true') ||
                    stageAlreadyPassed()
         case 'Unit Test bdev with memcheck on EL 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Unit Test bdev with memcheck on EL 8.8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Unit Test with memcheck on CentOS 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Unit Test with memcheck on EL 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Unit Test with memcheck on EL 8.8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Unit Test with memcheck':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return !paramsValue('CI_UNIT_TEST_MEMCHECK', true) ||
                    skip_stage_pragma('unit-test-memcheck') ||
                    stageAlreadyPassed()
         case 'Unit Test':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Unit Test on CentOS 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Unit Test on EL 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Unit Test on EL 8.8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Unit Test bdev on EL 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Unit Test bdev on EL 8.8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return !paramsValue('CI_UNIT_TEST', true) ||
                    skip_stage_pragma('unit-test') ||
                    skip_stage_pragma('run_test') ||
                    stageAlreadyPassed()
         case 'Test':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return env.NO_CI_TESTING == 'true' ||
                    (skip_stage_pragma('build') &&
                     rpmTestVersion() == '') ||
@@ -399,14 +474,20 @@ boolean call(Map config = [:]) {
                     !startedByUser()) ||
                    skip_if_unstable()
         case 'Test on CentOS 7 [in] Vagrant':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_stage_pragma('vagrant-test', 'true') &&
                    !env.BRANCH_NAME =~ branchTypeRE('weekly') ||
                    stageAlreadyPassed()
         case 'Coverity on CentOS 7':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Coverity on CentOS 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Coverity on EL 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Coverity on EL 8.8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Coverity':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    rpmTestVersion() != '' ||
                    skip_stage_pragma('coverity-test', 'true') ||
@@ -414,31 +495,48 @@ boolean call(Map config = [:]) {
                    docOnlyChange(target_branch) ||
                    skip_stage_pragma('build')
         case 'Functional on CentOS 7':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_ftest('el7', target_branch, tags)
         case 'Functional on CentOS 7 with Valgrind':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_ftest_valgrind('el7', target_branch, tags)
         case 'Functional on CentOS 8 with Valgrind':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Functional on EL 8 with Valgrind':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Functional on EL 8.8 with Valgrind':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_ftest_valgrind('el8', target_branch, tags)
         case 'Functional on CentOS 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Functional on EL 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Functional on EL 8.8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_ftest('el8', target_branch, tags)
         case 'Functional on EL 9':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_ftest('el9', target_branch, tags)
         case 'Functional on Leap 15':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Functional on Leap 15.4':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Functional on Leap 15.5':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_ftest('leap15', target_branch, tags)
         case 'Functional on Ubuntu 20.04':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             /* we don't do any testing on Ubuntu yet
             skip_ftest('ubuntu20', target_branch, tags) */
             return true
         case 'Fault injection testing':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Fault injection testing on CentOS 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Fault injection testing on EL 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Fault injection testing on EL 8.8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_stage_pragma('fault-injection-test') ||
                    !paramsValue('CI_FI_el8_TEST', true) ||
                    quickFunctional() ||
@@ -447,6 +545,7 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('func-test-vm') ||
                    stageAlreadyPassed()
         case 'Test CentOS 7 RPMs':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return !paramsValue('CI_RPMS_el7_TEST', true) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('test') ||
@@ -459,6 +558,7 @@ boolean call(Map config = [:]) {
                     !run_default_skipped_stage('test-centos-7-rpms')) ||
                    stageAlreadyPassed()
         case 'Test CentOS 8.3.2011 RPMs':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return !paramsValue('CI_RPMS_centos8.3.2011_TEST', true) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('test') ||
@@ -470,7 +570,9 @@ boolean call(Map config = [:]) {
                     !run_default_skipped_stage('test-centos-8.3-rpms')) ||
                    stageAlreadyPassed()
         case 'Test CentOS 8.4.2105 RPMs':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Test EL 8.4 RPMs':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return !paramsValue('CI_RPMS_el8.4.2105_TEST', true) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('test') ||
@@ -482,7 +584,9 @@ boolean call(Map config = [:]) {
                     !run_default_skipped_stage('test-el-8.4-rpms')) ||
                    stageAlreadyPassed()
         case 'Test CentOS 8.5.2111 RPMs':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Test EL 8.5 RPMs':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return !paramsValue('CI_RPMS_el8.5.2111_TEST', true) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('test') ||
@@ -494,7 +598,9 @@ boolean call(Map config = [:]) {
                     !run_default_skipped_stage('test-el-8.5-rpms')) ||
                    stageAlreadyPassed()
         case 'Test EL 8.6 RPMs':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Test RPMs on EL 8.6':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return !paramsValue('CI_RPMS_el8.6_TEST', true) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('test') ||
@@ -507,13 +613,16 @@ boolean call(Map config = [:]) {
                    (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
         case 'Test Leap 15 RPMs':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Test Leap 15.2 RPMs':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             // Skip by default as it doesn't pass with Leap15.3 due to
             // requiring a newer glibc
             return !paramsValue('CI_RPMS_leap15_TEST', true) ||
                    skip_stage_pragma('test-leap-15-rpms', 'true') ||
                    stageAlreadyPassed()
         case 'Test RPMs on Leap 15.4':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return !paramsValue('CI_RPMS_leap15.4_TEST', true) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('test') ||
@@ -526,15 +635,22 @@ boolean call(Map config = [:]) {
                    (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
         case 'Scan CentOS 7 RPMs':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_scan_rpms('centos7', target_branch)
         case 'Scan CentOS 8 RPMs':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Scan EL 8 RPMs':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_scan_rpms('el8', target_branch)
         case 'Scan Leap 15 RPMs':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Scan Leap 15.4 RPMs':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Scan Leap 15.5 RPMs':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_scan_rpms('leap15', target_branch)
         case 'Test Hardware':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return env.NO_CI_TESTING == 'true' ||
                    skip_stage_pragma('func-test') ||
                    skip_stage_pragma('func-hw-test') ||
@@ -547,32 +663,48 @@ boolean call(Map config = [:]) {
                     !startedByUser()) ||
                    skip_if_unstable()
         case 'Functional_Hardware_Small':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Functional Hardware Small':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_ftest_hw('small', target_branch, tags)
         case 'Functional_Hardware_Medium':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Functional Hardware Medium':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_ftest_hw('medium', target_branch, tags)
         case 'Functional Hardware Medium TCP Provider':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_ftest_hw('medium-tcp-provider', target_branch, tags)
         case 'Functional Hardware Medium Verbs Provider':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_ftest_hw('medium-verbs-provider', target_branch, tags)
         case 'Functional Hardware Medium UCX Provider':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_ftest_hw('medium-ucx-provider', target_branch, tags)
         case 'Functional_Hardware_Large':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Functional Hardware Large':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_ftest_hw('large', target_branch, tags)
         case 'Functional_Hardware_24':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Functional Hardware 24':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_ftest_hw('24', target_branch, tags)
         case 'Bullseye Report':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Bullseye Report on CentOS 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
         case 'Bullseye Report on EL 8':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return env.BULLSEYE == null ||
                    skip_stage_pragma('bullseye', 'true')
         case 'DAOS Build and Test':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
             return skip_stage_pragma('daos-build-and-test')
         default:
             println("Don't know how to skip stage \"${env.STAGE_NAME}\", not skipping")
             return false
     }
+    println('skipStage() should not get here!!')
 }
