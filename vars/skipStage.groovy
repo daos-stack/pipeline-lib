@@ -163,11 +163,12 @@ boolean call(Map config = [:]) {
         println('skipStage(): Already passed')
         return true
     }
-    println('skipStage(): Hasn not passed')
+    println('skipStage(): Has not passed')
 
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
     String tags = config['tags'] ?: parseStageInfo()['test_tag']
 
+    println('skipStage(): starting the switch(' + env.STAGE_NAME + ') statement')
     switch (env.STAGE_NAME) {
         case 'Cancel Previous Builds':
             return cachedCommitPragma('Cancel-prev-build') == 'false' ||
