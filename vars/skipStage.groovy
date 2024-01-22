@@ -200,6 +200,7 @@ boolean call(Map config = [:]) {
                    (rpmTestVersion() != '') + ', ' +
                    quickFunctional() + ', ' +
                    prReposContains(null, jobName()))
+            println('end of skipStage debug')
             // always build branch landings as we depend on lastSuccessfulBuild
             // always having RPMs in it
             return (env.BRANCH_NAME != target_branch) &&
