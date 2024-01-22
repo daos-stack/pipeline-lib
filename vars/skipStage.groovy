@@ -192,7 +192,7 @@ boolean call(Map config = [:]) {
             println('skipStage debug 3: ' + (rpmTestVersion() != ''))
             println('skipStage debug 4: ' + quickFunctional())
             println('skipStage debug 5: ' + prReposContains(null, jobName()))
-            println('end of skipStage debug, returning'
+            println('end of skipStage debug, returning: ' +
                     (env.BRANCH_NAME != target_branch) &&
                     skip_stage_pragma('build') ||
                     rpmTestVersion() != '' ||

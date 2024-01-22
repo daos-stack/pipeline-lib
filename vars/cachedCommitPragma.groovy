@@ -32,20 +32,25 @@ String call(String name, String def_val = null) {
     String _name = name.toLowerCase()
     String _def_val
 
+    println('cachedCommitPragma(' + name + ', ' + def_val + ')')
     if (def_val) {
         _def_val = def_val
     }
 
     /* groovylint-disable-next-line CouldBeElvis */
     if (!commit_pragma_cache[_name]) {
+        println('cachedCommitPragma() not found in cache, calling commitPragma(' + _name + ')')
         commit_pragma_cache[_name] = commitPragma(_name)
     }
 
     if (commit_pragma_cache[_name]) {
+        println('cachedCommitPragma() found in cache, returning ' commit_pragma_cache[_name])
         return commit_pragma_cache[_name]
     } else if (_def_val) {
+        println('cachedCommitPragma() still not found in cache, returning default value ' _def_val])
         return _def_val
     }
 
+    println('cachedCommitPragma() returning \'\'')
     return ''
 }
