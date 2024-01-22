@@ -186,13 +186,18 @@ boolean call(Map config = [:]) {
             return skip_stage_pragma('python-bandit')
         case 'Build':
             println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
-            println('skipStage debug 1: ' + env.BRANCH_NAME + ' != ' + target_branch + ' == ')
-            println('skipStage debug 2: ' + env.BRANCH_NAME != target_branch)
-            println('skipStage debug 3: ' + skip_stage_pragma('build'))
-            println('skipStage debug 4: ' + (rpmTestVersion() != ''))
-            println('skipStage debug 5: ' + quickFunctional())
-            println('skipStage debug 6: ' + prReposContains(null, jobName()))
-            println('end of skipStage debug')
+            println('skipStage debug 1: ' + env.BRANCH_NAME + ' != ' + target_branch + ' == ' +
+                    (env.BRANCH_NAME != target_branch))
+            println('skipStage debug 2: ' + skip_stage_pragma('build'))
+            println('skipStage debug 3: ' + (rpmTestVersion() != ''))
+            println('skipStage debug 4: ' + quickFunctional())
+            println('skipStage debug 5: ' + prReposContains(null, jobName()))
+            println('end of skipStage debug, returning'
+                    (env.BRANCH_NAME != target_branch) &&
+                    skip_stage_pragma('build') ||
+                    rpmTestVersion() != '' ||
+                    (quickFunctional() &&
+                    prReposContains(null, jobName())))
             // always build branch landings as we depend on lastSuccessfulBuild
             // always having RPMs in it
             return (env.BRANCH_NAME != target_branch) &&
