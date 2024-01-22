@@ -47,7 +47,7 @@ String call(String name, String def_val = null) {
         println('cachedCommitPragma() found in cache, returning ' + commit_pragma_cache[_name])
         return commit_pragma_cache[_name]
     } else if (_def_val) {
-        println('cachedCommitPragma() still not found in cache, returning default value ' + _def_val])
+        println('cachedCommitPragma() still not found in cache, returning default value ' + _def_val)
         return _def_val
     }
 
