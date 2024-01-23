@@ -60,7 +60,7 @@ Map call(Map kwargs = [:]) {
             } else {
                 node(cachedCommitPragma("Test-label${pragma_suffix}", label)) {
                     // Ensure access to any branch provisioning scripts exist
-                    echo "[${name}] Check out from version control"
+                    echo "[${name}] Check out "' + base_branch + '" from version control"
                     if (base_branch) {
                         checkoutScm(
                             url: 'https://github.com/daos-stack/daos.git',
