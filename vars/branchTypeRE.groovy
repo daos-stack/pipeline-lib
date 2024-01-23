@@ -27,7 +27,9 @@ String call(String branch_type) {
         case 'downstream':
             // Match a downstream testing branch e.g. ci-daos-do-packer-ofed-images-PR-11-release-2.2,
             //                                        ci-daos-do-packer-ofed-images-PR-11-master
-            return(/^ci-daos-.+-(?:release\/[\d.]+|master)$/)
+            //                                        ci-daos-stack-pipeline-lib-PR-415-weekly-testing
+            //                                        ci-daos-stack-pipeline-lib-PR-415-weekly-2.4-testing
+            return(/^ci-daos-.+-(?:release\/[\d.]+|master|weekly-(?:[\d.]+-)?testing)$/)
 
         case 'testing':
             // Match any *-testing branch (including weekly and provider)
