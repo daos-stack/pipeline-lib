@@ -122,6 +122,9 @@ Map call(Map config = [:]) {
 
     if (!fileExists('ci/provisioning/log_cleanup.sh') ||
         !fileExists('ci/provisioning/post_provision_config.sh')) {
+        println('ci/provisioning/log_cleanup.sh or ci/provisioning/post_provision_config.sh ' +
+                'do not exist so falling back to provisionNodesV1())')
+        sh(script: 'set +e; pwd; ls -l; ls -l ci/provisioning/log_cleanup.sh ci/provisioning/post_provision_config.sh')
         return provisionNodesV1(config)
     }
 

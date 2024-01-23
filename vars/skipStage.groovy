@@ -13,6 +13,8 @@
 
 // Determine if a stage has been specified to skip with a commit pragma
 String skip_stage_pragma(String stage, String def_val='false') {
+    println('Checking if commit message has Skip-' + stage + ': true: ' +
+           (cachedCommitPragma('Skip-' + stage, def_val).toLowerCase() == 'true'))
     return cachedCommitPragma('Skip-' + stage, def_val).toLowerCase() == 'true'
 }
 
@@ -183,6 +185,19 @@ boolean call(Map config = [:]) {
         case 'Python Bandit check':
             return skip_stage_pragma('python-bandit')
         case 'Build':
+            println('skipStage(): case \'' + env.STAGE_NAME + '\' statement')
+            println('skipStage debug 1: ' + env.BRANCH_NAME + ' != ' + target_branch + ' == ' +
+                    (env.BRANCH_NAME != target_branch))
+            println('skipStage debug 2: ' + skip_stage_pragma('build'))
+            println('skipStage debug 3: ' + (rpmTestVersion() != ''))
+            println('skipStage debug 4: ' + quickFunctional())
+            println('skipStage debug 5: ' + prReposContains(null, jobName()))
+            println('end of skipStage debug, returning: ' + (
+                    (env.BRANCH_NAME != target_branch) &&
+                    skip_stage_pragma('build') ||
+                    rpmTestVersion() != '' ||
+                    (quickFunctional() &&
+                    prReposContains(null, jobName()))))
             // always build branch landings as we depend on lastSuccessfulBuild
             // always having RPMs in it
             return (env.BRANCH_NAME != target_branch) &&
@@ -494,6 +509,7 @@ boolean call(Map config = [:]) {
                    (quickFunctional() &&
                     !paramsValue('CI_RPMS_el8_6_TEST', true) &&
                     !run_default_skipped_stage('test-el-8.6-rpms')) ||
+                   (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
         case 'Test Leap 15 RPMs':
         case 'Test Leap 15.2 RPMs':
@@ -504,10 +520,14 @@ boolean call(Map config = [:]) {
                    stageAlreadyPassed()
         case 'Test RPMs on Leap 15.4':
             return !paramsValue('CI_RPMS_leap15.4_TEST', true) ||
+                   target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-leap-15.4-rpms', 'true') ||
                    docOnlyChange(target_branch) ||
+                   (quickFunctional() &&
+                    !paramsValue('CI_RPMS_leap15_4_TEST', true) &&
+                    !run_default_skipped_stage('test-leap-15.4-rpms')) ||
                    (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
         case 'Scan CentOS 7 RPMs':
@@ -557,7 +577,6 @@ boolean call(Map config = [:]) {
         case 'DAOS Build and Test':
             return skip_stage_pragma('daos-build-and-test')
         default:
-            println("Don't know how to skip stage \"${env.STAGE_NAME}\", not skipping")
             return false
     }
 }

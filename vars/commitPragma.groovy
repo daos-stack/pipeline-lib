@@ -26,6 +26,7 @@ String call(Map config = [:]) {
  */
 String call(String name, String def_val = null) {
     if (env.pragmas) {
+        println('commitPragma(): using env.pragmas:' + env.pragmas)
         Map pragmas = "${env.pragmas}"[1..-2].split(', ').collectEntries { entry ->
             String[] pair = entry.split('= ')
             [(pair.first()): pair.last()]
@@ -38,5 +39,6 @@ String call(String name, String def_val = null) {
         }
         return ''
     }
+    println('commitPragma(): using commitPragmaTrusted():' + commitPragmaTrusted(name, def_val))
     return commitPragmaTrusted(name, def_val)
 }
