@@ -56,6 +56,7 @@ Map call(Map config = [:]) {
                        'PRAGMA_SUFFIX="' + config['pragma_suffix'] + '" ' +
                        'NODE_COUNT="' + config['node_count'] + '" ' +
                        'OPERATIONS_EMAIL="' + env.OPERATIONS_EMAIL + '" ' +
+                       'COVFN_DISABLED="' + env.COVFN_DISABLED+ '" ' +
                        "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
                        'ci/functional/test_main.sh'
 
