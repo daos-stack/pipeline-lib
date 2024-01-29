@@ -11,9 +11,9 @@
  */
 boolean call(String tags) {
     if (env.UNIT_TEST && env.UNIT_TEST == 'true') {
-        println('Unit testing, so exiting "Get test list" with true')
         return true
     }
+    /* groovylint-disable-next-line UnnecessaryGetter */
     String verbose = isPr() ? '--verbose ' : ''
     return sh(label: 'Get test list',
               /* groovylint-disable-next-line GStringExpressionWithinString */

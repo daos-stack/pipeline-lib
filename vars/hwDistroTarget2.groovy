@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateNumberLiteral */
 // vars/hwDistroTarget2.groovy
 
 /**
@@ -14,11 +15,11 @@
 // String, String hw_distro(String size) here but it chokes Jenkins (at
 // least)
 List call(String size) {
-    // Possible values:
+    // Possible return values:
     // leap15
     // centos7
     // el8
-    // NOTE: the default distro does not get set, here below if the DAOS Jenkinsfile has a CI_HARDWARE_DISTRO parameter
+    // NOTE: the default distro does not get set here below if the DAOS Jenkinsfile has a CI_HARDWARE_DISTRO parameter
     String distro = cachedCommitPragma('EL8-target', 'el' +
                                        cachedCommitPragma('EL8-version',
                                                           distroVersion('el8')))
@@ -32,7 +33,7 @@ List call(String size) {
 
 List call() {
     if (env.STAGE_NAME.contains('Hardware')) {
-        return hwDistroTarget2(env.STAGE_NAME[env.STAGE_NAME.lastIndexOf(" ")
+        return hwDistroTarget2(env.STAGE_NAME[env.STAGE_NAME.lastIndexOf(' ')
                                               + 1..-1].toLowerCase())
     }
     return (parseStageInfo()['target'] =~ /([a-z]+)(.*)/)[0][1..2]

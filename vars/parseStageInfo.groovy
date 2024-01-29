@@ -123,10 +123,11 @@ Map call(Map config = [:]) {
             new_ci_target = cachedCommitPragma('UBUNTU20-target', result['target'])
         } else {
             // also for: if (stage_name.contains('CentOS 7')) {
-            echo "Could not determine target in ${stage_name}, defaulting to EL7"
-            result['target'] = 'centos7'
-            result['distro_version'] = cachedCommitPragma('EL7-version', '7')
-            new_ci_target = cachedCommitPragma('EL7-target', result['target'])
+            echo "Could not determine target in ${stage_name}, defaulting to EL8"
+            result['target'] = 'el8'
+            result['distro_version'] = cachedCommitPragma('EL8-version',
+                                                          distroVersion(result['target']))
+            new_ci_target = cachedCommitPragma('EL8-target', result['target'])
         }
     }
     new_ci_target = paramsValue(

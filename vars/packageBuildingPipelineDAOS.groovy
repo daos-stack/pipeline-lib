@@ -119,6 +119,25 @@ void call(Map pipeline_args) {
                     }
                 }
             }
+            stage('Prepare Environment Variables') {
+                parallel {
+                    stage('Get Commit Message') {
+                        steps {
+                            pragmasToEnv()
+                        }
+                    }
+                    stage('Determine Base Branch') {
+                        steps {
+                            script {
+                                env.BASE_BRANCH_NAME = sh(label: 'Determine base branch name',
+                                                          script: 'packaging/get_base_branch',
+                                                          returnStdout: true).trim()
+                                echo 'Base branch == ' + env.BASE_BRANCH_NAME
+                            }
+                        }
+                    }
+                }
+            }
             stage('Cancel Previous Builds') {
                 when {
                     beforeAgent true
@@ -126,14 +145,6 @@ void call(Map pipeline_args) {
                 }
                 steps {
                     cancelPreviousBuilds()
-                }
-            }
-            stage('Get Commit Message') {
-                steps {
-                    script {
-                        env.COMMIT_MESSAGE = sh(script: 'git show -s --format=%B',
-                                                returnStdout: true).trim()
-                    }
                 }
             }
             stage('Lint') {

@@ -3,6 +3,8 @@ name: Set Pipeline Library Branch
 on:
   push:
 
+permissions: read-all
+
 jobs:
   update_pipeline_lib_branch:
     name: Update Pipeline Library Branch
