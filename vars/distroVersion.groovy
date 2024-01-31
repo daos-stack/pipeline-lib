@@ -16,36 +16,17 @@ String call(String distro) {
     if (env.BRANCH_NAME =~ branchTypeRE('release') ||
         env.BRANCH_NAME =~ branchTypeRE('testing')) {
         if (env.BRANCH_NAME =~ /\d+\.\d+/) {
-            branch = env.BRANCH_NAME.replaceFirst(/^.*(\d+\.\d+).*$/, '\$1')
+            branch = env.BRANCH_NAME
         }
     } else {
-        if (env.LANDING_BRANCH_NAME) {
-            branch = env.LANDING_BRANCH_NAME
+        if (env.RELEASE_BRANCH) {
+            branch = env.RELEASE_BRANCH
         } else {
-            // find the base branch
-            branch = sh(label: 'Find base branch',
-                         /* groovylint-disable-next-line GStringExpressionWithinString */
-                         script: '''set -eux -o pipefail
-                                    ORIGIN=origin
-                                    mapfile -t all_bases < <(echo "master"; git branch -r |
-                                      sed -ne "/^  $ORIGIN\\/release\\/[0-9]/s/^  $ORIGIN\\///p")
-                                    TARGET="master"
-                                    min_diff=-1
-                                    for base in "${all_bases[@]}"; do
-                                        git rev-parse --verify "$ORIGIN/$base" &> /dev/null || continue
-                                        commits_ahead=$(git log --oneline "$ORIGIN/$base..HEAD" | wc -l)
-                                        if [ "$min_diff" -eq -1 ] || [ "$min_diff" -gt "$commits_ahead" ]; then
-                                            TARGET="$base"
-                                            min_diff=$commits_ahead
-                                        fi
-                                    done
-                                    echo "$TARGET"
-                                    exit 0''',
-                         returnStdout: true).trim().replaceFirst(/^.*(\d+\.\d+).*$/, '\$1')
+            branch = releaseBranch()
         }
     }
 
-    return distroVersion(distro, branch)
+    return distroVersion(distro, branch.replaceFirst(/^.*(\d+\.\d+).*$/, '\$1'))
 }
 
 String call(String distro, String branch) {
@@ -82,6 +63,10 @@ String sh(Map args) {
     //println "out> $sout\nerr> $serr"
 
     return sout
+}
+
+String releaseBranch() {
+    return 'release/2.4'
 }
 
 assert(call('leap15') == '15.5')
