@@ -117,6 +117,25 @@ void call(Map pipeline_args) {
                     }
                 }
             }
+            stage('Prepare Environment Variables') {
+                parallel {
+                    stage('Get Commit Message') {
+                        steps {
+                            pragmasToEnv()
+                        }
+                    }
+                    stage('Determine Base Branch') {
+                        steps {
+                            script {
+                                env.BASE_BRANCH_NAME = sh(label: 'Determine base branch name',
+                                                          script: 'packaging/get_base_branch',
+                                                          returnStdout: true).trim()
+                                echo 'Base branch == ' + env.BASE_BRANCH_NAME
+                            }
+                        }
+                    }
+                }
+            }
             stage('Cancel Previous Builds') {
                 when {
                     beforeAgent true
@@ -124,14 +143,6 @@ void call(Map pipeline_args) {
                 }
                 steps {
                     cancelPreviousBuilds()
-                }
-            }
-            stage('Get Commit Message') {
-                steps {
-                    script {
-                        env.COMMIT_MESSAGE = sh(script: 'git show -s --format=%B',
-                                                returnStdout: true).trim()
-                    }
                 }
             }
             stage('Lint') {
@@ -756,6 +767,7 @@ void call(Map pipeline_args) {
                                                 usernameVariable: 'GH_USER',
                                                 passwordVariable: 'GH_PASS']]) {
                                     sh label: 'Create or update test branch',
+                                       /* groovylint-disable-next-line GStringExpressionWithinString */
                                        script: 'branch_name=' + test_branch(env.TEST_BRANCH) + '''
                                                source_branch=origin/''' +
                                                cachedCommitPragma("Test-${env.TEST_BRANCH}-branch",
@@ -786,15 +798,15 @@ void call(Map pipeline_args) {
                                                     echo "Error trying to create branch $branch_name"
                                                     exit 1
                                                 fi
-                                                pipeline_libs="''' + cachedCommitPragma('Test-libs') + '''"
                                                 # remove any triggers so that this test branch doesn't run weekly, etc.
                                                 if grep triggers Jenkinsfile; then
                                                     sed -i -e '/triggers/,/^$/d' Jenkinsfile
                                                     msg=' and remove triggers'
                                                 fi
+                                                pipeline_libs="''' + cachedCommitPragma('Test-libs') + '''"
                                                 if [ -n "$pipeline_libs" ]; then
                                                     sed -i -e "/\\/\\/@Library/c\\
-                                                        @Library(value=$pipeline_libs) _" Jenkinsfile
+                                                        @Library(value='$pipeline_libs') _" Jenkinsfile
                                                     msg="Pipeline-lib PRs${msg:-}"
                                                 else
                                                     msg="Clear any commit pragmas${msg:-}"
@@ -825,6 +837,7 @@ void call(Map pipeline_args) {
                                                    string(name: 'CI_PROVISIONING_POOL', value: 'default'),
                                                    string(name: 'CI_BUILD_DESCRIPTION',
                                                           value: 'Dependency Validation Build Test'),
+                                                   /* groovylint-disable-next-line UnnecessaryGetter */
                                                    string(name: 'BuildPriority', value: getPriority()),
                                                    booleanParam(name: 'CI_FI_el8_TEST', value: false),
                                                    booleanParam(name: 'CI_FUNCTIONAL_el7_TEST',

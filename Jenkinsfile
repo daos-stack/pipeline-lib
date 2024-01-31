@@ -1,5 +1,5 @@
 #!/usr/bin/env groovy
-// groovylint-disable DuplicateListLiteral, DuplicateNumberLiteral,
+/* groovylint-disable DuplicateListLiteral, DuplicateMapLiteral, DuplicateNumberLiteral */
 // groovylint-disable DuplicateStringLiteral, NestedBlockDepth, VariableName
 /* Copyright (C) 2019-2023 Intel Corporation
  * All rights reserved.
@@ -106,9 +106,23 @@ pipeline {
     }
 
     stages {
-        stage('Get Commit Message') {
-            steps {
-                pragmasToEnv()
+        stage('Prepare Environment Variables') {
+            parallel {
+                stage('Get Commit Message') {
+                    steps {
+                        pragmasToEnv()
+                    }
+                }
+                stage('Determine Base Branch') {
+                    steps {
+                        script {
+                            env.BASE_BRANCH_NAME = sh(label: 'Determine base branch name',
+                                                      script: 'utils/scripts/get_base_branch',
+                                                      returnStdout: true).trim()
+                            echo 'Base branch == ' + env.BASE_BRANCH_NAME
+                        }
+                    }
+                }
             }
         }
         stage('Cancel Previous Builds') {
@@ -502,7 +516,7 @@ pipeline {
                                              'pragmas=' + env.tmp_pragmas,
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         actual_skips.add(skipStage(commit_msg: cm))
-                                        if (actual_skips[i] != commit.skips[i]) {errors++}
+                                        if (actual_skips[i] != commit.skips[i]) { errors++ }
                                         i++
                                     }
                                 }
@@ -514,9 +528,9 @@ pipeline {
                                     result = 'PASS'
                                     expect = 'run '
                                     actual = 'run '
-                                    if (commit.skips[i]) {expect = 'skip'}
-                                    if (actual_skips[i]) {actual = 'skip'}
-                                    if (expect != actual) {result = 'FAIL'}
+                                    if (commit.skips[i]) { expect = 'skip' }
+                                    if (actual_skips[i]) { actual = 'skip' }
+                                    if (expect != actual) { result = 'FAIL' }
                                     println('  ' + result + '    ' + expect + '    ' + actual + '    ' + stage)
                                     i++
                                 }
@@ -599,6 +613,7 @@ pipeline {
                                 [description: 'run_if_pr=false',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
                                  pragma: '',
+                                 /* groovylint-disable-next-line UnnecessaryGetter */
                                  expect: isPr()],
                                 [description: 'Distro set',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: 'el8', run_if_pr: true],
@@ -666,7 +681,7 @@ pipeline {
                                          'COMMIT_MESSAGE=' + commit_message.stripIndent()]) {
                                     sequences[index]['actual'] = skipFunctionalTestStage(sequence['kwargs'])
                                     println("skipFunctionalTestStage() -> ${sequence['actual']}")
-                                    if (sequence['expect'] != sequence['actual']) {errors++}
+                                    if (sequence['expect'] != sequence['actual']) { errors++ }
                                 }
                                 println('------------------------------------------------------------')
                             }
@@ -677,9 +692,9 @@ pipeline {
                                 result = 'PASS'
                                 expect = 'run '
                                 actual = 'run '
-                                if (sequence['expect']) {expect = 'skip'}
-                                if (sequence['actual']) {actual = 'skip'}
-                                if (expect != actual) {result = 'FAIL'}
+                                if (sequence['expect']) { expect = 'skip' }
+                                if (sequence['actual']) { actual = 'skip' }
+                                if (expect != actual) { result = 'FAIL' }
                                 println("  ${result}    ${expect}    ${actual}    ${index}: " +
                                         "${sequence['description']} (${sequence['kwargs']})")
                             }
