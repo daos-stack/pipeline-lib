@@ -19,10 +19,8 @@ String call(String distro) {
             branch = env.BRANCH_NAME.replaceFirst(/^.*(\d+\.\d+).*$/, '\$1')
         }
     } else {
-        if (env.BASE_BRANCH_NAME) {
-            branch = env.BASE_BRANCH_NAME
-        } else if (env.CHANGE_TARGET) {
-            branch = env.CHANGE_TARGET
+        if (env.LANDING_BRANCH_NAME) {
+            branch = env.LANDING_BRANCH_NAME
         } else {
             // find the base branch
             branch = sh(label: 'Find base branch',
