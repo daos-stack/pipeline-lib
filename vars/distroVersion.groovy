@@ -25,7 +25,7 @@ String call(String distro) {
             // find the base branch
             branch = sh(label: 'Find base branch',
                          script: '''set -eux -o pipefail
-                                    max_commits=200
+                                    max_commits=300
                                     base_branch_re='^  origin/(master|release/)'
                                     n=0
                                     while [ "$n" -lt "$max_commits" ]; do
