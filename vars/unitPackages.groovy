@@ -21,7 +21,7 @@ String call() {
 
     Map stage_info = parseStageInfo()
     String target = stage_info['target']
-    boolean quick_build = quickBuild() || (stage_info['compiler'] == 'covc')
+    boolean quick_build = quickBuild()
 
     if (target.startsWith('centos') || target.startsWith('el')) {
         if (quick_build) {
