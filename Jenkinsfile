@@ -80,6 +80,17 @@ String test_branch(String target) {
             '-' + target.replaceAll('/', '-')
 }
 
+Void distro_version_test(String branch, String distro, String expected) {
+    println("Test branch: ${branch}, distro: ${distro}, expecting: ${expected}")
+    withEnv(["BRANCH_NAME=${branch}"]) {
+        String dv = distroVersion(distro)
+        if (dv == null || !dv.startsWith(expected)) {
+            unstable("distroVersion() returned ${dv} " +
+                      "instead of string starting with '${expected}'")
+        }
+    }
+}
+
 /* groovylint-disable-next-line CompileStatic */
 pipeline {
     agent { label 'lightweight' }
@@ -113,13 +124,11 @@ pipeline {
                         pragmasToEnv()
                     }
                 }
-                stage('Determine Base Branch') {
+                stage('Determine Release Branch') {
                     steps {
                         script {
-                            env.BASE_BRANCH_NAME = sh(label: 'Determine base branch name',
-                                                      script: 'utils/scripts/get_base_branch',
-                                                      returnStdout: true).trim()
-                            echo 'Base branch == ' + env.BASE_BRANCH_NAME
+                            env.RELEASE_BRANCH = releaseBranch()
+                            echo 'Base branch == ' + env.RELEASE_BRANCH
                         }
                     }
                 }
@@ -146,33 +155,9 @@ pipeline {
                 }
                 stage('distroVersion() tests') {
                     steps {
-                        withEnv(['BRANCH_NAME=release/2.4']) {
-                            script {
-                                String dv = distroVersion('el8')
-                                if (dv == null || !dv.startsWith('8')) {
-                                    unstable("distroVersion() returned ${dv} " +
-                                              "instead of string starting with '8'")
-                                }
-                            }
-                        }
-                        withEnv(['BRANCH_NAME=release/2.4']) {
-                            script {
-                                String dv = distroVersion('leap15')
-                                if (dv == null || !dv.startsWith('15')) {
-                                    unstable("distroVersion() returned ${dv} " +
-                                              "instead of string starting with '15'")
-                                }
-                            }
-                        }
-                        withEnv(['BRANCH_NAME=master']) {
-                            script {
-                                String dv = distroVersion('el9')
-                                if (dv == null || !dv.startsWith('9')) {
-                                    unstable("distroVersion() returned ${dv} " +
-                                              "instead of string starting with '9'")
-                                }
-                            }
-                        }
+                        distro_version_test('release/2.4', 'el8', '8')
+                        distro_version_test('release/2.4', 'leap15', '15')
+                        distro_version_test('master', 'el9', '9')
                     }
                 }
                 stage('grep JUnit results tests failure case') {
