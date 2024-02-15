@@ -546,16 +546,22 @@ pipeline {
                                        tag_template: '@commits.value@,@stages.tag@'],
                                        [tags: [[tag: 'Features', value: 'datamover']],
                                         tag_template: 'pr,@stages.tag@ ' +
+                                                      'pr,@commits.value@,@stages.tag@ ' +
                                                       'daily_regression,@commits.value@,@stages.tag@ ' +
                                                       'full_regression,@commits.value@,@stages.tag@'],
                                        /* groovylint-disable-next-line DuplicateMapLiteral */
                                        [tags: [[tag: 'Test-tag', value: 'datamover'],
                                                [tag: 'Features', value: 'foobar']],
-                                        tag_template: '@commits.value@,@stages.tag@'],
+                                        tag_template: '@commits.value@,@stages.tag@' +
+                                                      'pr,foobar,@stages.tag@ ' +
+                                                      'daily_regression,foobar,@stages.tag@ ' +
+                                                      'full_regression,foobar,@stages.tag@'],
                                        [tags: [[tag: 'Features', value: 'datamover foobar']],
                                         tag_template: 'pr,@stages.tag@ ' +
+                                                      'pr,datamover,@stages.tag@ ' +
                                                       'daily_regression,datamover,@stages.tag@ ' +
                                                       'full_regression,datamover,@stages.tag@ ' +
+                                                      'pr,foobar,@stages.tag@ ' +
                                                       'daily_regression,foobar,@stages.tag@ ' +
                                                       'full_regression,foobar,@stages.tag@'],
                                        [tags: [[tag: 'Test-tag', value: 'datamover foobar']],
