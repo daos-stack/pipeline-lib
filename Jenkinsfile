@@ -579,7 +579,7 @@ pipeline {
                                         cmp = cmp.replace('@stages.tag@', stage.tag)
                                         // Useful for debugging since Jenkins'
                                         // assert() is pretty lame
-                                        // println('assert(' + parseStageInfo()['test_tag'] + " == ${cmp})")
+                                        println('assert(' + parseStageInfo()['test_tag'] + " == ${cmp})")
                                         assert(parseStageInfo()['test_tag'] == cmp)
                                     }
                                 }
