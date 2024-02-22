@@ -17,7 +17,7 @@
 // That PR should be landed with out deleting the PR branch.
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
-@Library(value='pipeline-lib@dbohning/sre-1975') _
+//@Library(value='pipeline-lib@my_branch_name') _
 
 /* groovylint-disable-next-line CompileStatic */
 job_status_internal = [:]
@@ -579,8 +579,8 @@ pipeline {
                                         cmp = cmp.replace('@stages.tag@', stage.tag)
                                         // Useful for debugging since Jenkins'
                                         // assert() is pretty lame
-                                        println('assert(' + parseStageInfo()['test_tag'] + " == ${cmp})")
-                                        assert(parseStageInfo()['test_tag'] == cmp)
+                                        // println('assert(' + parseStageInfo()['test_tag'] + " == ${cmp})")
+                                        assert(parseStageInfo()['test_tag'] == cmp, parseStageInfo()['test_tag'])
                                     }
                                 }
                             }
