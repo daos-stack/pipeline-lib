@@ -580,7 +580,7 @@ pipeline {
                                         // Useful for debugging since Jenkins'
                                         // assert() is pretty lame
                                         // println('assert(' + parseStageInfo()['test_tag'] + " == ${cmp})")
-                                        assert(parseStageInfo()['test_tag'] == cmp : parseStageInfo()['test_tag'])
+                                        assert parseStageInfo()['test_tag'] == cmp : parseStageInfo()['test_tag']
                                     }
                                 }
                             }
