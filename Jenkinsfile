@@ -577,10 +577,7 @@ pipeline {
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         cmp = commit.tag_template.replace('@commits.value@', commit.tags[0].value)
                                         cmp = cmp.replace('@stages.tag@', stage.tag)
-                                        // Useful for debugging since Jenkins'
-                                        // assert() is pretty lame
-                                        // println('assert(' + parseStageInfo()['test_tag'] + " == ${cmp})")
-                                        assert(parseStageInfo()['test_tag'] == cmp), parseStageInfo()['test_tag']
+                                        assert(parseStageInfo()['test_tag'] == cmp), parseStageInfo()['test_tag'] + ' != ' + cmp
                                     }
                                 }
                             }
