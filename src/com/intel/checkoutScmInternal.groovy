@@ -58,8 +58,11 @@ def checkoutScmInternal(Map config = [:]) {
             extensions: [[$class: 'CloneOption', noTags: true, reference: '', shallow: false]],
             submoduleCfg: [],
             userRemoteConfigs: userRemoteConfigs]
-  if (config['CleanAfterCheckout']) {
-    params['extensions'].add([$class: 'CleanCheckout'])
+  if (config['pruneStaleBranch']) {
+    params['extensions'].add([$class: 'pruneStaleBranch'])
+  }
+  if (config['cleanAfterCheckout']) {
+    params['extensions'].add([$class: 'cleanAfterCheckout'])
   }
 
   if (config['checkoutDir']) {
