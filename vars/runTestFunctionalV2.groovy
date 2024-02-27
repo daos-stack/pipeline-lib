@@ -88,14 +88,25 @@ Map call(Map config = [:]) {
     // Restore the ignore failure setting
     config['ignore_failure'] = ignore_failure
 
-    String covfile = 'test.cov'
-    if (!fileExists('test.cov')) {
-        covfile += '_not_done'
-        fileOperations([fileCreateOperation(fileName: covfile,
-                                            fileContent: '')])
+    if (fileExists("${basedir}bullseye_coverage_logs/test.cov")) {
+        String name = 'func' + stage_info['pragma_suffix'] + '-cov'
+        println("[${env.STAGE_NAME}] Stashing ${basedir}bullseye_coverage_logs/test.cov in ${name}")
+        dir("${basedir}bullseye_coverage_logs") {
+            stash name: config.get('coverage_stash', name),
+                includes: 'test.cov'
+        }
+    } else {
+        println("[${env.STAGE_NAME}] No ${basedir}bullseye_coverage_logs/test.cov file found!")
     }
-    String name = 'func' + stage_info['pragma_suffix'] + '-cov'
-    stash name: config.get('coverage_stash', name),
-          includes: covfile
+
+//    String covfile = 'test.cov'
+//    if (!fileExists('test.cov')) {
+//        covfile += '_not_done'
+//        fileOperations([fileCreateOperation(fileName: covfile,
+//                                            fileContent: '')])
+//    }
+//    String name = 'func' + stage_info['pragma_suffix'] + '-cov'
+//    stash name: config.get('coverage_stash', name),
+//          includes: covfile
     return runData
 }
