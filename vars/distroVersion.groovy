@@ -16,32 +16,17 @@ String call(String distro) {
     if (env.BRANCH_NAME =~ branchTypeRE('release') ||
         env.BRANCH_NAME =~ branchTypeRE('testing')) {
         if (env.BRANCH_NAME =~ /\d+\.\d+/) {
-            branch = env.BRANCH_NAME.replaceFirst(/^.*(\d+\.\d+).*$/, '\$1')
+            branch = env.BRANCH_NAME
         }
     } else {
-        if (env.BASE_BRANCH_NAME) {
-            branch = env.BASE_BRANCH_NAME
+        if (env.RELEASE_BRANCH) {
+            branch = env.RELEASE_BRANCH
         } else {
-            // find the base branch
-            branch = sh(label: 'Find base branch',
-                         script: '''set -eux -o pipefail
-                                    max_commits=200
-                                    base_branch_re='^  origin/(master|release/)'
-                                    n=0
-                                    while [ "$n" -lt "$max_commits" ]; do
-                                        if git branch -r --contains HEAD~$n |
-                                            grep -E "$base_branch_re" | sed -e 's/^ *[^\\/]*\\///'; then
-                                            exit 0
-                                        fi
-                                        ((n++)) || true
-                                    done
-                                    echo "Could not find a base branch within $max_commits commits" >&2
-                                    exit 1''',
-                         returnStdout: true).trim().replaceFirst(/^.*(\d+\.\d+).*$/, '\$1')
+            branch = releaseBranch()
         }
     }
 
-    return distroVersion(distro, branch)
+    return distroVersion(distro, branch.replaceFirst(/^.*(\d+\.\d+).*$/, '\$1'))
 }
 
 String call(String distro, String branch) {
@@ -54,5 +39,36 @@ String call(String distro, String branch) {
 }
 
 /* groovylint-disable-next-line CompileStatic */
-assert(call('leap15', 'release/2.2') == '15.4')
-assert(call('el8', 'release/2.2') == '8.6')
+assert(call('leap15', '2.4') == '15.5')
+assert(call('leap15', 'master') == '15.5')
+assert(call('el8', '2.4') == '8.8')
+assert(call('el8', 'master') == '8.8')
+
+/* Uncomment to do further testing
+env = [:]
+String branchTypeRE(String foo) {
+    return 'nomatch'
+}
+
+String distroVersion(String distro, String branch) {
+    call(distro, branch)
+}
+
+String sh(Map args) {
+    def sout = new StringBuilder(), serr = new StringBuilder()
+    def cmd = ['/bin/bash', '-c', args['script']]
+    def proc = cmd.execute()
+    proc.consumeProcessOutput(sout, serr)
+    proc.waitForOrKill(1000)
+    //println "out> $sout\nerr> $serr"
+
+    return sout
+}
+
+String releaseBranch() {
+    return 'release/2.4'
+}
+
+assert(call('leap15') == '15.5')
+assert(call('el8') == '8.8')
+*/
