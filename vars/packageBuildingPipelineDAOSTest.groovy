@@ -127,10 +127,8 @@ void call(Map pipeline_args) {
                     stage('Determine Base Branch') {
                         steps {
                             script {
-                                env.BASE_BRANCH_NAME = sh(label: 'Determine base branch name',
-                                                          script: 'packaging/get_base_branch',
-                                                          returnStdout: true).trim()
-                                echo 'Base branch == ' + env.BASE_BRANCH_NAME
+                                env.RELEASE_BRANCH = releaseBranch()
+                                echo 'Release branch == ' + env.RELEASE_BRANCH
                             }
                         }
                     }
