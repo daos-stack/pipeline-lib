@@ -59,7 +59,7 @@ def checkoutScmInternal(Map config = [:]) {
             submoduleCfg: [],
             userRemoteConfigs: userRemoteConfigs]
   if (config['pruneStaleBranch']) {
-    params['extensions'].add([$class: 'pruneStaleBranch'])
+    params['extensions'].add([$class: 'pruneStaleBranch', pruneTags: true])
   }
   if (config['cleanAfterCheckout']) {
     params['extensions'].add([$class: 'cleanAfterCheckout'])
