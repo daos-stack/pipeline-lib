@@ -137,11 +137,14 @@ Map call(Map config = [:]) {
         }
     }
 
-    int runTime = durationSeconds(startDate)
+    Date endDate = new Date()
+    int runTime = durationSeconds(startDate, endDate)
 
     // We need to pass the rc to the post step.
     Map results = ['result_code': rc,
                    'result': status,
+                   'start_date': startDate,
+                   'end_date': endDate,
                    'runtest_time': runTime]
 
     String results_map = 'results_map_' + sanitizedStageName()
