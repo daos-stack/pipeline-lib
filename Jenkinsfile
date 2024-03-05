@@ -552,7 +552,7 @@ pipeline {
                                        /* groovylint-disable-next-line DuplicateMapLiteral */
                                        [tags: [[tag: 'Test-tag', value: 'datamover'],
                                                [tag: 'Features', value: 'foobar']],
-                                        tag_template: '@commits.value@,@stages.tag@' +
+                                        tag_template: '@commits.value@,@stages.tag@ ' +
                                                       'pr,foobar,@stages.tag@ ' +
                                                       'daily_regression,foobar,@stages.tag@ ' +
                                                       'full_regression,foobar,@stages.tag@'],
