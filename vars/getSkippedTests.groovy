@@ -12,7 +12,8 @@ List call(String branch) {
     List skiplist = cachedCommitPragma('Skip-list', '').split(' ') +
                     cachedCommitPragma('Skip-list-' + branch, '').split(' ')
 
-    echo 'Skip list: "' + skiplist + '"'
+    echo 'Skip list: "' + skiplist + '" because "' + cachedCommitPragma('Skip-list', '') + '" and "' +
+         cachedCommitPragma('Skip-list-' + branch, '') + '"'
 
     List skips = []
     skiplist.each { item ->
