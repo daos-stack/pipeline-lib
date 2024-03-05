@@ -7,9 +7,10 @@
  */
 
 List call(String branch) {
-    // i.e. SkipList-master: myTestName:DAOS-1234 anotherTest:DAOS-3456
-    List skiplist = cachedCommitPragma('SkipList', '').split(' ') +
-                    cachedCommitPragma('SkipList-' + branch, '').split(' ')
+    // i.e. Skip-list: test_my_test:DAOS-1234 test_another_test:DAOS-3456
+    //      Skip-list-master: test_only_master:DAOS-4567
+    List skiplist = cachedCommitPragma('Skip-list', '').split(' ') +
+                    cachedCommitPragma('Skip-list-' + branch, '').split(' ')
 
     List skips = []
     skiplist.each { item ->
@@ -28,10 +29,10 @@ Void error(String msg) {
 
 // groovylint-disable-next-line CompileStatic, NglParseError
 String cachedCommitPragma(String p, String v) {
-    return 'myTestName:DAOS-1234 anotherTest:DAOS-3456'
+    return 'test_my_test:DAOS-1234 test_another_test:DAOS-3456'
 }
 
 
 // groovylint-disable-next-line CompileStatic
-assert(call('master') == ['myTestName', 'anotherTest'])
-*/
+assert(call('master') == ['test_my_test', 'test_another_test'])
+ */
