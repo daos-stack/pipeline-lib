@@ -12,6 +12,8 @@ List call(String branch) {
     List skiplist = cachedCommitPragma('Skip-list', '').split(' ') +
                     cachedCommitPragma('Skip-list-' + branch, '').split(' ')
 
+    echo 'Skip list: "' + skiplist + '"'
+
     List skips = []
     skiplist.each { item ->
         if (!item.contains(':')) {
