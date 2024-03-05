@@ -25,7 +25,7 @@ List call(String branch) {
 
 /* Uncomment to do further testing
 Void error(String msg) {
-    /* groovylint-disable-next-line ThrowRuntimeException */
+    // groovylint-disable-next-line ThrowRuntimeException
     throw new RuntimeException(msg)
 }
 
@@ -40,8 +40,8 @@ String cachedCommitPragma(String p, String v) {
         return 'test_my_test:DAOS-1234 test_another_test:DAOS-3456 test'
     }
     return v
-}
 
+}
 
 // groovylint-disable-next-line CompileStatic
 assert(call('master') == ['test_my_test', 'test_another_test'])
