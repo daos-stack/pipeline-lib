@@ -531,6 +531,9 @@ pipeline {
                                  Features: foobar
                               4. Features: datamover foobar
                               5. Test-tag: datamover foobar
+                              6. Test-tag: datamover
+                                 Features: foobar
+                                 Skip-list: test_to_skip:DAOS-1234
                         */
                         // lots more test cases could be cooked up, to be sure
                         script {
@@ -565,7 +568,14 @@ pipeline {
                                                       'daily_regression,foobar,@stages.tag@ ' +
                                                       'full_regression,foobar,@stages.tag@'],
                                        [tags: [[tag: 'Test-tag', value: 'datamover foobar']],
-                                        tag_template: 'datamover,@stages.tag@ foobar,@stages.tag@']]
+                                        tag_template: 'datamover,@stages.tag@ foobar,@stages.tag@'],
+                                       [tags: [[tag: 'Test-tag', value: 'datamover'],
+                                               [tag: 'Features', value: 'foobar'],
+                                               [tag: 'Skip-list', value: 'test_to_skip']],
+                                        tag_template: '@commits.value@,@stages.tag@ ' +
+                                                      'pr,foobar,-test_to_skip,@stages.tag@ ' +
+                                                      'daily_regression,foobar,-test_to_skip,@stages.tag@ ' +
+                                                      'full_regression,foobar,-test_to_skip,@stages.tag@']]
                             commits.each { commit ->
                                 cm = '''\
                                         Test commit\n'''
