@@ -54,7 +54,7 @@ String test_branch(String target) {
 }
 
 String skipped_tests_tags(String branch) {
-    List skipped = call(branch)
+    List skipped = getSkippedTests(branch)
     if (skipped) {
         return ',-' + skipped.join(',-')
     }
