@@ -62,7 +62,6 @@ String skipped_tests_tags(String branch) {
     return ''
 }
 
-println(skipped_tests_tags('master'))
 /* groovylint-disable-next-line MethodSize, ParameterName */
 void call(Map pipeline_args) {
     /* groovylint-disable-next-line CouldBeElvis */
@@ -839,7 +838,7 @@ void call(Map pipeline_args) {
                                       parameters: [string(name: 'TestTag',
                                                           value: ('load_mpi test_core_files ' +
                                                                    pipeline_args.get('test-tag', '')).trim() +
-                                                                   skipped_tests_tags),
+                                                                   skipped_tests_tags(env.TEST_BRANCH)),
                                                    string(name: 'CI_RPM_TEST_VERSION',
                                                           value: pipeline_args.get('skip-build', true) ?
                                                                daosLatestVersion(env.TEST_BRANCH, 'el8') : ''),
