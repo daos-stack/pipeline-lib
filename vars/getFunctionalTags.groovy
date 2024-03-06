@@ -14,7 +14,7 @@
 Map call(Map kwargs = [:]) {
     String pragma_suffix = kwargs.get('pragma_suffix', getPragmaSuffix())
     String stage_tags = kwargs.get('stage_tags', getFunctionalStageTags())
-    String default_tags = kwargs.get('default_tags', '')
+    String default_tags = kwargs.get('default_tags', 'pr')
     String requested_tags = ''
 
     // Define the test tags to use in this stage
@@ -38,10 +38,6 @@ Map call(Map kwargs = [:]) {
     // Append any commit pragma 'Features:' tags if defined
     String features = commitPragma('Features', '')
     if (features) {
-        if (!requested_tags) {
-            // Default to pr for backward compatibility
-            requested_tags = 'pr'
-        }
         // Features extend the standard testing tags to include tests run in pr, daily, or weekly builds
         // that test the specified feature.
         // We should eventually not need to filter by pr, daily, weekly when all tests are tagged appropriately.
