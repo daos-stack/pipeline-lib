@@ -66,9 +66,9 @@ Map call(Map kwargs = [:]) {
                             url: 'https://github.com/daos-stack/daos.git',
                             branch: base_branch,
                             withSubmodules: true,
-                            cleanAfterCheckout: false)
+                            pruneStaleBranch: true)
                     } else {
-                        checkoutScm(cleanAfterCheckout: false)
+                        checkoutScm(pruneStaleBranch: true)
                     }
 
                     try {

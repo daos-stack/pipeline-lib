@@ -13,8 +13,7 @@
     String stage_tags = ''
 
     if (stage_name.contains('Functional')) {
-        // stage_tags = 'vm'
-        stage_tags = '-hw'
+        stage_tags = 'vm'
         if (stage_name.contains('Hardware')) {
             stage_tags = 'hw,large'
             if (stage_name.contains('Small')) {
