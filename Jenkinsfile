@@ -535,7 +535,7 @@ pipeline {
                         // lots more test cases could be cooked up, to be sure
                         script {
                             stages = [[name: 'Fake CentOS 7 Functional stage',
-                                       tag: '-hw'],
+                                       tag: 'vm'],
                                       [name: 'Fake CentOS 7 Functional Hardware Medium stage',
                                        tag: 'hw,medium,-provider'],
                                       [name: 'Fake CentOS 7 Functional Hardware Medium Provider stage',
@@ -577,10 +577,7 @@ pipeline {
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         cmp = commit.tag_template.replace('@commits.value@', commit.tags[0].value)
                                         cmp = cmp.replace('@stages.tag@', stage.tag)
-                                        // Useful for debugging since Jenkins'
-                                        // assert() is pretty lame
-                                        // println('assert(' + parseStageInfo()['test_tag'] + " == ${cmp})")
-                                        assert(parseStageInfo()['test_tag'] == cmp)
+                                        assert(parseStageInfo()['test_tag'] == cmp), parseStageInfo()['test_tag'] + ' != ' + cmp
                                     }
                                 }
                             }
