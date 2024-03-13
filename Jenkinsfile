@@ -537,11 +537,10 @@ pipeline {
                             stages = [[name: 'Fake CentOS 7 Functional stage',
                                        tag: 'vm'],
                                       [name: 'Fake CentOS 7 Functional Hardware Medium stage',
-                                       tag: 'hw,medium,-provider']
-                                       
+                                       tag: 'hw,medium,-provider'],
+                                      [name: 'Fake CentOS 7 Functional Hardware Medium Provider stage',
+                                       tag: 'hw,medium,provider']
 //                                        ,
-//                                       [name: 'Fake CentOS 7 Functional Hardware Medium Provider stage',
-//                                        tag: 'hw,medium,provider'],
 //                                       [name: 'Fake CentOS 7 Functional Hardware Large stage',
 //                                        tag: 'hw,large']
                                        ]
