@@ -1,5 +1,5 @@
 /* groovylint-disable ParameterName */
-// vars/pragmasToEnv.groovy
+// vars/selfUnitTest.groovy
 
 /**
  * selfUnitTest.groovy
@@ -18,18 +18,18 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
 
     println("Test pragmasToMap")
     result = pragmasToMap(commit_message)
-    assert(result == expected_map), result + ' != ' expected_map
+    assert(result == expected_map), result + ' != ' + expected_map
 
     result = pragmasToMap("")
-    assert(result == [:]), result + ' != ' [:]
+    assert(result == [:]), result + ' != ' + [:]
 
     result = pragmasToMap("foo")
-    assert(result == [:]), result + ' != ' [:]
+    assert(result == [:]), result + ' != ' + [:]
 
     // println("Test pragmasToEnv")
     // TODO: there is inconsistent behavior between these casts:
     //       env.pragmas = pragmas
     //       return pragmas
     //       env.pragmas = pragmas as String
-    // We should probably update the internals to always to "as String" so we have better control
+    // We should probably update the internals to always use "as String" so we have better control
 }
