@@ -539,10 +539,9 @@ pipeline {
                                       [name: 'Fake CentOS 7 Functional Hardware Medium stage',
                                        tag: 'hw,medium,-provider'],
                                       [name: 'Fake CentOS 7 Functional Hardware Medium Provider stage',
-                                       tag: 'hw,medium,provider']
-//                                        ,
-//                                       [name: 'Fake CentOS 7 Functional Hardware Large stage',
-//                                        tag: 'hw,large']
+                                       tag: 'hw,medium,provider'],
+                                      [name: 'Fake CentOS 7 Functional Hardware Large stage',
+                                       tag: 'hw,large']
                                        ]
                             commits = [
                                 [tags: [[tag: 'Test-tag', value: 'datamover']],
