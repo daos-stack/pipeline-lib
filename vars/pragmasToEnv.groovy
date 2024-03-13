@@ -15,7 +15,7 @@ String call(String commit_message) {
     // instead of the expected format of "[foo:bar, bat:ball]"
     env.pragmas = pragmas
 
-    return pragmas
+    return env.pragmas
 }
 
 /**
