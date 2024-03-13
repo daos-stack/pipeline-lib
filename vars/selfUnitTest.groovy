@@ -7,7 +7,22 @@
  * Runs self unit tests.
  */
 
-String call() {
+
+void call() {
+    // Temporarily set env.pragmas for unit testing and restore after
+    env_pragmas_original = env.pragmas
+    env.pragmas = ""
+    try {
+        _test_pragmasToMap()
+        // _test_pragmasToEnv()
+    } finally {
+        env.pragmas = env_pragmas_original
+    }
+}
+
+void _test_pragmasToMap() {
+    println("Test pragmasToMap")
+
     commit_message = '''Skip-build: true
 Skip-PR-comments: true
 
@@ -16,7 +31,6 @@ Required-githooks: true
 Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
     Map expected_map = ["skip-build": " true", "skip-pr-comments": " true", "required-githooks": " true", "signed-off-by": " Brian J. Murrell <brian.murrell@intel.com>"]
 
-    println("Test pragmasToMap")
     result = pragmasToMap(commit_message)
     println("  result   = ${result}")
     println("  expected = ${expected_map}")
@@ -32,6 +46,10 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
     println("  result   = ${result}")
     println("  expected = ${expected_map}")
     assert(result == expected_map)
+}
+
+void _test_pragmasToEnv() {
+    println("Test pragmasToEnv")
 
     // println("Test pragmasToEnv")
     // TODO: there is inconsistent behavior between these casts:
