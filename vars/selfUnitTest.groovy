@@ -76,11 +76,15 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
     println("  expected_map = ${expected_map}")
     assert(result_map == expected_map)
 
-    // Re-assign and make sure it still works
-    env.pragmas = result_map
+
+    println("Test updatePragmas")
+    String new_commit_message = '''another commit
+
+Test-tag: foo bar'''
+    expected_map['test-tag'] = ' foo bar'
+    updatePragmas(new_commit_message, True)
     result_map = envToPragmas()
     println("  result_map   = ${result_map}")
     println("  expected_map = ${expected_map}")
     assert(result_map == expected_map)
-
 }

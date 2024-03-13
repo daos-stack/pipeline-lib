@@ -29,15 +29,11 @@ String call(String name, String def_val = null) {
         Map pragmas = envToPragmas()
 
         if (pragmas[name.toLowerCase()]) {
-            println("DEBUG - commitPragma(${name}) -> ${pragmas[name.toLowerCase()]}")
             return pragmas[name.toLowerCase()]
         } else if (def_val) {
-            println("DEBUG - commitPragma(${name}) -> ${def_val}")
             return def_val
         }
-        println("DEBUG - commitPragma(${name}) -> ''")
         return ''
     }
-    println("DEBUG - commitPragma(${name}) -> commitPragmaTrusted()")
     return commitPragmaTrusted(name, def_val)
 }
