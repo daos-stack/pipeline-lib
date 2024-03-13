@@ -8,7 +8,6 @@
  */
 
 String call() {
-    env = [:]
     commit_message = '''Skip-build: true
 Skip-PR-comments: true
 
@@ -34,4 +33,3 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
     //       env.pragmas = pragmas as String
     // We should probably update the internals to always to "as String" so we have better control
 }
-call()
