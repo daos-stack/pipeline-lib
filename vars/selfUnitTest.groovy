@@ -81,7 +81,7 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
     String new_commit_message = '''another commit
 
 Test-tag: foo bar'''
-    expected_map['test-tag'] = ' foo bar'
+    expected_map['test-tag'] = 'foo bar'
     updatePragmas(new_commit_message, true)
     result_map = envToPragmas()
     println("  result_map   = ${result_map}")
