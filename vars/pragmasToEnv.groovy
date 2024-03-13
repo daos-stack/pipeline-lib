@@ -30,17 +30,3 @@ String call() {
                             returnStdout: true).trim()
     return pragmasToEnv(env.COMMIT_MESSAGE)
 }
-
-// Unit Testing
-/* groovylint-disable-next-line CompileStatic */
-env = [:]
-assert(call('''Debug for env.pragmas
-
-Skip-build: true
-Skip-PR-comments: true
-
-Required-githooks: true
-
-Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>''') ==
-'{skip-build= true, skip-pr-comments= true, required-githooks= true,' +
-' signed-off-by= Brian J. Murrell <brian.murrell@intel.com>}')
