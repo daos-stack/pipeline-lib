@@ -18,7 +18,9 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
 
     println("Test pragmasToMap")
     result = pragmasToMap(commit_message)
-    assert(result == expected_map), result + ' != ' + expected_map
+    println("  result = ${result}")
+    println("  expected = ${expected_map}")
+    assert(result == expected_map)
 
     result = pragmasToMap("")
     assert(result == [:]), result + ' != ' + [:]
