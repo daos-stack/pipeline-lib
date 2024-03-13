@@ -137,7 +137,7 @@ Map call(Map config = [:]) {
             error.getMessage())
     }
 
-    if (!env.BULLSEYE) {
+    if (env.BULLSEYE) {
         String tools_url = env.JENKINS_URL +
                     'job/daos-stack/job/tools/job/master' +
                     '/lastSuccessfulBuild/artifact/'
