@@ -68,11 +68,19 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
     // We should probably update the internals to always use "as String" so we have better control.
     // Related, envToPragmas will trim the value, so update the expected accordingly.
     // This should eventually be handled by trimming the value in pragmasToMap.
-    // expected_map = [
-    //     "skip-build": "true", "skip-pr-comments": "true","required-githooks": "true",
-    //     "signed-off-by": "Brian J. Murrell <brian.murrell@intel.com>"]
+    expected_map = [
+        "skip-build": "true", "skip-pr-comments": "true","required-githooks": "true",
+        "signed-off-by": "Brian J. Murrell <brian.murrell@intel.com>"]
     result_map = envToPragmas()
     println("  result_map   = ${result_map}")
     println("  expected_map = ${expected_map}")
     assert(result_map == expected_map)
+
+    // Re-assign and make sure it still works
+    env.pragmas = result_map
+    result_map = envToPragmas()
+    println("  result_map   = ${result_map}")
+    println("  expected_map = ${expected_map}")
+    assert(result_map == expected_map)
+
 }
