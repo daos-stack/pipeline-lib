@@ -541,28 +541,31 @@ pipeline {
                                       [name: 'Fake CentOS 7 Functional Hardware Medium Provider stage',
                                        tag: 'hw,medium,provider'],
                                       [name: 'Fake CentOS 7 Functional Hardware Large stage',
-                                       tag: 'hw,large']
-                                       ]
-                            commits = [
-                                [tags: [[tag: 'Test-tag', value: 'datamover']],
-                                    tag_template: '@commits.value@,@stages.tag@'],
-                                [tags: [[tag: 'Features', value: 'datamover']],
-                                    tag_template: 'pr,@stages.tag@ ' +
+                                       tag: 'hw,large']]
+                            commits = [[tags: [[tag: 'Test-tag', value: 'datamover']],
+                                       tag_template: '@commits.value@,@stages.tag@'],
+                                       [tags: [[tag: 'Features', value: 'datamover']],
+                                        tag_template: 'pr,@stages.tag@ ' +
+                                                      'pr,@commits.value@,@stages.tag@ ' +
                                                       'daily_regression,@commits.value@,@stages.tag@ ' +
                                                       'full_regression,@commits.value@,@stages.tag@'],
                                        /* groovylint-disable-next-line DuplicateMapLiteral */
-                                [tags: [[tag: 'Test-tag', value: 'datamover'],
-                                        [tag: 'Features', value: 'foobar']],
-                                    tag_template: '@commits.value@,@stages.tag@'],
-                                [tags: [[tag: 'Features', value: 'datamover foobar']],
-                                    tag_template: 'pr,@stages.tag@ ' +
-                                                      'daily_regression,datamover,@stages.tag@ ' +
-                                                      'full_regression,datamover,@stages.tag@ ' +
+                                       [tags: [[tag: 'Test-tag', value: 'datamover'],
+                                               [tag: 'Features', value: 'foobar']],
+                                        tag_template: '@commits.value@,@stages.tag@ ' +
+                                                      'pr,foobar,@stages.tag@ ' +
                                                       'daily_regression,foobar,@stages.tag@ ' +
                                                       'full_regression,foobar,@stages.tag@'],
-                                [tags: [[tag: 'Test-tag', value: 'datamover foobar']],
-                                    tag_template: 'datamover,@stages.tag@ foobar,@stages.tag@']
-                            ]
+                                       [tags: [[tag: 'Features', value: 'datamover foobar']],
+                                        tag_template: 'pr,@stages.tag@ ' +
+                                                      'pr,datamover,@stages.tag@ ' +
+                                                      'daily_regression,datamover,@stages.tag@ ' +
+                                                      'full_regression,datamover,@stages.tag@ ' +
+                                                      'pr,foobar,@stages.tag@ ' +
+                                                      'daily_regression,foobar,@stages.tag@ ' +
+                                                      'full_regression,foobar,@stages.tag@'],
+                                       [tags: [[tag: 'Test-tag', value: 'datamover foobar']],
+                                        tag_template: 'datamover,@stages.tag@ foobar,@stages.tag@']]
                             commits.each { commit ->
                                 cm = '''\
                                         Test commit\n'''
