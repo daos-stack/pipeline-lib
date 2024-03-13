@@ -22,7 +22,7 @@ Map call() {
     if (env.pragmas)
         pragmas = "${env.pragmas}"[1..-2].split(', ').collectEntries { entry ->
             String[] pair = entry.split('= ')
-            [(pair.first()): pair.last()]
+            [(pair.first()): " " + pair.last()]  // retain the space for backwards compatibility
     }
     return pragmas
 }
