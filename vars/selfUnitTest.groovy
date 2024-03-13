@@ -40,14 +40,13 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
     assert(result_map == expected_map)
 
     result_map = pragmasToMap("")
-    expected_map = [:]
     println("  result_map   = ${result_map}")
-    println("  expected_map = ${expected_map}")
+    println("  expected_map = ${[:]}")
     assert(result_map == expected_map)
 
     result_map = pragmasToMap("foo")
     println("  result_map   = ${result_map}")
-    println("  expected_map = ${expected_map}")
+    println("  expected_map = ${[:]}")
     assert(result_map == expected_map)
 
 
