@@ -570,7 +570,7 @@ pipeline {
                                                [tag: 'Test-tag', value: 'line2'],
                                                [tag: 'Test-tag', value: 'line3'],
                                                [tag: 'Test-tag', value: 'line4'],],
-                                        tag_template: 'line1,@stages.tag@ line2,@stages.tag@' +
+                                        tag_template: 'line1,@stages.tag@ line2,@stages.tag@ ' +
                                                       'line3,@stages.tag@ line4,@stages.tag@']]
                             commits.each { commit ->
                                 cm = '''\
