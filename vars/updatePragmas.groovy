@@ -20,5 +20,5 @@ void call(String commit_message, boolean overwrite) {
     // put the pragmas into the environment as a String
     // note this converts the Map to a string in the format "{foo= bar, bat= ball}"
     // instead of the expected format of "[foo:bar, bat:ball]"
-    env.pragmas = pragmas
+    env.pragmas = current_pragmas
 }
