@@ -13,7 +13,7 @@ void call() {
     env_pragmas_original = env.pragmas
     try {
         _test_pragmasToMap()
-        // _test_pragmasToEnv()
+        _test_pragmasToEnv()
     } finally {
         env.pragmas = env_pragmas_original
     }
