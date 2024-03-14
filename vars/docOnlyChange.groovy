@@ -19,7 +19,7 @@ boolean call(String target_branch) {
         return false
     }
 
-    return sh(label: "Determine if doc-only change",
+    return sh(label: "[${env.STAGE_NAME}] Determine if doc-only change",
               script: ["CHANGE_ID=${env.CHANGE_ID}",
                        "TARGET_BRANCH=${target_branch}",
                        'ci/doc_only_change.sh'].join(' '),
