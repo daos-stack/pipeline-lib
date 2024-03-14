@@ -17,7 +17,7 @@ import groovy.transform.Field
 @Field static Map commit_pragma_cache = [:]
 
 String call(Map config = [:]) {
-    echo "DEBUG: cachedCommitPragma call(Map config = [:])"
+    println("DEBUG: cachedCommitPragma call(Map config = [:])")
     if (config['clear']) {
         commit_pragma_cache.clear()
         return
@@ -30,7 +30,7 @@ String call(Map config = [:]) {
 }
 
 String call(String name, String def_val = null) {
-    echo "DEBUG: cachedCommitPragma call(String name, String def_val = null)"
+    println("DEBUG: cachedCommitPragma call(String name, String def_val = null)")
     String _name = name.toLowerCase()
     String _def_val
 
