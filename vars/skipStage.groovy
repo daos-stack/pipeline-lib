@@ -13,7 +13,8 @@
 
 // Determine if a stage has been specified to skip with a commit pragma
 String skip_stage_pragma(String stage, String def_val='false') {
-    return cachedCommitPragma('Skip-' + stage, def_val).toLowerCase() == 'true'
+    return cachedCommitPragmaV2('Skip-' + stage, def_val).toLowerCase() == 'true'
+    // return cachedCommitPragma('Skip-' + stage, def_val).toLowerCase() == 'true'
 }
 
 // Determine if a stage that defaults to being skipped has been forced to run
