@@ -35,6 +35,5 @@ String call(String name, String def_val = null) {
         }
         return ''
     }
-    println("DEBUG: commitPragma() calling commitPragmaTrusted()")
     return commitPragmaTrusted(name, def_val)
 }
