@@ -257,7 +257,6 @@ boolean call(Map config = [:]) {
                 paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                 (docOnlyChange(target_branch) && prRepos('centos7') == '') ||
                 quickBuild())
-            }
         case 'Build on CentOS 8 debug':
         case 'Build on EL 8 debug':
         case 'Build on EL 8.8 debug':
@@ -295,7 +294,6 @@ boolean call(Map config = [:]) {
                 paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                 skip_build_on_landing_branch(target_branch) ||
                 (docOnlyChange(target_branch) && prRepos('centos7') == ''))
-            }
         case 'Build on CentOS 8 with Clang':
         case 'Build on CentOS 8 with Clang debug':
         case 'Build on EL 8 with Clang':
@@ -309,7 +307,6 @@ boolean call(Map config = [:]) {
                 paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                 skip_build_on_landing_branch(target_branch) ||
                 (docOnlyChange(target_branch) &&  prRepos('el8') == ''))
-            }
         case 'Build on Ubuntu 20.04':
             return report_skip(
                 paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
