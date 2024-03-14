@@ -137,7 +137,7 @@ Map call(Map config = [:]) {
             error.getMessage())
     }
 
-    if (!env.BULLSEYE) {
+    if (env.BULLSEYE) {
         configureBullseye()
     }
 
