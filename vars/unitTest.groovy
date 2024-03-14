@@ -165,12 +165,7 @@ Map call(Map config = [:]) {
     }
 
     if (stage_info['compiler'] == 'covc') {
-        String tools_url = env.JENKINS_URL +
-                    'job/daos-stack/job/tools/job/master' +
-                    '/lastSuccessfulBuild/artifact/'
-        httpRequest url: tools_url + 'bullseyecoverage-linux.tar',
-                httpMode: 'GET',
-                outputFile: 'bullseye.tar'
+        configureBullseye()
     }
 
     String with_valgrind = stage_info.get('with_valgrind', '')

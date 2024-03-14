@@ -138,12 +138,7 @@ Map call(Map config = [:]) {
     }
 
     if (!env.BULLSEYE) {
-        String tools_url = env.JENKINS_URL +
-                    'job/daos-stack/job/tools/job/master' +
-                    '/lastSuccessfulBuild/artifact/'
-        httpRequest url: tools_url + 'bullseyecoverage-linux.tar',
-                httpMode: 'GET',
-                outputFile: 'bullseye.tar'
+        configureBullseye()
     }
 
     Map runtestData = [:]

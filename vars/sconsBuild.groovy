@@ -123,12 +123,7 @@ Map call(Map config = [:]) {
     }
 
     if (stage_info['compiler'] == 'covc') {
-      httpRequest url: env.JENKINS_URL +
-                       'job/daos-stack/job/tools/job/master' +
-                       '/lastSuccessfulBuild/artifact/' +
-                       'bullseyecoverage-linux.tar',
-                  httpMode: 'GET',
-                  outputFile: 'bullseye.tar'
+        configureBullseye(download_only: true)
     }
 
     def set_cwd = ''
