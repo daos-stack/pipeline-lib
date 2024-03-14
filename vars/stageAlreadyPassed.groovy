@@ -40,6 +40,7 @@ Boolean call(Map kwargs = [:]) {
         try {
             String stage_status = readFile(file: status_file).trim()
             if (stage_status == 'SUCCESS') {
+                stageMessage("This stage has already passed")
                 return true
             }
             println('Previous run this stage ended with status ' +
@@ -75,6 +76,7 @@ Boolean call(Map kwargs = [:]) {
                                    validResponseCodes: '100:599')
 
         if (response.status == 200 && response.content == 'SUCCESS') {
+            stageMessage("This stage has already passed")
             return true
         }
     }
