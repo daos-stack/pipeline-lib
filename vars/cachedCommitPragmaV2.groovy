@@ -33,7 +33,7 @@ String call(String name, String def_val = null) {
     echo "DEBUG: cachedCommitPragmaV2 call(String name, String def_val = null)"
     String _name = name.toLowerCase()
     String _def_val
-    if (_name == "Skip-build")
+    if (_name == "skip-build")
         return "true"
 
     if (def_val) {
