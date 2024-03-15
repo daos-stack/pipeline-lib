@@ -7,7 +7,8 @@
  *
  * @param kwargs Map containing the following optional arguments (empty strings yield defaults):
  *      prefix          where to install bullseye
- * @return a scripted stage to run in a pipeline
+ *      download_only   if true do not install bullseye
+ * @return a Boolean indicating if bullseye was downloaded and or installed correctly
  */
 Map call(Map kwargs = [:]) {
     String prefix = kwargs.get('prefix', '/opt/BullseyeCoverage')
@@ -28,8 +29,8 @@ Map call(Map kwargs = [:]) {
             script: '''mkdir -p bullseye
                        tar -C bullseye --strip-components=1 -xf bullseye.tar
                        pushd bullseye
-                       ./install --quiet --key "'''+ env.BULLSEYE + '''" --prefix ''' + prefix +
-                    '''popd
+                       sudo ./install --quiet --key "'''+ env.BULLSEYE + '''" --prefix ''' + prefix + '''
+                       popd
                        rm -rf bullseye.tar bullseye''',
             returnStatus: true) == 0
 }

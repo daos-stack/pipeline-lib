@@ -138,7 +138,11 @@ Map call(Map config = [:]) {
     }
 
     if (env.BULLSEYE) {
-        configureBullseye()
+        if (!configureBullseye()) {
+            catchError(stageResult: 'FAILURE', buildResult: 'FAILURE') {
+                error('Issue detected installing bullseye.')
+            }
+        }
     }
 
     Map runtestData = [:]

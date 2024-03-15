@@ -165,7 +165,11 @@ Map call(Map config = [:]) {
     }
 
     if (stage_info['compiler'] == 'covc') {
-        configureBullseye()
+        if (!configureBullseye()) {
+            catchError(stageResult: 'FAILURE', buildResult: 'FAILURE') {
+                error('Issue detected installing bullseye.')
+            }
+        }
     }
 
     String with_valgrind = stage_info.get('with_valgrind', '')
