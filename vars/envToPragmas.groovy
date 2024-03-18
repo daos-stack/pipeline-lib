@@ -11,8 +11,8 @@ Map call() {
     Map pragmas = [:]
     if (env.pragmas)
         pragmas = "${env.pragmas}"[1..-2].split(', ').collectEntries { entry ->
-            String[] pair = entry.split('= ')
-            [(pair.first()): pair.last()]
+            String[] pair = entry.split('=', 2)
+            [(pair.first().trim()): pair.last().trim()]
     }
     return pragmas
 }
