@@ -1,6 +1,6 @@
 #!/usr/bin/groovy
 /* groovylint-disable DuplicateMapLiteral, DuplicateStringLiteral, NestedBlockDepth, VariableName */
-/* Copyright (C) 2019-2023 Intel Corporation
+/* Copyright (C) 2019-2024 Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,15 @@ Map foo = [:]
 String test_branch(String target) {
     return 'ci-' + JOB_NAME.replaceAll('/', '-') +
             '-' + target.replaceAll('/', '-')
+}
+
+String skipped_tests_tags(String branch) {
+    List skipped = getSkippedTests(branch)
+    if (skipped) {
+        return ',-' + skipped.join(',-')
+    }
+
+    return ''
 }
 
 /* groovylint-disable-next-line MethodSize, ParameterName */
@@ -828,7 +837,8 @@ void call(Map pipeline_args) {
                                 build job: 'daos-stack/daos/' + test_branch(env.TEST_BRANCH),
                                       parameters: [string(name: 'TestTag',
                                                           value: ('load_mpi test_core_files ' +
-                                                                   pipeline_args.get('test-tag', '')).trim()),
+                                                                   pipeline_args.get('test-tag', '')).trim() +
+                                                                   skipped_tests_tags(env.TEST_BRANCH)),
                                                    string(name: 'CI_RPM_TEST_VERSION',
                                                           value: pipeline_args.get('skip-build', true) ?
                                                                daosLatestVersion(env.TEST_BRANCH, 'el8') : ''),
