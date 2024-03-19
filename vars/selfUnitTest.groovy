@@ -35,7 +35,7 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
         "required-githooks": "true",
         "signed-off-by": "Brian J. Murrell <brian.murrell@intel.com>"]
     String expected_str = '{skip-build=true, skip-pr-comments=true, ' +
-                          'my-pragma1=val1, my-pragma2=val2, ' +
+                          'my-pragma1=val1, my-pragma2=val2 val2, ' +
                           'required-githooks=true, signed-off-by=Brian J. Murrell <brian.murrell@intel.com>}'
 
     println("Test pragmasToMap")
@@ -87,16 +87,16 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
 
     println("Test updatePragmas")
     println("  with override=true")
-    String new_commit_message = '''another commit
-Test-tag: foo bar'''
-    expected_map['test-tag'] = 'foo bar'
+    String new_commit_message = """another commit
+Test-tag: foo bar"""
+    expected_map["test-tag"] = "foo bar"
     updatePragmas(new_commit_message, true)
     result_map = envToPragmas()
     println("    result_map   = ${result_map}")
     println("    expected_map = ${expected_map}")
     assert(result_map == expected_map)
 
-    expected_map['test-tag'] = 'foo2'
+    expected_map["test-tag"] = "foo2"
     updatePragmas("Test-tag: foo2", true)
     result_map = envToPragmas()
     println("    result_map   = ${result_map}")
