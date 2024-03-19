@@ -14,8 +14,8 @@ Map call() {
     }
     if (env.pragmas == null) {
         println("DEBUG: env.pragmas == null")
-
     }
+    println("DEBUG: {env.pragmas}")
     if (env.pragmas)
         pragmas = "${env.pragmas}"[1..-2].split(', ').collectEntries { entry ->
             String[] pair = entry.split('=', 2)
