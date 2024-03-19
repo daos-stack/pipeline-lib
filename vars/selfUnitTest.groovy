@@ -27,10 +27,10 @@ Required-githooks: true
 Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
 
     Map expected_map = [
-        "skip-build": " true", "skip-pr-comments": " true","required-githooks": " true",
-        "signed-off-by": " Brian J. Murrell <brian.murrell@intel.com>"]
-    String expected_str = '{skip-build= true, skip-pr-comments= true, required-githooks= true,' +
-                          ' signed-off-by= Brian J. Murrell <brian.murrell@intel.com>}'
+        "skip-build": "true", "skip-pr-comments": "true","required-githooks": "true",
+        "signed-off-by": "Brian J. Murrell <brian.murrell@intel.com>"]
+    String expected_str = '{skip-build=true, skip-pr-comments=true, required-githooks=true,' +
+                          ' signed-off-by=Brian J. Murrell <brian.murrell@intel.com>}'
 
     println("Test pragmasToMap")
 
@@ -51,7 +51,6 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
 
 
     println("Test pragmasToEnv")
-
     result_str = pragmasToEnv(commit_message)
     println("  result_str   = ${result_str}")
     println("  env.pragmas  = ${env.pragmas}")
@@ -61,16 +60,17 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
 
 
     println("Test envToPragmas")
-    // TODO: there is inconsistent behavior between these casts:
-    //       env.pragmas = pragmas
-    //       return pragmas
-    //       env.pragmas = pragmas as String
-    // We should probably update the internals to always use "as String" so we have better control.
-    // Related, envToPragmas will trim the value, so update the expected accordingly.
-    // This should eventually be handled by trimming the value in pragmasToMap.
-    expected_map = [
-        "skip-build": "true", "skip-pr-comments": "true","required-githooks": "true",
-        "signed-off-by": "Brian J. Murrell <brian.murrell@intel.com>"]
+    result_map = envToPragmas()
+    println("  result_map   = ${result_map}")
+    println("  expected_map = ${expected_map}")
+    assert(result_map == expected_map)
+
+
+    println("Test updatePragmas")
+    String new_commit_message = '''another commit
+Test-tag: foo bar'''
+    expected_map['test-tag'] = 'foo bar'
+    updatePragmas(new_commit_message, true)
     result_map = envToPragmas()
     println("  result_map   = ${result_map}")
     println("  expected_map = ${expected_map}")

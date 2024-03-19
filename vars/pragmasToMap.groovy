@@ -18,7 +18,7 @@ Map call(String commit_message) {
                 // this returns from the .each closure, not the method
                 return
             }
-            pragmas[key.toLowerCase()] = value
+            pragmas[key.toLowerCase()] = value.trim()
         /* groovylint-disable-next-line CatchArrayIndexOutOfBoundsException */
         } catch (ArrayIndexOutOfBoundsException ignored) {
             // ignore and move on to the next line
