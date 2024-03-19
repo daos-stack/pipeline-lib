@@ -78,6 +78,7 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
     println("  with null env.pragmas")
     env_pragmas_tmp = env.pragmas
     env.pragmas = null
+    println(env.pragmas)
     result_map = envToPragmas()
     println("    result_map   = ${result_map}")
     println("    expected_map = ${[:]}")

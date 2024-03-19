@@ -16,3 +16,10 @@ Map call() {
     }
     return pragmas
 }
+
+
+env = [:]
+env.pragmas = ""
+env.pragmas = null
+
+println(call())
