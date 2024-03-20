@@ -487,6 +487,7 @@ boolean call(Map config = [:]) {
         case 'Test RPMs on EL 8.6':
             return !paramsValue('CI_RPMS_el8.6_TEST', true) ||
                    target_branch =~ branchTypeRE('weekly') ||
+                   skip_stage_pragma('build-el8-rpm') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-el-8.6-rpms') ||
@@ -501,11 +502,13 @@ boolean call(Map config = [:]) {
             // Skip by default as it doesn't pass with Leap15.3 due to
             // requiring a newer glibc
             return !paramsValue('CI_RPMS_leap15_TEST', true) ||
+                   skip_stage_pragma('build-leap15-rpm') ||
                    skip_stage_pragma('test-leap-15-rpms', 'true') ||
                    stageAlreadyPassed()
         case 'Test RPMs on Leap 15.4':
             return !paramsValue('CI_RPMS_leap15.4_TEST', true) ||
                    target_branch =~ branchTypeRE('weekly') ||
+                   skip_stage_pragma('build-leap15-rpm') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
                    skip_stage_pragma('test-leap-15.4-rpms', 'true') ||
