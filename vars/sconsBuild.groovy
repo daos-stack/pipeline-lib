@@ -123,11 +123,7 @@ Map call(Map config = [:]) {
     }
 
     if (stage_info['compiler'] == 'covc') {
-        if (!configureBullseye(download_only: true)) {
-            catchError(stageResult: 'FAILURE', buildResult: 'FAILURE') {
-                error('Issue detected installing bullseye.')
-            }
-        }
+        downloadBullseye()
     }
 
     def set_cwd = ''
