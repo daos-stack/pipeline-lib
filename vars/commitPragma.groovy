@@ -26,10 +26,7 @@ String call(Map config = [:]) {
  */
 String call(String name, String def_val = null) {
     if (env.pragmas) {
-        Map pragmas = "${env.pragmas}"[1..-2].split(', ').collectEntries { entry ->
-            String[] pair = entry.split('= ')
-            [(pair.first()): pair.last()]
-        }
+        Map pragmas = envToPragmas()
 
         if (pragmas[name.toLowerCase()]) {
             return pragmas[name.toLowerCase()]
