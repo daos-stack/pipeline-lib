@@ -43,12 +43,6 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>"""
 
     println("Test pragmasToMap")
 
-    println("  with empty string")
-    result_map = pragmasToMap("")
-    println("    result_map   = ${result_map}")
-    println("    expected_map = ${[:]}")
-    assert(result_map == [:])
-
     println("  with commit title and description only")
     result_map = pragmasToMap(commit_title + "\n\n" + commit_desc)
     println("    result_map   = ${result_map}")

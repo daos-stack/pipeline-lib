@@ -8,6 +8,10 @@
  */
 
 Map call(String commit_message) {
+    if (!commit_message) {
+        error("Valid commit message required")
+    }
+
     Map pragmas = [:]
     // can't use eachLine() here: https://issues.jenkins.io/browse/JENKINS-46988/
     commit_message.split('\n').each { line ->
