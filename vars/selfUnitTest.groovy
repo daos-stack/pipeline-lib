@@ -19,7 +19,9 @@ void call() {
 }
 
 void _test_pragmas_env() {
-    commit_message = '''Skip-build: true
+    String commit_title = "DAOS-XXXX test: short description about thing"
+    String commit_desc = "Long description about thing\nwith multiple lines"
+    String commit_pragmas = """Skip-build: true
 Skip-PR-comments: true
 
 My-pragma1:   val1
@@ -27,24 +29,19 @@ My-pragma2:  val2 val2
 
 Required-githooks: true
 
-Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
+Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>"""
+    String commit_message = commit_title + "\n\n" + commit_desc + "\n" + commit_pragmas
 
     Map expected_map = [
         "skip-build": "true", "skip-pr-comments": "true",
         "my-pragma1": "val1", "my-pragma2": "val2 val2",
         "required-githooks": "true",
         "signed-off-by": "Brian J. Murrell <brian.murrell@intel.com>"]
-    String expected_str = '{skip-build=true, skip-pr-comments=true, ' +
-                          'my-pragma1=val1, my-pragma2=val2 val2, ' +
-                          'required-githooks=true, signed-off-by=Brian J. Murrell <brian.murrell@intel.com>}'
+    String expected_str = "{skip-build=true, skip-pr-comments=true, " +
+                          "my-pragma1=val1, my-pragma2=val2 val2, " +
+                          "required-githooks=true, signed-off-by=Brian J. Murrell <brian.murrell@intel.com>}"
 
     println("Test pragmasToMap")
-
-    println("  with commit message")
-    result_map = pragmasToMap(commit_message)
-    println("    result_map   = ${result_map}")
-    println("    expected_map = ${expected_map}")
-    assert(result_map == expected_map)
 
     println("  with empty string")
     result_map = pragmasToMap("")
@@ -52,11 +49,17 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
     println("    expected_map = ${[:]}")
     assert(result_map == [:])
 
-    println("  with garbage")
-    result_map = pragmasToMap("foo")
+    println("  with commit title and description only")
+    result_map = pragmasToMap(commit_title + "\n\n" + commit_desc)
     println("    result_map   = ${result_map}")
     println("    expected_map = ${[:]}")
     assert(result_map == [:])
+
+    println("  with full commit message")
+    result_map = pragmasToMap(commit_message)
+    println("    result_map   = ${result_map}")
+    println("    expected_map = ${expected_map}")
+    assert(result_map == expected_map)
 
 
     println("Test pragmasToEnv")
@@ -86,9 +89,8 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
 
 
     println("Test updatePragmas")
-    println("  with override=true")
-    String new_commit_message = """another commit
-Test-tag: foo bar"""
+    println("  with overwrite=true")
+    String new_commit_message = commit_title + "\n\n" + commit_desc + "\n" + "Test-tag: foo bar"
     expected_map["test-tag"] = "foo bar"
     updatePragmas(new_commit_message, true)
     result_map = envToPragmas()
@@ -103,8 +105,8 @@ Test-tag: foo bar"""
     println("    expected_map = ${expected_map}")
     assert(result_map == expected_map)
 
-    println("  with override=false")
-    updatePragmas("Test-tag: should_not_override", false)
+    println("  with overwrite=false")
+    updatePragmas("Test-tag: should_not_overwrite", false)
     result_map = envToPragmas()
     println("    result_map   = ${result_map}")
     println("    expected_map = ${expected_map}")
