@@ -102,7 +102,9 @@ void call(Map config = [:]) {
           scm: 'daos-stack/daos')
         recordIssues enabledForFailure: true,
                      failOnError: !results['ignore_failure'],
-                     ignoreFailedBuilds: true,
+                     // parameter below removed with the warnings-ng 11.2.2
+                     // possibly by mistake.
+                     // ignoreFailedBuilds: true,
                      ignoreQualityGate: true,
                      // Set qualitygate to 1 new "NORMAL" priority message
                      // Supporting messages to help identify causes of
