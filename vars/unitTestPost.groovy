@@ -99,7 +99,8 @@ void call(Map config = [:]) {
         discoverGitReferenceBuild(
           referenceJob: config.get('referenceJobName',
                                    'daos-stack/daos/master'),
-          scm: 'daos-stack/daos')
+          scm: 'daos-stack/daos',
+          requiredResult: 'UNSTABLE')
         recordIssues enabledForFailure: true,
                      failOnError: !results['ignore_failure'],
                      // parameter below removed with the warnings-ng 11.2.2
