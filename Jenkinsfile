@@ -690,6 +690,11 @@ pipeline {
                         }
                     } // steps
                 } // stage ('Commit Pragma tests')
+                stage('Self Unit Test') {
+                    steps {
+                        selfUnitTest()
+                    } // steps
+                } // stage ('Self Unit Test')
             } // parallel
         } // stage('Test')
         stage('DAOS Build and Test') {
