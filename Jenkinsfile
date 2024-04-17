@@ -17,7 +17,7 @@
 // That PR should be landed with out deleting the PR branch.
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
-//@Library(value='pipeline-lib@my_branch_name') _
+@Library(value='pipeline-lib@ryon-jensen/stageTiming') _
 
 /* groovylint-disable-next-line CompileStatic */
 job_status_internal = [:]
@@ -583,7 +583,16 @@ pipeline {
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         cmp = commit.tag_template.replace('@commits.value@', commit.tags[0].value)
                                         cmp = cmp.replace('@stages.tag@', stage.tag)
+echo "BANGBANG"
+println("BANGBANG")
+println("BANG -> stage: ${stage}")
+println("BANG -> commit: ${commit}")
+println("BANG -> cmp: ${cmp}")
+println("BANG -> parseStageInfo(): ${parseStageInfo()}")
+
                                         assert(parseStageInfo()['test_tag'] == cmp), parseStageInfo()['test_tag'] + ' != ' + cmp
+// parseStageInfo()['test_tag'] ->  pr,vm pr,datamover,vm daily_regression,datamover,vm full_regression,datamover,vm !=
+// cmp =>                           pr,vm                 daily_regression,datamover,vm full_regression,datamover,vm
                                     }
                                 }
                             }
