@@ -1,4 +1,3 @@
-/* groovylint-disable VariableName */
 // vars/getFunctionalTestStage.groovy
 
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
@@ -62,9 +61,6 @@ Map call(Map kwargs = [:]) {
                 node(cachedCommitPragma("Test-label${pragma_suffix}", label)) {
                     // Ensure access to any branch provisioning scripts exist
                     echo "[${name}] Check out '${base_branch}' from version control"
-                    if (!base_branch) {
-                        error 'base_branch argument is "' + base_branch + '"'
-                    }
                     if (base_branch) {
                         checkoutScm(
                             url: 'https://github.com/daos-stack/daos.git',

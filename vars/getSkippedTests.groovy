@@ -15,7 +15,7 @@ List call(String branch = null) {
     List skips = []
     skiplist.eachWithIndex { item, i ->
         if (!item.contains(':')) {
-            error('Skip list (' + skiplist + ') item #' + (i +1) + ' (' + item +
+            error('Skip list (' + skiplist + ') item #' + (i + 1) + ' (' + item +
                   ') doesn\'t contain a :<ticket #>')
         }
         skips += item.split(':')[0]
