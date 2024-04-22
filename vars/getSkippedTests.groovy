@@ -6,16 +6,16 @@
  * Get skipped tests from pragma
  */
 
-List call(String branch) {
+List call(String branch = null) {
     // i.e. Skip-list: test_my_test:DAOS-1234 test_another_test:DAOS-3456
     //      Skip-list-master: test_only_master:DAOS-4567
     List skiplist = cachedCommitPragma('Skip-list', '').split() +
-                    cachedCommitPragma('Skip-list-' + branch, '').split()
+                    (branch ? cachedCommitPragma('Skip-list-' + branch, '').split() : [])
 
     List skips = []
     skiplist.eachWithIndex { item, i ->
         if (!item.contains(':')) {
-            error('Skip list (' + skiplist + ') item #' + (i +1) + ' (' + item +
+            error('Skip list (' + skiplist + ') item #' + (i + 1) + ' (' + item +
                   ') doesn\'t contain a :<ticket #>')
         }
         skips += item.split(':')[0]

@@ -531,6 +531,10 @@ pipeline {
                                  Features: foobar
                               4. Features: datamover foobar
                               5. Test-tag: datamover foobar
+                              Would like to add this case, but see below…
+                              6. Test-tag: datamover
+                                 Features: foobar
+                                 Skip-list: test_to_skip:DAOS-1234
                         */
                         // lots more test cases could be cooked up, to be sure
                         script {
@@ -549,7 +553,6 @@ pipeline {
                                                       'pr,@commits.value@,@stages.tag@ ' +
                                                       'daily_regression,@commits.value@,@stages.tag@ ' +
                                                       'full_regression,@commits.value@,@stages.tag@'],
-                                       /* groovylint-disable-next-line DuplicateMapLiteral */
                                        [tags: [[tag: 'Test-tag', value: 'datamover'],
                                                [tag: 'Features', value: 'foobar']],
                                         tag_template: '@commits.value@,@stages.tag@ ' +
@@ -565,8 +568,17 @@ pipeline {
                                                       'daily_regression,foobar,@stages.tag@ ' +
                                                       'full_regression,foobar,@stages.tag@'],
                                        [tags: [[tag: 'Test-tag', value: 'datamover foobar']],
-                                        tag_template: 'datamover,@stages.tag@ foobar,@stages.tag@']]
-                            commits.each { commit ->
+                                        tag_template: 'datamover,@stages.tag@ foobar,@stages.tag@'],
+                                    /* this one doesn't quite work due to the @commits.value@ substituion
+                                       not accounting for the skip-list
+                                       [tags: [[tag: 'Test-tag', value: 'datamover'],
+                                               [tag: 'Features', value: 'foobar'],
+                                               [tag: 'Skip-list', value: 'test_to_skip:DAOS-1234']],
+                                        tag_template: '@commits.value@,@stages.tag@ ' +
+                                                      'pr,foobar,-test_to_skip,@stages.tag@ ' +
+                                                      'daily_regression,foobar,-test_to_skip,@stages.tag@ ' +
+                                                      'full_regression,foobar,-test_to_skip,@stages.tag@'] */]
+                            commits.eachWithIndex { commit, index ->
                                 cm = '''\
                                         Test commit\n'''
                                 commit.tags.each { tag ->
@@ -574,6 +586,7 @@ pipeline {
 
                                         ${tag.tag}: ${tag.value}"""
                                 }
+                                echo 'Running test with commit #' + (index + 1) + ' with commit:\n' + cm
                                 // assign Map to env. var to serialize it
                                 env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
                                 stages.each { stage ->
@@ -583,7 +596,8 @@ pipeline {
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         cmp = commit.tag_template.replace('@commits.value@', commit.tags[0].value)
                                         cmp = cmp.replace('@stages.tag@', stage.tag)
-                                        assert(parseStageInfo()['test_tag'] == cmp), parseStageInfo()['test_tag'] + ' != ' + cmp
+                                        assert(parseStageInfo()['test_tag'] == cmp),
+                                               parseStageInfo()['test_tag'] + ' != ' + cmp
                                     }
                                 }
                             }
