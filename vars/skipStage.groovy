@@ -102,7 +102,7 @@ boolean skip_ftest_hw(String size, String target_branch, String tags) {
         return false
     }
     String distro = (hwDistroTarget(size) =~ /([a-z]+)(\d+)(\.\d+)?/)[0][1..2].join('')
-    return !paramsValue('CI_' + size.replace('-', '_') + '_TEST', true) ||
+    return !paramsValue('CI_' + size + '_TEST', true) ||
            env.DAOS_STACK_CI_HARDWARE_SKIP == 'true' ||
            skip_stage_pragma('build-' + distro + '-rpm') ||
            skip_stage_pragma('test') ||
