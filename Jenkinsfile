@@ -75,11 +75,6 @@ void job_step_update(def value) {
 // Don't define this as a type or it loses it's global scope
 target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
 
-String test_branch(String target) {
-    return 'ci-' + JOB_NAME.replaceAll('/', '-') +
-            '-' + target.replaceAll('/', '-')
-}
-
 Void distro_version_test(String branch, String distro, String expected) {
     println("Test branch: ${branch}, distro: ${distro}, expecting: ${expected}")
     withEnv(["BRANCH_NAME=${branch}"]) {
@@ -144,6 +139,10 @@ pipeline {
             }
         }
         stage('Test') {
+            when {
+                beforeAgent true
+                expression { !skipStage() }
+            }
             parallel {
                 stage('daosLatestVersion() tests') {
                     steps {
@@ -493,6 +492,8 @@ pipeline {
                                 println(cm)
                                 actual_skips = []
                                 i = 0
+                                // save current value
+                                env.pragmas_sav = env.pragmas
                                 // assign Map to env. var to serialize it
                                 env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
                                 stages.each { stage ->
@@ -521,6 +522,8 @@ pipeline {
                                 }
                                 println('')
                                 cachedCommitPragma(clear: true)
+                                // restore actual pragmas for later stages
+                                env.pragmas = env.pragmas_sav
                             }
                             assert(errors == 0)
                         }
@@ -739,75 +742,12 @@ pipeline {
                 stages {
                     stage('Test Library') {
                         steps {
-                            // TODO: find out what the / escape is.  I've already tried both %2F and %252F
-                            //       https://issues.jenkins.io/browse/JENKINS-68857
-                            // Instead, we will create a branch specifically to test on
-                            withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                            credentialsId: 'daos_jenkins_project_github_access',
-                                            usernameVariable: 'GH_USER',
-                                            passwordVariable: 'GH_PASS']]) {
-                                sh label: 'Create or update test branch',
-                                   script: 'branch_name=' + test_branch(env.TEST_BRANCH) + '''
-                                            # To override downstream test branch:
-                                            # i.e. Test-master-branch: foo/bar
-                                           source_branch=origin/''' +
-                                           cachedCommitPragma("Test-${env.TEST_BRANCH}-branch",
-                                                              env.TEST_BRANCH) + '''
-                                            # dir for checkout since all runs in the matrix share the same
-                                            # workspace
-                                            dir="daos-''' + env.TEST_BRANCH.replaceAll('/', '-') + '''"
-                                            if cd $dir; then
-                                                git remote update
-                                                git fetch origin
-                                            else
-                                                git clone https://''' + env.GH_USER + ':' +
-                                                                        env.GH_PASS +
-                                                              """@github.com/daos-stack/daos.git \$dir
-                                                cd \$dir
-                                            fi
-                                            if git checkout \$branch_name; then
-                                                git fetch origin
-                                                git rebase \$source_branch
-                                            else
-                                                if ! git checkout -b \$branch_name \$source_branch; then
-                                                    echo "Error trying to create branch \$branch_name"
-                                                    exit 1
-                                                fi
-                                            fi
-                                            # if a PR...
-                                            if [ -n "\$CHANGE_BRANCH" ]; then
-                                                # edit to use this PR as the pipeline-lib branch
-                                                sed -i -e '/^\\/\\/@Library/s/^\\/\\///' """ +
-                                                      "-e \"/^@Library/s/'/\\\"/g\" " +
-                                                      "-e '/^@Library/s/-lib@.*/-lib@" +
-                                                    (env.CHANGE_BRANCH ?: '').replaceAll('\\/', '\\\\/') +
-                                                    "\") _/' Jenkinsfile" + '''
-                                            fi
-                                            if [ -n "$(git status -s)" ]; then
-                                                git commit -m "Update pipeline-lib branch to self''' +
-                                                  (cachedCommitPragma('Test-skip-build', 'true') == 'true' ? '' :
-                                                           '\n\nSkip-unit-tests: true') +
-                                                  (cachedCommitPragma('Test-downstream-test', 'true') == 'true' ? '' :
-                                                           '\n\nSkip-test: true') + '''" Jenkinsfile
-                                            else
-                                                git show
-                                            fi
-                                            git push -f origin $branch_name:$branch_name
-                                            sleep 10'''
-                                sh label: 'Delete local test branch',
-                                   script: '''dir="daos-''' + env.TEST_BRANCH.replaceAll('/', '-') + '''"
-                                              if ! cd $dir; then
-                                                  echo "$dir does not exist"
-                                                  exit 1
-                                              fi
-                                              git checkout origin/master
-                                              if ! git branch -D ''' + test_branch(env.TEST_BRANCH) + '''; then
-                                                  git status
-                                                  git branch -a
-                                                  exit 1
-                                              fi'''
-                            } // withCredentials
-                            build job: 'daos-stack/daos/' + test_branch(env.TEST_BRANCH),
+                            setupDownstreamTesting('daos-stack/daos', env.TEST_BRANCH,
+                                                   (cachedCommitPragma('Test-skip-build', 'false') == 'true' ?
+                                                        'Skip-build: true' : '') +
+                                                   (cachedCommitPragma('Skip-downstream-test', 'false') == 'true' ?
+                                                            '\nSkip-test: true' : ''))
+                            build job: 'daos-stack/daos/' + setupDownstreamTesting.test_branch(env.TEST_BRANCH),
                                   parameters: [string(name: 'TestTag',
                                                       value: cachedCommitPragma(
                                                         'Test-tag',
@@ -831,21 +771,10 @@ pipeline {
                         } // steps
                         post {
                             success {
-                                /* groovylint-disable-next-line DuplicateMapLiteral */
-                                withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                                credentialsId: 'daos_jenkins_project_github_access',
-                                                usernameVariable: 'GH_USER',
-                                                passwordVariable: 'GH_PASS']]) {
-                                    sh label: 'Delete test branch',
-                                       script: 'if ! git push https://$GH_USER:$GH_PASS@github.com/daos-stack/' +
-                                                  'daos.git --delete ' + test_branch(env.TEST_BRANCH) + '''; then
-                                                    echo "Error trying to delete branch ''' +
-                                                    test_branch(env.TEST_BRANCH) + '''"
-                                                    git remote -v
-                                                    exit 1
-                                                fi'''
-                                } // withCredentials
-                            } // success
+                                script {
+                                    setupDownstreamTesting.cleanup('daos-stack/daos', env.TEST_BRANCH)
+                                }
+                            }
                             always {
                                 writeFile file: stageStatusFilename(env.STAGE_NAME,
                                                                     env.TEST_BRANCH.replaceAll('/', '-')),
