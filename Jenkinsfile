@@ -159,8 +159,12 @@ pipeline {
                         distro_version_test('release/2.4', 'el8', '8')
                         distro_version_test('release/2.4', 'leap15', '15')
                         distro_version_test('release/2.6', 'el8', '8')
+                        distro_version_test('release/2.6', 'el9', '9')
                         distro_version_test('release/2.6', 'leap15', '15')
+                        distro_version_test('master', 'el8', '8')
                         distro_version_test('master', 'el9', '9')
+                        distro_version_test('master', 'leap15', '15')
+                        distro_version_test('master', 'ubuntu20', '20.04')
                     }
                 }
                 stage('grep JUnit results tests failure case') {
