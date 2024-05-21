@@ -225,7 +225,7 @@ boolean call(Map config = [:]) {
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
                    prReposContains('ubuntu20', jobName()) ||
-                   skip_stage_pragma('build-ubuntu20-rpm')
+                   skip_stage_pragma('build-ubuntu20-deb')
         case 'Build on CentOS 8':
         case 'Build on EL 8':
         case 'Build on EL 8.8':
