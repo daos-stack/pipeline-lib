@@ -147,8 +147,9 @@ pipeline {
                 stage('daosLatestVersion() tests') {
                     steps {
                         script {
-                            assert(daosLatestVersion('master', 'el8').matches(/2.5\.\d+.*/))
+                            assert(daosLatestVersion('master', 'el8').matches(/2.7\.\d+.*/))
                             assert(daosLatestVersion('release/2.4', 'el8').matches(/2.[34]\.\d+.*/))
+                            assert(daosLatestVersion('release/2.6', 'el8').matches(/2.[56]\.\d+.*/))
                         }
                     }
                 }
@@ -156,6 +157,8 @@ pipeline {
                     steps {
                         distro_version_test('release/2.4', 'el8', '8')
                         distro_version_test('release/2.4', 'leap15', '15')
+                        distro_version_test('release/2.6', 'el8', '8')
+                        distro_version_test('release/2.6', 'leap15', '15')
                         distro_version_test('master', 'el9', '9')
                     }
                 }
