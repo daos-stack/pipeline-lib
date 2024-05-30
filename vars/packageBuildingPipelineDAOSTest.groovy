@@ -799,7 +799,7 @@ void call(Map pipeline_args) {
                                                     string(name: 'CI_RPM_Ubuntu20_NOBUILD',
                                                            value: pipeline_args.get('skip-build-ubuntu-rpm', true) ||
                                                                   (pipeline_args.get('skip-build', true) ||
-                                                                  'ubuntu20.04' !in distros))
+                                                                  !'ubuntu20.04' in distros))
                                                   ]
                             } //steps
                             post {
