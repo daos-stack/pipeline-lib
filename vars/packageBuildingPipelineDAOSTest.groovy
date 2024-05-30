@@ -797,10 +797,9 @@ void call(Map pipeline_args) {
                                                                  "${env.BRANCH_NAME}:${env.BUILD_ID}" +
                                                                  ' ' + cachedCommitPragma('PR-repos')),
                                                     string(name: 'CI_RPM_Ubuntu20_NOBUILD',
-                                                           value: pipeline_args.get('skip-build', true) ||
-                                                                  pipeline_args.get('skip-build-ubuntu-rpm', true) ||
-                                                                  'ubuntu20.04' !in distros
-                                                                  )
+                                                           value: pipeline_args.get('skip-build-ubuntu-rpm', true) ||
+                                                                  (pipeline_args.get('skip-build', true) ||
+                                                                  'ubuntu20.04' !in distros))
                                                   ]
                             } //steps
                             post {
