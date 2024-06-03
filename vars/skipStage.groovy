@@ -221,6 +221,7 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build-leap15-rpm')
         case 'Build DEB on Ubuntu 20.04':
             return paramsValue('CI_DEB_Ubuntu20_NOBUILD', false) ||
+                   paramsValue('CI_RPM_Ubuntu20_NOBUILD', false) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
