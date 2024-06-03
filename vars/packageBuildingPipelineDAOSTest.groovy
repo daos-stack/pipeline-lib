@@ -806,10 +806,11 @@ void call(Map pipeline_args) {
                                                                 value: pipeline_args.get('skip-build', true) ||
                                                                   ! 'leap15' in distros),
                                                    booleanParam(name: 'CI_RPM_ubuntu20_NOBUILD',
-                                                                value: ('ubuntu20.04' in distros) ?
-                                                                       false : true),
+                                                                value: pipeline_args.get('skip-build', true) ||
+                                                                       ! ('ubuntu20.04' in distros) ?
+                                                                              true : false),
                                                    booleanParam(name: 'CI_DEB_Ubuntu20_NOBUILD',
-                                                                value: pipeline_args.get('skip-build', false) || 
+                                                                value: pipeline_args.get('skip-build', true) ||
                                                                        ! ('ubuntu20.04' in distros) ?
                                                                               true : false)
                                                   ]
