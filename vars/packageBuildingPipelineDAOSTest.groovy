@@ -798,13 +798,13 @@ void call(Map pipeline_args) {
                                                                  ' ' + cachedCommitPragma('PR-repos')),
                                                    booleanParam(name: 'CI_RPM_el8_NOBUILD',
                                                                 value: pipeline_args.get('skip-build', true) ||
-                                                                  ! 'el8' in distros)),
+                                                                  ! 'el8' in distros),
                                                    booleanParam(name: 'CI_RPM_el9_NOBUILD',
                                                                 value: pipeline_args.get('skip-build', true) ||
-                                                                  ! 'el9' in distros)),
+                                                                  ! 'el9' in distros),
                                                    booleanParam(name: 'CI_RPM_leap15_NOBUILD',
                                                                 value: pipeline_args.get('skip-build', true) ||
-                                                                  ! 'leap15' in distros)),
+                                                                  ! 'leap15' in distros),
                                                    booleanParam(name: 'CI_RPM_Ubuntu20_NOBUILD',
                                                                 value: pipeline_args.get('skip-build', true) ||
                                                                   ! 'ubuntu20.04' in distros)
