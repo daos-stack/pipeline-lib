@@ -809,9 +809,9 @@ void call(Map pipeline_args) {
                                                                 value: ('ubuntu20.04' in distros) ?
                                                                        false : true),
                                                    booleanParam(name: 'CI_DEB_Ubuntu20_NOBUILD',
-                                                                value: pipeline_args.get('skip-build', false) ?
-                                                                       true : ('ubuntu20.04' in distros) ?
-                                                                              false : true)
+                                                                value: pipeline_args.get('skip-build', false) || 
+                                                                       ! ('ubuntu20.04' in distros) ?
+                                                                              true : false)
                                                   ]
                             } //steps
                             post {
