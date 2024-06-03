@@ -796,10 +796,18 @@ void call(Map pipeline_args) {
                                                           value: env.JOB_NAME.split('/')[1] + '@' +
                                                                  "${env.BRANCH_NAME}:${env.BUILD_ID}" +
                                                                  ' ' + cachedCommitPragma('PR-repos')),
-                                                    booleanParam(name: 'CI_RPM_Ubuntu20_NOBUILD',
-                                                           value: pipeline_args.get('skip-build-ubuntu-rpm', true) ||
-                                                                  (pipeline_args.get('skip-build', true) ||
-                                                                  !'ubuntu20.04' in distros))
+                                                   booleanParam(name: 'CI_RPM_el8_NOBUILD',
+                                                                value: pipeline_args.get('skip-build', true) ||
+                                                                  ! 'el8' in distros)),
+                                                   booleanParam(name: 'CI_RPM_el9_NOBUILD',
+                                                                value: pipeline_args.get('skip-build', true) ||
+                                                                  ! 'el9' in distros)),
+                                                   booleanParam(name: 'CI_RPM_leap15_NOBUILD',
+                                                                value: pipeline_args.get('skip-build', true) ||
+                                                                  ! 'leap15' in distros)),
+                                                   booleanParam(name: 'CI_RPM_Ubuntu20_NOBUILD',
+                                                                value: pipeline_args.get('skip-build', true) ||
+                                                                  ! 'ubuntu20.04' in distros) 
                                                   ]
                             } //steps
                             post {
