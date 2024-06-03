@@ -773,7 +773,7 @@ void call(Map pipeline_args) {
                                                                daosLatestVersion(env.TEST_BRANCH, 'el8') : ''),
                                                    string(name: 'CI_PROVISIONING_POOL', value: 'default'),
                                                    string(name: 'CI_BUILD_DESCRIPTION',
-                                                          value: 'Dependency Validation Build Test'),
+                                                          value: 'Dependency Validation Build Test w/o Ubuntu'),
                                                    /* groovylint-disable-next-line UnnecessaryGetter */
                                                    string(name: 'BuildPriority', value: getPriority()),
                                                    booleanParam(name: 'CI_FI_el8_TEST', value: false),
@@ -809,8 +809,7 @@ void call(Map pipeline_args) {
                                                                 value: pipeline_args.get('skip-build', true) ||
                                                                   ! 'ubuntu20.04' in distros),
                                                    booleanParam(name: 'CI_DEB_Ubuntu20_NOBUILD',
-                                                                value: (! 'ubuntu20.04' in distros) ?
-                                                                      true : false)
+                                                                value: true )
                                                   ]
                             } //steps
                             post {
