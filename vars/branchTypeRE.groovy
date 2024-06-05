@@ -21,14 +21,14 @@ String call(String branch_type) {
             return(/^provider-(?:[-\da-z.]+)?testing(?:-(?:tcp|ucx))?(?:-2\.2)?$/)
 
         case 'release':
-            // Match a release branch name, e.g. release/2.4
+            // Match a release branch name, e.g. release/2.6
             return(/^release\/[\d.]+$/)
 
         case 'downstream':
-            // Match a downstream testing branch e.g. ci-daos-do-packer-ofed-images-PR-11-release-2.2,
+            // Match a downstream testing branch e.g. ci-daos-do-packer-ofed-images-PR-11-release-2.6,
             //                                        ci-daos-do-packer-ofed-images-PR-11-master
             //                                        ci-daos-stack-pipeline-lib-PR-415-weekly-testing
-            //                                        ci-daos-stack-pipeline-lib-PR-415-weekly-2.4-testing
+            //                                        ci-daos-stack-pipeline-lib-PR-415-weekly-2.6-testing
             return(/^ci-daos-.+-(?:release\/[\d.]+|master|weekly-(?:[\d.]+-)?testing)$/)
 
         case 'testing':
