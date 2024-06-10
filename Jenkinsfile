@@ -763,9 +763,7 @@ pipeline {
                                                string(name: 'CI_RPM_TEST_VERSION',
                                                       value: cachedCommitPragma('Test-skip-build', 'false') == 'true' ?
                                                                daosLatestVersion(env.TEST_BRANCH) : ''),
-                                               string(name: 'BuildPriority',
-                                                      value: (cachedCommitPragma('Priority', '0') == '2' ?
-                                                            '2' : params.BuildPriority)),
+                                               string(name: 'BuildPriority', value: params.BuildPriority),
                                                booleanParam(name: 'CI_UNIT_TEST', value: false),
                                                booleanParam(name: 'CI_FI_el8_TEST', value: true),
                                                booleanParam(name: 'CI_FUNCTIONAL_el7_TEST', value: true),
