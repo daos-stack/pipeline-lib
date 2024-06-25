@@ -18,6 +18,7 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 //@Library(value='pipeline-lib@my_branch_name') _
+@Library(value='pipeline-lib@jemalmbe/sre-2248') _
 
 /* groovylint-disable-next-line CompileStatic */
 job_status_internal = [:]
@@ -754,27 +755,7 @@ pipeline {
                                                         'Skip-build: true' : '') +
                                                    (cachedCommitPragma('Skip-downstream-test', 'false') == 'true' ?
                                                             '\nSkip-test: true' : ''))
-                            build job: 'daos-stack/daos/' + setupDownstreamTesting.test_branch(env.TEST_BRANCH),
-                                  parameters: [string(name: 'TestTag',
-                                                      value: cachedCommitPragma(
-                                                        'Test-tag',
-                                                        'load_mpi test_core_files ' +
-                                                        'test_pool_info_query')),
-                                               string(name: 'CI_RPM_TEST_VERSION',
-                                                      value: cachedCommitPragma('Test-skip-build', 'false') == 'true' ?
-                                                               daosLatestVersion(env.TEST_BRANCH) : ''),
-                                               string(name: 'BuildPriority', value: params.BuildPriority),
-                                               booleanParam(name: 'CI_UNIT_TEST', value: false),
-                                               booleanParam(name: 'CI_FI_el8_TEST', value: true),
-                                               booleanParam(name: 'CI_FUNCTIONAL_el7_TEST', value: true),
-                                               booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
-                                               booleanParam(name: 'CI_FUNCTIONAL_el8_TEST', value: true),
-                                               booleanParam(name: 'CI_FUNCTIONAL_leap15_TEST', value: true),
-                                               booleanParam(name: 'CI_SCAN_RPMS_el7_TEST', value: true),
-                                               booleanParam(name: 'CI_RPMS_el7_TEST', value: true),
-                                               booleanParam(name: 'CI_medium_TEST', value: true),
-                                               booleanParam(name: 'CI_large_TEST', value: false)
-                                              ]
+                            buildDaosJob()
                         } // steps
                         post {
                             success {
