@@ -9,7 +9,7 @@
    *
    */
 
-void call(String branch, Integer priority) {
+void call(String branch, String priority) {
     setupDownstreamTesting('daos-stack/daos', branch,
                            (cachedCommitPragma('Test-skip-build', 'false') == 'true' ?
                                                'Skip-build: true' : '') +
@@ -24,7 +24,7 @@ void call(String branch, Integer priority) {
                                       'test_pool_info_query')),
                              string(name: 'CI_RPM_TEST_VERSION',
                                     value: cachedCommitPragma('Test-skip-build', 'false') == 'true' ?
-                                             daosLatestVersion(env.TEST_BRANCH) : ''),
+                                             daosLatestVersion(branch) : ''),
                              string(name: 'BuildPriority', value: priority),
                              booleanParam(name: 'CI_FI_el8_TEST', value: true),
                              booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
