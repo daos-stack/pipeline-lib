@@ -750,12 +750,7 @@ pipeline {
                 stages {
                     stage('Test Library') {
                         steps {
-                            setupDownstreamTesting('daos-stack/daos', env.TEST_BRANCH,
-                                                   (cachedCommitPragma('Test-skip-build', 'false') == 'true' ?
-                                                        'Skip-build: true' : '') +
-                                                   (cachedCommitPragma('Skip-downstream-test', 'false') == 'true' ?
-                                                            '\nSkip-test: true' : ''))
-                            buildDaosJob()
+                            buildDaosJob(env.TEST_BRANCH, params.BuildPriority)
                         } // steps
                         post {
                             success {

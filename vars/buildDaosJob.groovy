@@ -3,24 +3,29 @@
   /**
    * buildDaosJob step method.
    *
-   * This is intended only for use in a Jenkinsfile in a Matrix stage.
-   * Builds a branch of DAOS based on env.TEST_BRANCH.
-   *
    * The paramater names must match parameters that are the Jenkinsfile for
    * DAOS master.
    *
-   * @param config Map of parameters passed
    *
    */
 
-Map call(Map config = [:]) {
-    build job: 'daos-stack/daos/' + setupDownstreamTesting.test_branch(env.TEST_BRANCH),
+void call(String branch, Integer priority) {
+    setupDownstreamTesting('daos-stack/daos', branch,
+                           (cachedCommitPragma('Test-skip-build', 'false') == 'true' ?
+                                               'Skip-build: true' : '') +
+                            (cachedCommitPragma('Skip-downstream-test', 'false') == 'true' ?
+                                                '\nSkip-test: true' : ''))
+
+    build job: 'daos-stack/daos/' + setupDownstreamTesting.test_branch((branch)),
                 parameters: [string(name: 'TestTag',
-                             value: 'load_mpi test_core_files'),
-                             // Maybe should only do this if Test-tag: provisioning?
+                                    value: cachedCommitPragma(
+                                      'Test-tag',
+                                      'load_mpi test_core_files ' +
+                                      'test_pool_info_query')),
                              string(name: 'CI_RPM_TEST_VERSION',
-                                          value: daosLatestVersion(env.TEST_BRANCH)),
-                             string(name: 'BuildPriority', value: '2'),
+                                    value: cachedCommitPragma('Test-skip-build', 'false') == 'true' ?
+                                             daosLatestVersion(env.TEST_BRANCH) : ''),
+                             string(name: 'BuildPriority', value: priority),
                              booleanParam(name: 'CI_FI_el8_TEST', value: true),
                              booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
                              booleanParam(name: 'CI_FUNCTIONAL_el9_TEST', value: true),
