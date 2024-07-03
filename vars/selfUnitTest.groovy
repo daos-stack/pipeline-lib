@@ -112,3 +112,136 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
         assert(getFunctionalTags() == 'pr,-test_foo,-test_bar,vm')
     }
 }
+
+void _test_skip_functional_test_stage() {
+    // Unit test for skipFunctionalTestStage()
+    Map sequences = [
+        [
+            description: 'run_if_pr=true',
+            kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+            pragma: '',
+            expect: false
+        ],
+        [
+            description: 'run_if_pr=false',
+            kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
+            pragma: '',
+            /* groovylint-disable-next-line UnnecessaryGetter */
+            expect: isPr()
+        ],
+        [
+            description: 'Distro set',
+            kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: 'el8', run_if_pr: true],
+            pragma: '',
+            expect: false
+        ],
+        [
+            description: 'Skip-test: true',
+            kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+            pragma: 'Skip-test: true',
+            expect: true
+        ],
+        [
+            description: 'Skip-func-test: true',
+            kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+            pragma: 'Skip-func-test: true',
+            expect: true
+        ],
+        [
+            description: 'Skip-func-test-hw: true',
+            kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+            pragma: 'Skip-func-test-hw: true',
+            expect: true
+        ],
+        [
+            description: 'Skip-func-test-hw-medium: true',
+            kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+            pragma: 'Skip-func-test-hw-medium: true',
+            expect: true
+        ],
+        [
+            description: 'Skip-func-test-hw: false',
+            kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
+            pragma: 'Skip-func-test-hw: false',
+            expect: false
+        ],
+        [
+            description: 'Skip-func-test-hw-medium: false',
+            kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
+            pragma: 'Skip-func-test-hw-medium: false',
+            expect: false
+        ],
+        [
+            description: 'Skip-func-test-hw-large: true',
+            kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+            pragma: 'Skip-func-test-hw-large: true',
+            expect: false
+        ],
+        [
+            description: 'Run-daily-stages: true',
+            kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
+            pragma: 'Run-daily-stages: true',
+            expect: false
+        ],
+        [
+            description: 'Run-daily-stages: false',
+            kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+            pragma: 'Run-daily-stages: false',
+            expect: true
+        ],
+        [
+            description: 'Run-GHA: true',
+            kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+            pragma: 'Run-GHA: true',
+            expect: true
+        ],
+        [
+            description: 'Skip-build-el8-rpm: true',
+            kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: 'el8', run_if_pr: true],
+            pragma: 'Skip-build-el8-rpm: true',
+            expect: true
+        ],
+        [
+            description: 'Skip-build-el9-rpm: true',
+            kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: 'el8', run_if_pr: true],
+            pragma: 'Skip-build-el9-rpm: true',
+            expect: false
+        ],
+    ]
+
+    println('------------------------------------------------------------')
+    println('Test skipFunctionalTestStage()')
+    println('------------------------------------------------------------')
+
+    int errors = 0
+    sequences.eachWithIndex { sequence, index ->
+        cachedCommitPragma(clear: true)
+        println("${index}: ${sequence['description']}")
+        commit_message = "Test commit\n\n${sequence['pragma']}\n"
+        println(commit_message)
+        env.tmp_pragmas = pragmasToEnv(commit_message.stripIndent())
+        withEnv(['STAGE_NAME=Functional Hardware Medium',
+                    'UNIT_TEST=true',
+                    'pragmas=' + env.tmp_pragmas,
+                    'COMMIT_MESSAGE=' + commit_message.stripIndent()]) {
+            sequences[index]['actual'] = skipFunctionalTestStage(sequence['kwargs'])
+            println("skipFunctionalTestStage() -> ${sequence['actual']}")
+            if (sequence['expect'] != sequence['actual']) { errors++ }
+        }
+        println('------------------------------------------------------------')
+    }
+    println('')
+    println('  Result  Expect  Actual  Test')
+    println('  ------  ------  ------  ----------------------------------------------')
+    sequences.eachWithIndex { sequence, index ->
+        result = 'PASS'
+        expect = 'run '
+        actual = 'run '
+        if (sequence['expect']) { expect = 'skip' }
+        if (sequence['actual']) { actual = 'skip' }
+        if (expect != actual) { result = 'FAIL' }
+        println("  ${result}    ${expect}    ${actual}    ${index}: " +
+                "${sequence['description']} (${sequence['kwargs']})")
+    }
+    assert(errors == 0)
+}
