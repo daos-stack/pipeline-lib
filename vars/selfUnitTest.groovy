@@ -21,7 +21,6 @@ void _test_pragmas_env() {
     String commit_title = 'DAOS-XXXX test: short description about thing'
     String commit_desc = 'Long description about thing\nwith multiple lines'
     String commit_pragmas = '''Skip-build: true
-
 Skip-PR-comments: true
 
 My-pragma1:   val1
