@@ -15,6 +15,12 @@ void call() {
     } finally {
         env.pragmas = env_pragmas_original
     }
+    env_pragmas_original = env.pragmas
+    try {
+        _test_skip_functional_test_stage()
+    } finally {
+        env.pragmas = env_pragmas_original
+    }
 }
 
 void _test_pragmas_env() {
