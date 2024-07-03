@@ -21,10 +21,14 @@ void _test_pragmas_env() {
     String commit_title = 'DAOS-XXXX test: short description about thing'
     String commit_desc = 'Long description about thing\nwith multiple lines'
     String commit_pragmas = '''Skip-build: true
+
 Skip-PR-comments: true
+
 My-pragma1:   val1
 My-pragma2:  val2 val2
+
 Required-githooks: true
+
 Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
     String commit_message = commit_title + '\n\n' + commit_desc + '\n\n' + commit_pragmas
 
