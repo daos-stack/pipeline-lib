@@ -107,16 +107,17 @@ Map call(Map config = [:]) {
     run_test_config['description'] = description
 
     sh label: 'Install Launchable',
-     script: '''# can't use --upgrade with pip3 because it tries to upgrade everything
-                v=$(pip3 install --user launchable== 2>&1 | \
-                    sed -ne '/Could not find a version/s/.*, \\(.*\\))/\\1/p')
-                if ! pip3 install --user launchable==$v; then
-                  echo "Failed to install launchable"
-                  id
-                  pip3 list --user || true
-                  find ~/.local/lib -type d
-                  hostname
-                  exit 1
+     script: '''if ! pip3 install --upgrade --upgrade-strategy only-if-needed launchable; then
+                    set +e
+                    echo "Failed to install launchable"
+                    id
+                    pip3 list --user || true
+                    find ~/.local/lib -type d
+                    hostname
+                    pip3 --version
+                    pip3 index versions launchable
+                    pip3 install --user launchable==
+                    exit 1
                 fi
                 pip3 list --user || true
                 '''
