@@ -385,12 +385,12 @@ boolean call(Map config = [:]) {
                    (skip_stage_pragma('build') &&
                     rpmTestVersion() == '') ||
                     skip_stage_pragma('test') ||
-                    docOnlyChange(target_branch ||
+                    docOnlyChange(target_branch) ||
                     (env.BRANCH_NAME =~ branchTypeRE('testing') &&
                      !startedByTimer() &&
                      !startedByUpstream() &&
                      !startedByUser()) ||
-                     skip_if_unstable())
+                     skip_if_unstable()
         case 'Test on CentOS 7 [in] Vagrant':
             return skip_stage_pragma('vagrant-test', 'true') &&
                    !env.BRANCH_NAME =~ branchTypeRE('weekly') ||
