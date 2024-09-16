@@ -568,7 +568,8 @@ boolean call(Map config = [:]) {
             return env.BULLSEYE == null ||
                    skip_stage_pragma('bullseye', 'true')
         case 'DAOS Build and Test':
-            return skip_stage_pragma('daos-build-and-test')
+            return skip_stage_pragma('daos-build-and-test') ||
+                docOnlyChange(target_branch)
         default:
             println("Don't know how to skip stage \"${env.STAGE_NAME}\", not skipping")
             return false
