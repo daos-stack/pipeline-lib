@@ -19,7 +19,7 @@ boolean call(String target_branch) {
         return sh(label: "Determine if doc-only change (manual mode with master branch)",
                   script: '''
                     set -uex
-                    git diff --no-commit-id --name-only origin/master" HEAD |
+                    git diff --no-commit-id --name-only origin/master HEAD |
                        grep -v -e "^docs/" -e "\\.md$" -e "^.*LICENSE.*\$"
                        ''',
                   returnStatus: true) == 1
