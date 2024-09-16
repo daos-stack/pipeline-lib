@@ -20,7 +20,7 @@ boolean call(String target_branch) {
                   script: '''
                     set -uex
                     git diff --no-commit-id --name-only origin/master" HEAD |
-                       grep -v -e "^docs/" -e "\\.md$" -e "(?i)^.*LICENSE.*\$"
+                       grep -v -e "^docs/" -e "\\.md$" -e "\(?i)^.*LICENSE.*\$"
                        ''',
                   returnStatus: true) == 1
                 }
