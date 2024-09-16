@@ -25,7 +25,7 @@ boolean call(String target_branch) {
                                 exit 0
                             fi
                             git diff --no-commit-id --name-only origin/${TARGET_BRANCH} HEAD |
-                               grep -v -e "^docs/" -e "\\.md$" -e "^.*LICENSE.*\$"
+                               grep -v -e "^docs/" -e "\\.md$" -e "^.*LICENSE.*$" -e "^Jenkinsfile$"
                             ''',
                   returnStatus: true) == 1
                 }
