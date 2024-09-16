@@ -27,7 +27,7 @@ boolean call(String target_branch) {
                         "exit 0" + \
                     "fi" + \
                     "git diff --no-commit-id --name-only \$merge_base HEAD | " +\
-                       "grep -v -e '^docs/' -e '\.md$' -e '(?i)^.*LICENSE.*$'",
+                       "grep -v -e '^docs/' -e '\\.md$' -e '(?i)^.*LICENSE.*\$'",
                   returnStatus: true) == 1
                 }
 
