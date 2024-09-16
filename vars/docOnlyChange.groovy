@@ -19,15 +19,7 @@ boolean call(String target_branch) {
         return sh(label: "Determine if doc-only change (manual mode with master branch)",
                   script: '''
                     set -uex
-                    if ! git fetch origin master; then
-                        echo "Hrm.  Got an error fetching the target branch"
-                        exit 0
-                    fi
-                    if ! merge_base=$(git merge-base FETCH_HEAD HEAD); then
-                        echo "Hrm.  Got an error finding the merge base"
-                        exit 0
-                    fi
-                    git diff --no-commit-id --name-only $merge_base" HEAD |
+                    git diff --no-commit-id --name-only origin/master" HEAD |
                        grep -v -e "^docs/" -e "\\.md$" -e "(?i)^.*LICENSE.*\$"
                        ''',
                   returnStatus: true) == 1
