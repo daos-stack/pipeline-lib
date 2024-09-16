@@ -26,7 +26,7 @@ boolean call(String target_branch) {
                         "echo 'Hrm.  Got an error finding the merge base'" + \
                         "exit 0" + \
                     "fi" + \
-                    "git diff --no-commit-id --name-only \$merge_base HEAD | " +\
+                    "git diff --no-commit-id --name-only ${merge_base} HEAD | " +\
                        "grep -v -e '^docs/' -e '\\.md$' -e '(?i)^.*LICENSE.*\$'",
                   returnStatus: true) == 1
                 }
