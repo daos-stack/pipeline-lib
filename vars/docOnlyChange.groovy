@@ -16,10 +16,10 @@ boolean call(String target_branch) {
     }
     if (cachedCommitPragma('Doc-only').toLowerCase() == 'false' ||
         !fileExists('ci/doc_only_change.sh')) {
-        return sh(label: "Determine if doc-only change (manual mode)",
+        return sh(label: "Determine if doc-only change (manual mode with master branch)",
                   script: '''
                     set -uex
-                    if ! git fetch origin "${target_branch}"; then
+                    if ! git fetch origin master; then
                         echo "Hrm.  Got an error fetching the target branch"
                         exit 0
                     fi
