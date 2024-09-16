@@ -16,7 +16,7 @@ boolean call(String target_branch) {
     }
     if (cachedCommitPragma('Doc-only').toLowerCase() == 'false' ||
         !fileExists('ci/doc_only_change.sh')) {
-        return sh(label: "Determine if doc-only change (manual mode)"
+        return sh(label: "Determine if doc-only change (manual mode)",
                   script: "set -uex" + \
                     "if ! git fetch origin ${target_branch}; then" + \
                         "echo 'Hrm.  Got an error fetching the target branch'" + \
@@ -27,7 +27,7 @@ boolean call(String target_branch) {
                         "exit 0" + \
                     "fi" + \
                     "git diff --no-commit-id --name-only $merge_base HEAD | " +\
-                       "grep -v -e '^docs/' -e '\.md$' -e '(?i)^.*LICENSE.*$'"
+                       "grep -v -e '^docs/' -e '\.md$' -e '(?i)^.*LICENSE.*$'",
                   returnStatus: true) == 1
                 }
 
