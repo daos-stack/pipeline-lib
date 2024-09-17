@@ -148,15 +148,15 @@ pipeline {
                 stage('daosLatestVersion() tests') {
                     steps {
                         script {
-                            assert(daosLatestVersion('master', 'el8').matches(/2.7\.\d+.*/)), 
-                                '"' + daosLatestVersion('master', 'el8') + \
-                                '" <> matches(/2.7\\.\\d+.*/)'
-                            assert(daosLatestVersion('release/2.4', 'el8').matches(/2.[34]\.\d+.*/)),
-                                '"' + daosLatestVersion('release/2.4', 'el8') + \
-                                '" <> matches(/2.[34]\\.\\d+.*/)'
-                            assert(daosLatestVersion('release/2.6', 'el8').matches(/2.[56]\.\d+.*/)), 
-                                '"' + daosLatestVersion('release/2.6', 'el8') + 
-                                '" <> matches(/2.[56]\\.\\d+.*/)'
+                            daosLatestVersionMaster = daosLatestVersion('master', 'el8')
+                            assert(daosLatestVersionMaster.matches(/2.7\.\d+.*/)), 
+                                '"' + daosLatestVersionMaster + '" <> matches(/2.7\\.\\d+.*/)'
+                            daosLatestVersion24 = daosLatestVersion('release/2.4', 'el8')
+                            assert(daosLatestVersion24.matches(/2.[34]\.\d+.*/)),
+                                '"' + daosLatestVersion24 + '" <> matches(/2.[34]\\.\\d+.*/)'
+                            daosLatestVersion26 = daosLatestVersion('release/2.6', 'el8')
+                            assert(daosLatestVersion26.matches(/2.[56]\.\d+.*/)), 
+                                '"' + daosLatestVersion26 + '" <> matches(/2.[56]\\.\\d+.*/)'
                         }
                     }
                 }
