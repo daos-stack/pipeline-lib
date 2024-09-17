@@ -32,6 +32,6 @@ boolean call(String target_branch) {
                      grep -v -e "^docs/" -e "\\.md$" -e "^.*LICENSE.*$"'''
     }
     return sh(label: "Determine if doc-only change",
-              script: script
+              script: script,
               returnStatus: true) == 1
 }
