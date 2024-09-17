@@ -148,7 +148,11 @@ pipeline {
                 stage('daosLatestVersion() tests') {
                     steps {
                         script {
+                            testVar4 = daosLatestVersion('release/2.4', 'el8')
+                            testVar6 = daosLatestVersion('release/2.6', 'el8')
                             assert(daosLatestVersion('master', 'el8').matches(/2.7\.\d+.*/))
+                            echo "daosLatestVersion('release/2.4', 'el8')" + testVar4
+                            echo "daosLatestVersion('release/2.6', 'el8')" + testVar6
                             assert(daosLatestVersion('release/2.4', 'el8').matches(/2.[34]\.\d+.*/))
                             assert(daosLatestVersion('release/2.6', 'el8').matches(/2.[56]\.\d+.*/))
                         }
