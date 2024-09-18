@@ -23,7 +23,7 @@ String call() {
     String target = stage_info['target']
     boolean quick_build = quickBuild()
 
-    if (target.startsWith('centos') || target.startsWith('el')) {
+    if (target.startsWith('centos') || target.startsWith('el') || target.startsWith('leap')) {
         if (quick_build) {
             // the script run below will read from this file
             unstash target + '-required-mercury-rpm-version'
