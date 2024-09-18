@@ -22,7 +22,7 @@ boolean call(String target_branch) {
                  ' TARGET_BRANCH= ' + target_branch +
                  ' ci/doc_only_change.sh'
     } else {
-        script = 'TARGET_BRANCH= ' + target_branch + '''
+        script = 'TARGET_BRANCH=' + target_branch + '''
                   set -uex
                   if ! git fetch origin ${TARGET_BRANCH}; then
                       echo "Hrm.  Got an error fetching the target branch"
