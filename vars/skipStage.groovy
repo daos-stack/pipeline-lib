@@ -342,7 +342,6 @@ boolean call(Map config = [:]) {
         case 'Unit Tests':
             return env.NO_CI_TESTING == 'true' ||
                    paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
-                   skip_stage_pragma('build') ||
                    rpmTestVersion() != '' ||
                    docOnlyChange(target_branch) ||
                    skip_stage_pragma('unit-tests')
