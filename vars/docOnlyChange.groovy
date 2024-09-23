@@ -18,8 +18,8 @@ boolean call(String target_branch) {
         return false
     }
     if (fileExists('ci/doc_only_change.sh')) {
-        script = 'CHANGE_ID= ' + env.CHANGE_ID +
-                 ' TARGET_BRANCH= ' + target_branch +
+        script = 'CHANGE_ID=' + env.CHANGE_ID +
+                 ' TARGET_BRANCH=' + target_branch +
                  ' ci/doc_only_change.sh'
     } else {
         script = 'TARGET_BRANCH=' + target_branch + '''
