@@ -34,6 +34,6 @@ boolean call(String target_branch) {
     boolean docOnlyChange = sh(label: "Determine if doc-only change",
               script: script,
               returnStatus: true) == 1
-    println( 'docOnlyChange: ' + docOnlyChange)
+    println( 'docOnlyChange: ', docOnlyChange)
     return docOnlyChange
 }
