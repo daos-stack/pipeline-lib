@@ -172,7 +172,8 @@ boolean call(Map config = [:]) {
         case 'Check Packaging':
             return skip_stage_pragma('packaging-check')
         case 'Lint':
-            return quickBuild()
+            return quickBuild() ||
+                   docOnlyChange(target_branch)
         case 'Pre-build':
             return docOnlyChange(target_branch) ||
                    target_branch =~ branchTypeRE('weekly') ||
@@ -383,12 +384,13 @@ boolean call(Map config = [:]) {
             return env.NO_CI_TESTING == 'true' ||
                    (skip_stage_pragma('build') &&
                     rpmTestVersion() == '') ||
-                   skip_stage_pragma('test') ||
-                   (env.BRANCH_NAME =~ branchTypeRE('testing') &&
-                    !startedByTimer() &&
-                    !startedByUpstream() &&
-                    !startedByUser()) ||
-                   skip_if_unstable()
+                    skip_stage_pragma('test') ||
+                    docOnlyChange(target_branch) ||
+                    (env.BRANCH_NAME =~ branchTypeRE('testing') &&
+                     !startedByTimer() &&
+                     !startedByUpstream() &&
+                     !startedByUser()) ||
+                     skip_if_unstable()
         case 'Test on CentOS 7 [in] Vagrant':
             return skip_stage_pragma('vagrant-test', 'true') &&
                    !env.BRANCH_NAME =~ branchTypeRE('weekly') ||
@@ -519,6 +521,8 @@ boolean call(Map config = [:]) {
                     !run_default_skipped_stage('test-leap-15.4-rpms')) ||
                    (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
+        case 'Test Packages':
+            return docOnlyChange(target_branch)
         case 'Scan CentOS 7 RPMs':
             return skip_scan_rpms('centos7', target_branch)
         case 'Scan CentOS 8 RPMs':
@@ -564,7 +568,8 @@ boolean call(Map config = [:]) {
             return env.BULLSEYE == null ||
                    skip_stage_pragma('bullseye', 'true')
         case 'DAOS Build and Test':
-            return skip_stage_pragma('daos-build-and-test')
+            return skip_stage_pragma('daos-build-and-test') ||
+                docOnlyChange(target_branch)
         default:
             println("Don't know how to skip stage \"${env.STAGE_NAME}\", not skipping")
             return false
