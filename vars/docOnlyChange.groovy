@@ -28,6 +28,10 @@ boolean call(String target_branch) {
                       echo "Hrm.  Got an error fetching the target branch"
                       exit 0
                   fi
+                  if ! git diff --no-commit-id --name-only origin/${TARGET_BRANCH} HEAD | grep -q -e ".*"; then
+                    echo "Empty commit diff"
+                    exit 0
+                  fi
                   git diff --no-commit-id --name-only origin/${TARGET_BRANCH} HEAD |
                      grep -v -e "^docs/" -e "\\.md$" -e "^.*LICENSE.*$"'''
     }
