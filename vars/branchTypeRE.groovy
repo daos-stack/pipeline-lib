@@ -36,6 +36,10 @@ String call(String branch_type) {
             // Also support older branch names not ending in 'testing'
             return(testBranchRE())
 
+        case 'feature':
+            // Match a feature branch name
+            return(/^feature\//)
+
         default:
             error "Unsupported branch type: ${branch_type}"
     }

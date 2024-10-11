@@ -111,9 +111,7 @@ boolean skip_ftest_hw(String size, String target_branch, String tags) {
            skip_stage_pragma('func-test-hw-' + size) ||
            skip_stage_pragma('func-hw-test') ||
            skip_stage_pragma('func-hw-test-' + size) ||
-           ((env.BRANCH_NAME == 'master' ||
-             env.BRANCH_NAME =~ branchTypeRE('release')) &&
-            !(startedByTimer() || startedByUser())) ||
+           startedByLanding() ||
            (docOnlyChange(target_branch) &&
             prRepos(distro) == '') ||
            /* groovylint-disable-next-line UnnecessaryGetter */
@@ -125,6 +123,7 @@ boolean skip_if_unstable() {
         cachedCommitPragma('Allow-unstable-test').toLowerCase() == 'true' ||
         env.BRANCH_NAME == 'master' ||
         env.BRANCH_NAME =~ branchTypeRE('testing') ||
+        env.BRANCH_NAME =~ branchTypeRE('feature') ||
         env.BRANCH_NAME =~ branchTypeRE('release')) {
         return false
     }
