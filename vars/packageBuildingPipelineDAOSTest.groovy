@@ -765,8 +765,11 @@ void call(Map pipeline_args) {
                                 build job: 'daos-stack/daos/' + setupDownstreamTesting.test_branch(env.TEST_BRANCH),
                                       parameters: [string(name: 'TestTag',
                                                           value: ('load_mpi test_core_files ' +
-                                                                   pipeline_args.get('test-tag', '')).trim() +
-                                                                   skipped_tests_tags(env.TEST_BRANCH)),
+                                                                   /* groovylint-disable-next-line LineLength */
+                                                                   pipeline_args.get('test-tag', '')).trim().split(' ').collect {
+                                                                       tag ->
+                                                                       tag + skipped_tests_tags(env.TEST_BRANCH)
+                                                                   }.join(' ')),
                                                    string(name: 'CI_RPM_TEST_VERSION',
                                                           value: pipeline_args.get('skip-build', true) ?
                                                                daosLatestVersion(env.TEST_BRANCH, 'el8') : ''),
@@ -797,16 +800,16 @@ void call(Map pipeline_args) {
                                                                  ' ' + cachedCommitPragma('PR-repos')),
                                                    booleanParam(name: 'CI_RPM_el8_NOBUILD',
                                                                 value: pipeline_args.get('skip-build', true) ||
-                                                                  ! ('el8' in distros)),
+                                                                  !('el8' in distros)),
                                                    booleanParam(name: 'CI_RPM_el9_NOBUILD',
                                                                 value: pipeline_args.get('skip-build', true) ||
-                                                                  ! ('el9' in distros)),
+                                                                  !('el9' in distros)),
                                                    booleanParam(name: 'CI_RPM_leap15_NOBUILD',
                                                                 value: pipeline_args.get('skip-build', true) ||
-                                                                  ! ('leap15' in distros)),
+                                                                  !('leap15' in distros)),
                                                    booleanParam(name: 'CI_DEB_Ubuntu20_NOBUILD',
                                                                 value: pipeline_args.get('skip-build', true) ||
-                                                                       ! ('ubuntu20.04' in distros))
+                                                                       !('ubuntu20.04' in distros))
                                                   ]
                             } //steps
                             post {
