@@ -35,14 +35,21 @@ def call(Map config = [:]) {
                  onPR: config['onPR']
 
     def branch = env['GIT_BRANCH'].toUpperCase().replaceAll("-", "_")
-    def watchers = env["DAOS_STACK_${branch}_WATCHER"]
+    def git_suffix = ~/\.git$/
+    def repo_name = GIT_URL.tokenize('/')[-1] - git_suffix
+    repo_name = repo_name.toUpperCase().replaceAll("-", "_")
 
-    if (watchers != "null") {
-        emailextDaos body: env.GIT_BRANCH + ' is broken.\n\n' +
-                           'See ' + env.BUILD_URL + ' for more details.',
-                     to: watchers,
-                     subject: 'Build broken on ' + env.GIT_BRANCH,
-                     onPR: config['onPR']
+    def vars = ["DAOS_STACK_WATCHER_${repo_name}", "DAOS_STACK_${branch}_WATCHER"]
+    for (var in vars) {
+        def watchers = env[var]
+        if (watchers != "null") {
+            emailextDaos body: env.GIT_BRANCH + ' is broken.\n\n' +
+                               'See ' + env.BUILD_URL + ' for more details.',
+                         to: watchers,
+                         subject: 'Build broken on ' + env.GIT_BRANCH,
+                         onPR: config['onPR']
+            break
+        }
     }
     
 }
