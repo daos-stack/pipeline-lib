@@ -551,7 +551,7 @@ void call(Map pipeline_args) {
                                      ' --cap-add=SYS_ADMIN' +
                                      ' --privileged=true'   +
                                      ' -v /scratch:/scratch'
-                                additionalBuildArgs dockerBuildArgs() + '--build-arg FVERSION=37'
+                                additionalBuildArgs dockerBuildArgs() + '--build-arg FVERSION=41'
                             }
                         }
                         steps {
