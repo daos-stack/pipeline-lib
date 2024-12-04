@@ -101,6 +101,10 @@ Map call(Map config = [:]) {
             result['target'] = 'leap15'
             result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.5')
             new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
+        } else if (stage_name.contains('Leap 15.6')) {
+            result['target'] = 'leap15'
+            result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.6')
+            new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
         } else if (stage_name.contains('Leap 15')) {
             result['target'] = 'leap15'
             result['distro_version'] = cachedCommitPragma('LEAP15-version',

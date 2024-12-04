@@ -213,6 +213,7 @@ boolean call(Map config = [:]) {
         case 'Build RPM on Leap 15':
         case 'Build RPM on Leap 15.4':
         case 'Build RPM on Leap 15.5':
+        case 'Build RPM on Leap 15.6':
             return paramsValue('CI_RPM_leap15_NOBUILD', false) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    (docOnlyChange(target_branch) &&
@@ -303,6 +304,7 @@ boolean call(Map config = [:]) {
         case 'Build on Leap 15 with Clang':
         case 'Build on Leap 15.4 with Clang':
         case 'Build on Leap 15.5 with Clang':
+        case 'Build on Leap 15.6 with Clang':
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_build_on_landing_branch(target_branch) ||
                    (docOnlyChange(target_branch) &&
@@ -325,6 +327,7 @@ boolean call(Map config = [:]) {
         case 'Build on Leap 15':
         case 'Build on Leap 15.4':
         case 'Build on Leap 15.5':
+        case 'Build on Leap 15.6':
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    skip_stage_pragma('build-leap15-gcc') ||
                    (docOnlyChange(target_branch) &&
@@ -333,6 +336,7 @@ boolean call(Map config = [:]) {
         case 'Build on Leap 15 with Intel-C and TARGET_PREFIX':
         case 'Build on Leap 15.4 with Intel-C and TARGET_PREFIX':
         case 'Build on Leap 15.5 with Intel-C and TARGET_PREFIX':
+        case 'Build on Leap 15.6 with Intel-C and TARGET_PREFIX':
             return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('build-leap15-icc') ||
@@ -422,6 +426,7 @@ boolean call(Map config = [:]) {
         case 'Functional on Leap 15':
         case 'Functional on Leap 15.4':
         case 'Functional on Leap 15.5':
+        case 'Functional on Leap 15.6':
             return skip_ftest('leap15', target_branch, tags)
         case 'Functional on Ubuntu 20.04':
             /* we don't do any testing on Ubuntu yet
@@ -508,16 +513,18 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('test-leap-15-rpms', 'true') ||
                    stageAlreadyPassed()
         case 'Test RPMs on Leap 15.4':
-            return !paramsValue('CI_RPMS_leap15.4_TEST', true) ||
+        case 'Test RPMs on Leap 15.5':
+        case 'Test RPMs on Leap 15.6':
+            return !paramsValue('CI_RPMS_leap15_TEST', true) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('build-leap15-rpm') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
-                   skip_stage_pragma('test-leap-15.4-rpms', 'true') ||
+                   skip_stage_pragma('test-leap-15-rpms', 'true') ||
                    docOnlyChange(target_branch) ||
                    (quickFunctional() &&
-                    !paramsValue('CI_RPMS_leap15_4_TEST', true) &&
-                    !run_default_skipped_stage('test-leap-15.4-rpms')) ||
+                    !paramsValue('CI_RPMS_leap15_TEST', true) &&
+                    !run_default_skipped_stage('test-leap-15-rpms')) ||
                    (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
         case 'Test Packages':
@@ -530,6 +537,7 @@ boolean call(Map config = [:]) {
         case 'Scan Leap 15 RPMs':
         case 'Scan Leap 15.4 RPMs':
         case 'Scan Leap 15.5 RPMs':
+        case 'Scan Leap 15.6 RPMs':
             return skip_scan_rpms('leap15', target_branch)
         case 'Test Hardware':
             return env.NO_CI_TESTING == 'true' ||
