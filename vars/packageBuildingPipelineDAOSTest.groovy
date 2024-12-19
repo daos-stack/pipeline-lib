@@ -614,7 +614,7 @@ void call(Map pipeline_args) {
                                 archiveArtifacts artifacts: 'artifacts/leap15/**'
                             }
                         }
-                    } //stage('Build RPM on Leap 15')
+                    } //stage('Build RPM on Leap 15.5')
                     stage('Build DEB on Ubuntu 20.04') {
                         when {
                             beforeAgent true
