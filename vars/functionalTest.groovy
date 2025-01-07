@@ -65,9 +65,8 @@ Map call(Map config = [:]) {
 
     Map stage_info = parseStageInfo(config)
 
-    String image_version = config.get(
-        'image_version',
-        (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'])
+    String image_version = config.get('image_version') ?:
+        (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version']
 
     // Install any additional rpms required for this stage
     String stage_inst_rpms = config.get('inst_rpms', '')
@@ -84,6 +83,7 @@ Map call(Map config = [:]) {
                           subject: 'CI Test failure - CI Configuration test issue.')
     }
 
+    echo "Running provisionNodes() on ${nodelist} with the ${image_version} image"
     Map runData = provisionNodes(
                  NODELIST: nodelist,
                  node_count: stage_info['node_count'],
