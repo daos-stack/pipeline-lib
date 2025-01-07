@@ -18,7 +18,6 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      default_nvme    launch.py --nvme argument to use when no parameter or commit pragma exist
  *      provider        launch.py --provider argument to use
  *      distro          functional test stage distro (VM)
- *      image_version   image version to use for provisioning, e.g. el8.8, leap15.6, etc.
  *      base_branch     if specified, checkout sources from this branch before running tests
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
@@ -36,7 +35,6 @@ Map call(Map kwargs = [:]) {
     String default_nvme = kwargs.get('default_nvme')
     String provider = kwargs.get('provider', '')
     String distro = kwargs.get('distro')
-    String image_version = kwargs.get('image_version', null)
     String base_branch = kwargs.get('base_branch')
     String other_packages = kwargs.get('other_packages', '')
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
@@ -80,7 +78,6 @@ Map call(Map kwargs = [:]) {
                             job_status,
                             name,
                             functionalTest(
-                                image_version: image_version,
                                 inst_repos: daosRepos(distro),
                                 inst_rpms: functionalPackages(1, next_version, 'tests-internal') + ' ' + other_packages,
                                 test_tag: tags,
