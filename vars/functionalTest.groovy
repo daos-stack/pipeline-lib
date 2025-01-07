@@ -83,6 +83,7 @@ Map call(Map config = [:]) {
                           subject: 'CI Test failure - CI Configuration test issue.')
     }
 
+    echo "Running provisionNodes() on ${nodelist} with the ${image_version} image"
     Map runData = provisionNodes(
                  NODELIST: nodelist,
                  node_count: stage_info['node_count'],
