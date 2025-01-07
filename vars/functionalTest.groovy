@@ -65,8 +65,7 @@ Map call(Map config = [:]) {
 
     Map stage_info = parseStageInfo(config)
 
-    String image_version = config.get(
-        'image_version',
+    String image_version = config.get('image_version') ?:
         (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'])
 
     // Install any additional rpms required for this stage
