@@ -1,6 +1,7 @@
 #!/usr/bin/groovy
 /* groovylint-disable DuplicateMapLiteral, DuplicateStringLiteral, NestedBlockDepth, VariableName */
 /* Copyright (C) 2019-2024 Intel Corporation
+ * Copyright (C) 2025 Hewlett Packard Enterprise Development LP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -809,7 +810,9 @@ void call(Map pipeline_args) {
                                                                   !('leap15' in distros)),
                                                    booleanParam(name: 'CI_DEB_Ubuntu20_NOBUILD',
                                                                 value: pipeline_args.get('skip-build', true) ||
-                                                                       !('ubuntu20.04' in distros))
+                                                                       !('ubuntu20.04' in distros)),
+                                                   booleanParam(name: 'CI_ALLOW_UNSTABLE_TEST',
+                                                                value: cachedCommitPragma('Allow-unstable-test').toLowerCase() == 'true')
                                                   ]
                             } //steps
                             post {
