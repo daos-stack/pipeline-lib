@@ -152,6 +152,9 @@ boolean skip_build_bullseye(String target_branch, String distro) {
 
 /* groovylint-disable-next-line MethodSize */
 boolean call(Map config = [:]) {
+    if (env.STAGE_NAME != 'Cancel Previous Builds') {
+        return false;
+    }
     if (config['stage']) {
         return skip_stage_pragma(config['stage'], config['def_val'])
     }
