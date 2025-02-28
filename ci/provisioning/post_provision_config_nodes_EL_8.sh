@@ -62,7 +62,7 @@ install_mofed() {
     fi
 
     # Add a repo to install MOFED RPMS
-    repo_url=https://artifactory.dc.hpdd.intel.com/artifactory/mlnx_ofed/"$MLNX_VER_NUM-rhel$gversion"-x86_64/
+    repo_url=https://artifactory.daos.hpc.amslabs.hpecorp.net/artifactory/mlnx_ofed/"$MLNX_VER_NUM-rhel$gversion"-x86_64/
     dnf -y config-manager --add-repo="$repo_url"
     curl -L -O "$repo_url"RPM-GPG-KEY-Mellanox
     dnf -y config-manager --save --setopt="$(url_to_repo "$repo_url")".gpgcheck=1
