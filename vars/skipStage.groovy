@@ -227,7 +227,8 @@ boolean call(Map config = [:]) {
                    (docOnlyChange(target_branch) &&
                     prRepos('ubuntu20') == '') ||
                    prReposContains('ubuntu20', jobName()) ||
-                   skip_stage_pragma('build-ubuntu20-rpm')
+                   skip_stage_pragma('build-ubuntu20-rpm') ||
+                   true // skip Ubuntu until support for 22.04 is re-enabled
         case 'Build on CentOS 8':
         case 'Build on EL 8':
         case 'Build on EL 8.8':
