@@ -102,6 +102,8 @@ void call(Map config = [:]) {
           scm: 'daos-stack/daos',
           requiredResult: 'UNSTABLE')
         recordIssues enabledForFailure: true,
+                     /* ignore warning/errors from PMDK logging system */
+                     filters: [excludeFile('pmdk/.+')],
                      failOnError: !results['ignore_failure'],
                      ignoreQualityGate: true,
                      // Set qualitygate to 1 new "NORMAL" priority message
