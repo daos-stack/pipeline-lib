@@ -535,7 +535,7 @@ void call(Map pipeline_args) {
                             }
                         }
                     } //stage('Build RPM on EL 9')
-                    stage('Build RPM on Leap 15.4') {
+                    stage('Build RPM on Leap 15.6') {
                         when {
                             beforeAgent true
                             expression { !skipStage() && distros.contains('leap15') }
@@ -555,19 +555,19 @@ void call(Map pipeline_args) {
                             sh label: 'Build package',
                                script: '''rm -rf artifacts/leap15/
                                           mkdir -p artifacts/leap15/
-                                          make CHROOT_NAME="opensuse-leap-15.4-x86_64" ''' +
+                                          make CHROOT_NAME="opensuse-leap-15.6-x86_64" ''' +
                                               'DISTRO_VERSION=' + parseStageInfo()['distro_version'] + ' ' +
                                        pipeline_args.get('make args', '') + ' chrootbuild ' +
                                        pipeline_args.get('add_make_targets', '')
                         }
                         post {
                             success {
-                                rpmlintMockResults('opensuse-leap-15.4-x86_64',
+                                rpmlintMockResults('opensuse-leap-15.6-x86_64',
                                                    pipeline_args.get('rpmlint_rpms_allow_errors', false),
                                                    pipeline_args.get('rpmlint_rpms_skip', false),
                                                    pipeline_args.get('make args', ''))
                                 sh label: 'Collect artifacts',
-                                   script: '''(cd /var/lib/mock/opensuse-leap-15.4-x86_64/result/ &&
+                                   script: '''(cd /var/lib/mock/opensuse-leap-15.6-x86_64/result/ &&
                                               cp -r . $OLDPWD/artifacts/leap15/)\n''' +
                                               pipeline_args.get('add_archiving_cmds', '').replace('<distro>',
                                                                                                   'leap15') +
@@ -584,7 +584,7 @@ void call(Map pipeline_args) {
                             }
                             unsuccessful {
                                 sh label: 'Build Log',
-                                   script: '''mockroot=/var/lib/mock/opensuse-leap-15.4-x86_64
+                                   script: '''mockroot=/var/lib/mock/opensuse-leap-15.6-x86_64
                                               ls -l $mockroot/result/
                                               cat $mockroot/result/{root,build}.log
                                               artdir=$PWD/artifacts/leap15
@@ -594,9 +594,9 @@ void call(Map pipeline_args) {
                             }
                             always {
                                 scrubSecret(pipeline_args['secret'],
-                                            '/var/lib/mock/opensuse-leap-15.4-x86_64/result/build.log')
+                                            '/var/lib/mock/opensuse-leap-15.6-x86_64/result/build.log')
                                 sh label: 'Collect config.log(s)',
-                                   script: '(if cd /var/lib/mock/opensuse-leap-15.4-x86_64/root/builddir/build/' +
+                                   script: '(if cd /var/lib/mock/opensuse-leap-15.6-x86_64/root/builddir/build/' +
                                           '''BUILD/*/; then
                                                    find . -name configure -printf %h\\\\n | \
                                                    while read dir; do
@@ -613,7 +613,7 @@ void call(Map pipeline_args) {
                                 archiveArtifacts artifacts: 'artifacts/leap15/**'
                             }
                         }
-                    } //stage('Build RPM on Leap 15')
+                    } //stage('Build RPM on Leap 15.6')
                     stage('Build DEB on Ubuntu 20.04') {
                         when {
                             beforeAgent true
