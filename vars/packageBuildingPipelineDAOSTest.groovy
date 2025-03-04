@@ -228,7 +228,7 @@ void call(Map pipeline_args) {
                         }
                         agent { label 'lightweight' }
                         steps {
-                            sh label: 'Get submdule status',
+                            sh label: 'Get submodule status',
                                script: 'git submodule status'
                             checkoutScm url: 'https://github.com/daos-stack/packaging.git',
                                         checkoutDir: 'packaging-module',
