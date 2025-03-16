@@ -54,7 +54,7 @@ void call(Map pipeline_args) {
     Map dockerfile_map = ['centos7':     ['dockerfile': 'Dockerfile.mockbuild',    'dockerbuildargs': ''],
                           'el8':         ['dockerfile': 'Dockerfile.mockbuild',    'dockerbuildargs': ''],
                           'leap15':      ['dockerfile': 'Dockerfile.mockbuild',
-                                          'dockerbuildargs': ' --build-arg FVERSION=39'],
+                                          'dockerbuildargs': ' --build-arg FVERSION=41'],
                           'ubuntu20.04': ['dockerfile': 'Dockerfile.ubuntu.20.04', 'dockerbuildargs': '']]
 
     /* groovylint-disable-next-line CouldBeElvis */
@@ -549,7 +549,7 @@ void call(Map pipeline_args) {
                                      ' --cap-add=SYS_ADMIN' +
                                      ' --privileged=true'   +
                                      ' -v /scratch:/scratch'
-                                additionalBuildArgs dockerBuildArgs() + '--build-arg FVERSION=39'
+                                additionalBuildArgs dockerBuildArgs() + '--build-arg FVERSION=41'
                             }
                         }
                         steps {
