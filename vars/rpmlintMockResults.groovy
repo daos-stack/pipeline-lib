@@ -36,15 +36,13 @@ void call(String config, Boolean allow_errors=false, Boolean skip_rpmlint=false,
                     returnStatus: true)
 
     catchError(stageResult: 'UNSTABLE', buildResult: 'SUCCESS') {
-        if (result == 2 && allow_errors) {
+        if (result > 0 && allow_errors) {
             error('RPM Lint found errors, but allow_errors is true.')
-        } else if (result == 1) {
-            error('RPM Lint found warnings.\n')
         }
     }
 
     catchError(stageResult: 'UNSTABLE', buildResult: 'UNSTABLE') {
-        if (result == 2 && !allow_errors) {
+        if (result > 0 && !allow_errors) {
             error('RPM Lint found errors.')
         }
     }
