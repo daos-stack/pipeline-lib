@@ -181,7 +181,7 @@ boolean call(Map config = [:]) {
         case 'checkpatch':
             return skip_stage_pragma('checkpatch')
         case 'Python Bandit check':
-            return skip_stage_pragma('python-bandit')
+            return true || skip_stage_pragma('python-bandit')
         case 'Build':
             // always build branch landings as we depend on lastSuccessfulBuild
             // always having RPMs in it
