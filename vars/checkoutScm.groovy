@@ -28,5 +28,6 @@ def call(Map config = [:]) {
    * config['credentialsId'] Optional credentials ID.
    */
   def c = new com.intel.checkoutScmInternal()
+  config['withSubmodules'] = true
   return c.checkoutScmInternal(config)
 }
