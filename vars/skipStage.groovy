@@ -422,11 +422,19 @@ boolean call(Map config = [:]) {
         case 'Functional on EL 8.8':
             return skip_ftest('el8', target_branch, tags)
         case 'Functional on EL 9':
+            /* Allows manually disable Functional on EL 9 */
+            if (paramsValue('CI_FUNCTIONAL_el9_TEST', false) ) {
+                return true
+            }
             return skip_ftest('el9', target_branch, tags)
         case 'Functional on Leap 15':
         case 'Functional on Leap 15.4':
         case 'Functional on Leap 15.5':
         case 'Functional on Leap 15.6':
+            /* Allows manually disable Functional on Leap 15 */
+            if (paramsValue('CI_FUNCTIONAL_leap15_TEST', false) ) {
+                return true
+            }
             return skip_ftest('leap15', target_branch, tags)
         case 'Functional on Ubuntu 20.04':
             /* we don't do any testing on Ubuntu yet
