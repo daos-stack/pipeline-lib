@@ -321,6 +321,9 @@ Map call(Map config = [:]) {
         }
         if (config['test_coverage']) {
             vars_includes += ', build/**/*.gcno'
+            sh 'echo debug_test_coverage'
+            sh 'pwd; ls -al'
+            sh "find . -name '*.gcno'"
         }
         stash name: target_stash + '-build-vars',
               includes: vars_includes
