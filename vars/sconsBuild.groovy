@@ -323,7 +323,7 @@ Map call(Map config = [:]) {
               includes: vars_includes
         String test_files = readFile "${env.WORKSPACE}/${config['stash_files']}"
         if (config['test_coverage']) {
-            test_files += ', *.gcno'
+            test_files += ', /build/**/*.gcno'
         }
         stash name: target_stash + '-tests',
               includes: test_files
