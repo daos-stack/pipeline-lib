@@ -319,12 +319,12 @@ Map call(Map config = [:]) {
         if (stage_info['compiler'] == 'covc') {
             vars_includes += ', test.cov'
         }
+        if (config['test_coverage']) {
+            vars_includes += ', build/**/*.gcno'
+        }
         stash name: target_stash + '-build-vars',
               includes: vars_includes
         String test_files = readFile "${env.WORKSPACE}/${config['stash_files']}"
-        if (config['test_coverage']) {
-            test_files += ', /build/**/*.gcno'
-        }
         stash name: target_stash + '-tests',
               includes: test_files
     }
