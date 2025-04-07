@@ -192,6 +192,9 @@ Map call(Map config = [:]) {
     if (config['WARNING_LEVEL']) {
         scons_args += " WARNING_LEVEL=${config['WARNING_LEVEL']}"
     }
+    if (stage_info['test_coverage']) {
+        scons_args += ' --test-coverage'
+    }
     //scons -c is not perfect so get out the big hammer
     String clean_cmd = ""
     if (config['skip_clean']) {
@@ -318,6 +321,9 @@ Map call(Map config = [:]) {
         stash name: target_stash + '-build-vars',
               includes: vars_includes
         String test_files = readFile "${env.WORKSPACE}/${config['stash_files']}"
+        if (stage_info['test_coverage']) {
+            test_files += ', *.gcno'
+        }
         stash name: target_stash + '-tests',
               includes: test_files
     }
