@@ -3,7 +3,7 @@
 /**
  * // vars/codeCoverageReport.groovy
  *
- * Generate a merged code coverage report from any individual stage's cpde coverage report.
+ * Generate a merged code coverage report from any individual stage's code coverage report.
  *
  * @param kwargs Map containing the following optional arguments (empty strings yield defaults):
  *      stashes     list of stash names including code coverage results from other stages
@@ -30,7 +30,7 @@
 
     // Nothing to do if no stash exist
     if (stash_count < 1) {
-        println('No test covergae stashes found, skipping merged test coverage report')
+        println('No code coverage stashes found, skipping merged code coverage report')
         return 0
     }
 
