@@ -60,7 +60,6 @@ Map call(Map config = [:]) {
     }
     if (config['stashes']) {
         config['stashes'].each { name ->
-            println("Unstashing ${name}")
             unstash name
         }
     }
