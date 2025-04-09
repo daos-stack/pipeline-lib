@@ -10,7 +10,7 @@
  *      script      shell script to run to generate the merged code coverage report
  *      label       label to use when running the script
  */
- Integer call(Map kwargs = [:]) {
+ Map call(Map kwargs = [:]) {
     Date startDate = new Date()
     List stashes = kwargs.get('stashes', [])
     String script = kwargs.get('script', 'ci/code_coverage_report.sh')
