@@ -23,8 +23,6 @@ Integer num_proc() {
    *
    * config['parallel_build'] Whether to build in parallel (-j)
    *
-   * config['python_exe'] optional override for the python executable
-   *
    *
    * Getting better repositories for Ubuntu is a work in progress.
    * For Ubuntu repository groups, that will need to be a URL that
@@ -36,7 +34,6 @@ String call(Map config = [:]) {
     Boolean add_repos = config.get('add_repos', true)
     Boolean deps_build = config.get('deps_build', false)
     Boolean parallel_build = config.get('parallel_build', false)
-    String python_exe = config.get('python_exe', '')
 
     Map stage_info = parseStageInfo(config)
 
@@ -62,11 +59,6 @@ String call(Map config = [:]) {
         if (env."$var") {
             ret_str += ' --build-arg ' + var + '="' + env."$var" + '"'
         }
-    }
-
-    // Optional override of the python executable
-    if (python_exe) {
-        ret_str += " --build-arg PYTHON_EXE=${python_exe}"
     }
 
     if (config['qb']) {
