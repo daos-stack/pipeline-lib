@@ -45,9 +45,6 @@
 /* groovylint-disable-next-line MethodSize */
 Map call(Map config = [:]) {
     /* groovylint-disable-next-line NoJavaUtilDate */
-    println("1 #### start ${env.STAGE_NAME} ##############################")
-    println("       provisionNodes ")
-    println("config = ${config}")
     Date startDate = new Date()
     String nodeString = config['NODELIST']
     List node_list = config['NODELIST'].split(',')
@@ -108,8 +105,6 @@ Map call(Map config = [:]) {
     String inst_rpms = config.get('inst_rpms', '')
     String inst_repos = config.get('inst_repos', '')
 
-    println("2 #### ${env.STAGE_NAME} ##############################")
-    println("       provisionNodes DAOS_STACK_REPO_SUPPORT ")
     List gpg_key_urls = []
     if (env.DAOS_STACK_REPO_SUPPORT != null) {
         gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT + 'RPM-GPG-KEY-CentOS-7')
@@ -127,8 +122,6 @@ Map call(Map config = [:]) {
 
     if (!fileExists('ci/provisioning/log_cleanup.sh') ||
         !fileExists('ci/provisioning/post_provision_config.sh')) {
-    println("3 #### start ${env.STAGE_NAME} ##############################")
-    println("       provisionNodes using provisionNodesV1")
 
         return provisionNodesV1(config)
     }
@@ -162,8 +155,6 @@ Map call(Map config = [:]) {
     default:
             error "Unsupported distro type: ${distro_type}/distro: ${distro}"
     }
-    println("4 #### start ${env.STAGE_NAME} ##############################")
-    println("       provisionNodes setup the provision script")
     provision_script += ' ' +
                       'NODESTRING=' + nodeString + ' ' +
                       'CONFIG_POWER_ONLY=' + config_power_only + ' ' +
@@ -176,11 +167,7 @@ Map call(Map config = [:]) {
                       'ci/provisioning/post_provision_config.sh'
     new_config['post_restore'] = provision_script
     try {
-    println("5 #### start ${env.STAGE_NAME} ##############################")
-    println("       provisionNodes calling provisionNodesSystem ...")
         int rc = provisionNodesSystem(new_config)
-    println("5 #### start ${env.STAGE_NAME} ##############################")
-    println("       provisionNodes returned ${rc} from provisionNodesSystem ...")
         if (rc != 0) {
             stepResult name: env.STAGE_NAME, context: 'test', result: 'FAILURE'
             error 'One or more nodes failed post-provision configuration!'
