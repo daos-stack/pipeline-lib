@@ -226,6 +226,7 @@ Map call(Map config = [:]) {
     String code_coverage = 'code_coverage_' + sanitizedStageName()
     stash name: code_coverage,
           includes: '**/code_coverage.json'
+          allowEmpty: true
 
     return runData
 }
