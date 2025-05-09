@@ -33,8 +33,8 @@ String call(String distro, String branch) {
     return ['el8':      ['master': '8.8',
                          '2.4':    '8.8',
                          '2.6':    '8.8'],
-            'el9':      ['master': '9.2',
-                         '2.6':    '9.2'],
+            'el9':      ['master': '9.4',
+                         '2.6':    '9.4'],
             'leap15':   ['master': '15.6',
                          '2.4':    '15.6',
                          '2.6':    '15.6'],
@@ -48,8 +48,8 @@ assert(call('leap15', 'master') == '15.6')
 assert(call('el8', '2.4') == '8.8')
 assert(call('el8', '2.6') == '8.8')
 assert(call('el8', 'master') == '8.8')
-assert(call('el9', 'master') == '9.2')
-assert(call('el9', '2.6') == '9.2')
+assert(call('el9', 'master') == '9.4')
+assert(call('el9', '2.6') == '9.4')
 
 /* Uncomment to do further testing
 env = [:]

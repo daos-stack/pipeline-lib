@@ -39,7 +39,7 @@
                      May be used in the future as SUSE free development
                      licenses do currently allow them to be used for
                      CI automation, and SUSE also has offered site licenses.
-   Prefix "leap":    Specifically OpenSUSE leap oprating system builds of
+   Prefix "leap":    Specifically OpenSUSE leap operating system builds of
                      Suse Linux Enterprise Server.
 */
 /* groovylint-disable-next-line MethodSize */
@@ -122,6 +122,7 @@ Map call(Map config = [:]) {
 
     if (!fileExists('ci/provisioning/log_cleanup.sh') ||
         !fileExists('ci/provisioning/post_provision_config.sh')) {
+
         return provisionNodesV1(config)
     }
 
