@@ -58,12 +58,12 @@ Map call(Map kwargs = [:]) {
                 'run_if_pr': run_if_pr,
                 'run_if_landing': run_if_landing]
             if (skipFunctionalTestStage(skip_kwargs)) {
-                echo "[${name}] Stage skipped by skipFunctionalTestStage()"
+                println("[${name}] Stage skipped by skipFunctionalTestStage()")
                 Utils.markStageSkippedForConditional("${name}")
             } else {
                 node(cachedCommitPragma("Test-label${pragma_suffix}", label)) {
                     // Ensure access to any branch provisioning scripts exist
-                    echo "[${name}] Check out '${base_branch}' from version control"
+                    println("[${name}] Check out '${base_branch}' from version control")
                     if (base_branch) {
                         checkoutScm(
                             url: 'https://github.com/daos-stack/daos.git',
@@ -75,7 +75,7 @@ Map call(Map kwargs = [:]) {
                     }
 
                     try {
-                        echo "[${name}] Running functionalTest() on ${label} with tags=${tags}"
+                        println("[${name}] Running functionalTest() on ${label} with tags=${tags}")
                         jobStatusUpdate(
                             job_status,
                             name,
@@ -91,13 +91,13 @@ Map call(Map kwargs = [:]) {
                                     provider: provider)['ftest_arg'],
                                 test_function: 'runTestFunctionalV2'))
                     } finally {
-                        echo "[${name}] Running functionalTestPostV2()"
+                        println("[${name}] Running functionalTestPostV2()")
                         functionalTestPostV2()
                         jobStatusUpdate(job_status, name)
                     }
                 }
             }
-            echo "[${name}] Finished with ${job_status}"
+            println("[${name}] Finished with ${job_status}")
         }
     }
 }
