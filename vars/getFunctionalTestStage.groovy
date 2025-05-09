@@ -45,7 +45,7 @@ Map call(Map kwargs = [:]) {
 
     return {
         stage("${name}") {
-            // Get the tags for thge stage. Use either the build parameter, commit pragma, or
+            // Get the tags for the stage. Use either the build parameter, commit pragma, or
             // default tags. All tags are combined with the stage tags to ensure only tests that
             // 'fit' the cluster will be run.
             String tags = getFunctionalTags(
