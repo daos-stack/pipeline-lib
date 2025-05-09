@@ -29,8 +29,7 @@ Map call(Map kwargs = [:]) {
             "tags=${tags}, pragma_suffix=${pragma_suffix}, size=${size}, distro=${distro}, " +
             "build_param=${build_param}, build_param_value=${build_param_value}, " +
             "run_if_landing=${run_if_landing}, run_if_pr=${run_if_pr}, " +
-            "changeRequest()=${changeRequest()}, startedByUser()=${startedByUser()}, " +
-            "startedByTimer()=${startedByTimer()}, " +
+            "startedByUser()=${startedByUser()}, startedByTimer()=${startedByTimer()}, " +
             "startedByUpstream()=${startedByUpstream()}, target_branch=${target_branch}")
 
     // Regardless of how the stage has been started always skip a stage that has either already
@@ -47,14 +46,6 @@ Map call(Map kwargs = [:]) {
     // If the stage has been started by the user, e.g. Build with Parameters, or a timer, or an
     // upstream build then use the stage's build parameter (check box) to determine if the stage
     // should be run or skipped.
-    if (!changeRequest() && (build_param_value == 'false')) {
-        println("[${env.STAGE_NAME}] Skipping the stage in user started build due to ${build_param} param")
-        return true
-    }
-    if (!changeRequest() && (build_param_value == 'true')) {
-        println("[${env.STAGE_NAME}] Running the stage in user started build due to ${build_param} param")
-        return false
-    }
     if (startedByTimer() && (build_param_value == 'false')) {
         println("[${env.STAGE_NAME}] Skipping the stage in timer started build due to ${build_param} param")
         return true
@@ -69,6 +60,14 @@ Map call(Map kwargs = [:]) {
     }
     if (startedByUpstream() && (build_param_value == 'true')) {
         println("[${env.STAGE_NAME}] Running the stage in an upstream build due to ${build_param} param")
+        return false
+    }
+    if (startedByUser() && (build_param_value == 'false')) {
+        println("[${env.STAGE_NAME}] Skipping the stage in user started build due to ${build_param} param")
+        return true
+    }
+    if (startedByUser() && (build_param_value == 'true')) {
+        println("[${env.STAGE_NAME}] Running the stage in user started build due to ${build_param} param")
         return false
     }
 
