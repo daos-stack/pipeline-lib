@@ -41,7 +41,10 @@ String call(String distro, Integer client_ver, String next_version, String add_d
     } else {
         echo "ci/functional/required_packages.sh doesn't exist.  " +
              'Hopefully the daos-tests packages have the dependencies configured.'
+        sh(label: "Debug",
+           script: 'ls -l ci ci/functional || true; git branch || true')
     }
+    echo "pkgs: " + pkgs
 
     if (distro.startsWith('leap') ||
         distro.startsWith('el') || distro.startsWith('centos') ||
