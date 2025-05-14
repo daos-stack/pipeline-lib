@@ -16,6 +16,8 @@ Void call(Map job_result, String stage, Map result) {
         job_result."${stage_key}" = [:]
     }
     result.each { key, value ->
+        prev = job_result."${stage_key}"."${key}"
+        println("[jobStatusUpdate] Updating ${stage} key ${key}: ${prev} -> ${value}")
         job_result."${stage_key}"."${key}" = value
     }
 }
