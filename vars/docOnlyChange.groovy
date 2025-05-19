@@ -17,6 +17,7 @@ boolean call(String target_branch) {
     if (cachedCommitPragma('Doc-only').toLowerCase() == 'false') {
         return false
     }
+    String script
     if (fileExists('ci/doc_only_change.sh')) {
         script = 'CHANGE_ID=' + env.CHANGE_ID +
                  ' TARGET_BRANCH=' + target_branch +

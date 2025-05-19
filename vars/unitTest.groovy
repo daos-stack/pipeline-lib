@@ -26,7 +26,7 @@
    * config['description']       Description to report for SCM status.
    *                             Default env.STAGE_NAME.
    *
-   * config['failure_artifacts'] Failure aritfifacts to return.
+   * config['failure_artifacts'] Failure artifacts to return.
    *                             Default env.STAGE_NAME.
    *
    * config['ignore_failure']    Ignore test failures.  Default false.
@@ -43,10 +43,10 @@
    *
    * config['node_count']        Count of nodes that will actually be used
    *                             the test.  Default will be based on the
-   *                             enviroment variables for the stage.
+   *                             environment variables for the stage.
    *
    * config['stashes']           List of stashes to use.  Default will be
-   *                             baed on the environment variables for the
+   *                             based on the environment variables for the
    *                             stage.
    *
    * config['target']            Target distribution, such as 'centos7',
@@ -61,16 +61,16 @@
    *                             SSH_KEY_ARGS and NODELIST environment
    *                             variables set.
    *
-   * config['timeout_time']      Timelimit for test run, not including
+   * config['timeout_time']      Time limit for test run, not including
    *                             provisioning time.
    *                             Default is 120 Minutes.
    *
-   * config['timeout_units']     Timelimit units.  Default is minutes.
+   * config['timeout_units']     Time limit units.  Default is minutes.
    *
-   * config['unstash_opt']       Unstash -opt-tar instead of -opt,
+   * config['unstash_opt']       Un-stash -opt-tar instead of -opt,
    *                             default is false.
    *
-   * config['unstash_tests']     Unstash -tests, default is true.
+   * config['unstash_tests']     Un-stash -tests, default is true.
    */
 
 Map afterTest(Map config, Map testRunInfo) {
@@ -144,6 +144,7 @@ Map call(Map config = [:]) {
                           /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: inst_rpms)
+
     String target_stash = "${stage_info['target']}-${stage_info['compiler']}"
     if (stage_info['build_type']) {
         target_stash += '-' + stage_info['build_type']
