@@ -69,7 +69,7 @@ Map call(Map config = [:]) {
    *   <target-compiler[-build_type]-test>.  Additional stashes
    *   will be created for "install" and "build_vars" with similar
    *   prefixes.
-   * config['test_coverage'] Boolean, build with test coverage.  Default false.
+   * config['code_coverage'] Boolean, build with code coverage.  Default false.
    */
 
     Date startDate = new Date()
@@ -193,8 +193,8 @@ Map call(Map config = [:]) {
     if (config['WARNING_LEVEL']) {
         scons_args += " WARNING_LEVEL=${config['WARNING_LEVEL']}"
     }
-    if (config['test_coverage']) {
-        scons_args += ' --test-coverage'
+    if (config['code_coverage']) {
+        scons_args += ' --code-coverage'
     }
     //scons -c is not perfect so get out the big hammer
     String clean_cmd = ""
@@ -319,7 +319,7 @@ Map call(Map config = [:]) {
         if (stage_info['compiler'] == 'covc') {
             vars_includes += ', test.cov'
         }
-        if (config['test_coverage']) {
+        if (config['code_coverage']) {
             vars_includes += ', build/**/*.gcno'
         }
         stash name: target_stash + '-build-vars',
