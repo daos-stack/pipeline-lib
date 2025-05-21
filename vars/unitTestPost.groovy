@@ -96,11 +96,14 @@ void call(Map config = [:]) {
 
     if (stage_info['NLT']) {
         String cb_result = currentBuild.result
+        String ref_job = config.get('referenceJobName', 'daos-stack/daos/master')
+        println("[NLT] Running discoverGitReferenceBuild(): referenceJob=${ref_job}")
         discoverGitReferenceBuild(
-          referenceJob: config.get('referenceJobName',
-                                   'daos-stack/daos/master'),
+          referenceJob: ref_job,
           scm: 'daos-stack/daos',
           requiredResult: 'UNSTABLE')
+        println("[NLT] Completed discoverGitReferenceBuild() call")
+        println("[NLT] Running recordIssues()")
         recordIssues enabledForFailure: true,
                      /* ignore warning/errors from PMDK logging system */
                      filters: [excludeFile('pmdk/.+')],
@@ -118,6 +121,7 @@ void call(Map config = [:]) {
                       tool: issues(pattern: 'vm_test/nlt-errors.json',
                                    name: 'NLT results',
                                    id: 'VM_test')
+        println("[NLT] Completed recordIssues() call: cb_result=${cb_result}, currentBuild.result=${currentBuild.result}")
         if (cb_result != currentBuild.result) {
             println(
               "The recordIssues step changed result to ${currentBuild.result}.")
