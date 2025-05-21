@@ -262,7 +262,7 @@ Map call(Map config = [:]) {
         // Get the ftest arguments
         kwargs['default_nvme'] = ftest_arg_nvme
         kwargs['provider'] = ftest_arg_provider
-        functional_args = getFunctionalArgs(kwargs)
+        Map functional_args = getFunctionalArgs(kwargs)
         result['ftest_arg'] = functional_args.get('ftest_arg', '')
         result['stage_rpms'] = functional_args.get('stage_rpms', '')
 

@@ -104,23 +104,25 @@ void call(Map config = [:]) {
           requiredResult: 'UNSTABLE')
         println("[NLT] Completed discoverGitReferenceBuild() call")
         println("[NLT] Running recordIssues()")
-        recordIssues enabledForFailure: true,
-                     /* ignore warning/errors from PMDK logging system */
-                     filters: [excludeFile('pmdk/.+')],
-                     failOnError: !results['ignore_failure'],
-                     ignoreQualityGate: true,
-                     // Set qualitygate to 1 new "NORMAL" priority message
-                     // Supporting messages to help identify causes of
-                     // problems are set to "LOW".
-                     qualityGates: [
-                       [threshold: 1, type: 'TOTAL_ERROR'],
-                       [threshold: 1, type: 'TOTAL_HIGH'],
-                       [threshold: 1, type: 'NEW_NORMAL', unstable: true],
-                       [threshold: 1, type: 'NEW_LOW', unstable: true]],
-                      name: 'Node local testing',
-                      tool: issues(pattern: 'vm_test/nlt-errors.json',
-                                   name: 'NLT results',
-                                   id: 'VM_test')
+        recordIssues(
+            enabledForFailure: true,
+            /* ignore warning/errors from PMDK logging system */
+            filters: [excludeFile('pmdk/.+')],
+            failOnError: !results['ignore_failure'],
+            ignoreQualityGate: true,
+            // Set qualitygate to 1 new "NORMAL" priority message
+            // Supporting messages to help identify causes of problems are set to "LOW".
+            qualityGates: [
+                [threshold: 1, type: 'TOTAL_ERROR'],
+                [threshold: 1, type: 'TOTAL_HIGH'],
+                [threshold: 1, type: 'NEW_NORMAL', unstable: true],
+                [threshold: 1, type: 'NEW_LOW', unstable: true]],
+            name: 'Node local testing',
+            tool: issues(
+                pattern: 'vm_test/nlt-errors.json',
+                name: 'NLT results',
+                id: 'VM_test'),
+            scm: 'daos-stack/daos')
         println("[NLT] Completed recordIssues() call: cb_result=${cb_result}, currentBuild.result=${currentBuild.result}")
         if (cb_result != currentBuild.result) {
             println(
