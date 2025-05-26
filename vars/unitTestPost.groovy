@@ -116,7 +116,7 @@ void call(Map config = [:]) {
                        [threshold: 1, type: 'NEW_LOW', unstable: true]],
                      name: 'Node local testing',
                      quiet: false,
-                     scm: 'daos-stack/daos',
+                     scm: 'git https://github.com/daos-stack/daos.git',
                      tool: issues(pattern: 'vm_test/nlt-errors.json',
                                   name: 'NLT results',
                                   id: 'VM_test')
