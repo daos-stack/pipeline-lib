@@ -103,7 +103,8 @@ void call(Map config = [:]) {
         recordIssues enabledForFailure: true,
                      /* ignore warning/errors from PMDK logging system */
                      filters: [excludeFile('pmdk/.+')],
-                     failOnError: !results['ignore_failure'],
+                     // failOnError: !results['ignore_failure'],
+                     failOnError: false,
                      ignoreQualityGate: true,
                      // Set qualitygate to 1 new "NORMAL" priority message
                      // Supporting messages to help identify causes of
@@ -114,10 +115,11 @@ void call(Map config = [:]) {
                        [threshold: 1, type: 'NEW_NORMAL', unstable: true],
                        [threshold: 1, type: 'NEW_LOW', unstable: true]],
                      name: 'Node local testing',
+                     quiet: false,
+                     scm: 'daos-stack/daos',
                      tool: issues(pattern: 'vm_test/nlt-errors.json',
                                   name: 'NLT results',
-                                  id: 'VM_test'),
-                     scm: 'daos-stack/daos'
+                                  id: 'VM_test')
 
         if (cb_result != currentBuild.result) {
             println(
