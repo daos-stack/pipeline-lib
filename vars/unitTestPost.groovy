@@ -15,12 +15,12 @@
    * config['testResults']         Junit test result files.
    *                               Default 'test_results/*.xml'
    *
-   * config['valgrind_pattern']    Pattern for Valgind files.
+   * config['valgrind_pattern']    Pattern for Valgrind files.
    *                               Default: '*.memcheck.xml'
    *
-   * config['valgrind_stash']      Name to stash valgrind artifacts
+   * config['valgrind_stash']      Name to stash Valgrind artifacts
    *                               Required if more than one stage is
-   *                               creating valgrind reports.
+   *                               creating Valgrind reports.
    */
 
 // groovylint-disable DuplicateStringLiteral, VariableName
@@ -28,7 +28,7 @@ void call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
     String cbcResult = currentBuild.currentResult
 
-    // Stash the valgrind files for later analysis
+    // Stash the Valgrind files for later analysis
     String valgrind_pattern = stage_info.get('valgrind_pattern',
                                              'unit-test-*memcheck.xml')
     if (config['valgrind_stash']) {
@@ -96,11 +96,10 @@ void call(Map config = [:]) {
 
     if (stage_info['NLT']) {
         String cb_result = currentBuild.result
-        discoverGitReferenceBuild(
-          referenceJob: config.get('referenceJobName',
-                                   'daos-stack/daos/master'),
-          scm: 'daos-stack/daos',
-          requiredResult: 'UNSTABLE')
+        discoverGitReferenceBuild(referenceJob: config.get('referenceJobName',
+                                                           'daos-stack/daos/master'),
+                                  scm: 'daos-stack/daos',
+                                  requiredResult: 'UNSTABLE')
         recordIssues enabledForFailure: true,
                      /* ignore warning/errors from PMDK logging system */
                      filters: [excludeFile('pmdk/.+')],
@@ -114,10 +113,12 @@ void call(Map config = [:]) {
                        [threshold: 1, type: 'TOTAL_HIGH'],
                        [threshold: 1, type: 'NEW_NORMAL', unstable: true],
                        [threshold: 1, type: 'NEW_LOW', unstable: true]],
-                      name: 'Node local testing',
-                      tool: issues(pattern: 'vm_test/nlt-errors.json',
-                                   name: 'NLT results',
-                                   id: 'VM_test')
+                     name: 'Node local testing',
+                     tool: issues(pattern: 'vm_test/nlt-errors.json',
+                                  name: 'NLT results',
+                                  id: 'VM_test'),
+                     scm: 'daos-stack/daos'
+
         if (cb_result != currentBuild.result) {
             println(
               "The recordIssues step changed result to ${currentBuild.result}.")
