@@ -226,7 +226,7 @@ Map call(Map config = [:]) {
     // Stash any optional test coverage rreports for the stage
     String code_coverage = 'code_coverage_' + sanitizedStageName()
     stash name: code_coverage,
-          includes: '**/code_coverage.json'
+          includes: '**/code_coverage.json',
           allowEmpty: true
 
     return runData
