@@ -1,5 +1,9 @@
 /* groovylint-disable DuplicateStringLiteral, VariableName */
 // vars/dockerBuildArgs.groovy
+/*
+ * Copyright (C) 2020-2024 Intel Corporation
+ * Copyright (C) 2025 Hewlett Packard Enterprise Development LP
+ */
 
 Integer num_proc() {
     return sh(label: 'Get number of processors online',
@@ -55,10 +59,20 @@ String call(Map config = [:]) {
     }
 
     // pass through env. var.s
-    ['DAOS_LAB_CA_FILE_URL', 'REPO_FILE_URL', 'HTTP_PROXY', 'HTTPS_PROXY'].each { var ->
+    ['DAOS_LAB_CA_FILE_URL', 'REPO_FILE_URL', 'HTTP_PROXY'].each { var ->
         if (env."$var") {
             ret_str += ' --build-arg ' + var + '="' + env."$var" + '"'
         }
+    }
+
+    String https_proxy = ''
+    if (env.DAOS_HTTPS_PROXY) {
+        https_proxy = "${env.DAOS_HTTPS_PROXY}"
+    } else if (env.HTTPS_PROXY) {
+        https_proxy = "${env.HTTPS_PROXY}"
+    }
+    if (https_proxy) {
+        ret_str += ' --build-arg HTTPS_PROXY' + '="' + https_proxy + '"'
     }
 
     if (config['qb']) {
