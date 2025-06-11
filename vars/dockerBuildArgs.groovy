@@ -65,6 +65,19 @@ String call(Map config = [:]) {
         }
     }
 
+/* For DEBUG purpose only */
+    if (env.HTTPS_PROXY) {
+        println ('env.HTTPS_PROXY = ' + env.HTTPS_PROXY)
+    } else {
+        println ('env.HTTPS_PROXY = NULL')
+    }
+/* For DEBUG purpose only */
+    if (env.DAOS_HTTPS_PROXY) {
+        println ('env.DAOS_HTTPS_PROXY = ' + env.DAOS_HTTPS_PROXY)
+    } else {
+        println ('env.DAOS_HTTPS_PROXY = NULL')
+    }
+
     String https_proxy = ''
     if (env.DAOS_HTTPS_PROXY) {
         https_proxy = "${env.DAOS_HTTPS_PROXY}"
