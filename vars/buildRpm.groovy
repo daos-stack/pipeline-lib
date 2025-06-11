@@ -1,8 +1,8 @@
 /* groovylint-disable DuplicateStringLiteral, VariableName */
 // vars/buildRpm.groovy
 /*
- * Copyright (C) 2020-2024 Intel Corporation
- * Copyright (C) 2025 Hewlett Packard Enterprise Development LP
+ * Copyright 2020-2024 Intel Corporation
+ * Copyright 2025 Hewlett Packard Enterprise Development LP
  */
 
   /**

@@ -1,8 +1,8 @@
 /* groovylint-disable VariableName */
 // vars/functionalTest.groovy
 /*
- * Copyright (C) 2020-2024 Intel Corporation
- * Copyright (C) 2025 Hewlett Packard Enterprise Development LP
+ * Copyright 2020-2024 Intel Corporation
+ * Copyright 2025 Hewlett Packard Enterprise Development LP
  */
 
   /**
@@ -114,7 +114,7 @@ Map call(Map config = [:]) {
     run_test_config['context'] = context
     run_test_config['description'] = description
 
-    String script = '''if ! pip3 install'''
+    String script = 'if ! pip3 install'
     if (env.DAOS_HTTPS_PROXY) {
         script += ' --proxy "' + env.DAOS_HTTPS_PROXY + '"'
     }
