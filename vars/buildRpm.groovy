@@ -70,7 +70,9 @@ Map call(Map config = [:]) {
     } else if (env.HTTPS_PROXY) {
         https_proxy = "${env.HTTPS_PROXY}"
     }
-    env_vars += ' HTTPS_PROXY=' + https_proxy
+    if (https_proxy) {
+        env_vars += ' HTTPS_PROXY=' + https_proxy
+    }
 
     String error_stage_result = 'FAILURE'
     String error_build_result = 'FAILURE'
