@@ -114,8 +114,11 @@ Map call(Map config = [:]) {
     run_test_config['context'] = context
     run_test_config['description'] = description
 
-    String script = "HTTPS_PROXY=" +'"' + env.DAOS_HTTPS_PROXY + '"; '
-    script += '''if ! pip3 install --upgrade --upgrade-strategy only-if-needed launchable; then
+    String script = '''if ! pip3 install'''
+    if (env.DAOS_HTTPS_PROXY) {
+        script += ' --proxy "' + env.DAOS_HTTPS_PROXY + '"'
+    }
+    script += ''' --upgrade --upgrade-strategy only-if-needed launchable; then
                     set +e
                     echo "Failed to install launchable"
                     id
