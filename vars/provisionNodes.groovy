@@ -1,5 +1,9 @@
 /* groovylint-disable DuplicateNumberLiteral, DuplicateStringLiteral, VariableName */
 // vars/provisionNodes.groovy
+/*
+ * Copyright 2020-2024 Intel Corporation
+ * Copyright 2025 Hewlett Packard Enterprise Development LP
+ */
 
 /**
  * provisionNodes.groovy
