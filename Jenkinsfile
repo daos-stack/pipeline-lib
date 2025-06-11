@@ -18,6 +18,7 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 //@Library(value='pipeline-lib@my_branch_name') _
+@Library(value='pipeline-lib@grom72/sre-3104') _
 
 /* groovylint-disable-next-line CompileStatic */
 job_status_internal = [:]
