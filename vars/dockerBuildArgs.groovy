@@ -35,7 +35,6 @@ Integer num_proc() {
 
 String call(Map config = [:]) {
     Boolean cachebust = config.get('cachebust', true)
-    Boolean add_repos = config.get('add_repos', true)
     Boolean deps_build = config.get('deps_build', false)
     Boolean parallel_build = config.get('parallel_build', false)
 

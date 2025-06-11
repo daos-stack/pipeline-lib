@@ -164,6 +164,7 @@ Map call(Map config = [:]) {
                       // https://issues.jenkins.io/browse/JENKINS-55819
                       'CI_RPM_TEST_VERSION="' + (params.CI_RPM_TEST_VERSION ?: '') + '" ' +
                       'CI_PR_REPOS="' + (params.CI_PR_REPOS ?: '') + '" ' +
+                      'HTTPS_PROXY="' + env.DAOS_HTTPS_PROXY + '" ' +
                       'ci/provisioning/post_provision_config.sh'
     new_config['post_restore'] = provision_script
     try {

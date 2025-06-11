@@ -230,6 +230,7 @@ pipeline {
                         dockerfile {
                             filename 'docker/Dockerfile.el.8'
                             label 'docker_runner'
+                            additionalBuildArgs dockerBuildArgs()
                         }
                     }
                     steps {
@@ -269,7 +270,7 @@ pipeline {
                         dockerfile {
                             filename 'docker/Dockerfile.el.8'
                             label 'docker_runner'
-                            additionalBuildArgs dockerBuildArgs(cachebust: false, add_repos: false)
+                            additionalBuildArgs dockerBuildArgs(cachebust: false)
                         }
                     }
                     steps {
