@@ -104,7 +104,7 @@ void call(Map config = [:]) {
     } else if (env.HTTPS_PROXY) {
         https_proxy = "${env.HTTPS_PROXY}"
     }
-    String script = 'if pip3 install'
+    String script = 'pip3 install'
     if (https_proxy) {
         script += ' --proxy "' + https_proxy + '"'
     }
