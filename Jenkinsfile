@@ -18,7 +18,7 @@
 // That PR should be landed with out deleting the PR branch.
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
-//@Library(value='pipeline-lib@my_branch_name') _
+@Library(value='pipeline-lib@bmurrell/fix-mpich-loading') _
 
 /* groovylint-disable-next-line CompileStatic */
 job_status_internal = [:]
@@ -85,6 +85,16 @@ Void distro_version_test(String branch, String distro, String expected) {
                       "instead of string starting with '${expected}'")
         }
     }
+}
+
+def artifacts_selector() {
+    String pragma_val = cachedCommitPragma('libfabric-artifacts-selector', null)
+
+    if (pragma_val) {
+        return specific(pragma_val)
+    }
+
+    return lastSuccessful()
 }
 
 /* groovylint-disable-next-line CompileStatic */
@@ -236,6 +246,7 @@ pipeline {
                     steps {
                         // Populate an artifact directory
                         copyArtifacts projectName: '/daos-stack/libfabric/master',
+                                      selector: artifacts_selector(),
                                       filter: 'artifacts/el8/**',
                                       target: 'artifact'
                         publishToRepository(
@@ -276,6 +287,7 @@ pipeline {
                     steps {
                         // Populate an artifact directory
                         copyArtifacts projectName: '/daos-stack/libfabric/master',
+                                      selector: artifacts_selector(),
                                       filter: 'artifacts/ubuntu20.04/**',
                                       target: 'artifact'
                         publishToRepository(
