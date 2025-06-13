@@ -1,5 +1,9 @@
 /* groovylint-disable VariableName */
 // vars/functionalTest.groovy
+/*
+ * Copyright 2020-2024 Intel Corporation
+ * Copyright 2025 Hewlett Packard Enterprise Development LP
+ */
 
   /**
    * functionalTest step method
@@ -110,8 +114,17 @@ Map call(Map config = [:]) {
     run_test_config['context'] = context
     run_test_config['description'] = description
 
-    sh label: 'Install Launchable',
-     script: '''if ! pip3 install --upgrade --upgrade-strategy only-if-needed launchable; then
+    String https_proxy = ''
+    if (env.DAOS_HTTPS_PROXY) {
+        https_proxy = "${env.DAOS_HTTPS_PROXY}"
+    } else if (env.HTTPS_PROXY) {
+        https_proxy = "${env.HTTPS_PROXY}"
+    }
+    String script = 'if ! pip3 install'
+    if (https_proxy) {
+        script += ' --proxy "' + https_proxy + '"'
+    }
+    script += ''' --upgrade --upgrade-strategy only-if-needed launchable; then
                     set +e
                     echo "Failed to install launchable"
                     id
@@ -125,6 +138,8 @@ Map call(Map config = [:]) {
                 fi
                 pip3 list --user || true
                 '''
+    sh label: 'Install Launchable',
+       script: script
 
     try {
         withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
