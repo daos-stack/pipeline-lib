@@ -204,7 +204,7 @@ EOF'''
     if (config['power_only']) {
       // Since we don't have CORCI-711 yet, erase things we know could have
       // been put on the node previously
-      provision_script += '''\nrm -f /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_*_job_*.repo
+      provision_script += '''\nrm -f /etc/yum.repos.d/*.daos.hpc.amslabs.hpecorp.net_job_daos-stack_job_*_job_*.repo
                             yum -y erase fio fuse ior-hpc mpich-autoload''' +
                             ' ompi argobots cart daos daos-client dpdk ' +
                             ' fuse-libs libisa-l libpmemobj mercury mpich' +
@@ -239,7 +239,7 @@ EOF'''
     if (inst_repos) {
       provision_script += '\n' + iterate_repos +
                           '''\nyum-config-manager --add-repo=''' + env.JENKINS_URL + '''job/daos-stack/job/\\\${repo}/job/\\\${branch//\\//%252F}/\\\${build_number}/artifact/artifacts/centos7/
-                             pname=\\\$(ls /etc/yum.repos.d/*.hpdd.intel.com_job_daos-stack_job_\\\${repo}_job_\\\${branch//\\//%252F}_\\\${build_number}_artifact_artifacts_centos7_.repo)
+                             pname=\\\$(ls /etc/yum.repos.d/*.daos.hpc.amslabs.hpecorp.net_job_daos-stack_job_\\\${repo}_job_\\\${branch//\\//%252F}_\\\${build_number}_artifact_artifacts_centos7_.repo)
                              if [ "\\\$pname" != "\\\${pname//%252F/_}" ]; then
                                  mv "\\\$pname" "\\\${pname//%252F/_}"
                              fi
