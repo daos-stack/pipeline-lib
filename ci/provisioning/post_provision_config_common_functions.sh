@@ -69,7 +69,7 @@ send_mail() {
         echo "Host:  $HOSTNAME"
         echo ""
         echo -e "$message"
-    } 2>&1 | mail -s "$subject" -r "$HOSTNAME"@intel.com "$recipients"
+    } 2>&1 | mail -s "$subject" -r "$HOSTNAME"@hpe.com "$recipients"
     set -x
 }
 
