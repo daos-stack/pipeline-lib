@@ -265,7 +265,7 @@ post_provision_config_nodes() {
     fi
 
     if $CONFIG_POWER_ONLY; then
-        rm -f "$REPOS_DIR"/*.hpdd.intel.com_job_daos-stack_job_*_job_*.repo
+        rm -f "$REPOS_DIR"/*.daos.hpc.amslabs.hpecorp.net_job_daos-stack_job_*_job_*.repo
         time dnf -y erase fio fuse ior-hpc mpich-autoload               \
                      ompi argobots cart daos daos-client dpdk      \
                      fuse-libs libisa-l libpmemobj mercury mpich   \
