@@ -1,7 +1,7 @@
 #!/usr/bin/groovy
 /* groovylint-disable DuplicateMapLiteral, DuplicateStringLiteral, NestedBlockDepth, VariableName */
-/* Copyright (C) 2019-2024 Intel Corporation
- * Copyright (C) 2025 Hewlett Packard Enterprise Development LP
+/* Copyright 2019-2024 Intel Corporation
+ * Copyright 2025 Hewlett Packard Enterprise Development LP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

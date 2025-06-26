@@ -1,7 +1,8 @@
 #!/usr/bin/env groovy
 /* groovylint-disable DuplicateListLiteral, DuplicateMapLiteral, DuplicateNumberLiteral */
 // groovylint-disable DuplicateStringLiteral, NestedBlockDepth, VariableName
-/* Copyright (C) 2019-2023 Intel Corporation
+/* Copyright 2019-2024 Intel Corporation
+ * Copyright 2025 Hewlett Packard Enterprise Development LP
  * All rights reserved.
  *
  * This file is part of the DAOS Project. It is subject to the license terms
@@ -229,6 +230,7 @@ pipeline {
                         dockerfile {
                             filename 'docker/Dockerfile.el.8'
                             label 'docker_runner'
+                            additionalBuildArgs dockerBuildArgs()
                         }
                     }
                     steps {
@@ -268,7 +270,7 @@ pipeline {
                         dockerfile {
                             filename 'docker/Dockerfile.el.8'
                             label 'docker_runner'
-                            additionalBuildArgs dockerBuildArgs(cachebust: false, add_repos: false)
+                            additionalBuildArgs dockerBuildArgs(cachebust: false)
                         }
                     }
                     steps {
