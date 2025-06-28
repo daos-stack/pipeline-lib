@@ -64,6 +64,13 @@ String call(Map config = [:]) {
         }
     }
 
+    if (env.REPO_FILE_URL) {
+        def url = new URL(env.REPO_FILE_URL)
+        def no_proxy = url.getHost()
+        println "no_proxy: $no_proxy"
+        ret_str += ' --build-arg no_proxy' + '="' + no_proxy + '"'
+    }
+
     String https_proxy = ''
     if (env.DAOS_HTTPS_PROXY) {
         https_proxy = env.DAOS_HTTPS_PROXY
