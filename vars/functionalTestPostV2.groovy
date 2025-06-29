@@ -98,18 +98,8 @@ void call(Map config = [:]) {
            script: 'ci/functional/launchable_analysis "' + fileName + '"')
     }
 
-    String https_proxy = ''
-    if (env.DAOS_HTTPS_PROXY) {
-        https_proxy = "${env.DAOS_HTTPS_PROXY}"
-    } else if (env.HTTPS_PROXY) {
-        https_proxy = "${env.HTTPS_PROXY}"
-    }
     String script = 'pip3 install'
-    if (https_proxy) {
-        script += ' --proxy "' + https_proxy + '"'
-    }
     script += ' --user --upgrade launchable~=1.0'
-
 
     sh(label: 'Install Launchable',
        script: script)
