@@ -224,7 +224,9 @@ pipeline {
                 stage('publishToRepository RPM tests') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != 'true' }
+                        /* disabled until https://daosio.atlassian.net/browse/SRE-3161 is fixed
+                        expression { env.NO_CI_TESTING != 'true' } */
+                        expression { false }
                     }
                     agent {
                         dockerfile {
@@ -264,7 +266,9 @@ pipeline {
                 stage('publishToRepository DEB tests') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != 'true' }
+                        /* disabled until https://daosio.atlassian.net/browse/SRE-3161 is fixed
+                        expression { env.NO_CI_TESTING != 'true' } */
+                        expression { false }
                     }
                     agent {
                         dockerfile {
