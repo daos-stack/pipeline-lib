@@ -308,11 +308,14 @@ pipeline {
                 stage('provisionNodes on EL 9 with master Repo') {
                     when {
                         beforeAgent true
+                        /* disabled until https://daosio.atlassian.net/browse/SRE-3162 is fixed
                         expression {
                             env.NO_CI_TESTING != 'true' &&
                             cachedCommitPragma('Skip-el9-provisioning-test') != 'true' &&
                             daosLatestVersion('master') != ''
                         }
+                        */
+                        expression { false }
                     }
                     agent {
                         label 'ci_vm1'
@@ -351,10 +354,13 @@ pipeline {
                 stage('provisionNodes on EL 8 with slurm') {
                     when {
                         beforeAgent true
+                        /* disabled until https://daosio.atlassian.net/browse/SRE-3162 is fixed
                         expression {
                             env.NO_CI_TESTING != 'true' &&
                             daosLatestVersion('master') != ''
                         }
+                        */
+                        expression { false }
                     }
                     agent {
                         label 'ci_vm1'
@@ -383,10 +389,13 @@ pipeline {
                 stage('provisionNodes on Leap 15 with slurm') {
                     when {
                         beforeAgent true
+                        /* disabled until https://daosio.atlassian.net/browse/SRE-3162 is fixed
                         expression {
                             env.NO_CI_TESTING != 'true' &&
                             daosLatestVersion('master') != ''
                         }
+                        */
+                        expression { false }
                     }
                     agent {
                         label 'ci_vm1'
