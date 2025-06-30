@@ -64,11 +64,9 @@ String call(Map config = [:]) {
         }
     }
 
-    if (env.REPO_FILE_URL) {
-        def url = env.REPO_FILE_URL
-        def DAOS_NO_PROXY = url.replaceFirst(/^https?:\/\//, '').split('/')[0].split(':')[0]
+    if (env.DAOS_NO_PROXY) {
         println "DAOS_NO_PROXY: $DAOS_NO_PROXY"
-        ret_str += ' --build-arg DAOS_NO_PROXY' + '="' + DAOS_NO_PROXY + '"'
+        ret_str += ' --build-arg DAOS_NO_PROXY' + '="' + env.DAOS_NO_PROXY + '"'
     }
 
     String https_proxy = ''
