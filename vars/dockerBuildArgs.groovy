@@ -79,6 +79,7 @@ String call(Map config = [:]) {
     }
     if (https_proxy) {
         ret_str += ' --build-arg HTTPS_PROXY' + '="' + https_proxy + '"'
+        ret_str += ' --build-arg DAOS_HTTPS_PROXY' + '="' + https_proxy + '"'
     } else {
         println "WARNING: Missing HTTPS_PROXY variable in Docker build arguments"
     }
