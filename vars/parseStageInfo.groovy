@@ -79,6 +79,10 @@ Map call(Map config = [:]) {
             result['target'] = 'el8.6'
             result['distro_version'] = cachedCommitPragma('EL8.6-version', '8.6')
             new_ci_target = cachedCommitPragma('EL8.6-target', result['target'])
+        } else if (stage_name.contains('EL 8.8')) {
+            result['target'] = 'el8.8'
+            result['distro_version'] = cachedCommitPragma('EL8.8-version', '8.8')
+            new_ci_target = cachedCommitPragma('EL8.8-target', result['target'])
         } else if (stage_name.contains('EL 8')) {
             result['target'] = 'el8'
             result['distro_version'] = cachedCommitPragma('EL8-version',

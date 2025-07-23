@@ -1,7 +1,8 @@
 #!/usr/bin/env groovy
 /* groovylint-disable DuplicateListLiteral, DuplicateMapLiteral, DuplicateNumberLiteral */
 // groovylint-disable DuplicateStringLiteral, NestedBlockDepth, VariableName
-/* Copyright (C) 2019-2023 Intel Corporation
+/* Copyright 2019-2024 Intel Corporation
+ * Copyright 2025 Hewlett Packard Enterprise Development LP
  * All rights reserved.
  *
  * This file is part of the DAOS Project. It is subject to the license terms
@@ -223,12 +224,15 @@ pipeline {
                 stage('publishToRepository RPM tests') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != 'true' }
+                        /* disabled until https://daosio.atlassian.net/browse/SRE-3161 is fixed
+                        expression { env.NO_CI_TESTING != 'true' } */
+                        expression { false }
                     }
                     agent {
                         dockerfile {
                             filename 'docker/Dockerfile.el.8'
                             label 'docker_runner'
+                            additionalBuildArgs dockerBuildArgs()
                         }
                     }
                     steps {
@@ -262,13 +266,15 @@ pipeline {
                 stage('publishToRepository DEB tests') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != 'true' }
+                        /* disabled until https://daosio.atlassian.net/browse/SRE-3161 is fixed
+                        expression { env.NO_CI_TESTING != 'true' } */
+                        expression { false }
                     }
                     agent {
                         dockerfile {
                             filename 'docker/Dockerfile.el.8'
                             label 'docker_runner'
-                            additionalBuildArgs dockerBuildArgs(cachebust: false, add_repos: false)
+                            additionalBuildArgs dockerBuildArgs(cachebust: false)
                         }
                     }
                     steps {
@@ -302,11 +308,14 @@ pipeline {
                 stage('provisionNodes on EL 9 with master Repo') {
                     when {
                         beforeAgent true
+                        /* disabled until https://daosio.atlassian.net/browse/SRE-3162 is fixed
                         expression {
                             env.NO_CI_TESTING != 'true' &&
                             cachedCommitPragma('Skip-el9-provisioning-test') != 'true' &&
                             daosLatestVersion('master') != ''
                         }
+                        */
+                        expression { false }
                     }
                     agent {
                         label 'ci_vm1'
@@ -345,10 +354,13 @@ pipeline {
                 stage('provisionNodes on EL 8 with slurm') {
                     when {
                         beforeAgent true
+                        /* disabled until https://daosio.atlassian.net/browse/SRE-3162 is fixed
                         expression {
                             env.NO_CI_TESTING != 'true' &&
                             daosLatestVersion('master') != ''
                         }
+                        */
+                        expression { false }
                     }
                     agent {
                         label 'ci_vm1'
@@ -377,10 +389,13 @@ pipeline {
                 stage('provisionNodes on Leap 15 with slurm') {
                     when {
                         beforeAgent true
+                        /* disabled until https://daosio.atlassian.net/browse/SRE-3162 is fixed
                         expression {
                             env.NO_CI_TESTING != 'true' &&
                             daosLatestVersion('master') != ''
                         }
+                        */
+                        expression { false }
                     }
                     agent {
                         label 'ci_vm1'

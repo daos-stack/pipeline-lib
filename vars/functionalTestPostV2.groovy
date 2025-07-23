@@ -98,8 +98,11 @@ void call(Map config = [:]) {
            script: 'ci/functional/launchable_analysis "' + fileName + '"')
     }
 
+    String script = 'pip3 install'
+    script += ' --user --upgrade launchable~=1.0'
+
     sh(label: 'Install Launchable',
-       script: 'pip3 install --user --upgrade launchable~=1.0')
+       script: script)
 
     try {
         withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {

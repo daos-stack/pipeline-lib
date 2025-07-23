@@ -1,5 +1,9 @@
 /* groovylint-disable DuplicateStringLiteral, VariableName */
 // vars/buildRpm.groovy
+/*
+ * Copyright 2020-2024 Intel Corporation
+ * Copyright 2025 Hewlett Packard Enterprise Development LP
+ */
 
   /**
    * buildRpm step method
@@ -58,6 +62,16 @@ Map call(Map config = [:]) {
                ' DISTRO_VERSION=' + stage_info['distro_version']
     if (config['chroot_name']) {
         env_vars = ' CHROOT_NAME=' + config['chroot_name']
+    }
+
+    String https_proxy = ''
+    if (env.DAOS_HTTPS_PROXY) {
+        https_proxy = "${env.DAOS_HTTPS_PROXY}"
+    } else if (env.HTTPS_PROXY) {
+        https_proxy = "${env.HTTPS_PROXY}"
+    }
+    if (https_proxy) {
+        env_vars += ' HTTPS_PROXY=' + https_proxy
     }
 
     String error_stage_result = 'FAILURE'

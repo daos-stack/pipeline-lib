@@ -1,5 +1,9 @@
 /* groovylint-disable DuplicateStringLiteral, VariableName */
 // vars/dockerBuildArgs.groovy
+/*
+ * Copyright 2020-2024 Intel Corporation
+ * Copyright 2025 Hewlett Packard Enterprise Development LP
+ */
 
 Integer num_proc() {
     return sh(label: 'Get number of processors online',
@@ -31,7 +35,6 @@ Integer num_proc() {
 
 String call(Map config = [:]) {
     Boolean cachebust = config.get('cachebust', true)
-    Boolean add_repos = config.get('add_repos', true)
     Boolean deps_build = config.get('deps_build', false)
     Boolean parallel_build = config.get('parallel_build', false)
 
@@ -55,10 +58,25 @@ String call(Map config = [:]) {
     }
 
     // pass through env. var.s
-    ['DAOS_LAB_CA_FILE_URL', 'REPO_FILE_URL', 'HTTP_PROXY', 'HTTPS_PROXY'].each { var ->
+    ['DAOS_LAB_CA_FILE_URL', 'REPO_FILE_URL', 'HTTP_PROXY'].each { var ->
         if (env."$var") {
             ret_str += ' --build-arg ' + var + '="' + env."$var" + '"'
         }
+    }
+
+    if (env.DAOS_NO_PROXY) {
+        println "DAOS_NO_PROXY: $DAOS_NO_PROXY"
+        ret_str += ' --build-arg DAOS_NO_PROXY' + '="' + env.DAOS_NO_PROXY + '"'
+    }
+
+    String https_proxy = ''
+    if (env.DAOS_HTTPS_PROXY) {
+        https_proxy = env.DAOS_HTTPS_PROXY
+    } else if (env.HTTPS_PROXY) {
+        https_proxy = env.HTTPS_PROXY
+    }
+    if (https_proxy) {
+        ret_str += ' --build-arg HTTPS_PROXY' + '="' + https_proxy + '"'
     }
 
     if (config['qb']) {

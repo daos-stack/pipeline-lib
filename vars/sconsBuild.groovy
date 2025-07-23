@@ -65,7 +65,7 @@ Map call(Map config = [:]) {
    * config['stash_files']  Filename containing list of test files to stash.
    * config['stash_opt'] Boolean, stash tar of /opt in preference to install/**.  Default false.
    *   If present, those files will be placed in a stash name
-   *   of based on parsing the evironment variables of the
+   *   of based on parsing the environment variables of the
    *   <target-compiler[-build_type]-test>.  Additional stashes
    *   will be created for "install" and "build_vars" with similar
    *   prefixes.

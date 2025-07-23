@@ -1,5 +1,9 @@
 /* groovylint-disable DuplicateNumberLiteral, DuplicateStringLiteral, VariableName */
 // vars/provisionNodes.groovy
+/*
+ * Copyright 2020-2024 Intel Corporation
+ * Copyright 2025 Hewlett Packard Enterprise Development LP
+ */
 
 /**
  * provisionNodes.groovy
@@ -39,7 +43,7 @@
                      May be used in the future as SUSE free development
                      licenses do currently allow them to be used for
                      CI automation, and SUSE also has offered site licenses.
-   Prefix "leap":    Specifically OpenSUSE leap oprating system builds of
+   Prefix "leap":    Specifically OpenSUSE leap operating system builds of
                      Suse Linux Enterprise Server.
 */
 /* groovylint-disable-next-line MethodSize */
@@ -122,6 +126,7 @@ Map call(Map config = [:]) {
 
     if (!fileExists('ci/provisioning/log_cleanup.sh') ||
         !fileExists('ci/provisioning/post_provision_config.sh')) {
+
         return provisionNodesV1(config)
     }
 
@@ -154,6 +159,12 @@ Map call(Map config = [:]) {
     default:
             error "Unsupported distro type: ${distro_type}/distro: ${distro}"
     }
+    String https_proxy = ''
+    if (env.DAOS_HTTPS_PROXY) {
+        https_proxy = "${env.DAOS_HTTPS_PROXY}"
+    } else if (env.HTTPS_PROXY) {
+        https_proxy = "${env.HTTPS_PROXY}"
+    }
     provision_script += ' ' +
                       'NODESTRING=' + nodeString + ' ' +
                       'CONFIG_POWER_ONLY=' + config_power_only + ' ' +
@@ -163,6 +174,7 @@ Map call(Map config = [:]) {
                       // https://issues.jenkins.io/browse/JENKINS-55819
                       'CI_RPM_TEST_VERSION="' + (params.CI_RPM_TEST_VERSION ?: '') + '" ' +
                       'CI_PR_REPOS="' + (params.CI_PR_REPOS ?: '') + '" ' +
+                      'HTTPS_PROXY="' + https_proxy + '" ' +
                       'ci/provisioning/post_provision_config.sh'
     new_config['post_restore'] = provision_script
     try {
