@@ -102,9 +102,8 @@ void call(Map config = [:]) {
                                   requiredResult: 'UNSTABLE')
         recordIssues enabledForFailure: true,
                      /* ignore warning/errors from PMDK logging system */
-                     filters: [excludeFile('deps/pmdk/src/common/set.c')],
+                     filters: [excludeMessage('util_replica_check() Possible silent data corruption. The unsafe shutdown detection (SDS) is not supported in the pool:.+')],
                      failOnError: !results['ignore_failure'],
-                     skipDeltaCalculation: true,
                      ignoreQualityGate: true,
                      // Set qualitygate to 1 new "NORMAL" priority message
                      // Supporting messages to help identify causes of
