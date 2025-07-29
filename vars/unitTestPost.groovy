@@ -102,8 +102,9 @@ void call(Map config = [:]) {
                                   requiredResult: 'UNSTABLE')
         recordIssues enabledForFailure: true,
                      /* ignore warning/errors from PMDK logging system */
-                     filters: [excludeFile('pmdk/.+')],
+                     filters: [excludeFile('deps/pmdk/src/common/set.c')],
                      failOnError: !results['ignore_failure'],
+                     skipDeltaCalculation: true,
                      ignoreQualityGate: true,
                      // Set qualitygate to 1 new "NORMAL" priority message
                      // Supporting messages to help identify causes of
