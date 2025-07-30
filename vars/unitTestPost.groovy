@@ -102,7 +102,7 @@ void call(Map config = [:]) {
                                   requiredResult: 'UNSTABLE')
         recordIssues enabledForFailure: true,
                      /* use daos-stack/daos to search reference branch */
-                     /* scm: 'daos-stack/daos', */
+                     scm: 'daos-stack/daos',
                      /* ignore warning/errors from PMDK logging system */
                      filters: [excludeFile('pmdk/.+')],
                      failOnError: !results['ignore_failure'],
