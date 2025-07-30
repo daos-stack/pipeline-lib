@@ -232,6 +232,8 @@ boolean call(Map config = [:]) {
         case 'Build on EL 8':
         case 'Build on EL 8.8':
             return skip_build_on_el_gcc(target_branch, '8')
+        case 'Build on EL 9':
+            return skip_build_on_el_gcc(target_branch, '9')
         case 'Build on CentOS 7 Bullseye':
             return skip_build_bullseye(target_branch, 'centos7')
         case 'Build on CentOS 8 Bullseye':
