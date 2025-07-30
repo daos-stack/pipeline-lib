@@ -101,8 +101,10 @@ void call(Map config = [:]) {
                                   scm: 'daos-stack/daos',
                                   requiredResult: 'UNSTABLE')
         recordIssues enabledForFailure: true,
+                     /* use daos-stack/daos to search reference branch */
+                     /* scm: 'daos-stack/daos', */
                      /* ignore warning/errors from PMDK logging system */
-                     filters: [excludeMessage('util_replica_check() Possible silent data corruption. The unsafe shutdown detection (SDS) is not supported in the pool:.+')],
+                     filters: [excludeFile('pmdk/.+')],
                      failOnError: !results['ignore_failure'],
                      ignoreQualityGate: true,
                      // Set qualitygate to 1 new "NORMAL" priority message
@@ -116,8 +118,8 @@ void call(Map config = [:]) {
                      name: 'Node local testing',
                      tool: issues(pattern: 'vm_test/nlt-errors.json',
                                   name: 'NLT results',
-                                  id: 'VM_test'),
-                     scm: 'daos-stack/daos'
+                                  id: 'VM_test')
+                     
 
         if (cb_result != currentBuild.result) {
             println(
