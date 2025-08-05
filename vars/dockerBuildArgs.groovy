@@ -64,6 +64,11 @@ String call(Map config = [:]) {
         }
     }
 
+    if (env.DAOS_NO_PROXY) {
+        println "DAOS_NO_PROXY: $DAOS_NO_PROXY"
+        ret_str += ' --build-arg DAOS_NO_PROXY' + '="' + env.DAOS_NO_PROXY + '"'
+    }
+
     String https_proxy = ''
     if (env.DAOS_HTTPS_PROXY) {
         https_proxy = env.DAOS_HTTPS_PROXY
