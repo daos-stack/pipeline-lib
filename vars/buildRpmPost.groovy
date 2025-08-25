@@ -97,7 +97,7 @@ void call(Map config = [:]) {
                                 tech: target,
                                 repo_dir: 'artifacts/' + target
         } else {
-            if fileExists('artifacts/' + target + '/deps') {
+            if (fileExists('artifacts/' + target + '/deps')) {
                 publishToRepository product: 'deps',
                                     format: repo_format,
                                     maturity: 'stable',
