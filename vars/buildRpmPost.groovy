@@ -90,26 +90,22 @@ void call(Map config = [:]) {
         }
 
         String product = config.get('product', 'daos-stack')
+        String artdir = 'artifacts/' + target
         if (config.get('new_rpm', false)) {
-            publishToRepository product: product,
-                                format: repo_format,
-                                maturity: 'stable',
-                                tech: target,
-                                repo_dir: 'artifacts/' + target
-        } else {
             if (fileExists('artifacts/' + target + '/deps')) {
                 publishToRepository product: 'deps',
                                     format: repo_format,
                                     maturity: 'stable',
                                     tech: target,
-                                    repo_dir: 'artifacts/' + target + '/deps'
+                                    repo_dir: 'artifacts/deps/' + target
             }
-            publishToRepository product: product,
-                                format: repo_format,
-                                maturity: 'stable',
-                                tech: target,
-                                repo_dir: 'artifacts/' + target + '/daos'
+	    artdir = 'artifacts/' + target + '/daos'
         }
+        publishToRepository product: product,
+                            format: repo_format,
+                            maturity: 'stable',
+                            tech: target,
+                            repo_dir: artdir
 
         if (config.get('rpmlint', false)) {
             rpmlintMockResults(sh(label: 'Get chroot name',
