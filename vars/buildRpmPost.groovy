@@ -99,7 +99,7 @@ void call(Map config = [:]) {
                                     tech: target,
                                     repo_dir: 'artifacts/deps/' + target
             }
-	    artdir = 'artifacts/' + target + '/daos'
+            artdir = 'artifacts/' + target + '/daos'
         }
         publishToRepository product: product,
                             format: repo_format,
