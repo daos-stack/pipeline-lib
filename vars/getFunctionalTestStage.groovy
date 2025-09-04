@@ -42,6 +42,7 @@ Map call(Map kwargs = [:]) {
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
     Map job_status = kwargs.get('job_status', [:])
+    String details_stash = kwargs.get('details_stash', '')
 
     return {
         stage("${name}") {
@@ -89,7 +90,8 @@ Map call(Map kwargs = [:]) {
                                     nvme: nvme,
                                     default_nvme: default_nvme,
                                     provider: provider)['ftest_arg'],
-                                test_function: 'runTestFunctionalV2'))
+                                test_function: 'runTestFunctionalV2',
+                                details_stash: details_stash))
                     } finally {
                         println("[${name}] Running functionalTestPostV2()")
                         functionalTestPostV2()
