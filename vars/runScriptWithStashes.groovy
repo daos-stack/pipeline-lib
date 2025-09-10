@@ -73,4 +73,4 @@
           includes: results_map
 
     return results
- }
+}
