@@ -92,12 +92,13 @@ void call(Map config = [:]) {
         String product = config.get('product', 'daos-stack')
         String artdir = 'artifacts/' + target
         if (config.get('new_rpm', false)) {
-            if (fileExists('artifacts/' + target + '/deps')) {
+            String deps_dir = 'artifacts/' + target + '/deps'
+            if (fileExists(deps_dir)) {
                 publishToRepository product: 'deps',
                                     format: repo_format,
                                     maturity: 'stable',
                                     tech: target,
-                                    repo_dir: 'artifacts/deps/' + target
+                                    repo_dir: deps_dir
             }
             artdir = 'artifacts/' + target + '/daos'
         }
