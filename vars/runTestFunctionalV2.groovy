@@ -101,7 +101,7 @@ Map call(Map config = [:]) {
     if (config['details_stash']) {
         // Stash the launch.py generated details.json for the functional test stage
         stash name: config['details_stash'],
-              includes: '**/launch/functional_*/details.json'
+              includes: '**/details.json'
     }
 
     return runData
