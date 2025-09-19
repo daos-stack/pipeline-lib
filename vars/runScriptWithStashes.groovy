@@ -1,23 +1,22 @@
-// vars/codeCoverageReport.groovy
+// vars/runScriptWithStashes.groovy
 
 /**
- * // vars/codeCoverageReport.groovy
+ * // vars/runScriptWithStashes.groovy
  *
- * Generate a merged code coverage report from any individual stage's code coverage report.
+ * Run a shell script with access to specified stashes.
  *
  * @param kwargs Map containing the following optional arguments (empty strings yield defaults):
- *      stashes     list of stash names including code coverage results from other stages
- *      script      shell script to run to generate the merged code coverage report
+ *      stashes     list of stash names to access during script execution
+ *      script      shell script to run
  *      label       label to use when running the script
  */
  Map call(Map kwargs = [:]) {
     Date startDate = new Date()
     List stashes = kwargs.get('stashes', [])
-    String script = kwargs.get('script', 'ci/code_coverage_report.sh')
-    String label = kwargs.get('label', 'Code Coverage Report')
-    Integer stash_count = 0
-    Integer return_code = 255
+    String script = kwargs.get('script', '')
+    String label = kwargs.get('label', "Run ${script} with stashes")
 
+    Integer stash_count = 0
     stashes.each { stash ->
         try {
             unstash stash
@@ -29,8 +28,13 @@
         }
     }
 
-    // Nothing to do if no stash exist
-    if (stash_count < 1) {
+    Integer return_code = 255
+    if (!script) {
+        // Nothing to do if no stash exist
+        println('No script provided, skipping execution')
+        return_code = 0
+    } else if (stash_count < 1) {
+        // Nothing to do if no stash exist
         println('No code coverage stashes found, skipping merged code coverage report')
         return_code = 0
     } else {
@@ -69,4 +73,4 @@
           includes: results_map
 
     return results
- }
+}
