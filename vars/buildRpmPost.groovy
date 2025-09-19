@@ -49,6 +49,8 @@
    *
    * config['rpmlint']             Whether to run rpmlint on resulting RPMs.
    *                               Default false.
+   * config['new_rpm']             Whether we are using new RPM or not
+   *                               Default false
    *
    * config['unsuccessful_script'] Script to run if build is not successful.
    *                               Default 'ci/rpm/build_unsuccessful.sh'
@@ -88,11 +90,23 @@ void call(Map config = [:]) {
         }
 
         String product = config.get('product', 'daos-stack')
+        String artdir = 'artifacts/' + target
+        if (config.get('new_rpm', false)) {
+            String deps_dir = 'artifacts/' + target + '/deps'
+            if (fileExists(deps_dir)) {
+                publishToRepository product: 'deps',
+                                    format: repo_format,
+                                    maturity: 'stable',
+                                    tech: target,
+                                    repo_dir: deps_dir
+            }
+            artdir = 'artifacts/' + target + '/daos'
+        }
         publishToRepository product: product,
                             format: repo_format,
                             maturity: 'stable',
                             tech: target,
-                            repo_dir: 'artifacts/' + target
+                            repo_dir: artdir
 
         if (config.get('rpmlint', false)) {
             rpmlintMockResults(sh(label: 'Get chroot name',
