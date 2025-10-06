@@ -60,7 +60,7 @@
    * config['ftest_arg']         Functional test launch.py arguments.
    *                             Default determined by parseStageInfo().
    *
-   * config['details_stash']    Stash name for functional test details.
+   * config['details_stash']     Stash name for functional test details.
    */
 
 Map call(Map config = [:]) {

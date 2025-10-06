@@ -39,6 +39,8 @@ Map call(Map config = [:]) {
    *
    * config['description']  Description to report for SCM status.
    *                        Default env.STAGE_NAME.
+   *
+   * config['details_stash']  Stash name for functional test details.
    */
 
     Map stage_info = parseStageInfo(config)
@@ -97,12 +99,6 @@ Map call(Map config = [:]) {
     String name = 'func' + stage_info['pragma_suffix'] + '-cov'
     stash name: config.get('coverage_stash', name),
           includes: covfile
-
-    if (config['details_stash']) {
-        // Stash the launch.py generated details.json for the functional test stage
-        stash name: config['details_stash'],
-              includes: '**/details.json'
-    }
 
     return runData
 }

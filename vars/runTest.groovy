@@ -38,6 +38,8 @@ Map call(Map config = [:]) {
    *
    * config['description']  Description to report for SCM status.
    *                        Default env.STAGE_NAME.
+   *
+   * config['details_stash'] Stash name for functional test details.
    */
 
     // Todo
@@ -139,6 +141,12 @@ Map call(Map config = [:]) {
 
     Date endDate = new Date()
     int runTime = durationSeconds(startDate, endDate)
+
+    if (config['details_stash']) {
+        // Stash the launch.py generated details.json for the functional test stage
+        stash name: config['details_stash'],
+              includes: '**/details.json'
+    }
 
     // We need to pass the rc to the post step.
     Map results = ['result_code': rc,

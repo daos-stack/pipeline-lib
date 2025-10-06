@@ -23,6 +23,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
  *      job_status      Map of status for each stage in the job/build
+ *      details_stash   Stash name for functional test details.
  * @return a scripted stage to run in a pipeline
  */
 Map call(Map kwargs = [:]) {
