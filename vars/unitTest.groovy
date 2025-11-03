@@ -122,10 +122,9 @@ Map afterTest(Map config, Map testRunInfo) {
     return result
 }
 
+/* groovylint-disable-next-line MethodSize */
 Map call(Map config = [:]) {
-    // Must use Date() in pipeline-lib
-    // groovylint-disable-next-line NoJavaUtilDate
-    Date startDate = new Date()
+    long startDate = System.currentTimeMillis()
     String nodelist = config.get('NODELIST', env.NODELIST)
     String test_script = config.get('test_script', 'ci/unit/test_main.sh')
     Map stage_info = parseStageInfo(config)
@@ -223,7 +222,7 @@ Map call(Map config = [:]) {
     stash name: results_map,
           includes: results_map
 
-    // Stash any optional test coverage rreports for the stage
+    // Stash any optional test coverage reports for the stage
     String code_coverage = 'code_coverage_' + sanitizedStageName()
     stash name: code_coverage,
           includes: '**/code_coverage.json',

@@ -4,25 +4,31 @@
   /**
    * Valgrind Report Publish step method
    *
-   * Consolidiate Valgrind data for publising.
+   * Consolidate Valgrind data for publishing.
    *
    * @param config Map of parameters passed
    *
    * config['ignore_failure']      Ignore test failures.  Default false.
    *
-   * config['valgrind_pattern']    Pattern for Valgind files.
+   * config['valgrind_pattern']    Pattern for Valgrind files.
    *                               Default: '*.memcheck.xml'
    *
    * config['valgrind_stashes']    list of stashes for valgrind results.
    */
 
 void call(Map config = [:]) {
+    if (env.DAOS_VALGRIND_DISABLED != null) {
+        // Valgrind plugin is not being maintained and is generating log noise
+        // This is to allow testing with it disabled or missing.
+        println 'Valgrind publishing disabled via DAOS_VALGRIND_DISABLED'
+        return
+    }
     List stashes = []
     if (config['valgrind_stashes']) {
         stashes = config['valgrind_stashes']
   } else {
         // Older code publishes the valgrind in the same stage as ran the
-        // vagrind test.
+        // valgrind test.
         // That does not work if you have multiple valgrind stages running.
         // Need to have only one Valgrind publish stage
         println 'No valgrind_stashes passed!   Running older code!'
@@ -34,10 +40,9 @@ void call(Map config = [:]) {
     stashes.each { stash ->
         try {
             unstash stash
-            println("Success unstashing ${stash}.")
+            println("Success un-stashing ${stash}.")
             stash_cnt++
-    /* groovylint-disable-next-line CatchException */
-    } catch (Exception ex) {
+    } catch (hudson.AbortException ex) {
             println("Ignoring failure to unstash ${stash}.  Perhaps the stage was skipped?")
         }
     }
