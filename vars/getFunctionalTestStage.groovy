@@ -22,7 +22,6 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      base_branch     if specified, checkout sources from this branch before running tests
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
- *      code_coverage   whether or not to RPMs where built with code coverage
  *      stashes         list of stashes to apply before running the stage
  *      job_status      Map of status for each stage in the job/build
  * @return a scripted stage to run in a pipeline
