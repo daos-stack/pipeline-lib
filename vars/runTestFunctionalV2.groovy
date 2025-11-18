@@ -39,8 +39,6 @@ Map call(Map config = [:]) {
    *
    * config['description']  Description to report for SCM status.
    *                        Default env.STAGE_NAME.
-   *
-   * config['code_coverage']  whether or not to RPMs where built with code coverage
    */
 
     Map stage_info = parseStageInfo(config)
