@@ -95,7 +95,8 @@ Map call(Map config = [:]) {
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: stage_inst_rpms)
 
-    if (config['test_rpms'] == 'false') {
+    String test_rpms = config.get('test_rpms', env.TEST_RPMS)
+    if (test_rpms == 'false') {
         if (config['stashes'] == null) {
             config['stashes'] = []
         }
@@ -107,7 +108,7 @@ Map call(Map config = [:]) {
 
     Map run_test_config = [:]
     run_test_config['stashes'] = config.get('stashes', [])
-    run_test_config['test_rpms'] = config.get('test_rpms', env.TEST_RPMS)
+    run_test_config['test_rpms'] = test_rpms
     run_test_config['pragma_suffix'] = stage_info['pragma_suffix']
     run_test_config['test_tag'] =  config.get('test_tag', stage_info['test_tag'])
     run_test_config['node_count'] = stage_info['node_count']

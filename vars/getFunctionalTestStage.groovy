@@ -45,10 +45,6 @@ Map call(Map kwargs = [:]) {
     List stashes = kwargs.get('stashes', [])
     Map job_status = kwargs.get('job_status', [:])
 
-    // // Include the build-vars stash from the build stage
-    // Map stage_info = parseStageInfo(stage_name: name, )
-    // stashes.add("${stage_info['target']}-${stage_info['compiler']}-build-vars")
-
     return {
         stage("${name}") {
             // Get the tags for the stage. Use either the build parameter, commit pragma, or
