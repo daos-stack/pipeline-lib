@@ -95,17 +95,17 @@ Map call(Map config = [:]) {
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: stage_inst_rpms)
 
-    List stashes = []
-    if (config['stashes']) {
-        stashes = config['stashes']
-    } else {
-        String target_compiler = "${stage_info['target']}-${stage_info['compiler']}"
-        stashes.add("${target_compiler}-install")
-        stashes.add("${target_compiler}-build-vars")
-    }
+    // List stashes = []
+    // if (config['stashes']) {
+    //     stashes = config['stashes']
+    // } else {
+    //     String target_compiler = "${stage_info['target']}-${stage_info['compiler']}"
+    //     stashes.add("${target_compiler}-install")
+    //     stashes.add("${target_compiler}-build-vars")
+    // }
 
     Map run_test_config = [:]
-    run_test_config['stashes'] = stashes
+    run_test_config['stashes'] = config.get('stashes', [])
     run_test_config['test_rpms'] = config.get('test_rpms', env.TEST_RPMS)
     run_test_config['pragma_suffix'] = stage_info['pragma_suffix']
     run_test_config['test_tag'] =  config.get('test_tag', stage_info['test_tag'])

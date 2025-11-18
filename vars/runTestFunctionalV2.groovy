@@ -39,6 +39,8 @@ Map call(Map config = [:]) {
    *
    * config['description']  Description to report for SCM status.
    *                        Default env.STAGE_NAME.
+   *
+   * config['code_coverage']  whether or not to RPMs where built with code coverage
    */
 
     Map stage_info = parseStageInfo(config)
@@ -67,8 +69,11 @@ Map call(Map config = [:]) {
     }
 
     if (test_rpms && config['stashes']){
-        // we don't need (and might not even have) stashes if testing
-        // from RPMs
+        dir('/tmp/stashes') {
+            config['stashes'].each { name ->
+                unstash name
+            }
+        }
         config.remove('stashes')
     }
 
@@ -97,5 +102,12 @@ Map call(Map config = [:]) {
     String name = 'func' + stage_info['pragma_suffix'] + '-cov'
     stash name: config.get('coverage_stash', name),
           includes: covfile
+
+    // Stash any optional test coverage reports for the stage
+    String code_coverage = 'code_coverage_' + sanitizedStageName()
+    stash name: code_coverage,
+          includes: '**/code_coverage.json',
+          allowEmpty: true
+
     return runData
 }
