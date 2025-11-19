@@ -700,7 +700,7 @@ pipeline {
                             sequences.eachWithIndex { sequence, index ->
                                 cachedCommitPragma(clear: true)
                                 println("${index}: ${sequence['description']}")
-                                commit_message = "Test commit\n\n${sequence['pragma']}\n"
+                                String commit_message = "Test commit\n\n${sequence['pragma']}\n"
                                 println(commit_message)
                                 env.tmp_pragmas = pragmasToEnv(commit_message.stripIndent())
                                 withEnv(['STAGE_NAME=Functional Hardware Medium',
@@ -717,9 +717,9 @@ pipeline {
                             println('  Result  Expect  Actual  Test')
                             println('  ------  ------  ------  ----------------------------------------------')
                             sequences.eachWithIndex { sequence, index ->
-                                result = 'PASS'
-                                expect = 'run '
-                                actual = 'run '
+                                String result = 'PASS'
+                                String expect = 'run '
+                                String actual = 'run '
                                 if (sequence['expect']) { expect = 'skip' }
                                 if (sequence['actual']) { actual = 'skip' }
                                 if (expect != actual) { result = 'FAIL' }
