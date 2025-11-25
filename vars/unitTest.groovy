@@ -138,9 +138,8 @@ Map call(Map config = [:]) {
         }
     }
 
-    // Check if image_version was provided, if not, calculate it
-    String image_version = cofig.get('image_version',
-        (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'])
+    String image_version = config.get('image_version') ?:
+        (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version']
 
     Map runData = provisionNodes(
                  NODELIST: nodelist,
