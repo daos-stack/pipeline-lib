@@ -139,7 +139,7 @@ Void call(Map config= [:]) {
                          '\n\nIf you are receiving this e-mail, about a PR that is not yours, it is\n' +
                          'in error.\n\n' +
                          'Please accept my appologies and kindly forward this message to\n' +
-                         'brian.murrell@intel.com for investigation.\n\n' +
+                         'john.malmberg@hpe.com for investigation.\n\n' +
                          'Thank-you.\n\n\n' +
                          /* groovylint-disable-next-line GStringExpressionWithinString */
                          'BUILD_NUMBER=${BUILD_NUMBER}\n' +
