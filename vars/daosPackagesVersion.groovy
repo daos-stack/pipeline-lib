@@ -96,9 +96,8 @@ String call(String distro, String next_version) {
     String version_file = normalized_distro
     try {
         unstash normalized_distro + '-rpm-version'
-    /* groovylint-disable-next-line CatchException */
-    } catch (Exception e1) {
-        // backward compatibilty
+    } catch (hudson.AbortException e1) {
+        // backward compatibility
         try {
             // ugly backwards compatibility hack due to hardware distro
             // being el8 now
@@ -107,9 +106,8 @@ String call(String distro, String next_version) {
             }
             unstash _distro + '-rpm-version'
             version_file = _distro
-        /* groovylint-disable-next-line CatchException */
-        } catch (Exception e2) {
-            print('Ingoring missing but deprecated ' + _distro + '-rpm-version' + ' stash')
+        } catch (hudson.AbortException e2) {
+            print('Ignoring missing but deprecated ' + _distro + '-rpm-version' + ' stash')
             return ''
         }
     }

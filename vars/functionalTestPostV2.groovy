@@ -44,8 +44,13 @@ void call(Map config = [:]) {
 
     // Need to unstash the script result from runTest
     String results_map = 'results_map_' + sanitizedStageName()
-    unstash name: results_map
-    Map results = readYaml file: results_map
+    Map results = [:]
+    try {
+        unstash name: results_map
+        results = readYaml file: results_map
+    } catch (hudson.AbortException e) {
+        println("Failed to unstash ${results_map}: ${e.message}")
+    }
     String prev_result = currentBuild.result
 
     junit(testResults: junit_results)
@@ -88,39 +93,7 @@ void call(Map config = [:]) {
            config.get('artifacts', env.STAGE_NAME + '/**')
     archiveArtifacts(artifacts: artifacts)
 
-    // Analyze test failures
-    String jobName = env.JOB_NAME.replace('/', '_')
-    jobName += '_' + env.BUILD_NUMBER
-    String fileName = env.DAOS_STACK_JOB_STATUS_DIR + '/' + jobName
-
-    if (fileExists('ci/functional/launchable_analysis')) {
-        sh(label: 'Analyze failed tests vs. Launchable subset',
-           script: 'ci/functional/launchable_analysis "' + fileName + '"')
-    }
-
-    String script = 'pip3 install'
-    script += ' --user --upgrade launchable~=1.0'
-
-    sh(label: 'Install Launchable',
-       script: script)
-
-    try {
-        withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
-            sh(label: 'Submit test results to Launchable',
-            /* groovylint-disable-next-line GStringExpressionWithinString */
-            script: 'if ls -l "' + env.STAGE_NAME + '''"/*/*/xunit1_results.xml 2>/dev/null; then
-                            export PATH=$PATH:$HOME/.local/bin
-                            launchable record tests --build ${BUILD_TAG//%2F/-} pytest ''' +
-                                    '"' + env.STAGE_NAME + '''"/*/*/xunit1_results.xml
-                        fi''')
-            }
-    /* groovylint-disable-next-line CatchException */
-    } catch (Exception error) {
-        println(
-            "Ignoring failure to record " + env.STAGE_NAME + " tests with launchable: " +
-            error.getMessage())
-    }
     if (!ignore_failure && results['result'] == 'FAILURE') {
-        unstable "Failure detected with test harness or hardware."
+        unstable 'Failure detected with test harness or hardware.'
     }
 }

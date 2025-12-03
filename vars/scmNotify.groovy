@@ -1,3 +1,4 @@
+/* groovylint-disable CouldBeElvis, DuplicateStringLiteral */
 // vars/scmNotify.groovy
 
  /* This provides a way of notifying the SCM such as GitLab/GitHub with
@@ -16,22 +17,20 @@
    *
    * See the githubNotify pipeline step for the parameters to pass.
    */
-
-def call(Map config = [:]) {
-
-  def errtxt = 'Jenkins not configured to notify SCM repository of builds.'
-  if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
-    println errtxt
-    return
-  }
-  try {
-    if (! config['credentialsId']) {
-      config['credentialsId'] = scmStatusIdSystem()
+void call(Map config = [:]) {
+    String errorText = 'Jenkins not configured to notify SCM repository of builds.'
+    if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
+        println errorText
+        return
     }
-  } catch (java.lang.NoSuchMethodError e) {
-    // Did not find a shared scmStatusIdSystem routine.
-    // Assume DAOS_JENKINS_NOTIFY_STATUS contains a credential id.
-    config['credentialsId'] = env.DAOS_JENKINS_NOTIFY_STATUS
-  }
-  scmNotifyTrusted(config)
+    try {
+        if (!config['credentialsId']) {
+            config['credentialsId'] = scmStatusIdSystem()
+        }
+    } catch (java.lang.NoSuchMethodError e) {
+        // Did not find a shared scmStatusIdSystem routine.
+        // Assume DAOS_JENKINS_NOTIFY_STATUS contains a credential id.
+        config['credentialsId'] = env.DAOS_JENKINS_NOTIFY_STATUS
+    }
+    scmNotifyTrusted(config)
 }
