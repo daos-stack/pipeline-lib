@@ -59,6 +59,8 @@
    *
    * config['ftest_arg']         Functional test launch.py arguments.
    *                             Default determined by parseStageInfo().
+   *
+   * config['details_stash']     Stash name for functional test details.
    */
 
 Map call(Map config = [:]) {
@@ -113,6 +115,8 @@ Map call(Map config = [:]) {
     run_test_config['ftest_arg'] = config.get('ftest_arg', stage_info['ftest_arg'])
     run_test_config['context'] = context
     run_test_config['description'] = description
+    run_test_config['details_stash'] = config.get(
+        'details_stash', 'func' + stage_info['pragma_suffix'] + '-details')
 
     String script = 'if ! pip3 install'
     script += ''' --upgrade --upgrade-strategy only-if-needed launchable; then
