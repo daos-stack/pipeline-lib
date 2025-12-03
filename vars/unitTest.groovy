@@ -223,7 +223,7 @@ Map call(Map config = [:]) {
     stash name: results_map,
           includes: results_map
 
-    // Stash any optional test coverage rreports for the stage
+    // Stash any optional test coverage reports for the stage
     String code_coverage = 'code_coverage_' + sanitizedStageName()
     stash name: code_coverage,
           includes: '**/code_coverage.json',
