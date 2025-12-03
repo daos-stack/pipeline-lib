@@ -17,12 +17,6 @@
    */
 
 void call(Map config = [:]) {
-    if (env.DAOS_VALGRIND_DISABLED != null) {
-        // Valgrind plugin is not being maintained and is generating log noise
-        // This is to allow testing with it disabled or missing.
-        println 'Valgrind publishing disabled via DAOS_VALGRIND_DISABLED'
-        return
-    }
     List stashes = []
     if (config['valgrind_stashes']) {
         stashes = config['valgrind_stashes']
@@ -61,22 +55,19 @@ void call(Map config = [:]) {
         return
     }
 
-    /* groovylint-disable-next-line NoDef, VariableTypeRequired */
-    def cb_result = currentBuild.result
-    publishValgrind failBuildOnInvalidReports: true,
-                  failBuildOnMissingReports: !ignore_failure,
-                  failThresholdDefinitelyLost: '0',
-                  failThresholdInvalidReadWrite: '0',
-                  failThresholdTotal: '0',
-                  pattern: valgrind_pattern,
-                  publishResultsForAbortedBuilds: false,
-                  publishResultsForFailedBuilds: true,
-                  sourceSubstitutionPaths: '',
-                  unstableThresholdDefinitelyLost: '0',
-                  unstableThresholdInvalidReadWrite: '0',
-                  unstableThresholdTotal: '0'
+    String cb_result = currentBuild.result
+    recordIssues enabledForFailure: true,
+                 failOnError: !ignore_failure,
+                 ignoreQualityGate: false,
+                 qualityGates: [
+                   [threshold: 1, type: 'TOTAL_ERROR'],
+                   [threshold: 1, type: 'TOTAL_HIGH']],
+                 name: 'Valgrind Memory Check',
+                 tool: valgrind(pattern: valgrind_pattern,
+                               name: 'Valgrind Results',
+                               id: 'valgrind')
 
     if (cb_result != currentBuild.result) {
-        println "The publishValgrind step changed result to ${currentBuild.result}."
+        println "The recordIssues step changed result to ${currentBuild.result}."
     }
 }

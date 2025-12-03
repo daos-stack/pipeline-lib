@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral, GStringExpressionWithinString */
 // vars/setupDownstreamTesting.groovy
 
 String test_branch(String target) {
@@ -5,11 +6,15 @@ String test_branch(String target) {
             '-' + target.replaceAll('/', '-')
 }
 
+List githubAccess() {
+    return [[$class: 'UsernamePasswordMultiBinding',
+            credentialsId: 'daos_jenkins_project_github_access',
+            usernameVariable: 'GH_USER',
+            passwordVariable: 'GH_PASS']]
+}
+
 void cleanup(String project, String branch) {
-    withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                    credentialsId: 'daos_jenkins_project_github_access',
-                    usernameVariable: 'GH_USER',
-                    passwordVariable: 'GH_PASS']]) {
+    withCredentials(githubAccess()) {
         sh(label: 'Delete test branch',
            script: 'if ! git push https://$GH_USER:$GH_PASS@github.com/' + project +
                       ' --delete ' + test_branch(branch) + '''; then
@@ -25,18 +30,26 @@ void cleanup(String project, String branch) {
 /**
  * setupDownstreamTesting.groovy
  *
- * Set up a branch to perform dowstream testing on
+ * Set up a branch to perform downstream testing on
  */
 
-/* groovylint-disable-next-line NoDef, ParameterName */
-void call(String project, String branch, String commit_pragmas = '') {
+/* groovylint-disable-next-line MethodSize, NoDef, ParameterName */
+List call(String project, String branch, String commit_pragmas = '') {
     // TODO: find out what the / escape is.  I've already tried both %2F and %252F
     //       https://issues.jenkins.io/browse/JENKINS-68857
     // Instead, we will create a branch specifically to test on
-    withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                    credentialsId: 'daos_jenkins_project_github_access',
-                    usernameVariable: 'GH_USER',
-                    passwordVariable: 'GH_PASS']]) {
+    List knownParameters = ['CI_FI_el8_TEST',
+                            'CI_MORE_FUNCTIONAL_PR_TESTS',
+                            'CI_FUNCTIONAL_el9_TEST',
+                            'CI_FUNCTIONAL_el8_TEST',
+                            'CI_FUNCTIONAL_leap15_TEST',
+                            'CI_medium_TEST',
+                            'CI_large_TEST'
+                           ]
+
+    List result = []
+    String checkoutDir = project.split('/')[1] + '-' + branch.replaceAll('/', '-')
+    withCredentials(githubAccess()) {
         sh label: 'Create or update test branch',
            /* groovylint-disable-next-line GStringExpressionWithinString */
            script: 'branch_name=' + test_branch(branch) + '''
@@ -47,7 +60,7 @@ void call(String project, String branch, String commit_pragmas = '') {
                                       branch) + '''
                     # dir for checkout since all runs in the matrix share the same
                     # workspace
-                    dir="''' + project.split('/')[1] + '-' + branch.replaceAll('/', '-') + '''"
+                    dir="''' + checkoutDir + '''"
                     #rm -rf "$dir"
                     if cd $dir; then
                         git remote update
@@ -100,8 +113,24 @@ void call(String project, String branch, String commit_pragmas = '') {
                     git push -f origin $branch_name:$branch_name
                     sleep 10'''
     } // withCredentials
+
+    // Set up parameters for downstream testing
+    // Check which known parameters exist in the Jenkinsfile
+    String jenkinsfilePath = checkoutDir + '/Jenkinsfile'
+    if (fileExists(jenkinsfilePath)) {
+        String jenkinsfileContent = readFile(jenkinsfilePath)
+        knownParameters.each { param ->
+            if (jenkinsfileContent.contains(param)) {
+                Boolean defaultValue = param in ['CI_medium_TEST', 'CI_large_TEST'] ? false : true
+                result.add(booleanParam(name: param, value: defaultValue))
+            }
+        }
+    } else {
+        echo "Warning: Jenkinsfile not found at ${jenkinsfilePath}"
+    }
+
     sh label: 'Delete local test branch',
-       script: '''dir="''' + project.split('/')[1] + '-' + branch.replaceAll('/', '-') + '''"
+       script: '''dir="''' + checkoutDir + '''"
                   if ! cd $dir; then
                       echo "$dir does not exist"
                       exit 1
@@ -112,4 +141,5 @@ void call(String project, String branch, String commit_pragmas = '') {
                       git branch -a
                       exit 1
                   fi'''
+    return result
 } // call
