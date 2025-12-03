@@ -148,6 +148,10 @@ Map call(Map config = [:]) {
             error.getMessage())
     }
 
+    if (env.BULLSEYE) {
+        downloadBullseye()
+    }
+
     Map runtestData = [:]
     if (config.get('test_function', 'runTestFunctional') ==
       'runTestFunctionalV2') {
