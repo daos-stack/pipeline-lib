@@ -22,7 +22,7 @@ String call(String branch_type) {
 
         case 'release':
             // Match a release branch name, e.g. release/2.4
-            return(/^release\/[\d.]+$/)
+            return(/^release\/[\d.]+/)
 
         case 'downstream':
             // Match a downstream testing branch e.g. ci-daos-do-packer-ofed-images-PR-11-release-2.2,
