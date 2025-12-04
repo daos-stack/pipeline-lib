@@ -26,7 +26,7 @@ String call(String distro) {
         }
     }
 
-    return distroVersion(distro, branch.replaceFirst(/^.*(\d+\.\d+).*$/, '\$1'))
+    return distroVersion(distro, branch.replaceFirst(/^.*[\/-](\d+\.\d+).*$/, '\$1'))
 }
 
 String call(String distro, String branch) {
