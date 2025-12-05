@@ -11,7 +11,7 @@
  * Method to return the list of Unit Testing packages
  */
 
-String call() {
+String call(Map config = [:]) {
     String script = 'ci/unit/required_packages.sh'
     if (!fileExists(script)) {
         echo "${script} doesn't exist.  " +
