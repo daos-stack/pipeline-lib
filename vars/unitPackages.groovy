@@ -20,7 +20,8 @@ String call() {
     }
 
     Map stage_info = parseStageInfo()
-    String target = stage_info['target']
+    String target = config.get('image_version') ?:
+        (stage_info['target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version']
     boolean quick_build = quickBuild()
 
     if (target.startsWith('centos') || target.startsWith('el')) {
