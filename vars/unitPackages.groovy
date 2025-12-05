@@ -11,7 +11,7 @@
  * Method to return the list of Unit Testing packages
  */
 
-String call() {
+String call(Map args = [:]) {
     String script = 'ci/unit/required_packages.sh'
     if (!fileExists(script)) {
         echo "${script} doesn't exist.  " +
@@ -20,7 +20,7 @@ String call() {
     }
 
     Map stage_info = parseStageInfo()
-    String target = config.get('image_version') ?:
+    String target = args.get('image_version') ?:
         (stage_info['target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version']
     boolean quick_build = quickBuild()
 
