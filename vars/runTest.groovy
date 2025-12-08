@@ -14,7 +14,7 @@ Map call(Map config = [:]) {
    * config['stashes'] Stashes from the build to unstash
    * config['failure_artifacts'] Artifacts to link to when test fails, if any
    * config['ignore_failure'] Whether a FAILURE result should post a failed step
-   * config['notify_result'] Flag to notify SCM for the resultstatus,
+   * config['notify_result'] Flag to notify SCM for the result status,
    *                         default true, Use false if the notification
    *                         will be in post processing.
    *
@@ -48,9 +48,7 @@ Map call(Map config = [:]) {
     // github expectations at the same time to also include any Matrix
     // environment variables.
 
-    // Must use Date() in pipeline-lib
-    // groovylint-disable-next-line NoJavaUtilDate
-    Date startDate = new Date()
+    long startDate = System.currentTimeMillis()
     String context = config.get('context', 'test/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
     String flow_name = config.get('flow_name', env.STAGE_NAME)
@@ -137,7 +135,7 @@ Map call(Map config = [:]) {
         }
     }
 
-    Date endDate = new Date()
+    long endDate = System.currentTimeMillis()
     int runTime = durationSeconds(startDate, endDate)
 
     // We need to pass the rc to the post step.

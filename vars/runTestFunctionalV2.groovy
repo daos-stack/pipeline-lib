@@ -66,10 +66,12 @@ Map call(Map config = [:]) {
         config['failure_artifacts'] = env.STAGE_NAME
     }
 
-    if (test_rpms && config['stashes']){
-        dir('/tmp/stashes') {
-            config['stashes'].each { name ->
+    if (test_rpms && config['stashes']) {
+        config['stashes'].each { name ->
+            try {
                 unstash name
+            } catch (hudson.AbortException ex) {
+                println("Unstash failed: ${ex}")
             }
         }
         config.remove('stashes')
@@ -91,15 +93,15 @@ Map call(Map config = [:]) {
     // Restore the ignore failure setting
     config['ignore_failure'] = ignore_failure
 
-    String covfile = 'test.cov'
+    String coverageFile = 'test.cov'
     if (!fileExists('test.cov')) {
-        covfile += '_not_done'
-        fileOperations([fileCreateOperation(fileName: covfile,
+        coverageFile += '_not_done'
+        fileOperations([fileCreateOperation(fileName: coverageFile,
                                             fileContent: '')])
     }
     String name = 'func' + stage_info['pragma_suffix'] + '-cov'
     stash name: config.get('coverage_stash', name),
-          includes: covfile
+          includes: coverageFile
 
     // Stash any optional test coverage reports for the stage
     String code_coverage = 'code_coverage_' + sanitizedStageName()

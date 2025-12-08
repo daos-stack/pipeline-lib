@@ -48,8 +48,7 @@
 */
 /* groovylint-disable-next-line MethodSize */
 Map call(Map config = [:]) {
-    /* groovylint-disable-next-line NoJavaUtilDate */
-    Date startDate = new Date()
+    long startDate = System.currentTimeMillis()
     String nodeString = config['NODELIST']
     List node_list = config['NODELIST'].split(',')
     int node_max_cnt = node_list.size()
@@ -126,7 +125,6 @@ Map call(Map config = [:]) {
 
     if (!fileExists('ci/provisioning/log_cleanup.sh') ||
         !fileExists('ci/provisioning/post_provision_config.sh')) {
-
         return provisionNodesV1(config)
     }
 

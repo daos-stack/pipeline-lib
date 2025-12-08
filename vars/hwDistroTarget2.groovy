@@ -11,6 +11,10 @@
  * Method to return the distro target and version (as a list) for a given stage
  */
 
+String targetRegex() {
+    return '([a-z]+)(.*)'
+}
+
 // I'd love to use a more explicit
 // String, String hw_distro(String size) here but it chokes Jenkins (at
 // least)
@@ -28,7 +32,7 @@ List call(String size) {
     }
     distro = cachedCommitPragma('Func-hw-test-' + size + '-distro',
                               cachedCommitPragma('Func-hw-test-distro', distro))
-    return (distro =~ /([a-z]+)(.*)/)[0][1..2]
+    return (distro =~ targetRegex())[0][1..2]
 }
 
 List call() {
@@ -36,5 +40,5 @@ List call() {
         return hwDistroTarget2(env.STAGE_NAME[env.STAGE_NAME.lastIndexOf(' ')
                                               + 1..-1].toLowerCase())
     }
-    return (parseStageInfo()['target'] =~ /([a-z]+)(.*)/)[0][1..2]
+    return (parseStageInfo()['target'] =~ targetRegex())[0][1..2]
 }

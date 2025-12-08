@@ -85,6 +85,7 @@ Void distro_version_test(String branch, String distro, String expected) {
                       "instead of string starting with '${expected}'")
         }
     }
+    return
 }
 
 /* groovylint-disable-next-line CompileStatic */
@@ -594,7 +595,7 @@ pipeline {
                                                       'full_regression,foobar,@stages.tag@'],
                                        [tags: [[tag: 'Test-tag', value: 'datamover foobar']],
                                         tag_template: 'datamover,@stages.tag@ foobar,@stages.tag@'],
-                                    /* this one doesn't quite work due to the @commits.value@ substituion
+                                    /* this one doesn't quite work due to the @commits.value@ substitution
                                        not accounting for the skip-list
                                        [tags: [[tag: 'Test-tag', value: 'datamover'],
                                                [tag: 'Features', value: 'foobar'],
@@ -699,7 +700,7 @@ pipeline {
                             sequences.eachWithIndex { sequence, index ->
                                 cachedCommitPragma(clear: true)
                                 println("${index}: ${sequence['description']}")
-                                commit_message = "Test commit\n\n${sequence['pragma']}\n"
+                                String commit_message = "Test commit\n\n${sequence['pragma']}\n"
                                 println(commit_message)
                                 env.tmp_pragmas = pragmasToEnv(commit_message.stripIndent())
                                 withEnv(['STAGE_NAME=Functional Hardware Medium',
@@ -716,9 +717,9 @@ pipeline {
                             println('  Result  Expect  Actual  Test')
                             println('  ------  ------  ------  ----------------------------------------------')
                             sequences.eachWithIndex { sequence, index ->
-                                result = 'PASS'
-                                expect = 'run '
-                                actual = 'run '
+                                String result = 'PASS'
+                                String expect = 'run '
+                                String actual = 'run '
                                 if (sequence['expect']) { expect = 'skip' }
                                 if (sequence['actual']) { actual = 'skip' }
                                 if (expect != actual) { result = 'FAIL' }
