@@ -142,8 +142,10 @@ Map call(Map config = [:]) {
             provision_script += 'EL_7'
             break
     case 'el8':
-    case 'el9':
             provision_script += 'EL_8'
+            break
+    case 'el9':
+            provision_script += 'EL_9'
             break
     case 'suse':
             provision_script += 'LEAP_15'
