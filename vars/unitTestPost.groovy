@@ -10,6 +10,8 @@
    * config['artifacts']           Artifacts to archive.
    *                               Default ['run_test.sh/*']
    *
+   * config['code_coverage']       Bullseye code coverage is enabled.
+   *
    * config['referenceJobName']    Reference job name.
    *                               Defaults to 'daos-stack/daos/master'
    *
@@ -29,6 +31,7 @@
 void call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
     String cbcResult = currentBuild.currentResult
+    Boolean code_coverage = config.get('code_coverage', false)
 
     // Stash the Valgrind files for later analysis
     String valgrind_pattern = stage_info.get('valgrind_pattern',
@@ -102,7 +105,7 @@ void call(Map config = [:]) {
         target_stash += '-' + stage_info['build_type']
     }
     // Coverage instrumented tests and Valgrind are probably mutually exclusive
-    if (stage_info['compiler'] == 'covc') {
+    if (code_coverage) {
         return
     }
 
