@@ -19,6 +19,8 @@
    *     Or the default name has to be changed in a way that is compatible
    *     with a future Matrix implementation.
    *
+   * config['code_coverage']     Bullseye code coverage is enabled.
+   *
    * config['coverage_stash']    Name to stash coverage artifacts
    *                             Name is based on the environment variables
    *                             for the stage if this is coverage test.
@@ -71,6 +73,7 @@
    *                             default is false.
    *
    * config['unstash_tests']     Un-stash -tests, default is true.
+   *
    */
 
 Map afterTest(Map config, Map testRunInfo) {
@@ -129,8 +132,9 @@ Map call(Map config = [:]) {
     String test_script = config.get('test_script', 'ci/unit/test_main.sh')
     Map stage_info = parseStageInfo(config)
     String inst_rpms = config.get('inst_rpms', '')
+    Boolean code_coverage = config.get('code_coverage', false)
 
-    if (stage_info['compiler'] == 'covc') {
+    if (code_coverage) {
         if (stage_info['java_pkg']) {
             inst_rpms += " ${stage_info['java_pkg']}"
         }
@@ -164,13 +168,12 @@ Map call(Map config = [:]) {
         }
     }
 
-    if (stage_info['compiler'] == 'covc') {
-        String tools_url = env.JENKINS_URL +
-                    'job/daos-stack/job/tools/job/master' +
-                    '/lastSuccessfulBuild/artifact/'
+    if (code_coverage) {
+        String tools_url = env.JENKINS_URL + 
+                           'job/daos-stack/job/tools/job/master/lastSuccessfulBuild/artifact/'
         httpRequest url: tools_url + 'bullseyecoverage-linux.tar',
-                httpMode: 'GET',
-                outputFile: 'bullseye.tar'
+                    httpMode: 'GET',
+                    outputFile: 'bullseye.tar'
     }
 
     String with_valgrind = stage_info.get('with_valgrind', '')
@@ -205,9 +208,9 @@ Map call(Map config = [:]) {
     runTestData = afterTest(p, runData)
     runTestData.each { resultKey, data -> runData[resultKey] = data }
 
-    if (stage_info['compiler'] == 'covc') {
+    if (code_coverage) {
         stash name: config.get('coverage_stash', "${target_stash}-unit-cov"),
-            includes: 'test.cov'
+              includes: 'test.cov'
     }
     int runTime = durationSeconds(startDate)
     runData['unittest_time'] = runTime
@@ -223,8 +226,8 @@ Map call(Map config = [:]) {
           includes: results_map
 
     // Stash any optional test coverage reports for the stage
-    String code_coverage = 'code_coverage_' + sanitizedStageName()
-    stash name: code_coverage,
+    String code_coverage_name = 'code_coverage_' + sanitizedStageName()
+    stash name: code_coverage_name,
           includes: '**/code_coverage.json',
           allowEmpty: true
 
