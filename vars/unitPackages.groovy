@@ -20,6 +20,8 @@ String call(Map args = [:]) {
     }
 
     Map stage_info = parseStageInfo()
+    String target = stage_info['target']
+    echo "target is: ${target}"
     String target = args.get('image_version') ?:
         stage_info['target']
     boolean quick_build = quickBuild()
