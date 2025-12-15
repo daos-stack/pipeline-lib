@@ -167,13 +167,6 @@ Map call(Map config = [:]) {
             stashes.add("${target_stash}-install")
         }
     }
-
-    if (code_coverage) {
-        String tools_url = env.JENKINS_URL + 
-                           'job/daos-stack/job/tools/job/master/lastSuccessfulBuild/artifact/'
-        httpRequest url: tools_url + 'bullseyecoverage-linux.tar',
-                    httpMode: 'GET',
-                    outputFile: 'bullseye.tar'
     }
 
     String with_valgrind = stage_info.get('with_valgrind', '')
