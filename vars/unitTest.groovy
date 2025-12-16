@@ -167,7 +167,6 @@ Map call(Map config = [:]) {
             stashes.add("${target_stash}-install")
         }
     }
-    }
 
     String with_valgrind = stage_info.get('with_valgrind', '')
     Map p = [:]
