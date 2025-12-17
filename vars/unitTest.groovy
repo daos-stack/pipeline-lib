@@ -202,7 +202,8 @@ Map call(Map config = [:]) {
 
     if (code_coverage) {
         stash name: config.get('coverage_stash', "${target_stash}-unit-cov"),
-              includes: 'test.cov'
+              includes: '**/test.cov'
+              allowEmpty: true
     }
     int runTime = durationSeconds(startDate)
     runData['unittest_time'] = runTime
