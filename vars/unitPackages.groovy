@@ -21,9 +21,10 @@ String call(Map args = [:]) {
 
     Map stage_info = parseStageInfo()
     String currentTarget = stage_info['target']
-    echo "target is: ${currentTarget}"
+    echo "currTarget is: ${currentTarget}"
     String target = args.get('image_version') ?:
-        stage_info['target']
+        (stage_info['target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version']
+    echo "target is: ${target}"
     boolean quick_build = quickBuild()
 
     if (target.startsWith('centos') || target.startsWith('el')) {
