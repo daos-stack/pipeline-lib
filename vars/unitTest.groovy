@@ -138,7 +138,7 @@ Map call(Map config = [:]) {
         }
     }
 
-    String image_version = config.get('image_version') ?:
+    String image_version = config.get('image_version', '') ?:
         (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version']
 
     println("image_version = ${image_version}")
