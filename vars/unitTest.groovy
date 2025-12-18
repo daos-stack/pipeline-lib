@@ -149,7 +149,7 @@ Map call(Map config = [:]) {
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: inst_rpms)
     // image_version-compiler-build_type
-    String target_stash = config.get('image_version') ?:
+    String target_stash = config.get('image_version', '') ?:
         ${stage_info['target']}
     target_stash += '-' + stage_info['compiler']
     if (stage_info['build_type']) {
