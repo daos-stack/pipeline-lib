@@ -76,6 +76,7 @@ Void call(Map config= [:]) {
 
     def stageFlowNode = null
     for (s in stage['stageFlowNodes']) {
+        echo 's[name]: ' + s['name'] + ', flow_name: ' + flow_name
       if (s['name'] == flow_name) {
         stageFlowNode = s
         break
