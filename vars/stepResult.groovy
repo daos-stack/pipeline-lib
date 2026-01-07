@@ -82,8 +82,7 @@ Void call(Map config= [:]) {
       }
     }
     if (stageFlowNode) {
-      resp = h.doGetHttpRequest("${env.JENKINS_URL}" +
-             stageFlowNode['_links']['log']['href'])
+      resp = h.doGetHttpRequest("${env.JENKINS_URL}" + stageFlowNode['_links']['log']['href'])
       log = readJSON(text: resp)
       /* groovylint-disable-next-line Instanceof */
       assert log instanceof Map

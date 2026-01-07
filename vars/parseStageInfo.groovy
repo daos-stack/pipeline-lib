@@ -90,8 +90,7 @@ Map call(Map config = [:]) {
             new_ci_target = cachedCommitPragma('EL8-target', result['target'])
         } else if (stage_name.contains('EL 9')) {
             result['target'] = 'el9'
-            result['distro_version'] = cachedCommitPragma('EL9-version',
-                                                          distroVersion(result['target']))
+            result['distro_version'] = cachedCommitPragma('EL9-version', distroVersion(result['target']))
             new_ci_target = cachedCommitPragma('EL9-target', result['target'])
         } else if (stage_name.contains('Leap 15.3')) {
             result['target'] = 'leap15'
