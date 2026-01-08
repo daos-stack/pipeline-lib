@@ -161,7 +161,6 @@ Map call(Map config = [:]) {
     List stashes = []
     if (config['stashes']) {
         stashes = config['stashes']
-         println("stashes from config = ${stashes}")
     } else {
         if (config.get('unstash_tests', true)) {
             stashes.add("${target_stash}-tests")
