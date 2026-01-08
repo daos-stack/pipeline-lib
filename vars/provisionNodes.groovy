@@ -93,7 +93,7 @@ Map call(Map config = [:]) {
     }
 
     String distro_type
-    String distro = config.get('distro', 'el7')
+    String distro = config.get('distro', 'el9')
     if (distro.startsWith('centos') || distro.startsWith('el') ||
         distro.startsWith('rocky') || distro.startsWith('almalinux') ||
         distro.startsWith('rhel')) {
@@ -142,8 +142,10 @@ Map call(Map config = [:]) {
             provision_script += 'EL_7'
             break
     case 'el8':
-    case 'el9':
             provision_script += 'EL_8'
+            break
+    case 'el9':
+            provision_script += 'EL_9'
             break
     case 'suse':
             provision_script += 'LEAP_15'
