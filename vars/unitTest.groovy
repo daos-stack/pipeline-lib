@@ -144,7 +144,8 @@ Map call(Map config = [:]) {
     Map runData = provisionNodes(
                  NODELIST: nodelist,
                  node_count: stage_info['node_count'],
-                 distro: image_version,
+                 distro: (stage_info['ci_target'] =~
+                          /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: inst_rpms)
 
