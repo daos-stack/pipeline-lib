@@ -10,8 +10,6 @@
    * config['artifacts']           Artifacts to archive.
    *                               Default ['run_test.sh/*']
    *
-   * config['code_coverage']       Bullseye code coverage is enabled.
-   *
    * config['referenceJobName']    Reference job name.
    *                               Defaults to 'daos-stack/daos/master'
    *
@@ -31,18 +29,18 @@
 void call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
     String cbcResult = currentBuild.currentResult
-    Boolean code_coverage = config.get('code_coverage', false)
 
     // Support backwards compatibility with parseStageInfo when config keys are ommitted
     String target = config.get('target', stage_info['ci_target'])
     String compiler = config.get('compiler', stage_info['compiler'])
     String build_type = config.get('build_type', stage_info['build_type'])
-    String with_valgrind = config.get('with_valgrind', '')
+    String with_valgrind = config.get('with_valgrind', stage_info.get('with_valgrind', ''))
     String valgrind_pattern = config.get(
         'valgrind_pattern', stage_info.get('valgrind_pattern', 'unit-test-*memcheck.xml'))
     String testResults = config.get(
-        'test_results', stage_info.get('testResults', 'test_results/*.xml'))
+        'testResults', stage_info.get('testResults', 'test_results/*.xml'))
     Boolean NLT = config.get('NLT', stage_info.get('NLT', false))
+    Boolean check_valgrind_errors = (with_valgrind || NLT) && (compiler != 'covc')
 
     // Stash the Valgrind files for later analysis
     if (config['valgrind_stash']) {
@@ -77,7 +75,7 @@ void call(Map config = [:]) {
         junit testResults: testResults,
               healthScaleFactor: health_scale
     }
-    if (with_valgrind) {
+    if (check_valgrind_errors) {
         String suite = sanitizedStageName()
         int vgfail = 0
         String testdata
@@ -113,7 +111,7 @@ void call(Map config = [:]) {
         target_stash += "-${build_type}"
     }
     // Coverage instrumented tests and Valgrind are probably mutually exclusive
-    if (code_coverage) {
+    if (compiler == 'covc') {
         return
     }
 

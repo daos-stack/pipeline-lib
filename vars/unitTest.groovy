@@ -71,7 +71,6 @@
    *                             default is false.
    *
    * config['unstash_tests']     Un-stash -tests, default is true.
-   *
    */
 
 Map afterTest(Map config, Map testRunInfo) {
@@ -93,7 +92,7 @@ Map afterTest(Map config, Map testRunInfo) {
     } else {
         result['result'] = checkJunitFiles(testResults: testResults)
     }
-    if (config['with_valgrind']) {
+    if (config['check_valgrind_errors']) {
         vgrcs = sh label: 'Check for Valgrind errors',
                    script: "grep -E '<error( |>)' ${valgrind_pattern} || true",
                    returnStdout: true
@@ -137,7 +136,8 @@ Map call(Map config = [:]) {
     String distro_version = config.get('distro_version', stage_info['distro_version'])
     String compiler = config.get('compiler', stage_info['compiler'])
     String build_type = config.get('build_type', stage_info['build_type'])
-    String with_valgrind = config.get('with_valgrind', '')
+    String with_valgrind = config.get('with_valgrind', stage_info.get('with_valgrind', ''))
+    Boolean NLT = config.get('NLT', stage_info.get('NLT', false))
     String always_script = config.get(
         'always_script', stage_info.get('always_script', 'ci/unit/test_post_always.sh'))
     String valgrind_pattern = config.get(
@@ -148,9 +148,9 @@ Map call(Map config = [:]) {
     Map runData = provisionNodes(
         NODELIST: nodelist,
         node_count: node_count,
-                 distro: (target =~ /([a-z]+)(.*)/)[0][1] + distro_version,
-                 inst_repos: config.get('inst_repos', ''),
-                 inst_rpms: inst_rpms)
+        distro: (target =~ /([a-z]+)(.*)/)[0][1] + distro_version,
+        inst_repos: config.get('inst_repos', ''),
+        inst_rpms: inst_rpms)
 
     String target_stash = "${target}-${compiler}"
     if (build_type) {
@@ -196,14 +196,16 @@ Map call(Map config = [:]) {
     params['always_script'] = always_script
     params['valgrind_pattern'] = valgrind_pattern
     params['testResults'] = test_results
-    params['with_valgrind'] = with_valgrind
+    params['check_valgrind_errors'] = (with_valgrind || NLT) && (compiler != 'covc')
     runTestData = afterTest(params, runData)
     runTestData.each { resultKey, data -> runData[resultKey] = data }
 
-    // Stash the bullseye code coverage report if it was generated
-    stash name: config.get('coverage_stash', "${target_stash}-unit-cov"),
-            includes: '**/test.cov'
-            allowEmpty: true
+    if (compiler == 'covc') {
+        // Stash the bullseye code coverage report if it was generated
+        stash name: config.get('coverage_stash', "${target_stash}-unit-cov"),
+              includes: '**/test.cov'
+              allowEmpty: true
+    }
 
     int runTime = durationSeconds(startDate)
     runData['unittest_time'] = runTime
