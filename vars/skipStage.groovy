@@ -417,11 +417,15 @@ boolean call(Map config = [:]) {
         case 'Functional on EL 8 with Valgrind':
         case 'Functional on EL 8.8 with Valgrind':
             return skip_ftest_valgrind('el8', target_branch, tags)
+        case 'Functional on EL 9 with Valgrind':
+        case 'Functional on EL 9.7 with Valgrind':
+            return skip_ftest_valgrind('el7', target_branch, tags)
         case 'Functional on CentOS 8':
         case 'Functional on EL 8':
         case 'Functional on EL 8.8':
             return skip_ftest('el8', target_branch, tags)
         case 'Functional on EL 9':
+        case 'Functional on EL 9.7':
             return skip_ftest('el9', target_branch, tags)
         case 'Functional on Leap 15':
         case 'Functional on Leap 15.4':
@@ -436,6 +440,7 @@ boolean call(Map config = [:]) {
         case 'Fault injection testing on CentOS 8':
         case 'Fault injection testing on EL 8':
         case 'Fault injection testing on EL 8.8':
+        case 'Fault injection testing on EL 9.7':
             return skip_stage_pragma('fault-injection-test') ||
                    !paramsValue('CI_FI_el8_TEST', true) ||
                    quickFunctional() ||
@@ -516,6 +521,19 @@ boolean call(Map config = [:]) {
                    (quickFunctional() &&
                     !paramsValue('CI_RPMS_el8_8_TEST', true) &&
                     !run_default_skipped_stage('test-el-8.8-rpms')) ||
+                   (rpmTestVersion() != '') ||
+                   stageAlreadyPassed()
+        case 'Test RPMs on EL 9.7':
+            return !paramsValue('CI_RPMS_el9.7_TEST', true) ||
+                   target_branch =~ branchTypeRE('weekly') ||
+                   skip_stage_pragma('build-el9-rpm') ||
+                   skip_stage_pragma('test') ||
+                   skip_stage_pragma('test-rpms') ||
+                   skip_stage_pragma('test-el-9.7-rpms') ||
+                   docOnlyChange(target_branch) ||
+                   (quickFunctional() &&
+                    !paramsValue('CI_RPMS_el9_7_TEST', true) &&
+                    !run_default_skipped_stage('test-el-9.7-rpms')) ||
                    (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
         case 'Test Leap 15 RPMs':
