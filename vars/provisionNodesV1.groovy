@@ -13,7 +13,7 @@
  * @param config Map of parameters passed.
  *
  * config['arch']       Architecture to use.  Default 'x86_64'
- * config['distro']     Distribution to use.  Default 'el7'
+ * config['distro']     Distribution to use.  Default 'el9'
  * config['NODELIST']   Comma separated list of nodes available.
  * config['node_count'] Optional lower number of nodes to provision.
  * config['profile']    Profile to use.  Default 'daos_ci'.
@@ -76,7 +76,7 @@ def call(Map config = [:]) {
   }
 
   def distro_type = 'el'
-  def distro = config.get('distro', 'el7')
+  def distro = config.get('distro', 'el9')
   if (distro == 'centos7') {
     distro = 'el7'
   }  else if (distro.startsWith("sles") || distro.startsWith("leap") ||
@@ -200,7 +200,7 @@ EOF'''
                                branch=\\"\\\${branch%:*}\\"
                              fi
                            fi'''
-  if (distro.startsWith("el7")) {
+  if (distro.startsWith("el")) {
     if (config['power_only']) {
       // Since we don't have CORCI-711 yet, erase things we know could have
       // been put on the node previously

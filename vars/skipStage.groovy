@@ -227,7 +227,6 @@ boolean call(Map config = [:]) {
                     prRepos('ubuntu20') == '') ||
                    prReposContains('ubuntu20', jobName()) ||
                    skip_stage_pragma('build-ubuntu20-rpm')
-        case 'Build on CentOS 8':
         case 'Build on CentOS 7 Bullseye':
             return skip_build_bullseye(target_branch, 'centos7')
         case 'Build on CentOS 8 Bullseye':
@@ -542,13 +541,14 @@ boolean call(Map config = [:]) {
                     !run_default_skipped_stage('test-el-8.8-rpms')) ||
                    (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
-        case 'Test RPMs on EL 9.7':
+        case 'Test RPMs on EL 9':
+        case 'Test RPMs on EL 9.6':
             return !paramsValue('CI_RPMS_el9.7_TEST', true) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('build-el9-rpm') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
-                   skip_stage_pragma('test-el-9.7-rpms') ||
+                   skip_stage_pragma('test-el-9-rpms') ||
                    docOnlyChange(target_branch) ||
                    (quickFunctional() &&
                     !paramsValue('CI_RPMS_el9_7_TEST', true) &&
