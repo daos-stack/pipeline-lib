@@ -25,8 +25,7 @@ String call(String distro) {
             branch = releaseBranch()
         }
     }
-    println("[distroVersion] distro=${distro}, branch=${branch}")
-    
+
     return distroVersion(distro, branch.replaceFirst(/^.*[\/-](\d+\.\d+).*$/, '\$1'))
 }
 
