@@ -97,6 +97,10 @@ Map call(Map config = [:]) {
             result['target'] = 'leap15'
             result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.3')
             new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
+        } else if (stage_name.contains('SLES 15.7')) {
+            result['target'] = 'sles15'
+            result['distro_version'] = cachedCommitPragma('SLES15-version', '15.7')
+            new_ci_target = cachedCommitPragma('SLES15-target', result['target'])
         } else if (stage_name.contains('Leap 15.4')) {
             result['target'] = 'leap15'
             result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.4')
@@ -155,7 +159,8 @@ Map call(Map config = [:]) {
         result['java_pkg'] = 'java-1.8.0-openjdk'
     } else if (result['ci_target'].startsWith('ubuntu')) {
         result['java_pkg'] = 'openjdk-8-jdk'
-    } else if (result['ci_target'].startsWith('leap')) {
+    } else if (result['ci_target'].startsWith('leap') ||
+               result['ci_target'].startsWith('sles')) {
         result['java_pkg'] = 'java-1_8_0-openjdk'
     } else {
         error 'Java package not known for ' + result['ci_target']

@@ -427,6 +427,7 @@ boolean call(Map config = [:]) {
         case 'Functional on Leap 15.4':
         case 'Functional on Leap 15.5':
         case 'Functional on Leap 15.6':
+        case 'Functional on SLES 15.7':
             return skip_ftest('leap15', target_branch, tags)
         case 'Functional on Ubuntu 20.04':
             /* we don't do any testing on Ubuntu yet
@@ -529,6 +530,7 @@ boolean call(Map config = [:]) {
         case 'Test RPMs on Leap 15.4':
         case 'Test RPMs on Leap 15.5':
         case 'Test RPMs on Leap 15.6':
+        case 'Test RPMs on Leap 15.7':
             return !paramsValue('CI_RPMS_leap15_TEST', true) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('build-leap15-rpm') ||
