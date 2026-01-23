@@ -108,6 +108,13 @@ Map call(Map config = [:]) {
             result['distro_version'] = cachedCommitPragma('LEAP15-version',
                                                           distroVersion(result['target']))
             new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
+// RYON: Not sure if this is needed still with other changes now
+} else if (stage_name.contains('SLES 15.7')) {
+            result['target'] = 'sles15'
+            result['distro_version'] = cachedCommitPragma('SLES15-version', '15.7')
+            new_ci_target = cachedCommitPragma('SLES15-target', result['target'])
+
+// RYON: Not sure why it's duplicated ...  after rebase ...
         // Simplified SLES 15.x point release handling
         } else if (stage_name.contains('SLES 15.')) {
             int idx = stage_name.indexOf('SLES 15.')
