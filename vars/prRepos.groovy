@@ -27,6 +27,8 @@ String call(String distro=null) {
             repos = cachedCommitPragma('PR-repos-el8')
         } else if (_distro.startsWith('el9')) {
             repos = cachedCommitPragma('PR-repos-el9')
+        } else if (_distro.startsWith('sles15')) {
+            repos = cachedCommitPragma('PR-repos-sles15')
         } else if (_distro.startsWith('leap15')) {
             repos = cachedCommitPragma('PR-repos-leap15')
         } else if (_distro.startsWith('ubuntu20')) {
