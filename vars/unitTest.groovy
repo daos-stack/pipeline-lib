@@ -71,6 +71,8 @@
    *                             default is false.
    *
    * config['unstash_tests']     Un-stash -tests, default is true.
+   *
+   * config['image_version']     Image version to use for provisioning, e.g. el8.8, leap15.6, etc.
    */
 
 Map afterTest(Map config, Map testRunInfo) {
@@ -136,15 +138,19 @@ Map call(Map config = [:]) {
         }
     }
 
+    String image_version = config.get('image_version', '') ?:
+        (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version']
+
     Map runData = provisionNodes(
                  NODELIST: nodelist,
                  node_count: stage_info['node_count'],
-                 distro: (stage_info['ci_target'] =~
-                          /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
+                 distro: image_version,
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: inst_rpms)
 
-    String target_stash = "${stage_info['target']}-${stage_info['compiler']}"
+    String target_stash = image_version ?:
+        ${stage_info['target']}
+    target_stash += '-' + stage_info['compiler']
     if (stage_info['build_type']) {
         target_stash += '-' + stage_info['build_type']
     }
