@@ -22,11 +22,10 @@ String call(Map args = [:]) {
     Map stage_info = parseStageInfo()
     if (args.isEmpty()) {
         String target = stage_info['target']
-        println("target is ${target}")
+        println("empty. target is ${target}")
     } else {
-        String target = args.get('image_version') ?:
-            (stage_info['target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version']
-        println("target is ${target}")
+        String target = args.get('image_version')
+        println("args. target is ${target}")
     }
 
     boolean quick_build = quickBuild()
