@@ -154,7 +154,6 @@ Map call(Map config = [:]) {
     if (stage_info['build_type']) {
         target_stash += '-' + stage_info['build_type']
     }
-    println("target_stash = ${target_stash}")
 
     List stashes = []
     if (config['stashes']) {
