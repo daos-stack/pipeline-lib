@@ -18,12 +18,13 @@ String call(Map args = [:]) {
              'Hopefully the dependencies are installed some other way.'
         return
     }
+    String target = ''
 
     Map stage_info = parseStageInfo()
     if (args.isEmpty()) {
-        String target = stage_info['target']
+        target = stage_info['target']
     } else {
-        String target = args.get('image_version')
+        target = args.get('image_version')
     }
 
     boolean quick_build = quickBuild()
