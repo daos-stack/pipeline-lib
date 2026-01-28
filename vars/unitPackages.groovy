@@ -9,6 +9,8 @@
 
 /**
  * Method to return the list of Unit Testing packages
+ *
+ * args['image_version']
  */
 
 String call(Map args = [:]) {
@@ -22,9 +24,11 @@ String call(Map args = [:]) {
 
     Map stage_info = parseStageInfo()
     if (args.isEmpty()) {
+        // TODO: This case is kept only to support callers that have not yet been updated.
+        // It will be removed once it is no longer needed.
         target = stage_info['target']
     } else {
-        target = args.get('image_version')
+        target = args['image_version']
     }
 
     boolean quick_build = quickBuild()
