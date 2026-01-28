@@ -21,7 +21,7 @@ String call(Map args = [:]) {
 
     Map stage_info = parseStageInfo()
     if (args.isEmpty()) {
-        String target = stage_info['target']
+        String target = (stage_info['target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version']
         println("empty. target is ${target}")
     } else {
         String target = args.get('image_version')
