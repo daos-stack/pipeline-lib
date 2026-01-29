@@ -1,4 +1,4 @@
-/* groovylint-disable DuplicateStringLiteral */
+/* groovylint-disable DuplicateNumberLiteral, DuplicateStringLiteral */
 // vars/rpmlintMockResults.groovy
 
 /**
@@ -11,7 +11,7 @@
  * Method to run rpmlint on the result of mock build
  *
  * @param config Mock configuration name to check in
- * @param allow_errors Whether errors are allowd.  Defaults to false.
+ * @param allow_errors Whether errors are allowed.  Defaults to false.
  */
 /* groovylint-disable-next-line ParameterName */
 void call(String config, Boolean allow_errors=false, Boolean skip_rpmlint=false, String make_args='') {

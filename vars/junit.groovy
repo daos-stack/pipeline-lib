@@ -18,7 +18,7 @@ void call(Map config = [:]) {
             cachedCommitPragma('Skip-Test') == 'true') {
         config['allowEmptyResults'] = true
     }
-    // don't trucate stdio/stdout in JUnit results
+    // don't truncate stdio/stdout in JUnit results
     // this actually shouldn't be necessary as stdio/stderr is supposed to
     // be preserved for failed results, however:
     // https://github.com/jenkinsci/junit-plugin/issues/219

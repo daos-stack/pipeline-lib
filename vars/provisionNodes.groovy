@@ -2,7 +2,7 @@
 // vars/provisionNodes.groovy
 /*
  * Copyright 2020-2024 Intel Corporation
- * Copyright 2025 Hewlett Packard Enterprise Development LP
+ * Copyright 2025-2026 Hewlett Packard Enterprise Development LP
  */
 
 /**
@@ -17,7 +17,7 @@
  * @param config Map of parameters passed.
  *
  * config['arch']       Architecture to use.  Default 'x86_64'
- * config['distro']     Distribution to use.  Default 'el7'
+ * config['distro']     Distribution to use.  Default 'el9'
  * config['NODELIST']   Comma separated list of nodes available.
  * config['node_count'] Optional lower number of nodes to provision.
  * config['pool']       Optional pool from which to get image (i.e. test)
@@ -45,6 +45,8 @@
                      CI automation, and SUSE also has offered site licenses.
    Prefix "leap":    Specifically OpenSUSE leap operating system builds of
                      Suse Linux Enterprise Server.
+                     Note: Leap 15 development ended with 15.6.
+                     For 15.7+, use sles15.7 instead.
 */
 /* groovylint-disable-next-line MethodSize */
 Map call(Map config = [:]) {
@@ -93,7 +95,7 @@ Map call(Map config = [:]) {
     }
 
     String distro_type
-    String distro = config.get('distro', 'el7')
+    String distro = config.get('distro', 'el9')
     if (distro.startsWith('centos') || distro.startsWith('el') ||
         distro.startsWith('rocky') || distro.startsWith('almalinux') ||
         distro.startsWith('rhel')) {
@@ -125,7 +127,9 @@ Map call(Map config = [:]) {
 
     if (!fileExists('ci/provisioning/log_cleanup.sh') ||
         !fileExists('ci/provisioning/post_provision_config.sh')) {
-        return provisionNodesV1(config)
+        provisionNodesV1(config)
+        int runTime = durationSeconds(startDate)
+        return ['provision_time': runTime]
     }
 
     String cleanup_logs = 'NODESTRING=' + nodeString + ' ' +
@@ -145,6 +149,7 @@ Map call(Map config = [:]) {
             provision_script += 'EL_8'
             break
     case 'el9':
+    case 'el10':
             provision_script += 'EL_9'
             break
     case 'suse':

@@ -9,8 +9,7 @@ package com.intel
  * Simplified Scm checkout routine.
  */
 
-/* groovylint-disable-next-line NoDef, MethodReturnTypeRequired */
-def checkoutScmInternal(Map config = [:]) {
+Map checkoutScmInternal(Map config = [:]) {
   /**
    * Simplified SCM checkout method.
    *
@@ -39,8 +38,7 @@ def checkoutScmInternal(Map config = [:]) {
     // build ends up building a subsequent commit, not the one it should be.
     // Use $GIT_COMMIT to resolve this issue, as it should always point at
     // the specific commit, no the branch tip.
-    /* groovylint-disable-next-line NoDef, VariableTypeRequired */
-    def branches = env.GIT_COMMIT ? [[name: env.GIT_COMMIT ]] : scm.branches
+    List branches = env.GIT_COMMIT ? [[name: env.GIT_COMMIT ]] : scm.branches
 
     Map userRemoteConfig
     List userRemoteConfigs

@@ -4,7 +4,7 @@
  * coverityToolDownload.groovy
  *
  * This is a routine to download the Coverity tool kit.
- * 
+ *
  * As the Coverity tool kit requires authentication it is actually
  * downloaded by an optional additional system library.
  *
@@ -18,7 +18,7 @@
  * config['tool_path']      Directory to install tool in.
  */
 
-def call(Map config = [:]) {
+int call(Map config = [:]) {
     try {
         coverityToolDownloadSystem(config)
     } catch (java.lang.NoSuchMethodError e) {

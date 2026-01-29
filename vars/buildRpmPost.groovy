@@ -7,7 +7,7 @@
    * @param config Map of parameters passed
    *
    * config['condition']           Name of the post step to run.
-   *                               Rrequired to be one of
+   *                               Required to be one of
    *                               'success', 'unstable', 'failure',
    *                               'unsuccessful', or 'cleanup'.
    *
