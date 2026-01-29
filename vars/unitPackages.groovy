@@ -9,9 +9,11 @@
 
 /**
  * Method to return the list of Unit Testing packages
+ *
+ * config['target']
  */
 
-String call() {
+String call(Map config = [:]) {
     String script = 'ci/unit/required_packages.sh'
     if (!fileExists(script)) {
         echo "${script} doesn't exist.  " +
@@ -19,8 +21,9 @@ String call() {
         return
     }
 
-    Map stage_info = parseStageInfo()
+    Map stage_info = parseStageInfo(config)
     String target = stage_info['target']
+
     boolean quick_build = quickBuild()
 
     if (target.startsWith('centos') || target.startsWith('el')) {
