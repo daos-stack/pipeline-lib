@@ -9,7 +9,7 @@
 
 Map call(String commit_message) {
     if (!commit_message) {
-        error("Valid commit message required")
+        error('Valid commit message required')
     }
 
     Map pragmas = [:]

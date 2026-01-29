@@ -2,9 +2,6 @@
 
   /**
    * getPriority step method
-   *
-   * @param None
-   *
    */
 
 String call() {
@@ -17,6 +14,6 @@ String call() {
         }
     }
 
-    println("Setting build priority to: " + p)
+    println('Setting build priority to: ' + p)
     return p
 }

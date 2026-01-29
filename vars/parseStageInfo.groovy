@@ -1,5 +1,11 @@
-/* groovylint-disable DuplicateStringLiteral, NestedBlockDepth, ParameterName, VariableName */
+// groovylint-disable DuplicateNumberLiteral, DuplicateStringLiteral
+// groovylint-disable NestedBlockDepth, ParameterName, UnnecessaryGetter
+// groovylint-disable VariableName
 // vars/parseStageInfo.groovy
+/*
+ * Copyright 2020-2024 Intel Corporation
+ * Copyright 2025-2026 Hewlett Packard Enterprise Development LP
+ */
 
 /**
  * Method to get a MAP of values based on environment variables that
@@ -10,8 +16,8 @@
  * result['compiler']      Known compilers are 'gcc', 'icc', clang, and 'covc'.
  *                         Default is 'gcc'
  *
- * result['target']        Known targets are 'centos7','centos8','el8', 'leap15',
- *                         'ubuntu18.04', 'ubuntu20.04'.  Default is 'centos7'
+ * result['target']        Known targets are 'el#','sles15', 'leap15',
+ *                         'ubuntu20.04', 'ubuntu24'.  Default is 'el9'
  *
  * result['target_prefix'] Target prefix to use for the build if present.
  *                         Default is not present unless the word
@@ -57,90 +63,83 @@ Map call(Map config = [:]) {
         result['target'] = config['target']
     } else if (env.TARGET) {
         result['target'] = env.TARGET
-        result['distro_version'] = '7'
+        result['distro_version'] = '9'
     } else {
         if (env.STAGE_NAME.contains('Hardware')) {
             res = hwDistroTarget2()
             result['target'] = res[0] + res[1]
             result['distro_version'] = res[1]
-        } else if (stage_name.contains('CentOS 8.3.2011')) {
-            result['target'] = 'centos8.3'
-            result['distro_version'] = cachedCommitPragma('EL8.3-version', '8.3')
-            new_ci_target = cachedCommitPragma('EL8.3-target', result['target'])
-        } else if (stage_name.contains('CentOS 8')) {
-            result['target'] = 'centos8'
-            result['distro_version'] = cachedCommitPragma('EL8-version', '8')
-            new_ci_target = cachedCommitPragma('EL8-target', result['target'])
-        } else if (stage_name.contains('EL 8.4')) {
-            result['target'] = 'el8.4'
-            result['distro_version'] = cachedCommitPragma('EL8.4-version', '8.4')
-            new_ci_target = cachedCommitPragma('EL8.4-target', result['target'])
-        } else if (stage_name.contains('EL 8.6')) {
-            result['target'] = 'el8.6'
-            result['distro_version'] = cachedCommitPragma('EL8.6-version', '8.6')
-            new_ci_target = cachedCommitPragma('EL8.6-target', result['target'])
-        } else if (stage_name.contains('EL 8.8')) {
-            result['target'] = 'el8.8'
-            result['distro_version'] = cachedCommitPragma('EL8.8-version', '8.8')
-            new_ci_target = cachedCommitPragma('EL8.8-target', result['target'])
-        } else if (stage_name.contains('EL 8')) {
-            result['target'] = 'el8'
-            result['distro_version'] = cachedCommitPragma('EL8-version',
-                                                          distroVersion(result['target']))
-            new_ci_target = cachedCommitPragma('EL8-target', result['target'])
-        } else if (stage_name.contains('EL 9.7')) {
-            result['target'] = 'el9.7'
-            result['distro_version'] = cachedCommitPragma('EL9.7-version', '9.7')
-            new_ci_target = cachedCommitPragma('EL9.7-target', result['target'])
-        } else if (stage_name.contains('EL 9')) {
-            result['target'] = 'el9'
-            result['distro_version'] = cachedCommitPragma('EL9-version',
-                                                          distroVersion(result['target']))
-            new_ci_target = cachedCommitPragma('EL9-target', result['target'])
-        } else if (stage_name.contains('Leap 15.3')) {
+        // Unified EL version handling for all major/minor releases
+        } else if (stage_name.contains(' EL ')) {
+            int elIdx = stage_name.indexOf('EL ')
+            String elPart = stage_name.substring(elIdx + 3).split()[0]
+            String[] parts = elPart.split('\\.')
+            String majorVersion = parts[0]
+            String minorVersion = parts.length > 1 ? parts[1] : null
+
+            if (minorVersion) {
+                // Point release (e.g., EL 8.6, EL 9.4, EL 10.2)
+                String version = "${majorVersion}.${minorVersion}"
+                result['target'] = "el${version}"
+                result['distro_version'] = cachedCommitPragma("EL${majorVersion}.${minorVersion}-version", version)
+                new_ci_target = cachedCommitPragma("EL${majorVersion}.${minorVersion}-target", result['target'])
+            } else {
+                // Major version only (e.g., EL 8, EL 9, EL 10)
+                result['target'] = "el${majorVersion}"
+                result['distro_version'] = cachedCommitPragma("EL${majorVersion}-version",
+                                                              distroVersion(result['target']))
+                new_ci_target = cachedCommitPragma("EL${majorVersion}-target", result['target'])
+            }
+        // Simplified Leap 15.x point release handling
+        } else if (stage_name.contains('Leap 15.')) {
+            int idx = stage_name.indexOf('Leap 15.')
+            String leapPart = stage_name.substring(idx + 8).split()[0]
+            String pointRelease = leapPart.split('\\.')[0]
+            String version = "15.${pointRelease}"
             result['target'] = 'leap15'
-            result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.3')
-            new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
-        } else if (stage_name.contains('Leap 15.4')) {
-            result['target'] = 'leap15'
-            result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.4')
-            new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
-        } else if (stage_name.contains('Leap 15.5')) {
-            result['target'] = 'leap15'
-            result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.5')
-            new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
-        } else if (stage_name.contains('Leap 15.6')) {
-            result['target'] = 'leap15'
-            // Until a mock opensuse-leap-15.6-x86-64.cfg is available provision with 15.5
-            result['distro_version'] = cachedCommitPragma('LEAP15-version', '15.5')
+            // Special handling for 15.6: provision with 15.5 until mock config is available
+            // Leap 15.7+ doesn't exist, use sles15.7 instead
+            String defaultVersion = (pointRelease == '6') ? '15.5' :
+                                    (pointRelease.toInteger() >= 7) ? '15.6' : version
+            result['distro_version'] = cachedCommitPragma('LEAP15-version', defaultVersion)
             new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
         } else if (stage_name.contains('Leap 15')) {
             result['target'] = 'leap15'
             result['distro_version'] = cachedCommitPragma('LEAP15-version',
                                                           distroVersion(result['target']))
             new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
-        } else if (stage_name.contains('Ubuntu 18')) {
-            result['target'] = 'ubuntu18.04'
-            result['distro_version'] = cachedCommitPragma('UBUNTU18-version', '18.04')
-            new_ci_target = cachedCommitPragma('UBUNTU18-target', result['target'])
+        // Simplified SLES 15.x point release handling
+        } else if (stage_name.contains('SLES 15.')) {
+            int idx = stage_name.indexOf('SLES 15.')
+            String slesPart = stage_name.substring(idx + 8).split()[0]
+            String pointRelease = slesPart.split('\\.')[0]
+            String version = "15.${pointRelease}"
+            result['target'] = 'sles15'
+            result['distro_version'] = cachedCommitPragma('SLES15-version', version)
+            new_ci_target = cachedCommitPragma('SLES15-target', result['target'])
+        } else if (stage_name.contains('SLES 15')) {
+            result['target'] = 'sles15'
+            result['distro_version'] = cachedCommitPragma('SLES15-version',
+                                                          distroVersion(result['target']))
+            new_ci_target = cachedCommitPragma('SLES15-target', result['target'])
         } else if (stage_name.contains('Ubuntu 20.04')) {
             result['target'] = 'ubuntu20.04'
             result['distro_version'] = cachedCommitPragma('UBUNTU20-version', '20.04')
             new_ci_target = cachedCommitPragma('UBUNTU20-target', result['target'])
-        } else if (stage_name.contains('Ubuntu 20')) {
+        } else if (stage_name.contains('Ubuntu 24')) {
             // TODO: below needs to change to ubuntu20 at some point in the future when
             //       all other pipelines are ready for it
-            result['target'] = 'ubuntu20.04'
-            result['distro_version'] = cachedCommitPragma('UBUNTU20-version',
+            result['target'] = 'ubuntu24.04'
+            result['distro_version'] = cachedCommitPragma('UBUNTU24-version',
                                                           distroVersion(result['target']))
-            new_ci_target = cachedCommitPragma('UBUNTU20-target', result['target'])
+            new_ci_target = cachedCommitPragma('UBUNTU24-target', result['target'])
         } else {
-            // also for: if (stage_name.contains('CentOS 7')) {
-            echo "Could not determine target in ${stage_name}, defaulting to EL8"
-            result['target'] = 'el8'
-            result['distro_version'] = cachedCommitPragma('EL8-version',
+            // Fallback if we can't figure things out.
+            echo "Could not determine target in ${stage_name}, defaulting to EL9"
+            result['target'] = 'el9'
+            result['distro_version'] = cachedCommitPragma('EL9-version',
                                                           distroVersion(result['target']))
-            new_ci_target = cachedCommitPragma('EL8-target', result['target'])
+            new_ci_target = cachedCommitPragma('EL9-target', result['target'])
         }
     }
     new_ci_target = paramsValue(
@@ -159,7 +158,8 @@ Map call(Map config = [:]) {
         result['java_pkg'] = 'java-1.8.0-openjdk'
     } else if (result['ci_target'].startsWith('ubuntu')) {
         result['java_pkg'] = 'openjdk-8-jdk'
-    } else if (result['ci_target'].startsWith('leap')) {
+    } else if (result['ci_target'].startsWith('leap') ||
+               result['ci_target'].startsWith('sles')) {
         result['java_pkg'] = 'java-1_8_0-openjdk'
     } else {
         error 'Java package not known for ' + result['ci_target']
@@ -212,7 +212,6 @@ Map call(Map config = [:]) {
     result['node_count'] = 1
 
     String ftest_arg_nvme = ''
-    String ftest_arg_repeat = ''
     String ftest_arg_provider = ''
     if (stage_name.contains('Functional')) {
         result['test'] = 'Functional'
@@ -266,10 +265,9 @@ Map call(Map config = [:]) {
         // Get the ftest arguments
         kwargs['default_nvme'] = ftest_arg_nvme
         kwargs['provider'] = ftest_arg_provider
-        functional_args = getFunctionalArgs(kwargs)
+        Map functional_args = getFunctionalArgs(kwargs)
         result['ftest_arg'] = functional_args.get('ftest_arg', '')
         result['stage_rpms'] = functional_args.get('stage_rpms', '')
-
     } else if (stage_name.contains('Storage')) {
         if (env.NODELIST) {
             List node_list = env.NODELIST.split(',')
