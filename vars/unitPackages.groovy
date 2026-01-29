@@ -10,26 +10,19 @@
 /**
  * Method to return the list of Unit Testing packages
  *
- * args['image_version']
+ * config['target']
  */
 
-String call(Map args = [:]) {
+String call(Map config = [:]) {
     String script = 'ci/unit/required_packages.sh'
     if (!fileExists(script)) {
         echo "${script} doesn't exist.  " +
              'Hopefully the dependencies are installed some other way.'
         return
     }
-    String target = ''
 
-    Map stage_info = parseStageInfo()
-    if (args.isEmpty()) {
-        // TODO: This case is kept only to support callers that have not yet been updated.
-        // It will be removed once it is no longer needed.
-        target = stage_info['target']
-    } else {
-        target = args['image_version']
-    }
+    Map stage_info = parseStageInfo(config)
+    String target = stage_info['target']
 
     boolean quick_build = quickBuild()
 
