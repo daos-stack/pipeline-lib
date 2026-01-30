@@ -307,7 +307,7 @@ Map call(Map config = [:]) {
         error "sconsBuild failed for ${full_script}"
     }
     if (config['stash_files']) {
-        String target_stash = stage_info['target'] + '-' +
+        String target_stash = (stage_info['target']).split('\\.')[0] + '-' +
                               stage_info['compiler']
         if (stage_info['build_type']) {
             target_stash += '-' + stage_info['build_type']
