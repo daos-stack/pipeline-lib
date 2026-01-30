@@ -148,10 +148,14 @@ Map call(Map config = [:]) {
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: inst_rpms)
 
-    String image_ver = image_version.split("\\.")[0]
     /* el9-gcc-tests */
-    String target_stash = image_ver ?:
-        ${stage_info['target']}
+    String target
+    if (config.get('image_version')) {
+        target = config['image_version'].split("\\.")[0]
+    } else {
+        target = stage_info['target']
+    }
+    String target_stash = target
     target_stash += '-' + stage_info['compiler']
     if (stage_info['build_type']) {
         target_stash += '-' + stage_info['build_type']
