@@ -149,13 +149,8 @@ Map call(Map config = [:]) {
                  inst_rpms: inst_rpms)
 
     /* el9-gcc-tests */
-    String target
-    if (config.get('image_version')) {
-        target = config['image_version'].split("\\.")[0]
-    } else {
-        target = stage_info['target']
-    }
-    String target_stash = target
+    String target_stash = (image_version ?: ${stage_info['target']}).split('\\.')[0]
+
     target_stash += '-' + stage_info['compiler']
     if (stage_info['build_type']) {
         target_stash += '-' + stage_info['build_type']
