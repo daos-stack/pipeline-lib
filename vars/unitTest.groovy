@@ -170,7 +170,6 @@ Map call(Map config = [:]) {
             stashes.add("${target_stash}-install")
         }
     }
-    println("Stashes list ${stashes}")
 
     if (stage_info['compiler'] == 'covc') {
         String tools_url = env.JENKINS_URL +

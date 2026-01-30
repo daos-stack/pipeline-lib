@@ -46,7 +46,6 @@ void call(Map config = [:]) {
     String flow_name = config.get('flow_name', env.STAGE_NAME)
     // Need to unstash the script result from runTest
     String results_map = 'results_map_' + sanitizedStageName()
-    println("We are trying to unstash ${results_map}")
     Map results = [:]
     try {
         unstash name: results_map
