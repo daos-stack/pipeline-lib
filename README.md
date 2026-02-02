@@ -2,10 +2,10 @@
 
 Shared library for daos-stack Jenkins Pipelines
 
-This is a shared library used with the Jenkinsfiles for the various
+This is a shared library used with the Jenkinsfile in the various
 projects in daos-stack.
 
-Jenkinsfiles are limited in how large they can be and Declarative pipelines
+A Jenkinsfile is limited in how large they can be and Declarative pipelines
 are also limited in what they can do.
 
 This pipeline-lib is meant to run in a Jenkins Groovy Sandbox and is
@@ -14,7 +14,7 @@ intended to be specific to the daos-stack project.
 Operations that are not allowed in a Jenkins Groovy Sandbox should be put
 in a global pipeline library that is local to the Jenkins operation.
 
-These include things like canceling Jenkins jobs for superceeded commits in
+These include things like canceling Jenkins jobs for superseded commits in
 pull requests.
 
 ## Required Trusted Global Library Support
@@ -86,9 +86,9 @@ Jenkins is building.
 
 A common encoding of the distribution type and version.
 
-The default is "centos7"
+The default is "el8"
 
-Currently supported is "centos7", "centos8", "leap15"
+Currently supported is "el8", "el9", and "leap15"
 Future support may be for "sles15", "ubuntu20", and potentially names
 with "rc" and point release suffixes.  The "rc" would be for future release
 candidate, and the point release would be to test for an older point release
@@ -139,20 +139,20 @@ Optional Additional RPMs that should be installed.
 
 #### publishToRepositorySystem
 
-This is a method for for saving aritfacts to a local repository such as
+This is a method for for saving artifacts to a local repository such as
 Nexus-oss edition.
 
 As we improve our CI system, this may change a bit.
 
 Your routine can map these values as needed for your repository layout.
 
-Some of the member names below come from recomendations for Artifactory
+Some of the member names below come from recommendations for Artifactory
 use.
 
 The current implementation takes a Map variable containing the following
 members.
 
-##### arch
+##### publishToRepository parameter arch
 
 The architecture to use.  Default is 'x86_64', currently the only one that
 Jenkins is building.

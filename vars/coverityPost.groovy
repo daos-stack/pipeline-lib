@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral, VariableName */
 // vars/coverityPost.groovy
 
   /**
@@ -7,8 +8,8 @@
    *
    * config['arch']                CPU architecture.  Default is blank.
    *
-   * config['condition']           Name of the post step to run. 
-   *                               Rrequired to be one of
+   * config['condition']           Name of the post step to run.
+   *                               Required to be one of
    *                               'success', or 'unsuccessful'.
    *
    * config['success_script']      Script to run on successful build.
@@ -21,40 +22,38 @@
    *                               default: 'coverity/*.tgz'
    */
 
-def call(Map config = [:]) {
+void call(Map config = [:]) {
+    String arch = 'arch='
+    if (config['arch']) {
+        arch += config['arch']
+    }
 
-  def arch = 'arch='
-  if (config['arch']) {
-    arch += config['arch']
-  }
+    if (config['condition'] == 'success') {
+        String success_script = config.get('success_script',
+                                           'ci/coverity_success.sh')
+        sh label: 'Coverity success',
+           script: arch + ' ' + success_script
 
-  if (config['condition'] == 'success') {
+        // Coverity actually being built is controlled by the Jenkins
+        // configuration, so there may not be artifacts.
+        String coverity_tarball = config.get('coverity_tarball',
+                                             'coverity/*.tgz')
+        archiveArtifacts artifacts: coverity_tarball,
+                         allowEmptyArchive: true
+        return
+    }
 
-    def success_script = config.get('success_script',
-                                    'ci/coverity_success.sh')
-    sh label: 'Coverity success',
-       script: arch + ' ' + success_script
+    if (config['condition'] == 'unsuccessful') {
+        String unsuccessful_script = config.get('unsuccessful_script',
+                                               'ci/coverity_unsuccessful.sh')
 
-    // Coverity actually being built is controlled by the Jenkins
-    // configuration, so there may not be artifacts.
-    def coverity_tarball = config.get('coverity_tarball',
-                                      'coverity/*.tgz')
-    archiveArtifacts artifacts: coverity_tarball,
-                     allowEmptyArchive: true
-    return
-  }
+        sh label: 'Coverity Unsuccessful',
+           script: arch + unsuccessful_script
 
-  if (config['condition'] == 'unsuccessful') {
-    def unsuccessful_script = config.get('unsuccessful_script',
-                                         'ci/coverity_unsuccessful.sh')
+        archiveArtifacts artifacts: 'coverity/*log*',
+                         allowEmptyArchive: true
+        return
+    }
 
-    sh label: 'Coverity Unsuccessful',
-       script: arch + unsuccessful_script
-
-    archiveArtifacts artifacts: 'coverity/*log*',
-                    allowEmptyArchive: true
-    return
-  }
-
-  error 'Invalid value for condition parameter'
+    error 'Invalid value for condition parameter'
 }

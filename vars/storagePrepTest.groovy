@@ -22,7 +22,7 @@
    * config['description']       Description to report for SCM status.
    *                             Default env.STAGE_NAME.
    *
-   * config['failure_artifacts'] Failure aritfifacts to return.
+   * config['failure_artifacts'] Failure artifacts to return.
    *                             Default env.STAGE_NAME.
    *
    * config['ignore_failure']    Ignore test failures.  Default false.
@@ -37,10 +37,10 @@
    *
    * config['node_count']        Count of nodes that will actually be used
    *                             the test.  Default will be based on the
-   *                             enviroment variables for the stage.
+   *                             environment variables for the stage.
    *
    * config['stashes']           List of stashes to use.  Default will be
-   *                             baed on the environment variables for the
+   *                             based on the environment variables for the
    *                             stage.
    *
    * config['target']            Target distribution, such as 'centos7',

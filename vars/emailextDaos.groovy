@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral */
 // vars/emailextDaos.groovy
 
 /**
@@ -9,13 +10,13 @@
  * config['onPR']       Send e-mail when called from a PR.  Default false
  */
 
-def call(Map config = [:]) {
+void call(Map config = [:]) {
     if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
-        println "Jenkins not configured to notify users of failed builds."
+        println 'Jenkins not configured to notify users of failed builds.'
         return
     }
 
-    def onPR = false
+    boolean onPR = false
     if (config['onPR'] && config['onPR'] == true) {
         onPR = true
     }

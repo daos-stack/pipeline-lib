@@ -1,4 +1,4 @@
-// vars/daosStackNotifiyStatus.groovy
+// vars/daosStackNotifyStatus.groovy
 
 /**
  * run.groovy
@@ -9,6 +9,6 @@
  * that nothing is calling it.
  */
 
-def call(Map config = [:]) {
-  scmNotify(config)
+void call(Map config = [:]) {
+    scmNotify(config)
 }

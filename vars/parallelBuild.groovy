@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral */
 // vars/parallelBuild.groovy
 
 /**
@@ -14,10 +15,5 @@ boolean call() {
     // defaults to false
     // true if Quick-build: true unless Parallel-build: false
     String pb = cachedCommitPragma('Parallel-build').toLowerCase()
-    if (pb == "true" ||
-        (quickBuild() && pb != "false")) {
-        return true
-    }
-
-    return false
+    return (pb == 'true' || (quickBuild() && pb != 'true'))
 }

@@ -1,16 +1,18 @@
 /* groovylint-disable VariableName */
 // vars/unitPackages.groovy
-
-/**
- * unitPackages.groovy
- *
- * unitPackages variable
+/*
+ * Copyright 2020-2024 Intel Corporation
+ * Copyright 2025-2026 Hewlett Packard Enterprise Development LP
  */
 
 /**
- * Method to return the list of Unit Testing packages
+ * unitPackages step method to return the list of Unit Testing packages
  *
- * config['target']
+ * @param config Map of parameters passed
+ *
+ * config['target']            Target distribution, such as 'el8',
+ *                             'el9', 'leap15'.  Default based on parsing
+ *                             environment variables for the stage.
  */
 
 String call(Map config = [:]) {
