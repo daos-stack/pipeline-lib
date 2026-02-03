@@ -23,6 +23,8 @@ Map call(Map kwargs = [:]) {
     // Include any additional rpms required for the provider
     if (launchProvider.contains('ucx')) {
         result['stage_rpms'] = 'mercury-ucx'
+    } else {
+        result['stage_rpms'] = 'mercury-libfabric'
     }
 
     result['ftest_arg'] = [launchNvme, launchProvider, launchRepeat].join(' ').trim()
