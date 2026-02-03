@@ -148,7 +148,9 @@ Map call(Map config = [:]) {
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: inst_rpms)
 
-    String target_stash = image_version ?: stage_info['target']
+    /* el9-gcc-tests */
+    String target_stash = (image_version ?: ${stage_info['target']}).split('\\.')[0]
+
     target_stash += '-' + stage_info['compiler']
     if (stage_info['build_type']) {
         target_stash += '-' + stage_info['build_type']
