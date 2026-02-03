@@ -43,97 +43,6 @@
    Prefix "leap":    Specifically OpenSUSE leap operating system builds of
                      Suse Linux Enterprise Server.
 */
-<<<<<<< HEAD
-def call(Map config = [:]) {
-
-  def nodeString = config['NODELIST']
-  def node_list = config['NODELIST'].split(',')
-  def node_max_cnt = node_list.size()
-  def node_cnt = node_max_cnt
-  Map new_config = config
-  if (config['node_count']) {
-    // Matrix builds pass requested node count as a string
-    def rq_count = config['node_count'] as int
-    new_config['node_count'] = rq_count
-    if (rq_count < node_cnt) {
-      // take is blacklisted by Jenkins.
-      //new_list = node_list.take(config['clients'])
-      def new_list = []
-      int ii
-      for (ii = 0; ii < rq_count; ii++) {
-        new_list.add(node_list[ii])
-      }
-      nodeString = new_list.join(',')
-      node_cnt = rq_count
-    } else if (rq_count > node_cnt) {
-      echo "${rq_count} clients requested."
-      error "Only ${node_cnt} clients available!"
-    }
-  }
-
-  if (env.NO_CI_PROVISIONING != null) {
-      println "Jenkins not configured for CI provisioning."
-      return node_cnt
-  }
-
-  def distro_type = 'el'
-  def distro = config.get('distro', 'el9')
-  if (distro == 'centos7') {
-    distro = 'el7'
-  }  else if (distro.startsWith("sles") || distro.startsWith("leap") ||
-      distro.startsWith("opensuse")) {
-      // sles and opensuse leap can use each others binaries.
-      // Currently we are only building opensuse leap binaries.
-      distro_type = 'suse'
-  }
-
-  def inst_rpms = config.get('inst_rpms', '')
-  def inst_repos = config.get('inst_repos','')
-
-  def repository_g = ''
-  def repository_l = ''
-
-  def gpg_key_urls = []
-  if (env.DAOS_STACK_REPO_SUPPORT != null) {
-     gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT + 'RPM-GPG-KEY-CentOS-7')
-     gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT +
-                      'RPM-GPG-KEY-CentOS-Debug-7')
-     gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT +
-                      'RPM-GPG-KEY-CentOS-Testing-7')
-     gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT +
-                      'RPM-GPG-KEY-EPEL-7')
-     if (env.DAOS_STACK_REPO_PUB_KEY) {
-       gpg_key_urls.add(env.DAOS_STACK_REPO_SUPPORT +
-                        env.DAOS_STACK_REPO_PUB_KEY)
-     }
-  }
-  if (env.REPOSITORY_URL != null) {
-    if (distro.startsWith("el7")) {
-        if (env.DAOS_STACK_EL_7_GROUP_REPO != null) {
-            repository_g = env.REPOSITORY_URL + env.DAOS_STACK_EL_7_GROUP_REPO
-        }
-        if (env.DAOS_STACK_EL_7_LOCAL_REPO != null) {
-            repository_l = env.REPOSITORY_URL + env.DAOS_STACK_EL_7_LOCAL_REPO
-        }
-    } else if (distro.startsWith("sles15")) {
-        if (env.DAOS_STACK_SLES_15_GROUP_REPO != null) {
-            repository_g = env.REPOSITORY_URL +
-                env.DAOS_STACK_SLES_15_GROUP_REPO
-        }
-        if (env.DAOS_STACK_SLES_15_LOCAL_REPO != null) {
-            repository_l = env.REPOSITORY_URL +
-                env.DAOS_STACK_SLES_15_LOCAL_REPO
-        }
-    }  else if (distro.startsWith("leap15") ||
-                distro.startsWith("opensuse15")) {
-        // if (env.DAOS_STACK_LEAP_15_GROUP_REPO != null) {
-        //    repository_g = env.REPOSITORY_URL +
-        //        env.DAOS_STACK_LEAP_15_GROUP_REPO
-        //}
-        if (env.DAOS_STACK_LEAP_15_LOCAL_REPO != null) {
-            repository_l = env.REPOSITORY_URL +
-                env.DAOS_STACK_LEAP_15_LOCAL_REPO
-=======
 /* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
     String nodeString = config['NODELIST']
@@ -158,7 +67,6 @@ void call(Map config = [:]) {
         } else if (rq_count > node_cnt) {
             echo "${rq_count} clients requested."
             error "Only ${node_cnt} clients available!"
->>>>>>> origin/master
         }
     }
 
@@ -281,24 +189,6 @@ EOF'''
                          chmod 600 /localhome/jenkins/.ssh/{authorized_keys,id_rsa*,config}
                          chown -R jenkins.jenkins /localhome/jenkins/
                          echo \\"jenkins ALL=(ALL) NOPASSWD: ALL\\" > /etc/sudoers.d/jenkins'''
-<<<<<<< HEAD
-  def iterate_repos = '''for repo in ''' + inst_repos + '''; do
-                           branch=\\"master\\"
-                           build_number=\\"lastSuccessfulBuild\\"
-                           if [[ \\\$repo = *@* ]]; then
-                             branch=\\"\\\${repo#*@}\\"
-                             repo=\\"\\\${repo%@*}\\"
-                             if [[ \\\$branch = *:* ]]; then
-                               build_number=\\"\\\${branch#*:}\\"
-                               branch=\\"\\\${branch%:*}\\"
-                             fi
-                           fi'''
-  if (distro.startsWith("el")) {
-    if (config['power_only']) {
-      // Since we don't have CORCI-711 yet, erase things we know could have
-      // been put on the node previously
-      provision_script += '''\nrm -f /etc/yum.repos.d/*.daos.hpc.amslabs.hpecorp.net_job_daos-stack_job_*_job_*.repo
-=======
     /* groovylint-disable-next-line GStringExpressionWithinString */
     String iterate_repos = '''for repo in ''' + inst_repos + '''; do
                               branch=\\"master\\"
@@ -316,7 +206,6 @@ EOF'''
             // Since we don't have CORCI-711 yet, erase things we know could have
             // been put on the node previously
             provision_script += '''\nrm -f /etc/yum.repos.d/*.daos.hpc.amslabs.hpecorp.net_job_daos-stack_job_*_job_*.repo
->>>>>>> origin/master
                             yum -y erase fio fuse ior-hpc mpich-autoload''' +
                             ' ompi argobots cart daos daos-client dpdk ' +
                             ' fuse-libs libisa-l libpmemobj mercury mpich' +
