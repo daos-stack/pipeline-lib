@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral, VariableName */
 // vars/scanRpms.groovy
 
   /**
@@ -23,7 +24,7 @@
    * config['description']       Description to report for SCM status.
    *                             Default env.STAGE_NAME.
    *
-   * config['failure_artifacts'] Failure aritfifacts to return.
+   * config['failure_artifacts'] Failure artifacts to return.
    *                             Default env.STAGE_NAME.
    *
    * config['ignore_failure']    Ignore test failures.  Default false.
@@ -42,44 +43,42 @@
    *                             'el8', 'leap15'.  Default based on parsing
    *                             environment variables for the stage.
    *
-   * config['test_script']       Script to build RPMs. 
+   * config['test_script']       Script to build RPMs.
    *                             Default 'ci/rpm_scan_daos_test.sh'.
-   *
    */
 
 Map call(Map config = [:]) {
+    if (!config['daos_pkg_version']) {
+        error 'daos_pkg_version is required.'
+    }
 
-  if (!config['daos_pkg_version']) {
-    error 'daos_pkg_version is required.'
-  }
+    String nodelist = config.get('NODELIST', env.NODELIST)
+    String context = config.get('context', 'test/' + env.STAGE_NAME)
+    String description = config.get('description', env.STAGE_NAME)
+    String test_script = config.get('test_script', fileExists('ci/rpm/scan_daos.sh') ?
+                                                  'ci/rpm/scan_daos.sh' :
+                                                  'ci/rpm_scan_daos_test.sh')
+    String inst_rpms = config.get('inst_rpms', 'clamav clamav-devel')
 
-  String nodelist = config.get('NODELIST', env.NODELIST)
-  String context = config.get('context', 'test/' + env.STAGE_NAME)
-  String description = config.get('description', env.STAGE_NAME)
-  String test_script = config.get('test_script', fileExists('ci/rpm/scan_daos.sh') ?
-                                                   'ci/rpm/scan_daos.sh' :
-                                                   'ci/rpm_scan_daos_test.sh')
-  String inst_rpms = config.get('inst_rpms', 'clamav clamav-devel')
+    Map stage_info = parseStageInfo(config)
 
-  Map stage_info = parseStageInfo(config)
+    provisionNodes NODELIST: nodelist,
+                   node_count: 1,
+                   distro: (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
+                   inst_repos: config.get('inst_repos', ''),
+                   inst_rpms: inst_rpms
 
-  provisionNodes NODELIST: nodelist,
-                 node_count: 1,
-                 distro: (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
-                 inst_repos: config.get('inst_repos', ''),
-                 inst_rpmms: inst_rpms
+    String full_test_script = 'export DAOS_PKG_VERSION=' +
+                               config['daos_pkg_version'] + '\n' +
+                               test_script
 
-  String full_test_script = 'export DAOS_PKG_VERSION=' +
-                         config['daos_pkg_version'] + '\n' +
-                         test_script
-
-  String junit_files = config.get('junit_files', 'maldetect.xml')
-  String failure_artifacts = config.get('failure_artifacts', env.STAGE_NAME)
-  boolean ignore_failure = config.get('ignore_failure', false)
-  return runTest(script: full_test_script,
-                 junit_files: junit_files,
-                 failure_artifacts: env.STAGE_NAME,
-                 ignore_failure: ignore_failure,
-                 description: description,
-                 context: context)
+    String junit_files = config.get('junit_files', 'maldetect.xml')
+    // String failure_artifacts = config.get('failure_artifacts', env.STAGE_NAME)
+    boolean ignore_failure = config.get('ignore_failure', false)
+    return runTest(script: full_test_script,
+                   junit_files: junit_files,
+                   failure_artifacts: env.STAGE_NAME,
+                   ignore_failure: ignore_failure,
+                   description: description,
+                   context: context)
 }

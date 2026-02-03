@@ -1,17 +1,21 @@
 /* groovylint-disable VariableName */
 // vars/unitPackages.groovy
+/*
+ * Copyright 2020-2024 Intel Corporation
+ * Copyright 2025-2026 Hewlett Packard Enterprise Development LP
+ */
 
 /**
- * unitPackages.groovy
+ * unitPackages step method to return the list of Unit Testing packages
  *
- * unitPackages variable
+ * @param config Map of parameters passed
+ *
+ * config['target']            Target distribution, such as 'el8',
+ *                             'el9', 'leap15'.  Default based on parsing
+ *                             environment variables for the stage.
  */
 
-/**
- * Method to return the list of Unit Testing packages
- */
-
-String call() {
+String call(Map config = [:]) {
     String script = 'ci/unit/required_packages.sh'
     if (!fileExists(script)) {
         echo "${script} doesn't exist.  " +
@@ -19,8 +23,9 @@ String call() {
         return
     }
 
-    Map stage_info = parseStageInfo()
+    Map stage_info = parseStageInfo(config)
     String target = stage_info['target']
+
     boolean quick_build = quickBuild()
 
     if (target.startsWith('centos') || target.startsWith('el')) {

@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral, ParameterName */
 // vars/docOnlyChange.groovy
 
 /**
@@ -23,6 +24,7 @@ boolean call(String target_branch) {
                  ' TARGET_BRANCH=' + target_branch +
                  ' ci/doc_only_change.sh'
     } else {
+        /* groovylint-disable-next-line GStringExpressionWithinString */
         script = 'TARGET_BRANCH=' + target_branch + '''
                   set -uex
                   if ! git fetch origin ${TARGET_BRANCH}; then
@@ -36,7 +38,7 @@ boolean call(String target_branch) {
                   git diff --no-commit-id --name-only origin/${TARGET_BRANCH} HEAD |
                      grep -v -e "^docs/" -e "\\.md$" -e "^.*LICENSE.*$"'''
     }
-    return sh(label: "Determine if doc-only change",
+    return sh(label: 'Determine if doc-only change',
               script: script,
               returnStatus: true) == 1
 }

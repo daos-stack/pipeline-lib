@@ -6,11 +6,9 @@ import com.intel.checkoutScmInternal
  * checkoutScm.groovy
  *
  * checkoutScm pipeline step
- *
  */
 
-
-def call(Map config = [:]) {
+Map call(Map config = [:]) {
   /**
    * Simplified SCM checkout method.
    *
@@ -27,6 +25,8 @@ def call(Map config = [:]) {
    * config['withSubmodules'] Optional checkout submodules if true.
    * config['credentialsId'] Optional credentials ID.
    */
-  def c = new com.intel.checkoutScmInternal()
-  return c.checkoutScmInternal(config)
+    // Jenkins requires us to use 'def' here.
+    /* groovylint-disable-next-line NoDef, VariableTypeRequired */
+    def c = new checkoutScmInternal()
+    return c.checkoutScmInternal(config)
 }

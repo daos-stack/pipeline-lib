@@ -1,3 +1,4 @@
+/* groovylint-disable VariableName */
 // vars/getFunctionalTestStage.groovy
 
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
