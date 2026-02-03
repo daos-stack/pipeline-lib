@@ -6,9 +6,9 @@
  * Do nothing.
  *
  * Mainly to have a step in an otherwise empty stage.
- *
  */
 
-def call(Map config = [:]) {
+/* groovylint-disable-next-line UnusedMethodParameter */
+void call(Map config = [:]) {
     return
 }
