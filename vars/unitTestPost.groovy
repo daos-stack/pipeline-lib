@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateNumberLiteral */
 // vars/unitTestPost.groovy
 
   /**
@@ -24,6 +25,7 @@
    */
 
 // groovylint-disable DuplicateStringLiteral, VariableName
+/* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
     String cbcResult = currentBuild.currentResult
@@ -32,15 +34,25 @@ void call(Map config = [:]) {
     String valgrind_pattern = stage_info.get('valgrind_pattern',
                                              'unit-test-*memcheck.xml')
     if (config['valgrind_stash']) {
-        stash name: config['valgrind_stash'], includes: valgrind_pattern
+        try {
+            stash name: config['valgrind_stash'], includes: valgrind_pattern
+        } catch (hudson.AbortException e) {
+            println('Failed to stash Valgrind files with pattern ' +
+                    "${valgrind_pattern}: ${e.message}")
+        }
     }
     String context = config.get('context', 'test/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
     String flow_name = config.get('flow_name', env.STAGE_NAME)
     // Need to unstash the script result from runTest
     String results_map = 'results_map_' + sanitizedStageName()
-    unstash name: results_map
-    Map results = readYaml file: results_map
+    Map results = [:]
+    try {
+        unstash name: results_map
+        results = readYaml file: results_map
+    } catch (hudson.AbortException e) {
+        println("Failed to unstash ${results_map}: ${e.message}")
+    }
 
     List artifact_list = config.get('artifacts', ['run_test.sh/*'])
 
@@ -89,7 +101,7 @@ void call(Map config = [:]) {
     if (stage_info['build_type']) {
         target_stash += '-' + stage_info['build_type']
     }
-    // Coverage instrumented tests and Vagrind are probably mutually exclusive
+    // Coverage instrumented tests and Valgrind are probably mutually exclusive
     if (stage_info['compiler'] == 'covc') {
         return
     }

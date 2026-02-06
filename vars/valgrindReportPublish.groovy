@@ -4,13 +4,13 @@
   /**
    * Valgrind Report Publish step method
    *
-   * Consolidiate Valgrind data for publising.
+   * Consolidate Valgrind data for publishing.
    *
    * @param config Map of parameters passed
    *
    * config['ignore_failure']      Ignore test failures.  Default false.
    *
-   * config['valgrind_pattern']    Pattern for Valgind files.
+   * config['valgrind_pattern']    Pattern for Valgrind files.
    *                               Default: '*.memcheck.xml'
    *
    * config['valgrind_stashes']    list of stashes for valgrind results.
@@ -22,7 +22,7 @@ void call(Map config = [:]) {
         stashes = config['valgrind_stashes']
   } else {
         // Older code publishes the valgrind in the same stage as ran the
-        // vagrind test.
+        // valgrind test.
         // That does not work if you have multiple valgrind stages running.
         // Need to have only one Valgrind publish stage
         println 'No valgrind_stashes passed!   Running older code!'
@@ -34,10 +34,9 @@ void call(Map config = [:]) {
     stashes.each { stash ->
         try {
             unstash stash
-            println("Success unstashing ${stash}.")
+            println("Success un-stashing ${stash}.")
             stash_cnt++
-    /* groovylint-disable-next-line CatchException */
-    } catch (Exception ex) {
+    } catch (hudson.AbortException ex) {
             println("Ignoring failure to unstash ${stash}.  Perhaps the stage was skipped?")
         }
     }
@@ -56,22 +55,19 @@ void call(Map config = [:]) {
         return
     }
 
-    /* groovylint-disable-next-line NoDef, VariableTypeRequired */
-    def cb_result = currentBuild.result
-    publishValgrind failBuildOnInvalidReports: true,
-                  failBuildOnMissingReports: !ignore_failure,
-                  failThresholdDefinitelyLost: '0',
-                  failThresholdInvalidReadWrite: '0',
-                  failThresholdTotal: '0',
-                  pattern: valgrind_pattern,
-                  publishResultsForAbortedBuilds: false,
-                  publishResultsForFailedBuilds: true,
-                  sourceSubstitutionPaths: '',
-                  unstableThresholdDefinitelyLost: '0',
-                  unstableThresholdInvalidReadWrite: '0',
-                  unstableThresholdTotal: '0'
+    String cb_result = currentBuild.result
+    recordIssues enabledForFailure: true,
+                 failOnError: !ignore_failure,
+                 ignoreQualityGate: false,
+                 qualityGates: [
+                   [threshold: 1, type: 'TOTAL_ERROR'],
+                   [threshold: 1, type: 'TOTAL_HIGH']],
+                 name: 'Valgrind Memory Check',
+                 tool: valgrind(pattern: valgrind_pattern,
+                               name: 'Valgrind Results',
+                               id: 'valgrind')
 
     if (cb_result != currentBuild.result) {
-        println "The publishValgrind step changed result to ${currentBuild.result}."
+        println "The recordIssues step changed result to ${currentBuild.result}."
     }
 }

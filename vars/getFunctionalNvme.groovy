@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral, UnnecessaryGetter, VariableName */
 // vars/getFunctionalNvme.groovy
 
 /**

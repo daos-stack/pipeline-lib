@@ -26,7 +26,7 @@
    * config['description']       Description to report for SCM status.
    *                             Default env.STAGE_NAME.
    *
-   * config['failure_artifacts'] Failure aritfifacts to return.
+   * config['failure_artifacts'] Failure artifacts to return.
    *                             Default env.STAGE_NAME.
    *
    * config['ignore_failure']    Ignore test failures.  Default false.
@@ -41,10 +41,10 @@
    *
    * config['node_count']        Count of nodes that will actually be used
    *                             the test.  Default will be based on the
-   *                             enviroment variables for the stage.
+   *                             environment variables for the stage.
    *
    * config['stashes']           List of stashes to use.  Default will be
-   *                             baed on the environment variables for the
+   *                             based on the environment variables for the
    *                             stage.
    *
    * config['target']            Target distribution, such as 'centos7',
@@ -62,7 +62,7 @@
    */
 
 Map call(Map config = [:]) {
-    Date startDate = new Date()
+    long startDate = System.currentTimeMillis()
     String nodelist = config.get('NODELIST', env.NODELIST)
     String context = config.get('context', 'test/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
@@ -113,40 +113,6 @@ Map call(Map config = [:]) {
     run_test_config['ftest_arg'] = config.get('ftest_arg', stage_info['ftest_arg'])
     run_test_config['context'] = context
     run_test_config['description'] = description
-
-    String script = 'if ! pip3 install'
-    script += ''' --upgrade --upgrade-strategy only-if-needed launchable; then
-                    set +e
-                    echo "Failed to install launchable"
-                    id
-                    pip3 list --user || true
-                    find ~/.local/lib -type d
-                    hostname
-                    pip3 --version
-                    pip3 index versions launchable
-                    pip3 install --user launchable==
-                    exit 1
-                fi
-                pip3 list --user || true
-                '''
-    sh label: 'Install Launchable',
-       script: script
-
-    try {
-        withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
-            sh label: 'Send build data',
-            /* groovylint-disable-next-line GStringExpressionWithinString */
-            script: '''export PATH=$PATH:$HOME/.local/bin
-                    launchable record build --name ${BUILD_TAG//%2F/-} --source src=.
-                    launchable subset --time 60m --build ${BUILD_TAG//%2F/-} ''' +
-                    '--get-tests-from-previous-sessions --rest=rest.txt raw > subset.txt'
-        }
-    /* groovylint-disable-next-line CatchException */
-    } catch (Exception error) {
-        println(
-            "Ignoring failure to record " + env.STAGE_NAME + " tests with launchable: " +
-            error.getMessage())
-    }
 
     Map runtestData = [:]
     if (config.get('test_function', 'runTestFunctional') ==

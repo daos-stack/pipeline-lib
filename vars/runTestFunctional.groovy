@@ -4,7 +4,6 @@
  * runTestFunctional.groovy
  *
  * runTestFunctional pipeline step
- *
  */
 
 Map call(Map config = [:]) {
