@@ -541,18 +541,15 @@ boolean call(Map config = [:]) {
                     !run_default_skipped_stage('test-el-8.8-rpms')) ||
                    (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
-        case 'Test RPMs on EL 9':
-        case 'Test RPMs on EL 9.6':
-            return !paramsValue('CI_RPMS_el9.7_TEST', true) ||
+        case 'Test RPMs on EL':
+            return !paramsValue('CI_TEST_EL_RPMs', true) ||
+                   (paramsValue('CI_RPM_TEST_VERSION', '') != '') ||
                    target_branch =~ branchTypeRE('weekly') ||
-                   skip_stage_pragma('build-el9-rpm') ||
+                   skip_stage_pragma('build-el9-gcc') ||
                    skip_stage_pragma('test') ||
-                   skip_stage_pragma('test-rpms') ||
-                   skip_stage_pragma('test-el-9-rpms') ||
                    docOnlyChange(target_branch) ||
                    (quickFunctional() &&
-                    !paramsValue('CI_RPMS_el9_7_TEST', true) &&
-                    !run_default_skipped_stage('test-el-9.7-rpms')) ||
+                    !paramsValue('CI_TEST_EL_RPMs', true)) ||
                    (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
         case 'Test Leap 15 RPMs':
