@@ -21,6 +21,9 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      distro          functional test stage distro (VM)
  *      image_version   image version to use for provisioning, e.g. el8.8, leap15.6, etc.
  *      base_branch     if specified, checkout sources from this branch before running tests
+ *      other_packages  space-separated string of additional RPM packages to install
+ *      inst_rpms       space-separated string of RPM packages to install on the test nodes;
+ *                          exclusive of next_version and other_packages.
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
  *      job_status      Map of status for each stage in the job/build
@@ -30,7 +33,7 @@ Map call(Map kwargs = [:]) {
     String name = kwargs.get('name', 'Unknown Functional Test Stage')
     String pragma_suffix = kwargs.get('pragma_suffix')
     String label = kwargs.get('label')
-    String next_version = kwargs.get('next_version', null)
+    String next_version = kwargs.get('next_version', null)      // Not used if inst_rpms specified
     String stage_tags = kwargs.get('stage_tags')
     String default_tags = kwargs.get('default_tags')
     String nvme = kwargs.get('nvme')
@@ -39,8 +42,9 @@ Map call(Map kwargs = [:]) {
     String distro = kwargs.get('distro')
     String image_version = kwargs.get('image_version', null)
     String base_branch = kwargs.get('base_branch')
-    String other_daos_packages = kwargs.get('other_daos_packages', 'tests-internal')
-    String other_packages = kwargs.get('other_packages', '')
+    String other_packages = kwargs.get('other_packages', '')    // Not used if inst_rpms specified
+    String instRpms = kwargs.get(
+        'inst_rpms', functionalPackages(1, next_version, 'tests-internal') + ' ' + other_packages)
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
     Map job_status = kwargs.get('job_status', [:])
@@ -84,7 +88,7 @@ Map call(Map kwargs = [:]) {
                             functionalTest(
                                 image_version: image_version,
                                 inst_repos: daosRepos(distro),
-                                inst_rpms: functionalPackages(1, next_version, other_daos_packages) + ' ' + other_packages,
+                                inst_rpms: instRpms,
                                 test_tag: tags,
                                 ftest_arg: getFunctionalArgs(
                                     pragma_suffix: pragma_suffix,
