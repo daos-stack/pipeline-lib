@@ -190,3 +190,14 @@ upload to validate.
 
 The publishToRepositorySystem step should download the artifacts back to
 this directory and fail the step if the contents differ.
+
+## UNIT TESTS
+
+### Requirements:
+ - gradle
+
+### How to run test:
+From the main directory, run:
+
+```bash
+gradle test
