@@ -67,8 +67,6 @@ Map call(Map config = [:]) {
     String https_proxy = ''
     if (env.DAOS_HTTPS_PROXY) {
         https_proxy = "${env.DAOS_HTTPS_PROXY}"
-    } else if (env.HTTPS_PROXY) {
-        https_proxy = "${env.HTTPS_PROXY}"
     }
     if (https_proxy) {
         env_vars += ' HTTPS_PROXY=' + https_proxy
