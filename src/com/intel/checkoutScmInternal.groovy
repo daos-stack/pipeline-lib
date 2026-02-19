@@ -58,7 +58,7 @@ Map checkoutScmInternal(Map config = [:]) {
     Map params = [$class: scm_name,
                   branches: branches,
                   extensions: [[$class: 'CloneOption', noTags: true,
-                                reference: '', shallow: false]],
+                                reference: '', shallow: false, depth: 100]],
                   submoduleCfg: [],
                   userRemoteConfigs: userRemoteConfigs]
     if (config['pruneStaleBranch']) {
