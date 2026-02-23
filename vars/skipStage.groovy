@@ -344,13 +344,11 @@ boolean call(Map config = [:]) {
                     prRepos('leap15') == '') ||
                    quickBuild()
         case 'Unit Tests':
-            return  env.NO_CI_TESTING == 'true' ||
-                    paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
-                    skip_stage_pragma('build') ||
-                    rpmTestVersion() != '' ||
-                    docOnlyChange(target_branch) ||
-                    skip_build_on_el_gcc(target_branch, '8') ||
-                    skip_stage_pragma('unit-tests')
+            return env.NO_CI_TESTING == 'true' ||
+                   paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
+                   rpmTestVersion() != '' ||
+                   docOnlyChange(target_branch) ||
+                   skip_stage_pragma('unit-tests')
         case 'NLT':
         case 'NLT on CentOS 8':
         case 'NLT on EL 8':
@@ -359,12 +357,14 @@ boolean call(Map config = [:]) {
         case 'NLT on EL 9.7':
             return skip_stage_pragma('nlt') ||
                    quickBuild() ||
+                   skip_build_on_el_gcc(target_branch, '8') ||
                    stageAlreadyPassed()
         case 'Unit Test Bullseye':
         case 'Unit Test Bullseye on CentOS 8':
         case 'Unit Test Bullseye on EL 8':
         case 'Unit Test Bullseye on EL 8.8':
             return skip_stage_pragma('bullseye', 'true') ||
+                   skip_build_on_el_gcc(target_branch, '8') ||
                    stageAlreadyPassed()
         case 'Unit Test bdev with memcheck on EL 8':
         case 'Unit Test bdev with memcheck on EL 8.8':
@@ -378,6 +378,7 @@ boolean call(Map config = [:]) {
         case 'Unit Test with memcheck':
             return !paramsValue('CI_UNIT_TEST_MEMCHECK', true) ||
                    skip_stage_pragma('unit-test-memcheck') ||
+                   skip_build_on_el_gcc(target_branch, '8') ||
                    stageAlreadyPassed()
         case 'Unit Test':
         case 'Unit Test on CentOS 8':
@@ -389,6 +390,13 @@ boolean call(Map config = [:]) {
         case 'Unit Test on EL 9.7':
         case 'Unit Test bdev on EL 9':
         case 'Unit Test bdev on EL 9.7':
+            return !paramsValue('CI_UNIT_TEST', true) ||
+                   skip_stage_pragma('unit-test') ||
+                   skip_stage_pragma('run_test') ||
+                   skip_build_on_el_gcc(target_branch, '8') ||
+                   stageAlreadyPassed()
+        case 'Unit Test on Leap 15':
+        case 'Unit Test on Leap 15.5':
             return !paramsValue('CI_UNIT_TEST', true) ||
                    skip_stage_pragma('unit-test') ||
                    skip_stage_pragma('run_test') ||
