@@ -23,6 +23,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      base_branch     if specified, checkout sources from this branch before running tests
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
+ *      stashes         list of stashes to apply before running the stage
  *      job_status      Map of status for each stage in the job/build
  * @return a scripted stage to run in a pipeline
  */
@@ -42,6 +43,7 @@ Map call(Map kwargs = [:]) {
     String other_packages = kwargs.get('other_packages', '')
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
+    List stashes = kwargs.get('stashes', [])
     Map job_status = kwargs.get('job_status', [:])
 
     return {
@@ -90,7 +92,10 @@ Map call(Map kwargs = [:]) {
                                     nvme: nvme,
                                     default_nvme: default_nvme,
                                     provider: provider)['ftest_arg'],
-                                test_function: 'runTestFunctionalV2'))
+                                test_function: 'runTestFunctionalV2',
+                                stashes: stashes
+                            )
+                        )
                     } finally {
                         println("[${name}] Running functionalTestPostV2()")
                         functionalTestPostV2()
