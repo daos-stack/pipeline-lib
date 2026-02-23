@@ -26,19 +26,16 @@ Skip-PR-comments: true
 My-pragma1:   val1
 My-pragma2:  val2 val2
 
-Required-githooks: true
-
 Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
     String commit_message = commit_title + '\n\n' + commit_desc + '\n\n' + commit_pragmas
 
     Map expected_map = [
         'skip-build': 'true', 'skip-pr-comments': 'true',
         'my-pragma1': 'val1', 'my-pragma2': 'val2 val2',
-        'required-githooks': 'true',
         'signed-off-by': 'Brian J. Murrell <brian.murrell@intel.com>']
     String expected_str = '{skip-build=true, skip-pr-comments=true, ' +
                           'my-pragma1=val1, my-pragma2=val2 val2, ' +
-                          'required-githooks=true, signed-off-by=Brian J. Murrell <brian.murrell@intel.com>}'
+                          'signed-off-by=Brian J. Murrell <brian.murrell@intel.com>}'
 
     println('Test pragmasToMap')
 
