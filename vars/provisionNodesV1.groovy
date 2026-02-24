@@ -13,7 +13,7 @@
  * @param config Map of parameters passed.
  *
  * config['arch']       Architecture to use.  Default 'x86_64'
- * config['distro']     Distribution to use.  Default 'el7'
+ * config['distro']     Distribution to use.  Default 'el9'
  * config['NODELIST']   Comma separated list of nodes available.
  * config['node_count'] Optional lower number of nodes to provision.
  * config['profile']    Profile to use.  Default 'daos_ci'.

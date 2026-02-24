@@ -25,7 +25,9 @@ String call(String distro=null) {
                    _distro.startsWith('rocky8') || _distro.startsWith('almalinux8') ||
                    _distro.startsWith('rhel8')) {
             repos = cachedCommitPragma('PR-repos-el8')
-        } else if (_distro.startsWith('el9')) {
+        } else if (_distro.startsWith('el9') || 
+                   _distro.startsWith('rocky9') || _distro.startsWith('almalinux9') ||
+                   _distro.startsWith('rhel9')) {
             repos = cachedCommitPragma('PR-repos-el9')
         } else if (_distro.startsWith('leap15')) {
             repos = cachedCommitPragma('PR-repos-leap15')

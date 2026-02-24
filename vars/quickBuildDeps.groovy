@@ -29,6 +29,11 @@ def call(String distro, always=false) {
                distro.startsWith('rhel8')) {
         rpmspec_args = "--undefine suse_version " +
                        "--define rhel\\ 8"
+    } else if (distro.startsWith('el9') ||
+               distro.startsWith('rocky9') || distro.startsWith('almalinux9') ||
+               distro.startsWith('rhel9')) {
+        rpmspec_args = "--undefine suse_version " +
+                       "--define rhel\\ 9"
     } else {
         error("Unknown distro: ${distro} in quickBuildDeps()")
     }
