@@ -43,8 +43,7 @@ Map call(Map kwargs = [:]) {
     String base_branch = kwargs.get('base_branch')
     String instRpms = kwargs.get(
         'inst_rpms',
-        getFunctionalPackages(
-            kwargs.get('next_version', null), null, kwargs.get('other_packages', null)))
+        getFunctionalPackages(kwargs.get('next_version', null), kwargs.get('other_packages', null)))
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
     Map job_status = kwargs.get('job_status', [:])

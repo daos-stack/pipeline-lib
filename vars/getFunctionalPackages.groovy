@@ -13,14 +13,14 @@
  * @return a scripted stage to run in a pipeline
  */
 
-String call(String nextVersion, String daosPackages) {
+String call(String nextVersion, String otherPackages) {
     String distro = parseStageInfo()['target']
-    return getFunctionalPackages(distro, nextVersion, daosPackages, null, null)
+    return getFunctionalPackages(distro, nextVersion, null, otherPackages, null)
 }
 
-String call(String nextVersion, String daosPackages, String otherPackages) {
+String call(String nextVersion, String otherPackages, String versionExt) {
     String distro = parseStageInfo()['target']
-    return getFunctionalPackages(distro, nextVersion, daosPackages, otherPackages, null)
+    return getFunctionalPackages(distro, nextVersion, null, otherPackages, versionExt)
 }
 
 String call(String distro, String nextVersion, String daosPackages, String otherPackages,
