@@ -33,7 +33,6 @@ Map call(Map kwargs = [:]) {
     String name = kwargs.get('name', 'Unknown Functional Test Stage')
     String pragma_suffix = kwargs.get('pragma_suffix')
     String label = kwargs.get('label')
-    String next_version = kwargs.get('next_version', null)      // Not used if inst_rpms specified
     String stage_tags = kwargs.get('stage_tags')
     String default_tags = kwargs.get('default_tags')
     String nvme = kwargs.get('nvme')
@@ -42,9 +41,12 @@ Map call(Map kwargs = [:]) {
     String distro = kwargs.get('distro')
     String image_version = kwargs.get('image_version', null)
     String base_branch = kwargs.get('base_branch')
-    String other_packages = kwargs.get('other_packages', '')    // Not used if inst_rpms specified
     String instRpms = kwargs.get(
-        'inst_rpms', functionalPackages(1, next_version, 'tests-internal') + ' ' + other_packages)
+        'inst_rpms',
+        getFunctionalPackages(
+            kwargs.get('next_version', null),
+            'daos{,-{client,tests,server,serialize,tests-internal}',
+            kwargs.get('other_packages', null)))
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
     Map job_status = kwargs.get('job_status', [:])
