@@ -44,9 +44,7 @@ Map call(Map kwargs = [:]) {
     String instRpms = kwargs.get(
         'inst_rpms',
         getFunctionalPackages(
-            kwargs.get('next_version', null),
-            'daos{,-{client,tests,server,serialize,tests-internal}}',
-            kwargs.get('other_packages', null)))
+            kwargs.get('next_version', null), null, kwargs.get('other_packages', null)))
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
     Map job_status = kwargs.get('job_status', [:])

@@ -26,7 +26,13 @@ String call(String nextVersion, String daosPackages, String otherPackages) {
 String call(String distro, String nextVersion, String daosPackages, String otherPackages,
            String versionExt) {
     String version = daosPackagesVersion(distro, nextVersion)
-    String packages = daosPackages
+    String packages = ''
+
+    if (daosPackages) {
+        packages += daosPackages
+    } else {
+        packages += 'daos{,-{client,tests,server,serialize,tests-internal}}'
+    }
 
     // Add the build-specific version to the daos packages
     if (version) {
