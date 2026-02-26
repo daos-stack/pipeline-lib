@@ -15,12 +15,12 @@
 
 String call(String nextVersion, String daosPackages) {
     String distro = parseStageInfo()['target']
-    return getFunctionalPackages(distro, nextVersion, daosPackages, null, null)
+    return getFunctionalPackages(distro, nextVersion, daosPackages, '', '')
 }
 
 String call(String nextVersion, String daosPackages, String otherPackages) {
     String distro = parseStageInfo()['target']
-    return getFunctionalPackages(distro, nextVersion, daosPackages, otherPackages, null)
+    return getFunctionalPackages(distro, nextVersion, daosPackages, otherPackages, '')
 }
 
 String cal(String distro, String nextVersion, String daosPackages, String otherPackages,
