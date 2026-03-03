@@ -71,7 +71,7 @@ boolean skip_ftest(String distro, String target_branch, String tags) {
            (docOnlyChange(target_branch) &&
             prRepos(distro) == '') ||
            /* groovylint-disable-next-line UnnecessaryGetter */
-           (isPr() && !(distro in ['el8']))
+           (isPr() && !(distro in ['el8','el9']))
 }
 
 boolean skip_ftest_valgrind(String distro, String target_branch, String tags) {
