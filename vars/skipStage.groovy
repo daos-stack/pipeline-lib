@@ -69,9 +69,7 @@ boolean skip_ftest(String distro, String target_branch, String tags) {
            skip_stage_pragma('func-test-vm-all') ||
            skip_stage_pragma('func-test-' + distro) ||
            (docOnlyChange(target_branch) &&
-            prRepos(distro) == '') ||
-           /* groovylint-disable-next-line UnnecessaryGetter */
-           (isPr() && !(distro in ['el8']))
+            prRepos(distro) == '')
 }
 
 boolean skip_ftest_valgrind(String distro, String target_branch, String tags) {
