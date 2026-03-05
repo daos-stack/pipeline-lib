@@ -7,25 +7,31 @@
  *
  * @param distro            functional test stage distro
  * @param nextVersion       next daos package version
- * @param addDaosPackages   additional daos-* version packages to install
- * @param versionExt        optional daos RPM version extension
+ * @param daosPackages      daos packages to install (with a version)
  * @param otherPackages     space-separated string of additional non-daos packages to install
+ * @param bullseye          option to include the '.bullseye' extension to the daos package version
  * @return a scripted stage to run in a pipeline
  */
 
 String call(String nextVersion, String otherPackages) {
     String distro = parseStageInfo()['target']
-    return getFunctionalPackages(distro, nextVersion, null, otherPackages, null)
+    return getFunctionalPackages(distro, nextVersion, null, otherPackages, false)
 }
 
-String call(String nextVersion, String otherPackages, String versionExt) {
+String call(String nextVersion, String otherPackages, Boolean bullseye=false) {
     String distro = parseStageInfo()['target']
-    return getFunctionalPackages(distro, nextVersion, null, otherPackages, versionExt)
+    return getFunctionalPackages(distro, nextVersion, null, otherPackages, bullseye)
+}
+
+String call(String nextVersion, Boolean ucx=false, Boolean bullseye=false) {
+    String distro = parseStageInfo()['target']
+    String otherPackages = getAdditionalPackages(ucx, bullseye)
+    return getFunctionalPackages(distro, nextVersion, null, otherPackages, bullseye)
 }
 
 String call(String distro, String nextVersion, String daosPackages, String otherPackages,
-           String versionExt) {
-    String version = daosPackagesVersion(distro, nextVersion)
+            Boolean bullseye=false) {
+    String version = daosPackagesVersion(distro, nextVersion, bullseye)
     String packages = ''
 
     if (daosPackages) {
@@ -41,8 +47,8 @@ String call(String distro, String nextVersion, String daosPackages, String other
         } else {
             packages += "-${version}"
         }
-        if (versionExt) {
-            packages += versionExt
+        if (bullseye) {
+            packages += '.bullseye'
         }
     }
 
