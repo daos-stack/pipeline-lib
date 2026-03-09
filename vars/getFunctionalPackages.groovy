@@ -13,11 +13,6 @@
  * @return a scripted stage to run in a pipeline
  */
 
-String call(String nextVersion, String otherPackages) {
-    String distro = parseStageInfo()['target']
-    return getFunctionalPackages(distro, nextVersion, null, otherPackages, false)
-}
-
 String call(String nextVersion, String otherPackages, Boolean bullseye=false) {
     String distro = parseStageInfo()['target']
     return getFunctionalPackages(distro, nextVersion, null, otherPackages, bullseye)

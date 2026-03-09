@@ -27,6 +27,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
  *      job_status      Map of status for each stage in the job/build
+ *      coverage_stash  name of stash to include code coverage results from the tests
  * @return a scripted stage to run in a pipeline
  */
 Map call(Map kwargs = [:]) {
@@ -47,6 +48,7 @@ Map call(Map kwargs = [:]) {
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
     Map job_status = kwargs.get('job_status', [:])
+    String coverage_stash = kwargs.get('coverage_stash', '')
 
     return {
         stage("${name}") {
@@ -94,7 +96,8 @@ Map call(Map kwargs = [:]) {
                                     nvme: nvme,
                                     default_nvme: default_nvme,
                                     provider: provider)['ftest_arg'],
-                                test_function: 'runTestFunctionalV2'))
+                                test_function: 'runTestFunctionalV2',
+                                coverage_stash: coverage_stash))
                     } finally {
                         println("[${name}] Running functionalTestPostV2()")
                         functionalTestPostV2()

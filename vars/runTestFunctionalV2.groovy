@@ -89,15 +89,20 @@ Map call(Map config = [:]) {
     config['ignore_failure'] = ignore_failure
 
     // Stash code coverage file if it exists
-    if (fileExists("${basedir}bullseye_coverage_logs/test.cov")) {
-        String name = 'func' + stage_info['pragma_suffix'] + '-cov'
-        println("[${env.STAGE_NAME}] Stashing ${basedir}bullseye_coverage_logs/test.cov in ${name}")
-        dir("${basedir}bullseye_coverage_logs") {
-            stash name: config.get('coverage_stash', name),
-                includes: 'test.cov'
+    String coverage_stash = config.get('coverage_stash', '')
+    if (coverage_stash) {
+        if (fileExists("${basedir}bullseye_coverage_logs/test.cov")) {
+            // String name = 'func' + stage_info['pragma_suffix'] + '-cov'
+            println("[${env.STAGE_NAME}] Stashing ${basedir}bullseye_coverage_logs/test.cov in "
+                    "${coverage_stash}")
+            dir("${basedir}bullseye_coverage_logs") {
+                stash name: config.get('coverage_stash', coverage_stash),
+                    includes: 'test.cov'
+            }
+        } else {
+            println("[${env.STAGE_NAME}] No ${basedir}bullseye_coverage_logs/test.cov file found!")
         }
-    } else {
-        println("[${env.STAGE_NAME}] No ${basedir}bullseye_coverage_logs/test.cov file found!")
     }
+
     return runData
 }
