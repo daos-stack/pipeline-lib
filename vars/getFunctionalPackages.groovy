@@ -26,7 +26,7 @@ String call(String nextVersion, Boolean ucx=false, Boolean bullseye=false) {
 
 String call(String distro, String nextVersion, String daosPackages, String otherPackages,
             Boolean bullseye=false) {
-    String version = daosPackagesVersion(distro, nextVersion, bullseye)
+    String version = daosPackagesVersion(distro, nextVersion)
     String packages = ''
 
     if (daosPackages) {
