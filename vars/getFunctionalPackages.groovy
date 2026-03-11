@@ -52,5 +52,7 @@ String call(String distro, String nextVersion, String daosPackages, String other
         packages += " ${otherPackages}"
     }
 
+    println("getFunctionalPackages: distro=${distro}, version=${version}, bullseye=${bullseye}, otherPackages=${otherPackages} => ${packages}")
+
     return packages
 }
