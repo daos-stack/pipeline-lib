@@ -12,7 +12,6 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      name            functional test stage name
  *      pragma_suffix   functional test stage commit pragma suffix, e.g. '-hw-medium'
  *      label           functional test stage default cluster label
- *      next_version    next daos package version
  *      stage_tags      functional test stage tags always used and combined with all other tags
  *      default_tags    launch.py tags argument to use when no parameter or commit pragma exist
  *      nvme            launch.py --nvme argument to use
@@ -23,7 +22,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      base_branch     if specified, checkout sources from this branch before running tests
  *      other_packages  space-separated string of additional RPM packages to install
  *      inst_rpms       space-separated string of RPM packages to install on the test nodes;
- *                          exclusive of next_version and other_packages.
+ *                          exclusive of other_packages.
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
  *      job_status      Map of status for each stage in the job/build
@@ -43,8 +42,7 @@ Map call(Map kwargs = [:]) {
     String image_version = kwargs.get('image_version', null)
     String base_branch = kwargs.get('base_branch')
     String instRpms = kwargs.get(
-        'inst_rpms',
-        getFunctionalPackages(kwargs.get('next_version', null), kwargs.get('other_packages', null)))
+        'inst_rpms', getFunctionalPackages(kwargs.get('other_packages', null)))
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
     Map job_status = kwargs.get('job_status', [:])
