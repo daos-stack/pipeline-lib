@@ -25,7 +25,7 @@ String call(String daosPackages, String otherPackages, Boolean bullseye=false) {
 
     if (daosPackages) {
         packages += daosPackages
-    } elif (bullseye) {
+    } else if (bullseye) {
         packages += 'daos-bullseye{,-{client,tests,server,serialize,tests-internal}}'
     } else {
         packages += 'daos{,-{client,tests,server,serialize,tests-internal}}'
