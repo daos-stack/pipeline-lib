@@ -66,6 +66,7 @@ Map call(Map config = [:]) {
     String nodelist = config.get('NODELIST', env.NODELIST)
     String context = config.get('context', 'test/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
+    String coverage_stash = config.get('coverage_stash', '')
 
     Map stage_info = parseStageInfo(config)
 
@@ -113,6 +114,7 @@ Map call(Map config = [:]) {
     run_test_config['ftest_arg'] = config.get('ftest_arg', stage_info['ftest_arg'])
     run_test_config['context'] = context
     run_test_config['description'] = description
+    run_test_config['coverage_stash'] = coverage_stash
 
     Map runtestData = [:]
     if (config.get('test_function', 'runTestFunctional') ==

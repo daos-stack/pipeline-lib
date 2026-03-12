@@ -12,7 +12,6 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      name            functional test stage name
  *      pragma_suffix   functional test stage commit pragma suffix, e.g. '-hw-medium'
  *      label           functional test stage default cluster label
- *      next_version    next daos package version
  *      stage_tags      functional test stage tags always used and combined with all other tags
  *      default_tags    launch.py tags argument to use when no parameter or commit pragma exist
  *      nvme            launch.py --nvme argument to use
@@ -21,16 +20,19 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      distro          functional test stage distro (VM)
  *      image_version   image version to use for provisioning, e.g. el8.8, leap15.6, etc.
  *      base_branch     if specified, checkout sources from this branch before running tests
+ *      other_packages  space-separated string of additional RPM packages to install
+ *      inst_rpms       space-separated string of RPM packages to install on the test nodes;
+ *                          exclusive of other_packages.
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
  *      job_status      Map of status for each stage in the job/build
+ *      coverage_stash  name of stash to include code coverage results from the tests
  * @return a scripted stage to run in a pipeline
  */
 Map call(Map kwargs = [:]) {
     String name = kwargs.get('name', 'Unknown Functional Test Stage')
     String pragma_suffix = kwargs.get('pragma_suffix')
     String label = kwargs.get('label')
-    String next_version = kwargs.get('next_version', null)
     String stage_tags = kwargs.get('stage_tags')
     String default_tags = kwargs.get('default_tags')
     String nvme = kwargs.get('nvme')
@@ -39,10 +41,12 @@ Map call(Map kwargs = [:]) {
     String distro = kwargs.get('distro')
     String image_version = kwargs.get('image_version', null)
     String base_branch = kwargs.get('base_branch')
-    String other_packages = kwargs.get('other_packages', '')
+    String instRpms = kwargs.get(
+        'inst_rpms', getFunctionalPackages(kwargs.get('other_packages', null)))
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
     Map job_status = kwargs.get('job_status', [:])
+    String coverage_stash = kwargs.get('coverage_stash', '')
 
     return {
         stage("${name}") {
@@ -83,14 +87,15 @@ Map call(Map kwargs = [:]) {
                             functionalTest(
                                 image_version: image_version,
                                 inst_repos: daosRepos(distro),
-                                inst_rpms: functionalPackages(1, next_version, 'tests-internal') + ' ' + other_packages,
+                                inst_rpms: instRpms,
                                 test_tag: tags,
                                 ftest_arg: getFunctionalArgs(
                                     pragma_suffix: pragma_suffix,
                                     nvme: nvme,
                                     default_nvme: default_nvme,
                                     provider: provider)['ftest_arg'],
-                                test_function: 'runTestFunctionalV2'))
+                                test_function: 'runTestFunctionalV2',
+                                coverage_stash: coverage_stash))
                     } finally {
                         println("[${name}] Running functionalTestPostV2()")
                         functionalTestPostV2()
