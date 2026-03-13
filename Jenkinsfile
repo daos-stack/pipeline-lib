@@ -91,9 +91,6 @@ Void distro_version_test(String branch, String distro, String expected) {
 /* groovylint-disable-next-line CompileStatic */
 pipeline {
     agent { label 'lightweight' }
-    libraries {
-        lib("pipeline-lib@${env.BRANCH_NAME}")
-    }
 
     environment {
         SSH_KEY_FILE = 'ci_key'
