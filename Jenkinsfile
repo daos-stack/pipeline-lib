@@ -477,7 +477,7 @@ pipeline {
                                         skips: [false, false, false, false, false, false, false, false]],
                                        [pragmas: ['Skip-func-hw-test: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, false, true, true, true, true, true]],
+                                        skips: [false, false, false, false, true, true, true, true]],
                                        [pragmas: ['Skip-func-hw-test-medium: true\n' +
                                                   'Skip-func-hw-test-medium-verbs-provider: true\n' +
                                                   'Skip-func-hw-test-medium-ucx-provider: true\n' +
