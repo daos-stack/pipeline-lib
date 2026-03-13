@@ -504,7 +504,7 @@ pipeline {
                                                   'Skip-build-el8-rpm: false\n' +
                                                   'Skip-build-el9-rpm: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, false, true, false, false, true, false]]]
+                                        skips: [false, true, false, true, false, false, true, false]]]
                             errors = 0
                             commits.each { commit ->
                                 cm = 'Test commit\n\n'
@@ -541,8 +541,12 @@ pipeline {
                                     actual = 'run '
                                     if (commit.skips[i]) { expect = 'skip' }
                                     if (actual_skips[i]) { actual = 'skip' }
-                                    if (expect != actual) { result = 'FAIL' }
-                                    println('  ' + result + '    ' + expect + '    ' + actual + '    ' + stage)
+                                    if (expect != actual) {
+                                        result = 'FAIL'
+                                        unstable ('  ' + result + '    ' + expect + '    ' + actual + '    ' + stage)
+                                    } else {
+                                        println('  ' + result + '    ' + expect + '    ' + actual + '    ' + stage)
+                                    }
                                     i++
                                 }
                                 println('')
