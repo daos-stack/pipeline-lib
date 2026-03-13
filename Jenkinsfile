@@ -507,14 +507,12 @@ pipeline {
                                         skips: [false, true, false, true, false, false, true, false]]]
                             errors = 0
                             commits.each { commit ->
-                                cm = 'Test commit\n\n'
+                                cm = '\n'
                                 commit.pragmas.each { pragma ->
                                     cm += "${pragma}\n"
                                 }
                                 println('-------------------------')
-                                println('Unit test commit message:')
-                                println('')
-                                println(cm)
+                                println('Unit test for commit message pragmas:' + cm)
                                 actual_skips = []
                                 i = 0
                                 // save current value
@@ -531,25 +529,19 @@ pipeline {
                                         i++
                                     }
                                 }
-                                println('')
-                                println('  Result  Expect  Actual  Stage')
-                                println('  ------  ------  ------  ------------------------------------------')
                                 i = 0
                                 stages.each { stage ->
-                                    result = 'PASS: '
                                     expect = 'run '
                                     actual = 'run '
                                     if (commit.skips[i]) { expect = 'skip' }
                                     if (actual_skips[i]) { actual = 'skip' }
                                     if (expect != actual) {
-                                        result = 'FAIL'
-                                        unstable ('  ' + result + '    ' + expect + '    ' + actual + '    ' + stage)
+                                        unstable ('FAIL: ' + ' expect: ' + expect + ' actual: ' + actual + ' for stage ' + stage)
                                     } else {
-                                        println('  ' + result + '    ' + expect + '    ' + actual + '    ' + stage)
+                                        println ('PASS: ' + ' expect: ' + expect + ' actual: ' + actual + ' for stage ' + stage)
                                     }
                                     i++
                                 }
-                                println('')
                                 cachedCommitPragma(clear: true)
                                 // restore actual pragmas for later stages
                                 env.pragmas = env.pragmas_sav
