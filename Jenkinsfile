@@ -435,7 +435,7 @@ pipeline {
                                       'Functional Hardware Large']
                             commits = [[pragmas: [''],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, false, true, false, false, true, false]],
+                                        skips: [false, false, false, false, false, false, true, false]],
                                        [pragmas: ['Skip-test: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [true, true, true, true, true, true, true, true]],
@@ -462,7 +462,7 @@ pipeline {
                                         skips: [false, false, false, false, false, false, true, false]],
                                        [pragmas: ['Skip-func-test-hw: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, false, true, true, true, true, true]],
+                                        skips: [false, false, false, false, true, true, true, true]],
                                        [pragmas: ['Skip-func-test-hw-medium: true\n' +
                                                   'Skip-func-test-hw-medium-verbs-provider: true\n' +
                                                   'Skip-func-test-hw-medium-ucx-provider: true\n' +
@@ -474,7 +474,7 @@ pipeline {
                                                   'Skip-func-test-hw-medium-ucx-provider: false\n' +
                                                   'Skip-func-test-hw-large: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, false, true, false, false, false, false]],
+                                        skips: [false, false, false, false, false, false, false, false]],
                                        [pragmas: ['Skip-func-hw-test: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [true, true, false, true, true, true, true, true]],
@@ -483,16 +483,16 @@ pipeline {
                                                   'Skip-func-hw-test-medium-ucx-provider: true\n' +
                                                   'Skip-func-hw-test-large: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, false, true, true, true, true, true]],
+                                        skips: [false, false, false, false, true, true, true, true]],
                                        [pragmas: ['Skip-func-hw-test-medium: false\n' +
                                                   'Skip-func-hw-test-medium-verbs-provider: false\n' +
                                                   'Skip-func-hw-test-medium-ucx-provider: false\n' +
                                                   'Skip-func-hw-test-large: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, false, true, false, false, false, false]],
+                                        skips: [false, false, false, false, false, false, false, false]],
                                        [pragmas: ['Run-daily-stages: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, false, true, false, false, false, false]],
+                                        skips: [false, false, false, false, false, false, false, false]],
                                        [pragmas: ['Skip-build-leap15-rpm: true\n' +
                                                   'Skip-build-el7-rpm: true\n' +
                                                   'Skip-build-el8-rpm: true\n' +
@@ -504,7 +504,7 @@ pipeline {
                                                   'Skip-build-el8-rpm: false\n' +
                                                   'Skip-build-el9-rpm: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [false, true, false, true, false, false, true, false]]]
+                                        skips: [false, false, false, false, false, false, true, false]]]
                             errors = 0
                             commits.each { commit ->
                                 cm = '\n'
