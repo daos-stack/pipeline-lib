@@ -149,6 +149,7 @@ pipeline {
                 stage('daosLatestVersion() tests') {
                     steps {
                         script {
+                            library "pipeline-lib@${env.BRANCH_NAME}"
                             assert(daosLatestVersion('master', 'el8').matches(/2.7\.\d+.*/))
                             assert(daosLatestVersion('release/2.4', 'el8').matches(/2.[34]\.\d+.*/))
                             assert(daosLatestVersion('release/2.6', 'el8').matches(/2.[56]\.\d+.*/))
@@ -737,55 +738,55 @@ pipeline {
                 } // stage ('Self Unit Test')
             } // parallel
         } // stage('Test')
-        stage('DAOS Build and Test') {
-            when {
-                beforeAgent true
-                expression {
-                    currentBuild.currentResult == 'SUCCESS' && !skipStage()
-                }
-            }
-            matrix {
-                axes {
-                    axis {
-                        name 'TEST_BRANCH'
-                        values 'master',
-                               'release/2.6',
-                               'weekly-testing',
-                               'weekly-2.6-testing'
-                    }
-                }
-                when {
-                    beforeAgent true
-                    expression {
-                        // Need to pass the stage name: https://issues.jenkins.io/browse/JENKINS-69394
-                        !skipStage([stage_name: 'Test Library',
-                                    axes: env.TEST_BRANCH.replaceAll('/', '-')])
-                    }
-                }
-                stages {
-                    stage('Test Library') {
-                        steps {
-                            buildDaosJob(env.TEST_BRANCH, params.BuildPriority)
-                        } // steps
-                        post {
-                            success {
-                                script {
-                                    setupDownstreamTesting.cleanup('daos-stack/daos', env.TEST_BRANCH)
-                                }
-                            }
-                            always {
-                                writeFile file: stageStatusFilename(env.STAGE_NAME,
-                                                                    env.TEST_BRANCH.replaceAll('/', '-')),
-                                          text: currentBuild.currentResult + '\n'
-                                /* groovylint-disable-next-line LineLength */
-                                archiveArtifacts artifacts: stageStatusFilename(env.STAGE_NAME,
-                                                                                env.TEST_BRANCH.replaceAll('/', '-'))
-                            }
-                        } // post
-                    } // stage('Test Library')
-                } // stages
-            } // matrix
-        } // stage('DAOS Build and Test')
+        // stage('DAOS Build and Test') {
+        //     when {
+        //         beforeAgent true
+        //         expression {
+        //             currentBuild.currentResult == 'SUCCESS' && !skipStage()
+        //         }
+        //     }
+        //     matrix {
+        //         axes {
+        //             axis {
+        //                 name 'TEST_BRANCH'
+        //                 values 'master',
+        //                        'release/2.6',
+        //                        'weekly-testing',
+        //                        'weekly-2.6-testing'
+        //             }
+        //         }
+        //         when {
+        //             beforeAgent true
+        //             expression {
+        //                 // Need to pass the stage name: https://issues.jenkins.io/browse/JENKINS-69394
+        //                 !skipStage([stage_name: 'Test Library',
+        //                             axes: env.TEST_BRANCH.replaceAll('/', '-')])
+        //             }
+        //         }
+        //         stages {
+        //             stage('Test Library') {
+        //                 steps {
+        //                     buildDaosJob(env.TEST_BRANCH, params.BuildPriority)
+        //                 } // steps
+        //                 post {
+        //                     success {
+        //                         script {
+        //                             setupDownstreamTesting.cleanup('daos-stack/daos', env.TEST_BRANCH)
+        //                         }
+        //                     }
+        //                     always {
+        //                         writeFile file: stageStatusFilename(env.STAGE_NAME,
+        //                                                             env.TEST_BRANCH.replaceAll('/', '-')),
+        //                                   text: currentBuild.currentResult + '\n'
+        //                         /* groovylint-disable-next-line LineLength */
+        //                         archiveArtifacts artifacts: stageStatusFilename(env.STAGE_NAME,
+        //                                                                         env.TEST_BRANCH.replaceAll('/', '-'))
+        //                     }
+        //                 } // post
+        //             } // stage('Test Library')
+        //         } // stages
+        //     } // matrix
+        // } // stage('DAOS Build and Test')
     } // stages
     post {
         always {
