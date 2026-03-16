@@ -433,7 +433,7 @@ pipeline {
                                       'Functional Hardware Large']
                             commits = [[pragmas: [''],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [false, false, false, false, false, false, true, false]],
+                                        skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-test: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [true, true, true, true, true, true, true, true]],
@@ -502,7 +502,7 @@ pipeline {
                                                   'Skip-build-el8-rpm: false\n' +
                                                   'Skip-build-el9-rpm: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [false, false, false, false, false, false, true, false]]]
+                                        skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]]]
                             errors = 0
                             commits.each { commit ->
                                 cm = '\n'
