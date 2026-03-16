@@ -444,22 +444,22 @@ pipeline {
                                         skips: [true, true, true, true, true, true, true, true]],
                                        [pragmas: ['Skip-func-test-vm: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, true, true, false, false, true, false]],
+                                        skips: [true, true, true, true, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-func-test-vm-all: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, true, true, false, false, true, false]],
+                                        skips: [true, true, true, true, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-func-test-leap15: true\n' +
                                                   'Skip-func-test-el7: true\n' +
                                                   'Skip-func-test-el8: true\n' +
                                                   'Skip-func-test-el9: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [true, true, true, true, false, false, true, false]],
+                                        skips: [true, true, true, true, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-func-test-leap15: false\n' +
                                                   'Skip-func-test-el7: false\n' +
                                                   'Skip-func-test-el8: false\n' +
                                                   'Skip-func-test-el9: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [false, false, false, false, false, false, true, false]],
+                                        skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-func-test-hw: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [false, false, false, false, true, true, true, true]],
