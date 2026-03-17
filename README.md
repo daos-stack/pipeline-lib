@@ -195,14 +195,14 @@ this directory and fail the step if the contents differ.
 
 Requirements:
 
-- gradle
+- JAVA
 
 ### How to run unit tests
 
 From the main directory, run:
 
 ```bash
-gradle test
+gradlew test
 ```
 
 ### Proxy configuration
@@ -221,5 +221,5 @@ systemProp.https.proxyPort=8080
 **Note**: Not all Groovy files are covered yet. You are very welcome to include more though. Please see (build.gradle)[build.gradle].
 
 ```sh
-gradle spotlessApply
+gradlew spotlessApply
 ```
