@@ -146,6 +146,16 @@ pipeline {
                 expression { !skipStage() }
             }
             parallel {
+                stage('JUnit Tests') {
+                    steps {
+                        sh './gradlew spotlessCheck test --no-daemon'
+                    }
+                    post {
+                        always {
+                            junit 'build/test-results/test/*.xml'
+                        }
+                    }
+                }
                 stage('daosLatestVersion() tests') {
                     steps {
                         script {
