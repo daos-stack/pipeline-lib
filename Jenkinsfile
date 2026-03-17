@@ -504,7 +504,7 @@ pipeline {
                                                   'Skip-build-el8-rpm: false\n' +
                                                   'Skip-build-el9-rpm: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]]]
+                                        skips: [true, false, true, false, !isPr(), !isPr(), true, !isPr()]]]
                             errors = 0
                             commits.each { commit ->
                                 cm = '\n'
