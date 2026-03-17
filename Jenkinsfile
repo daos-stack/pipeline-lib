@@ -506,6 +506,8 @@ pipeline {
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [true, false, true, false, !isPr(), !isPr(), true, !isPr()]]]
                             errors = 0
+                            // save current value
+                            env.pragmas_sav = env.pragmas
                             commits.each { commit ->
                                 cm = '\n'
                                 commit.pragmas.each { pragma ->
@@ -515,8 +517,6 @@ pipeline {
                                 println('Unit test for commit message pragmas:' + cm)
                                 actual_skips = []
                                 i = 0
-                                // save current value
-                                env.pragmas_sav = env.pragmas
                                 // assign Map to env. var to serialize it
                                 env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
                                 stages.each { stage ->
@@ -545,9 +545,9 @@ pipeline {
                                     i++
                                 }
                                 cachedCommitPragma(clear: true)
-                                // restore actual pragmas for later stages
-                                env.pragmas = env.pragmas_sav
                             }
+                            // restore actual pragmas for later stages
+                            env.pragmas = env.pragmas_sav
                             assert(errors == 0)
                         }
                         /* tests for all stages:
