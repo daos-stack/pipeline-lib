@@ -538,7 +538,7 @@ pipeline {
                                     if (commit.skips[i]) { expect = 'skip' }
                                     if (actual_skips[i]) { actual = 'skip' }
                                     if (expect != actual) {
-                                        unstable ('  ' + expect + '    ' + actual + '   ' + stage)
+                                        unstable ('    ' + expect + '    ' + actual + '   ' + stage)
                                     } else {
                                         println ('PASS       ' + expect + '    ' + actual + '   ' + stage)
                                     }
