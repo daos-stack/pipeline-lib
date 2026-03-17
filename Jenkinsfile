@@ -529,6 +529,8 @@ pipeline {
                                         i++
                                     }
                                 }
+                                println('Result    Expect  Actual  Stage')
+                                println('--------  ------  ------  ------------------------------------------')
                                 i = 0
                                 stages.each { stage ->
                                     expect = 'run '
@@ -536,9 +538,9 @@ pipeline {
                                     if (commit.skips[i]) { expect = 'skip' }
                                     if (actual_skips[i]) { actual = 'skip' }
                                     if (expect != actual) {
-                                        unstable ('FAIL: ' + ' expect: ' + expect + ' actual: ' + actual + ' for stage ' + stage)
+                                        unstable ('  ' + expect + '    ' + actual + '   ' + stage)
                                     } else {
-                                        println ('PASS: ' + ' expect: ' + expect + ' actual: ' + actual + ' for stage ' + stage)
+                                        println ('PASS       ' + expect + '    ' + actual + '   ' + stage)
                                     }
                                     i++
                                 }
