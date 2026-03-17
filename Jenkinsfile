@@ -529,8 +529,8 @@ pipeline {
                                         i++
                                     }
                                 }
-                                println('Result    Expect  Actual  Stage')
-                                println('--------  ------  ------  ------------------------------------------')
+                                println('Result   Expect  Actual  Stage')
+                                println('-------  ------  ------  ------------------------------------------')
                                 i = 0
                                 stages.each { stage ->
                                     expect = 'run '
@@ -540,7 +540,7 @@ pipeline {
                                     if (expect != actual) {
                                         unstable ('    ' + expect + '    ' + actual + '   ' + stage)
                                     } else {
-                                        println ('PASS       ' + expect + '    ' + actual + '   ' + stage)
+                                        println ('PASS     ' + expect + '    ' + actual + '   ' + stage)
                                     }
                                     i++
                                 }
