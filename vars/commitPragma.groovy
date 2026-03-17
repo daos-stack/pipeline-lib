@@ -25,7 +25,6 @@ String call(Map config = [:]) {
  * @param def_val    Value to return if not found
  */
 String call(String name, String def_val = null) {
-    println( 'commitPragma for: ' + name )
     if (env.pragmas) {
         Map pragmas = envToPragmas()
 

@@ -36,7 +36,6 @@ String call(String name, String def_val = null) {
         _def_val = def_val
     }
 
-    println( 'cachedCommitPragma for: ' + _name )
     /* groovylint-disable-next-line CouldBeElvis */
     if (!commit_pragma_cache[_name]) {
         commit_pragma_cache[_name] = commitPragma(_name)

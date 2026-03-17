@@ -509,12 +509,14 @@ pipeline {
                             // save current value
                             env.pragmas_sav = env.pragmas
                             commits.each { commit ->
-                                cm = '\n'
+                                cm = 'Test commit\n\n'
                                 commit.pragmas.each { pragma ->
                                     cm += "${pragma}\n"
                                 }
                                 println('-------------------------')
-                                println('Unit test for commit message pragmas:' + cm)
+                                println('Unit test commit message:')
+                                println('')
+                                println(cm)
                                 actual_skips = []
                                 i = 0
                                 // assign Map to env. var to serialize it
@@ -529,21 +531,21 @@ pipeline {
                                         i++
                                     }
                                 }
-                                println('Result   Expect  Actual  Stage')
-                                println('-------  ------  ------  ------------------------------------------')
+                                println('')
+                                println('  Result  Expect  Actual  Stage')
+                                println('  ------  ------  ------  ------------------------------------------')
                                 i = 0
                                 stages.each { stage ->
+                                    result = 'PASS'
                                     expect = 'run '
                                     actual = 'run '
                                     if (commit.skips[i]) { expect = 'skip' }
                                     if (actual_skips[i]) { actual = 'skip' }
-                                    if (expect != actual) {
-                                        unstable ('    ' + expect + '    ' + actual + '   ' + stage)
-                                    } else {
-                                        println ('PASS     ' + expect + '    ' + actual + '   ' + stage)
-                                    }
+                                    if (expect != actual) { result = 'FAIL' }
+                                    println('  ' + result + '    ' + expect + '    ' + actual + '    ' + stage)
                                     i++
                                 }
+                                println('')
                                 cachedCommitPragma(clear: true)
                             }
                             // restore actual pragmas for later stages
@@ -642,7 +644,7 @@ pipeline {
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
                                  pragma: '',
                                  /* groovylint-disable-next-line UnnecessaryGetter */
-                                 expect: true],
+                                 expect: isPr()],
                                 [description: 'Distro set',
                                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: 'el8', run_if_pr: true],
                                  pragma: '',
