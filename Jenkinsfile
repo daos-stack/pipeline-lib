@@ -151,17 +151,23 @@ pipeline {
                         label 'brd-108_light_1'
                     }
                     steps {
-                        sh '''
-                        mkdir -p ~/.gradle
-                        echo "$DAOS_HTTPS_PROXY" | awk -F[/:] '{
-                            print "systemProp.http.proxyHost="$4;
-                            print "systemProp.http.proxyPort="$5;
-                            print "systemProp.https.proxyHost="$4;
-                            print "systemProp.https.proxyPort="$5;
-                        }' > ~/.gradle/gradle.properties
+                        script {
+                            def proxy = env.DAOS_HTTPS_PROXY
+                            def idx  = proxy.lastIndexOf(':')
+                            def host = proxy.substring(0, idx)
+                            def port = proxy.substring(idx + 1)
+                            def vars = [
+                                '${HTTP_HOST}': host,
+                                '${HTTP_PORT}': port,
+                                '${HTTPS_HOST}': host,
+                                '${HTTPS_PORT}': port,
+                            ]
 
-                        ./gradlew spotlessCheck test --no-daemon
-                        '''
+                            def properties = readFile('gradle.properties.template')
+                            vars.each { k, v -> properties = properties.replace(k, v) }
+                            writeFile file: 'gradle.properties', text: properties
+                        }
+                        sh './gradlew spotlessCheck test --no-daemon'
                     }
                     post {
                         always {
