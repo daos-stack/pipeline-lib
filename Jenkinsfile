@@ -148,7 +148,20 @@ pipeline {
             parallel {
                 stage('JUnit Tests') {
                     steps {
-                        sh './gradlew spotlessCheck test --no-daemon'
+                        sh '''
+                        mkdir -p ~/.gradle
+                        echo "$http_proxy" | awk -F[/:] '{
+                            print "systemProp.http.proxyHost="$4;
+                            print "systemProp.http.proxyPort="$5;
+                        }' > ~/.gradle/gradle.properties
+
+                        echo "$https_proxy" | awk -F[/:] '{
+                            print "systemProp.https.proxyHost="$4;
+                            print "systemProp.https.proxyPort="$5;
+                        }' >> ~/.gradle/gradle.properties
+                    
+                    ./gradlew spotlessCheck test --no-daemon
+                    '''
                     }
                     post {
                         always {
