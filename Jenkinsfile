@@ -147,6 +147,9 @@ pipeline {
             }
             parallel {
                 stage('JUnit Tests') {
+                    agent {
+                        label 'brd-108_light_1'
+                    }
                     steps {
                         sh '''
                         mkdir -p ~/.gradle
@@ -156,12 +159,6 @@ pipeline {
                             print "systemProp.https.proxyHost="$4;
                             print "systemProp.https.proxyPort="$5;
                         }' > ~/.gradle/gradle.properties
-
-                        if ! command -v javac >/dev/null 2>&1; then
-                            sudo apt-get install -y openjdk-21-jdk
-                        else
-                            javac -version
-                        fi
 
                         ./gradlew spotlessCheck test --no-daemon
                         '''
