@@ -195,7 +195,7 @@ this directory and fail the step if the contents differ.
 
 Requirements:
 
-- JAVA
+- JDK
 
 ### How to run unit tests
 

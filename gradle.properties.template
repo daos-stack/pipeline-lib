@@ -1,0 +1,4 @@
+systemProp.http.proxyHost=${HTTP_HOST}
+systemProp.http.proxyPort=${HTTP_PORT}
+systemProp.https.proxyHost=${HTTPS_HOST}
+systemProp.https.proxyPort=${HTTPS_PORT}
