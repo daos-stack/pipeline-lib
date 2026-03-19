@@ -1,0 +1,45 @@
+/*
+ * (C) Copyright 2026 Hewlett Packard Enterprise Development LP
+ *
+ * SPDX-License-Identifier: BSD-2-Clause-Patent
+ */
+
+plugins {
+    id 'groovy'
+    id 'com.diffplug.spotless' version 'latest.release'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation localGroovy()
+    testImplementation localGroovy()
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.10.0'
+}
+
+spotless {
+    groovy {
+        target 'src/test/**/*.groovy'
+        importOrder()
+        endWithNewline()
+        greclipse().configFile(rootProject.file('greclipse.properties'))
+    }
+    groovyGradle {
+        target '*.gradle'
+        endWithNewline()
+        greclipse().configFile(rootProject.file('greclipse.properties'))
+    }
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events 'passed', 'skipped', 'failed', 'started'
+        exceptionFormat = 'full'
+        showStandardStreams = true
+    }
+    outputs.upToDateWhen { false }
+}
