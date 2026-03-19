@@ -13,7 +13,7 @@ class Bindings {
     static void commonBindings(Binding binding) {
         binding.setVariable("sh", { Map m ->
             if (m.returnStdout) {
-                return ""
+                return ''
             }
             return 0
         })
