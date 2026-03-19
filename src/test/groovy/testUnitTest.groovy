@@ -12,7 +12,7 @@ import groovy.lang.Binding
 import groovy.lang.GroovyShell
 import org.junit.jupiter.api.Test
 
-class testUnitTest {
+class TestUnitTest {
 
     static final String CONTEXT_MOCK = 'ctx'
     static final String DESCRIPTION_MOCK = 'desc'
@@ -38,7 +38,7 @@ class testUnitTest {
 
         // ---- ENV ----
         binding.setVariable('env', [
-            NODELIST        : testUnitTest.NODELIST_MOCK
+            NODELIST        : TestUnitTest.NODELIST_MOCK
         ])
 
         // ---- PIPELINE STEP MOCKS ----
@@ -56,7 +56,7 @@ class testUnitTest {
 
         binding.setVariable('parseStageInfo', { Map m ->
             [
-                node_count      : testUnitTest.NODE_COUNT_MOCK
+                node_count      : TestUnitTest.NODE_COUNT_MOCK
             ]
         })
 
@@ -77,10 +77,10 @@ class testUnitTest {
     void 'provisionNodes() gets basic arguments'() {
         def provisionNodes = { Map m ->
             assertNotNull(m)
-            assertEquals(testUnitTest.NODELIST_MOCK, m.NODELIST)
-            assertEquals(testUnitTest.NODE_COUNT_MOCK, m.node_count)
-            assertEquals(testUnitTest.IMAGE_VERSION_MOCK, m.distro)
-            assertEquals(testUnitTest.INST_RPMS_DEFAULT, m.inst_rpms)
+            assertEquals(TestUnitTest.NODELIST_MOCK, m.NODELIST)
+            assertEquals(TestUnitTest.NODE_COUNT_MOCK, m.node_count)
+            assertEquals(TestUnitTest.IMAGE_VERSION_MOCK, m.distro)
+            assertEquals(TestUnitTest.INST_RPMS_DEFAULT, m.inst_rpms)
 
             return [:]
         }
@@ -94,7 +94,7 @@ class testUnitTest {
              * It is not the default path but it is the simpler one.
              * The default is tested later on.
              */
-            image_version: testUnitTest.IMAGE_VERSION_MOCK
+            image_version: TestUnitTest.IMAGE_VERSION_MOCK
         ])
     }
 
@@ -102,11 +102,11 @@ class testUnitTest {
     void 'runTest() gets basic arguments'() {
         def runTest = { Map m ->
             assertNotNull(m)
-            assertEquals(testUnitTest.STASHES_MOCK, m.stashes)
+            assertEquals(TestUnitTest.STASHES_MOCK, m.stashes)
             // assertEquals(WIP, m.script)
-            assertEquals(testUnitTest.JUNIT_FILES_DEFAULT, m.junit_files)
-            assertEquals(testUnitTest.CONTEXT_MOCK, m.context)
-            assertEquals(testUnitTest.DESCRIPTION_MOCK, m.description)
+            assertEquals(TestUnitTest.JUNIT_FILES_DEFAULT, m.junit_files)
+            assertEquals(TestUnitTest.CONTEXT_MOCK, m.context)
+            assertEquals(TestUnitTest.DESCRIPTION_MOCK, m.description)
             assertTrue(m.ignore_failure)
             assertFalse(m.notify_result)
 
@@ -122,9 +122,9 @@ class testUnitTest {
              * It is not the default path but it is the simpler one.
              * The default is tested later on.
              */
-            stashes: testUnitTest.STASHES_MOCK,
-            context: testUnitTest.CONTEXT_MOCK,
-            description: testUnitTest.DESCRIPTION_MOCK
+            stashes: TestUnitTest.STASHES_MOCK,
+            context: TestUnitTest.CONTEXT_MOCK,
+            description: TestUnitTest.DESCRIPTION_MOCK
         ])
     }
 
