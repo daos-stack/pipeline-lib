@@ -153,7 +153,7 @@ pipeline {
                     steps {
                         script {
                             def proxy = env.DAOS_HTTPS_PROXY
-                            def idx  = proxy.lastIndexOf(':')
+                            def idx = proxy.lastIndexOf(':')
                             def host = proxy.substring(0, idx)
                             def port = proxy.substring(idx + 1)
                             def vars = [
