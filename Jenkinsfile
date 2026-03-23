@@ -148,7 +148,7 @@ pipeline {
             parallel {
                 stage('JUnit Tests') {
                     agent {
-                        label 'brd-108_light_1'
+                        label 'JUnit_jdk_tests'
                     }
                     steps {
                         script {
