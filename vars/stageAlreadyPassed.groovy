@@ -8,7 +8,7 @@
  * @param kwargs Map containing the following optional arguments:
  *      stage_name  name of the stage
  *      postfix     test branch name with '/' replaced by '-'
- * @return a Boolean set to true if thestage was restarted and already passed; false otherwise
+ * @return a Boolean set to true if the age was restarted and already passed; false otherwise
  */
 Boolean call(Map kwargs = [:]) {
     String stage_name = kwargs.get('stage_name', env.STAGE_NAME)
