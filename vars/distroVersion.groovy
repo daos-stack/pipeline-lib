@@ -39,8 +39,10 @@ String call(String distro, String branch) {
                          '2.8':    '9.7'],
             'leap15':   ['master': '15.6',
                          '2.4':    '15.6',
-                         '2.6':    '15.6',
-                         '2.8':    '15.6'],
+                         '2.6':    '15.6'],
+            'sles15':   ['master': '15.7',
+                         '2.4':    '15.7',
+                         '2.6':    '15.7'],
             'ubuntu20': ['master': '20.04']][distro][branch]
 }
 
