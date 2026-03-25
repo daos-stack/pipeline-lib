@@ -153,7 +153,7 @@ pipeline {
                     steps {
                         script {
                             String proxy = env.DAOS_HTTPS_PROXY
-                            String idx = proxy.lastIndexOf(':')
+                            int idx = proxy.lastIndexOf(':')
                             String host = proxy.substring(0, idx)
                             String port = proxy.substring(idx + 1)
                             Map vars = [
