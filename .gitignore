@@ -1,4 +1,3 @@
 .gradle
 build
-*.jar
 gradle.properties

@@ -34,7 +34,7 @@ class TestUnitTest {
 
     private Script loadScriptWithMocks(Map extraBinding = [:]) {
 
-        def binding = new Binding()
+        Binding binding = new Binding()
 
         // ---- ENV ----
         binding.setVariable('env', [
@@ -69,13 +69,13 @@ class TestUnitTest {
             binding.setVariable(k, v)
         }
 
-        def shell = new GroovyShell(binding)
+        GroovyShell shell = new GroovyShell(binding)
         return shell.parse(new File('vars/unitTest.groovy'))
     }
 
     @Test
     void 'provisionNodes() gets basic arguments'() {
-        def provisionNodes = { Map m ->
+        Closure provisionNodes = { Map m ->
             assertNotNull(m)
             assertEquals(TestUnitTest.NODELIST_MOCK, m.NODELIST)
             assertEquals(TestUnitTest.NODE_COUNT_MOCK, m.node_count)
@@ -85,7 +85,7 @@ class TestUnitTest {
             return [:]
         }
 
-        def script = loadScriptWithMocks([
+        Script script = loadScriptWithMocks([
             provisionNodes: provisionNodes
         ])
 
@@ -100,7 +100,7 @@ class TestUnitTest {
 
     @Test
     void 'runTest() gets basic arguments'() {
-        def runTest = { Map m ->
+        Closure runTest = { Map m ->
             assertNotNull(m)
             assertEquals(TestUnitTest.STASHES_MOCK, m.stashes)
             // assertEquals(WIP, m.script)
@@ -113,7 +113,7 @@ class TestUnitTest {
             return [:]
         }
 
-        def script = loadScriptWithMocks([
+        Script script = loadScriptWithMocks([
             runTest: runTest
         ])
 
@@ -134,14 +134,14 @@ class TestUnitTest {
         int expectedTime = 120
         String expectedUnit = 'MINUTES'
 
-        def timeout = { Map m, Closure c ->
+        Closure timeout = { Map m, Closure c ->
             assertNotNull(m)
             assertEquals(expectedTime, m.time)
             assertEquals(expectedUnit, m.unit)
             c()
         }
 
-        def script = loadScriptWithMocks([
+        Script script = loadScriptWithMocks([
             timeout: timeout,
             runTest: { Map cfg ->
                 [result_code: 0]
@@ -170,19 +170,19 @@ class TestUnitTest {
             result_code: 0
         ]
 
-        def provisionNodes = { Map m ->
+        Closure provisionNodes = { Map m ->
             return set1.clone()
         }
-        def runTest = { Map m ->
+        Closure runTest = { Map m ->
             return set2.clone()
         }
 
-        def script = loadScriptWithMocks([
+        Script script = loadScriptWithMocks([
             provisionNodes: provisionNodes,
             runTest: runTest,
         ])
 
-        def runData = script.call([:])
+        Map runData = script.call([:])
 
         assertIsSubset(set1, runData)
         assertIsSubset(set2, runData)

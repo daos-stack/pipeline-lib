@@ -152,18 +152,18 @@ pipeline {
                     }
                     steps {
                         script {
-                            def proxy = env.DAOS_HTTPS_PROXY
-                            def idx = proxy.lastIndexOf(':')
-                            def host = proxy.substring(0, idx)
-                            def port = proxy.substring(idx + 1)
-                            def vars = [
+                            String proxy = env.DAOS_HTTPS_PROXY
+                            String idx = proxy.lastIndexOf(':')
+                            String host = proxy.substring(0, idx)
+                            String port = proxy.substring(idx + 1)
+                            Map vars = [
                                 '${HTTP_HOST}': host,
                                 '${HTTP_PORT}': port,
                                 '${HTTPS_HOST}': host,
                                 '${HTTPS_PORT}': port,
                             ]
 
-                            def properties = readFile('gradle.properties.template')
+                            String properties = readFile('gradle.properties.template')
                             vars.each { k, v -> properties = properties.replace(k, v) }
                             writeFile file: 'gradle.properties', text: properties
                         }
