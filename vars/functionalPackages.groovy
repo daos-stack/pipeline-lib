@@ -43,7 +43,7 @@ String call(String distro, Integer client_ver, String next_version, String add_d
              'Hopefully the daos-tests packages have the dependencies configured.'
     }
 
-    if (distro.startsWith('leap') ||
+    if (distro.startsWith('leap') || distro.startsWith('sles') ||
         distro.startsWith('el') || distro.startsWith('centos') ||
         distro.startsWith('rocky') || distro.startsWith('almalinux') ||
         distro.startsWith('rhel') || distro.startsWith('ubuntu')) {
