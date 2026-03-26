@@ -29,12 +29,15 @@ String call(String distro=null) {
                    _distro.startsWith('rocky9') || _distro.startsWith('almalinux9') ||
                    _distro.startsWith('rhel9')) {
             repos = cachedCommitPragma('PR-repos-el9')
+        } else if (_distro.startsWith('sles15')) {
+            repos = cachedCommitPragma('PR-repos-sles15')
         } else if (_distro.startsWith('leap15')) {
             repos = cachedCommitPragma('PR-repos-leap15')
         } else if (_distro.startsWith('ubuntu20')) {
             repos = cachedCommitPragma('PR-repos-ubuntu20')
         } else {
             error 'prRepos not implemented for ' + _distro
+            cachedCommitPragma('dump')
         }
     }
     return [repos,
