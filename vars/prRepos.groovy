@@ -37,7 +37,6 @@ String call(String distro=null) {
             repos = cachedCommitPragma('PR-repos-ubuntu20')
         } else {
             error 'prRepos not implemented for ' + _distro
-            cachedCommitPragma('dump')
         }
     }
     return [repos,
