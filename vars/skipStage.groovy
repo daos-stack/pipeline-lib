@@ -562,7 +562,7 @@ boolean call(Map config = [:]) {
         case 'Test RPMs on Leap 15.4':
         case 'Test RPMs on Leap 15.5':
         case 'Test RPMs on Leap 15.6':
-        case 'Test RPMs on Leap 15.7':
+        case 'Test RPMs on SLES 15.7':
             return !paramsValue('CI_RPMS_leap15_TEST', true) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('build-leap15-rpm') ||
