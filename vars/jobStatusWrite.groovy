@@ -1,3 +1,4 @@
+/* groovylint-disable ParameterName, VariableName */
 // vars/jobStatusWrite.groovy
 
 /**
@@ -11,7 +12,7 @@ Void call(Map job_status) {
     String jobName = env.JOB_NAME.replace('/', '_') + '_' + env.BUILD_NUMBER
     echo "[jobStatus] Writing result for ${jobName}"
     if (!env.DAOS_STACK_JOB_STATUS_DIR) {
-        echo "[jobStatus] The DAOS_STACK_JOB_STATUS_DIR is undefined"
+        echo '[jobStatus] The DAOS_STACK_JOB_STATUS_DIR is undefined'
         return
     }
     String dirName = env.DAOS_STACK_JOB_STATUS_DIR + '/' + jobName + '/'
@@ -21,4 +22,5 @@ Void call(Map job_status) {
     sh(script: """mkdir -p ${dirName}
                   echo "${job_status_text}" >> ${dirName}jenkins_result""",
        label: "Write jenkins_job_status ${dirName}jenkins_result")
+    return
 }

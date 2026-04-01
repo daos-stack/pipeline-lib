@@ -1,19 +1,20 @@
-/* groovylint-disable VariableName */
+/* groovylint-disable DuplicateNumberLiteral, DuplicateStringLiteral, VariableName */
+/* groovylint-disable GStringExpressionWithinString */
 // vars/sconsBuild.groovy
 
 /**
  * sconsBuild.groovy
  *
  * sconsBuild pipeline step
- *
  */
 
 String num_proc() {
-    return sh(label: "Get number of processors online",
-              script: "/usr/bin/getconf _NPROCESSORS_ONLN",
+    return sh(label: 'Get number of processors online',
+              script: '/usr/bin/getconf _NPROCESSORS_ONLN',
               returnStdout: true)
 }
 
+/* groovylint-disable-next-line MethodSize */
 Map call(Map config = [:]) {
   /**
    * sconsBuild step method
@@ -69,19 +70,20 @@ Map call(Map config = [:]) {
    *   <target-compiler[-build_type]-test>.  Additional stashes
    *   will be created for "install" and "build_vars" with similar
    *   prefixes.
+   * config['code_coverage'] Boolean, build with code coverage.  Default false.
    */
 
-    Date startDate = new Date()
+    long startDate = System.currentTimeMillis()
     String config_target
     if (config['target']) {
-      config_target = config['target']
-      config.remove('target')
+        config_target = config['target']
+        config.remove('target')
     }
     Map stage_info = parseStageInfo(config)
 
     String tee_file = '| tee $WORKSPACE/' + stage_info['log_to_file']
 
-    String failure_artifacts=''
+    String failure_artifacts = ''
     if (config['failure_artifacts']) {
         failure_artifacts = config['failure_artifacts']
     } else {
@@ -96,10 +98,10 @@ Map call(Map config = [:]) {
      * the potential tampering before the scm operation.
      */
     if (config['scons_local_replace'] && config_target) {
-       sh "rm -rf \"\${WORKSPACE}/${config_target}/scons_local\""
+        sh "rm -rf \"\${WORKSPACE}/${config_target}/scons_local\""
     }
 
-    def scm_config = [withSubmodules: true]
+    Map<String, Object> scm_config = [withSubmodules: true]
     if (config['scm']) {
         scm_config = config['scm']
         if (config_target && !scm_config['checkoutDir']) {
@@ -109,29 +111,29 @@ Map call(Map config = [:]) {
     checkoutScm(scm_config)
     if (env.DAOS_JENKINS_NOTIFY_STATUS != null) {
         scmNotify description: env.STAGE_NAME,
-                  context: "build" + "/" + env.STAGE_NAME,
-                  status: "PENDING"
+                  context: 'build/' + env.STAGE_NAME,
+                  status: 'PENDING'
     }
 
     if (config['scons_local_replace'] && config_target) {
-       // replace the scons_local directory in config_target
-       // with a link to the scons_local directory.
-       sh """rm -rf "\${WORKSPACE}/${config_target}/scons_local"
-             ln -s "${WORKSPACE}/scons_local" \
-               "\${WORKSPACE}/${config_target}/scons_local"
-             """
+        // replace the scons_local directory in config_target
+        // with a link to the scons_local directory.
+        sh """rm -rf "\${WORKSPACE}/${config_target}/scons_local"
+              ln -s "${WORKSPACE}/scons_local" \
+                "\${WORKSPACE}/${config_target}/scons_local"
+              """
     }
 
     if (stage_info['compiler'] == 'covc') {
-      httpRequest url: env.JENKINS_URL +
-                       'job/daos-stack/job/tools/job/master' +
-                       '/lastSuccessfulBuild/artifact/' +
-                       'bullseyecoverage-linux.tar',
-                  httpMode: 'GET',
-                  outputFile: 'bullseye.tar'
+        httpRequest url: env.JENKINS_URL +
+                         'job/daos-stack/job/tools/job/master' +
+                         '/lastSuccessfulBuild/artifact/' +
+                         'bullseyecoverage-linux.tar',
+                    httpMode: 'GET',
+                    outputFile: 'bullseye.tar'
     }
 
-    def set_cwd = ''
+    String set_cwd = ''
     if (config['directory']) {
         set_cwd = "cd ${config['directory']}\n"
     } else if (config_target) {
@@ -192,12 +194,15 @@ Map call(Map config = [:]) {
     if (config['WARNING_LEVEL']) {
         scons_args += " WARNING_LEVEL=${config['WARNING_LEVEL']}"
     }
+    if (config['code_coverage']) {
+        scons_args += ' --code-coverage'
+    }
     //scons -c is not perfect so get out the big hammer
-    String clean_cmd = ""
+    String clean_cmd = ''
     if (config['skip_clean']) {
         clean_cmd += "echo 'skipping scons -c'\n"
     } else {
-        String clean_files = "_build.external"
+        String clean_files = '_build.external'
         if (config['clean']) {
             clean_files = config['clean']
         }
@@ -219,29 +224,29 @@ Map call(Map config = [:]) {
 
     String prebuild = ''
     if (config['prebuild']) {
-      prebuild = config['prebuild'] + '\n'
+        prebuild = config['prebuild'] + '\n'
     }
     String prefix_1 = ''
 
     if (config['TARGET_PREFIX']) {
-      scons_args += " TARGET_PREFIX=${config['TARGET_PREFIX']}"
-      if (config['target_work']) {
-        String target_dirs = ''
-        if (config['target_dirs']) {
-          target_dirs = config['target_dirs']
-        } else if (config_target) {
-          target_dirs = config_target
+        scons_args += " TARGET_PREFIX=${config['TARGET_PREFIX']}"
+        if (config['target_work']) {
+            String target_dirs = ''
+            if (config['target_dirs']) {
+                target_dirs = config['target_dirs']
+            } else if (config_target) {
+                target_dirs = config_target
+            }
+            String target_work = config['target_work']
+            prefix_1 =
+               """for new_dir in ${target_dirs}; do
+                   mkdir -p "\${WORKSPACE}/${target_work}/\${new_dir}"
+                   rm -f "${config['TARGET_PREFIX']}/\${new_dir}"
+                   ln -s "\${WORKSPACE}/${target_work}/\${new_dir}" \
+                     "${config['TARGET_PREFIX']}/\${new_dir}"
+               done
+               """
         }
-        String target_work = config['target_work']
-        prefix_1 =
-          """for new_dir in ${target_dirs}; do
-               mkdir -p "\${WORKSPACE}/${target_work}/\${new_dir}"
-               rm -f "${config['TARGET_PREFIX']}/\${new_dir}"
-               ln -s "\${WORKSPACE}/${target_work}/\${new_dir}" \
-                 "${config['TARGET_PREFIX']}/\${new_dir}"
-             done
-             """
-      }
     }
     if (config['scons_args']) {
         scons_args += ' ' + config['scons_args']
@@ -255,13 +260,16 @@ Map call(Map config = [:]) {
         Map cov_config = [:]
         cov_config['project'] = config['coverity']
         cov_config['tool_path'] = './cov_analysis'
-        if (coverityToolDownload(cov_config) < 0)
-            return
+        if (coverityToolDownload(cov_config) < 0) {
+            int runTime = durationSeconds(startDate)
+            runData['sconsbuild_time'] = runTime
+            return runData
+        }
         script += "PATH+=:${WORKSPACE}/cov_analysis/bin\n"
-        scons_exe = "cov-build --dir cov-int " + scons_exe
+        scons_exe = 'cov-build --dir cov-int ' + scons_exe
     }
 
-    // the config cache is unreliable so always force a reconfig
+    // the config cache is unreliable so always force a reconfiguration
     // with "--config=force"
     script += '''if ! ''' + scons_exe + ''' --config=force $SCONS_ARGS''' +
                  tee_file + '''; then
@@ -278,7 +286,7 @@ Map call(Map config = [:]) {
                           failure_artifacts + '"' + '''
                      exit \$rc
                  fi'''
-    String full_script = "#!/bin/bash\nset -ex\n" +
+    String full_script = '#!/bin/bash\nset -ex\n' +
                          set_cwd + prebuild + prefix_1 + script
     int rc = 0
     rc = sh(script: full_script, label: env.STAGE_NAME, returnStatus: true)
@@ -292,14 +300,14 @@ Map call(Map config = [:]) {
         runData['result'] = 'SUCCESS'
     }
     if (env.DAOS_JENKINS_NOTIFY_STATUS != null) {
-        stepResult name: env.STAGE_NAME, context: "build",
+        stepResult name: env.STAGE_NAME, context: 'build',
                    result: runData['result']
     }
     if (!config['returnStatus'] && (rc != 0)) {
-      error "sconsBuild failed for ${full_script}"
+        error "sconsBuild failed for ${full_script}"
     }
     if (config['stash_files']) {
-        String target_stash = stage_info['target'] + '-' +
+        String target_stash = (stage_info['target']).split('\\.')[0] + '-' +
                               stage_info['compiler']
         if (stage_info['build_type']) {
             target_stash += '-' + stage_info['build_type']
@@ -314,6 +322,9 @@ Map call(Map config = [:]) {
         String vars_includes = '.build_vars.*'
         if (stage_info['compiler'] == 'covc') {
             vars_includes += ', test.cov'
+        }
+        if (config['code_coverage']) {
+            vars_includes += ', build/**/*.gcno'
         }
         stash name: target_stash + '-build-vars',
               includes: vars_includes

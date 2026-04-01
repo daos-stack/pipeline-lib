@@ -19,7 +19,7 @@ source ci/provisioning/post_provision_config_common_functions.sh
 # shellcheck disable=SC1091
 source ci/junit.sh
 
-: "${DISTRO:=EL_7}"
+: "${DISTRO:=EL_9}"
 DSL_REPO_var="DAOS_STACK_${DISTRO}_LOCAL_REPO"
 DSG_REPO_var="DAOS_STACK_${DISTRO}_GROUP_REPO"
 DSA_REPO_var="DAOS_STACK_${DISTRO}_APPSTREAM_REPO"

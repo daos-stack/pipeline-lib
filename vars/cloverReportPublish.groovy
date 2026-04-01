@@ -5,7 +5,7 @@
   /**
    * clover Report Publish step method
    *
-   * Consolidiate clover data for publising.
+   * Consolidate clover data for publishing.
    *
    * @param config Map of parameters passed
    *
@@ -31,11 +31,11 @@
 
 Map call(Map config = [:]) {
     // If we don't have a BULLSEYE environment variable set
-    // there are no Bullsye reports to process.
+    // there are no Bullseye reports to process.
     if (!env.BULLSEYE) {
         return ['result': 'SUCCESS', 'cloverreportpublish_time': 0]
     }
-    Date startDate = new Date()
+    long startDate = System.currentTimeMillis()
     Map stage_info = parseStageInfo(config)
 
     String coverage_website = config.get('coverage_website',
@@ -61,7 +61,11 @@ Map call(Map config = [:]) {
         target_stash += '-' + stage_info['build_type']
     }
 
-    unstash config.get('stash', "${target_stash}-build-vars")
+    try {
+        unstash config.get('stash', "${target_stash}-build-vars")
+    } catch (hudson.AbortException ex) {
+        println("Unstash failed: ${ex}")
+    }
 
     int stash_cnt = 0
     stashes.each { name ->

@@ -85,14 +85,12 @@ Void distro_version_test(String branch, String distro, String expected) {
                       "instead of string starting with '${expected}'")
         }
     }
+    return
 }
 
 /* groovylint-disable-next-line CompileStatic */
 pipeline {
     agent { label 'lightweight' }
-    libraries {
-        lib("pipeline-lib@${env.BRANCH_NAME}")
-    }
 
     environment {
         SSH_KEY_FILE = 'ci_key'
@@ -432,7 +430,7 @@ pipeline {
                                       'Functional Hardware Large']
                             commits = [[pragmas: [''],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), !isPr(), !isPr(), true, !isPr()]],
+                                        skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-test: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [true, true, true, true, true, true, true, true]],
@@ -459,37 +457,37 @@ pipeline {
                                         skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-func-test-hw: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
+                                        skips: [false, false, false, false, true, true, true, true]],
                                        [pragmas: ['Skip-func-test-hw-medium: true\n' +
                                                   'Skip-func-test-hw-medium-verbs-provider: true\n' +
                                                   'Skip-func-test-hw-medium-ucx-provider: true\n' +
                                                   'Skip-func-test-hw-large: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
+                                        skips: [false, false, false, false, true, true, true, true]],
                                        [pragmas: ['Skip-func-test-hw-medium: false\n' +
                                                   'Skip-func-test-hw-medium-verbs-provider: false\n' +
                                                   'Skip-func-test-hw-medium-ucx-provider: false\n' +
                                                   'Skip-func-test-hw-large: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), false, false, false, false]],
+                                        skips: [false, false, false, false, false, false, false, false]],
                                        [pragmas: ['Skip-func-hw-test: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
+                                        skips: [false, false, false, false, true, true, true, true]],
                                        [pragmas: ['Skip-func-hw-test-medium: true\n' +
                                                   'Skip-func-hw-test-medium-verbs-provider: true\n' +
                                                   'Skip-func-hw-test-medium-ucx-provider: true\n' +
                                                   'Skip-func-hw-test-large: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
+                                        skips: [false, false, false, false, true, true, true, true]],
                                        [pragmas: ['Skip-func-hw-test-medium: false\n' +
                                                   'Skip-func-hw-test-medium-verbs-provider: false\n' +
                                                   'Skip-func-hw-test-medium-ucx-provider: false\n' +
                                                   'Skip-func-hw-test-large: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), false, false, false, false]],
+                                        skips: [false, false, false, false, false, false, false, false]],
                                        [pragmas: ['Run-daily-stages: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), false, false, false, false]],
+                                        skips: [false, false, false, false, false, false, false, false]],
                                        [pragmas: ['Skip-build-leap15-rpm: true\n' +
                                                   'Skip-build-el7-rpm: true\n' +
                                                   'Skip-build-el8-rpm: true\n' +
@@ -501,7 +499,7 @@ pipeline {
                                                   'Skip-build-el8-rpm: false\n' +
                                                   'Skip-build-el9-rpm: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), !isPr(), !isPr(), true, !isPr()]]]
+                                        skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]]]
                             errors = 0
                             commits.each { commit ->
                                 cm = 'Test commit\n\n'
@@ -594,7 +592,7 @@ pipeline {
                                                       'full_regression,foobar,@stages.tag@'],
                                        [tags: [[tag: 'Test-tag', value: 'datamover foobar']],
                                         tag_template: 'datamover,@stages.tag@ foobar,@stages.tag@'],
-                                    /* this one doesn't quite work due to the @commits.value@ substituion
+                                    /* this one doesn't quite work due to the @commits.value@ substitution
                                        not accounting for the skip-list
                                        [tags: [[tag: 'Test-tag', value: 'datamover'],
                                                [tag: 'Features', value: 'foobar'],
@@ -699,7 +697,7 @@ pipeline {
                             sequences.eachWithIndex { sequence, index ->
                                 cachedCommitPragma(clear: true)
                                 println("${index}: ${sequence['description']}")
-                                commit_message = "Test commit\n\n${sequence['pragma']}\n"
+                                String commit_message = "Test commit\n\n${sequence['pragma']}\n"
                                 println(commit_message)
                                 env.tmp_pragmas = pragmasToEnv(commit_message.stripIndent())
                                 withEnv(['STAGE_NAME=Functional Hardware Medium',
@@ -716,9 +714,9 @@ pipeline {
                             println('  Result  Expect  Actual  Test')
                             println('  ------  ------  ------  ----------------------------------------------')
                             sequences.eachWithIndex { sequence, index ->
-                                result = 'PASS'
-                                expect = 'run '
-                                actual = 'run '
+                                String result = 'PASS'
+                                String expect = 'run '
+                                String actual = 'run '
                                 if (sequence['expect']) { expect = 'skip' }
                                 if (sequence['actual']) { actual = 'skip' }
                                 if (expect != actual) { result = 'FAIL' }

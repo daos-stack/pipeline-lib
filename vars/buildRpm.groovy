@@ -44,7 +44,7 @@
    */
 
 Map call(Map config = [:]) {
-    Date startDate = new Date()
+    long startDate = System.currentTimeMillis()
     String context = config.get('context', 'build/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
     String build_script = config.get('build_script', 'ci/rpm/build.sh')
@@ -67,8 +67,6 @@ Map call(Map config = [:]) {
     String https_proxy = ''
     if (env.DAOS_HTTPS_PROXY) {
         https_proxy = "${env.DAOS_HTTPS_PROXY}"
-    } else if (env.HTTPS_PROXY) {
-        https_proxy = "${env.HTTPS_PROXY}"
     }
     if (https_proxy) {
         env_vars += ' HTTPS_PROXY=' + https_proxy

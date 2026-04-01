@@ -1,3 +1,4 @@
+/* groovylint-disable VariableName */
 // vars/getFunctionalStageTags.groovy
 
 /**
@@ -8,7 +9,7 @@
  *
  * @return String value of tags used to limit tests to ones that will run in this stage
  */
- String call() {
+String call() {
     String stage_name = env.STAGE_NAME ?: ''
     String stage_tags = ''
 
@@ -30,4 +31,4 @@
     }
 
     return stage_tags
- }
+}

@@ -2,9 +2,9 @@
 // vars/commitPragma.groovy
 
 /**
- * commitPgragma.groovy
+ * commitPragma.groovy
  *
- * commitPgragma variablecommitPgragma
+ * commitPragma variablecommitPragma
  */
 
 /**

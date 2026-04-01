@@ -1,3 +1,4 @@
+/* groovylint-disable VariableName */
 // vars/getPragmaSuffix.groovy
 
 /**
@@ -7,7 +8,7 @@
  *
  * @return String value containing the commit pragma suffix for this functional test stage
  */
- String call() {
+String call() {
     String stage_name = env.STAGE_NAME ?: ''
     String pragma_suffix = ''
 
@@ -39,4 +40,4 @@
         }
     }
     return pragma_suffix
- }
+}

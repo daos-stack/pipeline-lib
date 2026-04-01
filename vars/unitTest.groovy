@@ -71,6 +71,8 @@
    *                             default is false.
    *
    * config['unstash_tests']     Un-stash -tests, default is true.
+   *
+   * config['image_version']     Image version to use for provisioning, e.g. el8.8, leap15.6, etc.
    */
 
 Map afterTest(Map config, Map testRunInfo) {
@@ -122,10 +124,9 @@ Map afterTest(Map config, Map testRunInfo) {
     return result
 }
 
+/* groovylint-disable-next-line MethodSize */
 Map call(Map config = [:]) {
-    // Must use Date() in pipeline-lib
-    // groovylint-disable-next-line NoJavaUtilDate
-    Date startDate = new Date()
+    long startDate = System.currentTimeMillis()
     String nodelist = config.get('NODELIST', env.NODELIST)
     String test_script = config.get('test_script', 'ci/unit/test_main.sh')
     Map stage_info = parseStageInfo(config)
@@ -137,15 +138,20 @@ Map call(Map config = [:]) {
         }
     }
 
+    String image_version = config.get('image_version', '') ?:
+        (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version']
+
     Map runData = provisionNodes(
                  NODELIST: nodelist,
                  node_count: stage_info['node_count'],
-                 distro: (stage_info['ci_target'] =~
-                          /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
+                 distro: image_version,
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: inst_rpms)
 
-    String target_stash = "${stage_info['target']}-${stage_info['compiler']}"
+    /* el9-gcc-tests */
+    String target_stash = (image_version ?: ${stage_info['target']}).split('\\.')[0]
+
+    target_stash += '-' + stage_info['compiler']
     if (stage_info['build_type']) {
         target_stash += '-' + stage_info['build_type']
     }
@@ -222,6 +228,12 @@ Map call(Map config = [:]) {
               overwrite: true
     stash name: results_map,
           includes: results_map
+
+    // Stash any optional test coverage reports for the stage
+    String code_coverage = 'code_coverage_' + sanitizedStageName()
+    stash name: code_coverage,
+          includes: '**/code_coverage.json',
+          allowEmpty: true
 
     return runData
 }

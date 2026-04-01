@@ -5,13 +5,11 @@
  *
  * Wrapper for emailext step to allow quiet operation for a staging
  * system.
- *
  */
 
-def call(Map config = [:]) {
-
+void call(Map config = [:]) {
     if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
-        println "Jenkins not configured to notify users of failed builds."
+        println 'Jenkins not configured to notify users of failed builds.'
         return
     }
 

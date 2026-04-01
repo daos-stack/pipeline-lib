@@ -15,17 +15,17 @@
    *
    * config['subject']       Subject for e-mail notification.
    */
-   void call(Map config = [:]) {
-        // E-mail needs a newline after the message before
-        // adding build information.
-        message = """${config['message']}
+void call(Map config = [:]) {
+    // E-mail needs a newline after the message before
+    // adding build information.
+    message = """${config['message']}
 """
-        try {
-            emailStatusSystem subject: config['subject'],
-                              body: message
-            buildAgentSystem action: config['action'],
-                             reason: config['message']
-        } catch (java.lang.NoSuchMethodError e) {
-            echo "Did not find emailStatusSystem or buildAgentSystem"
-        }
-   }
+    try {
+        emailStatusSystem subject: config['subject'],
+                          body: message
+        buildAgentSystem action: config['action'],
+                         reason: config['message']
+    } catch (java.lang.NoSuchMethodError e) {
+        echo 'Did not find emailStatusSystem or buildAgentSystem'
+    }
+}

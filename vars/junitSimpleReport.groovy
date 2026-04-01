@@ -25,7 +25,7 @@
 void call(Map config = [:]) {
     int zero = 0
     int one = 1
-    simple = 'simple'
+    String simple = 'simple'
     String jclass = config.get('class', simple)
     String jname = config.get('name', simple)
     String jsuite = config.get('suite', sanitizedStageName())

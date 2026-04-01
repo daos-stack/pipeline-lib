@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateStringLiteral, VariableName */
 // vars/skipFunctionalTestStage.groovy
 
 /**
@@ -13,6 +14,7 @@
  *      run_if_landing  whether or not the stage should run for landing builds
  * @return a String reason why the stage should be skipped; empty if the stage should run
  */
+/* groovylint-disable-next-line MethodSize */
 Map call(Map kwargs = [:]) {
     String tags = kwargs['tags'] ?: parseStageInfo()['test_tag']
     String pragma_suffix = kwargs['pragma_suffix'] ?: '-vm'
@@ -20,6 +22,7 @@ Map call(Map kwargs = [:]) {
     String distro = kwargs['distro'] ?: hwDistroTarget(size)
     String build_param = (pragma_suffix == '-vm') ?
         "CI_FUNCTIONAL_${distro}_TEST" : "CI_${size.replace('-', '_')}_TEST"
+    /* groovylint-disable-next-line UnnecessaryToString */
     String build_param_value = paramsValue(build_param, '').toString()
     Boolean run_if_landing = kwargs['run_if_landing'] ?: false
     Boolean run_if_pr = kwargs['run_if_pr'] ?: false
@@ -108,6 +111,7 @@ Map call(Map kwargs = [:]) {
             println("[${env.STAGE_NAME}] Checking if stage should be skipped with ${commit_pragma} == ${value}")
         }
         if (cachedCommitPragma(commit_pragma, '').toLowerCase() == value) {
+            /* groovylint-disable-next-line LineLength */
             println("[${env.STAGE_NAME}] Skipping the stage in commit build due to '${commit_pragma}: ${value}' commit pragma")
             return true
         }
@@ -121,6 +125,7 @@ Map call(Map kwargs = [:]) {
             println("[${env.STAGE_NAME}] Checking if stage should be run with ${commit_pragma} == ${value}")
         }
         if (cachedCommitPragma(commit_pragma, '').toLowerCase() == value) {
+            /* groovylint-disable-next-line LineLength */
             println("[${env.STAGE_NAME}] Running the stage in commit build due to '${commit_pragma}: ${value}' commit pragma")
             return false
         }
@@ -144,6 +149,7 @@ Map call(Map kwargs = [:]) {
     // not set.
     /* groovylint-disable-next-line UnnecessaryGetter */
     if (isPr() && !run_if_pr) {
+        /* groovylint-disable-next-line LineLength */
         println("[${env.STAGE_NAME}] Skipping the stage in commit PR build (override with '${commit_pragmas[0]}: false')")
         return true
     }

@@ -66,7 +66,7 @@ Map call(Map config = [:]) {
         config['failure_artifacts'] = env.STAGE_NAME
     }
 
-    if (test_rpms && config['stashes']){
+    if (test_rpms && config['stashes']) {
         // we don't need (and might not even have) stashes if testing
         // from RPMs
         config.remove('stashes')
@@ -88,14 +88,14 @@ Map call(Map config = [:]) {
     // Restore the ignore failure setting
     config['ignore_failure'] = ignore_failure
 
-    String covfile = 'test.cov'
+    String coverageFile = 'test.cov'
     if (!fileExists('test.cov')) {
-        covfile += '_not_done'
-        fileOperations([fileCreateOperation(fileName: covfile,
+        coverageFile += '_not_done'
+        fileOperations([fileCreateOperation(fileName: coverageFile,
                                             fileContent: '')])
     }
     String name = 'func' + stage_info['pragma_suffix'] + '-cov'
     stash name: config.get('coverage_stash', name),
-          includes: covfile
+          includes: coverageFile
     return runData
 }

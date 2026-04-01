@@ -27,7 +27,6 @@ Integer num_proc() {
    *
    * config['parallel_build'] Whether to build in parallel (-j)
    *
-   *
    * Getting better repositories for Ubuntu is a work in progress.
    * For Ubuntu repository groups, that will need to be a URL that
    * can be used to download a list file containing the needed repositories.
@@ -37,8 +36,6 @@ String call(Map config = [:]) {
     Boolean cachebust = config.get('cachebust', true)
     Boolean deps_build = config.get('deps_build', false)
     Boolean parallel_build = config.get('parallel_build', false)
-
-    Map stage_info = parseStageInfo(config)
 
     // The docker agent setup and the provisionNodes step need to know the
     // UID that the build agent is running under.
@@ -66,17 +63,19 @@ String call(Map config = [:]) {
 
     if (env.DAOS_NO_PROXY) {
         println "DAOS_NO_PROXY: $DAOS_NO_PROXY"
-        ret_str += ' --build-arg DAOS_NO_PROXY' + '="' + env.DAOS_NO_PROXY + '"'
+        ret_str += ' --build-arg DAOS_NO_PROXY="' + env.DAOS_NO_PROXY + '"'
     }
 
     String https_proxy = ''
     if (env.DAOS_HTTPS_PROXY) {
+        println "DAOS_HTTPS_PROXY: $DAOS_HTTPS_PROXY"
         https_proxy = env.DAOS_HTTPS_PROXY
-    } else if (env.HTTPS_PROXY) {
-        https_proxy = env.HTTPS_PROXY
     }
     if (https_proxy) {
         ret_str += ' --build-arg HTTPS_PROXY' + '="' + https_proxy + '"'
+        ret_str += ' --build-arg DAOS_HTTPS_PROXY' + '="' + https_proxy + '"'
+    } else {
+        println "WARNING: Missing DAOS_HTTPS_PROXY variable in Docker build arguments"
     }
 
     if (config['qb']) {
@@ -94,9 +93,6 @@ String call(Map config = [:]) {
     }
 
     // set BASE_DISTRO if necessary
-    if (stage_info['target'] == 'leap15') {
-        ret_str += ' --build-arg BASE_DISTRO=registry.opensuse.org/opensuse/leap-dnf:' + stage_info['distro_version']
-    }
 
     ret_str += ' '
     return ret_str

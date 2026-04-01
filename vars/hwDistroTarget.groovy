@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateNumberLiteral */
 // vars/hwDistroTarget.groovy
 
 /**
@@ -11,11 +12,11 @@
  */
 
 String call(String size) {
-    (name, version) = hwDistroTarget2(size)
-    return name + version
+    List result = hwDistroTarget2(size)
+    return result[0] + result[1]
 }
 
 String call() {
-    (name, version) = hwDistroTarget2()
-    return name + version
+    List result = hwDistroTarget2()
+    return result[0] + result[1]
 }
