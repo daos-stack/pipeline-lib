@@ -97,11 +97,7 @@ Map call(Map config = [:]) {
             String pointRelease = leapPart.split('\\.')[0]
             String version = "15.${pointRelease}"
             result['target'] = 'leap15'
-            // Special handling for 15.6: provision with 15.5 until mock config is available
-            // Leap 15.7+ doesn't exist, use sles15.7 instead
-            String defaultVersion = (pointRelease == '6') ? '15.5' :
-                                    (pointRelease.toInteger() >= 7) ? '15.6' : version
-            result['distro_version'] = cachedCommitPragma('LEAP15-version', defaultVersion)
+            result['distro_version'] = cachedCommitPragma('LEAP15-version', version)
             new_ci_target = cachedCommitPragma('LEAP15-target', result['target'])
         } else if (stage_name.contains('Leap 15')) {
             result['target'] = 'leap15'
