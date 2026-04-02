@@ -19,6 +19,7 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 //@Library(value='pipeline-lib@my_branch_name') _
+@Library(value='pipeline-lib@hendersp/DAOS-18757-pipeline-lib') _
 
 /* groovylint-disable-next-line CompileStatic */
 job_status_internal = [:]
@@ -149,7 +150,7 @@ pipeline {
                             assert(daosLatestVersion('master', 'el8').matches(/2.9\.\d+.*/))
                             assert(daosLatestVersion('release/2.4', 'el8').matches(/2.[34]\.\d+.*/))
                             assert(daosLatestVersion('release/2.6', 'el8').matches(/2.[56]\.\d+.*/))
-                            assert(daosLatestVersion('release/2.6', 'el8').matches(/2.[78]\.\d+.*/))
+                            assert(daosLatestVersion('release/2.8', 'el8').matches(/2.[78]\.\d+.*/))
                         }
                     }
                 }
