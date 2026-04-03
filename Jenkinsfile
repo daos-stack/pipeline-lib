@@ -143,6 +143,35 @@ pipeline {
                 expression { !skipStage() }
             }
             parallel {
+                stage('JUnit Tests') {
+                    agent {
+                        label 'JUnit_jdk_tests'
+                    }
+                    steps {
+                        script {
+                            String proxy = env.DAOS_HTTPS_PROXY
+                            int idx = proxy.lastIndexOf(':')
+                            String host = proxy.substring(0, idx)
+                            String port = proxy.substring(idx + 1)
+                            Map vars = [
+                                '${HTTP_HOST}': host,
+                                '${HTTP_PORT}': port,
+                                '${HTTPS_HOST}': host,
+                                '${HTTPS_PORT}': port,
+                            ]
+
+                            String properties = readFile('gradle.properties.template')
+                            vars.each { k, v -> properties = properties.replace(k, v) }
+                            writeFile file: 'gradle.properties', text: properties
+                        }
+                        sh './gradlew spotlessCheck test --no-daemon'
+                    }
+                    post {
+                        always {
+                            junit 'build/test-results/test/*.xml'
+                        }
+                    }
+                }
                 stage('daosLatestVersion() tests') {
                     steps {
                         script {
