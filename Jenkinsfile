@@ -91,9 +91,6 @@ Void distro_version_test(String branch, String distro, String expected) {
 /* groovylint-disable-next-line CompileStatic */
 pipeline {
     agent { label 'lightweight' }
-    libraries {
-        lib("pipeline-lib@${env.BRANCH_NAME}")
-    }
 
     environment {
         SSH_KEY_FILE = 'ci_key'
@@ -149,9 +146,10 @@ pipeline {
                 stage('daosLatestVersion() tests') {
                     steps {
                         script {
-                            assert(daosLatestVersion('master', 'el8').matches(/2.7\.\d+.*/))
+                            assert(daosLatestVersion('master', 'el8').matches(/2.9\.\d+.*/))
                             assert(daosLatestVersion('release/2.4', 'el8').matches(/2.[34]\.\d+.*/))
                             assert(daosLatestVersion('release/2.6', 'el8').matches(/2.[56]\.\d+.*/))
+                            assert(daosLatestVersion('release/2.8', 'el8').matches(/2.[78]\.\d+.*/))
                         }
                     }
                 }
@@ -162,6 +160,9 @@ pipeline {
                         distro_version_test('release/2.6', 'el8', '8')
                         distro_version_test('release/2.6', 'el9', '9')
                         distro_version_test('release/2.6', 'leap15', '15')
+                        distro_version_test('release/2.8', 'el8', '8')
+                        distro_version_test('release/2.8', 'el9', '9')
+                        distro_version_test('release/2.8', 'leap15', '15')
                         distro_version_test('master', 'el8', '8')
                         distro_version_test('master', 'el9', '9')
                         distro_version_test('master', 'leap15', '15')
