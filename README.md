@@ -205,17 +205,6 @@ From the main directory, run:
 gradlew test
 ```
 
-### Proxy configuration
-
-If your environment requires a proxy, specify the proxy settings in the `~/.gradle/gradle.properties` file.
-
-```properties
-systemProp.http.proxyHost=proxy.example.com
-systemProp.http.proxyPort=8080
-systemProp.https.proxyHost=proxy.example.com
-systemProp.https.proxyPort=8080
-```
-
 ## Formatting
 
 **Note**: Not all Groovy files are covered yet. You are very welcome to include more though. Please see (build.gradle)[build.gradle].
