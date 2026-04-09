@@ -155,7 +155,8 @@ Map call(Map config = [:]) {
                  node_count: node_count,
                  distro: image_version,
                  inst_repos: config.get('inst_repos', ''),
-                 inst_rpms: inst_rpms)
+                 inst_rpms: inst_rpms,
+                 bullseye: compiler == 'covc')
 
     /* el9-gcc-tests */
     String target_stash = (image_version ?: target).split('\\.')[0]
