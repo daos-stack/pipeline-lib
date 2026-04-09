@@ -32,12 +32,15 @@ String call(String distro) {
 String call(String distro, String branch) {
     return ['el8':      ['master': '8.8',
                          '2.4':    '8.8',
-                         '2.6':    '8.8'],
+                         '2.6':    '8.8',
+                         '2.8':    '8.8'],
             'el9':      ['master': '9.7',
-                         '2.6':    '9.4'],
+                         '2.6':    '9.4',
+                         '2.8':    '9.7'],
             'leap15':   ['master': '15.6',
                          '2.4':    '15.6',
-                         '2.6':    '15.6'],
+                         '2.6':    '15.6',
+                         '2.8':    '15.6'],
             'ubuntu20': ['master': '20.04']][distro][branch]
 }
 
