@@ -364,6 +364,7 @@ boolean call(Map config = [:]) {
         case 'Unit Test Bullseye on EL 8.8':
             return skip_stage_pragma('bullseye', 'true') ||
                    stageAlreadyPassed()
+        case 'Unit Test bdev with memcheck':
         case 'Unit Test bdev with memcheck on EL 8':
         case 'Unit Test bdev with memcheck on EL 8.8':
         case 'Unit Test with memcheck on CentOS 8':
@@ -381,6 +382,7 @@ boolean call(Map config = [:]) {
         case 'Unit Test on CentOS 8':
         case 'Unit Test on EL 8':
         case 'Unit Test on EL 8.8':
+        case 'Unit Test bdev':
         case 'Unit Test bdev on EL 8':
         case 'Unit Test bdev on EL 8.8':
         case 'Unit Test on EL 9':
