@@ -2,7 +2,7 @@
 /* groovylint-disable DuplicateListLiteral, DuplicateMapLiteral, DuplicateNumberLiteral */
 // groovylint-disable DuplicateStringLiteral, NestedBlockDepth, VariableName
 /* Copyright 2019-2024 Intel Corporation
- * Copyright 2025 Hewlett Packard Enterprise Development LP
+ * Copyright 2025-2026 Hewlett Packard Enterprise Development LP
  * All rights reserved.
  *
  * This file is part of the DAOS Project. It is subject to the license terms
@@ -148,23 +148,10 @@ pipeline {
                         label 'JUnit_jdk_tests'
                     }
                     steps {
-                        script {
-                            String proxy = env.DAOS_HTTPS_PROXY
-                            int idx = proxy.lastIndexOf(':')
-                            String host = proxy.substring(0, idx)
-                            String port = proxy.substring(idx + 1)
-                            Map vars = [
-                                '${HTTP_HOST}': host,
-                                '${HTTP_PORT}': port,
-                                '${HTTPS_HOST}': host,
-                                '${HTTPS_PORT}': port,
-                            ]
-
-                            String properties = readFile('gradle.properties.template')
-                            vars.each { k, v -> properties = properties.replace(k, v) }
-                            writeFile file: 'gradle.properties', text: properties
-                        }
-                        sh './gradlew spotlessCheck test --no-daemon'
+                        sh '''
+                        .gradle-init.sh
+                        ./gradle spotlessCheck test --no-daemon
+                        '''
                     }
                     post {
                         always {
