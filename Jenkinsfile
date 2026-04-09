@@ -149,7 +149,7 @@ pipeline {
                     }
                     steps {
                         sh '''
-                        .gradle-init.sh
+                        ./gradle-init.sh
                         ./gradle spotlessCheck test --no-daemon
                         '''
                     }
