@@ -21,6 +21,8 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      distro          functional test stage distro (VM)
  *      image_version   image version to use for provisioning, e.g. el8.8, leap15.6, etc.
  *      base_branch     if specified, checkout sources from this branch before running tests
+ *      node_count      number of nodes to provision and use for the stage; overrides the count
+ *                      that would otherwise be inferred from the stage name by parseStageInfo()
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
  *      job_status      Map of status for each stage in the job/build
@@ -40,6 +42,7 @@ Map call(Map kwargs = [:]) {
     String image_version = kwargs.get('image_version', null)
     String base_branch = kwargs.get('base_branch')
     String other_packages = kwargs.get('other_packages', '')
+    Integer node_count = kwargs.get('node_count') as Integer
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
     Map job_status = kwargs.get('job_status', [:])
@@ -77,20 +80,24 @@ Map call(Map kwargs = [:]) {
 
                     try {
                         println("[${name}] Running functionalTest() on ${label} with tags=${tags}")
+                        Map ftestConfig = [
+                            image_version: image_version,
+                            inst_repos: daosRepos(distro),
+                            inst_rpms: functionalPackages(1, next_version, 'tests-internal') + ' ' + other_packages,
+                            test_tag: tags,
+                            ftest_arg: getFunctionalArgs(
+                                pragma_suffix: pragma_suffix,
+                                nvme: nvme,
+                                default_nvme: default_nvme,
+                                provider: provider)['ftest_arg'],
+                            test_function: 'runTestFunctionalV2']
+                        if (node_count != null) {
+                            ftestConfig['node_count'] = node_count
+                        }
                         jobStatusUpdate(
                             job_status,
                             name,
-                            functionalTest(
-                                image_version: image_version,
-                                inst_repos: daosRepos(distro),
-                                inst_rpms: functionalPackages(1, next_version, 'tests-internal') + ' ' + other_packages,
-                                test_tag: tags,
-                                ftest_arg: getFunctionalArgs(
-                                    pragma_suffix: pragma_suffix,
-                                    nvme: nvme,
-                                    default_nvme: default_nvme,
-                                    provider: provider)['ftest_arg'],
-                                test_function: 'runTestFunctionalV2'))
+                            functionalTest(ftestConfig))
                     } finally {
                         println("[${name}] Running functionalTestPostV2()")
                         functionalTestPostV2()
