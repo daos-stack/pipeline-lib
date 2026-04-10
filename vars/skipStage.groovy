@@ -361,6 +361,7 @@ boolean call(Map config = [:]) {
         case 'Unit Test Bullseye on EL 8.8':
             return skip_stage_pragma('bullseye', 'true') ||
                    stageAlreadyPassed()
+        case 'Unit Test bdev with memcheck':
         case 'Unit Test bdev with memcheck on EL 8':
         case 'Unit Test bdev with memcheck on EL 8.8':
         case 'Unit Test with memcheck on CentOS 8':
@@ -375,6 +376,7 @@ boolean call(Map config = [:]) {
         case 'Unit Test on CentOS 8':
         case 'Unit Test on EL 8':
         case 'Unit Test on EL 8.8':
+        case 'Unit Test bdev':
         case 'Unit Test bdev on EL 8':
         case 'Unit Test bdev on EL 8.8':
         case 'Unit Test bdev':
@@ -435,16 +437,11 @@ boolean call(Map config = [:]) {
         case 'Fault injection testing on CentOS 8':
         case 'Fault injection testing on EL 8':
         case 'Fault injection testing on EL 8.8':
+        case 'Fault injection testing on EL 9':
+        case 'Fault injection testing on EL 9.7':
             return skip_stage_pragma('fault-injection-test') ||
-                   !paramsValue('CI_FI_el8_TEST', true) ||
-                   quickFunctional() ||
-                   docOnlyChange(target_branch) ||
-                   skip_stage_pragma('func-test') ||
-                   skip_stage_pragma('func-test-vm') ||
-                   stageAlreadyPassed()
-        case 'Fault injection testing':
-            return skip_stage_pragma('fault-injection-test') ||
-                   !paramsValue('CI_FI_el9_TEST', true) ||
+                   !paramsValue('CI_FI_TEST', true) ||
+                   !paramsValue('CI_FI_el8_TEST', true) || /* release/2.6 Jenkinsfile still uses CI_FI_el8_TEST */
                    quickFunctional() ||
                    docOnlyChange(target_branch) ||
                    skip_stage_pragma('func-test') ||
