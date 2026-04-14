@@ -367,7 +367,6 @@ boolean call(Map config = [:]) {
         case 'Unit Test with memcheck on CentOS 8':
         case 'Unit Test with memcheck on EL 8':
         case 'Unit Test with memcheck on EL 8.8':
-        case 'Unit Test bdev with memcheck':
         case 'Unit Test with memcheck':
             return !paramsValue('CI_UNIT_TEST_MEMCHECK', true) ||
                    skip_stage_pragma('unit-test-memcheck') ||
@@ -379,7 +378,6 @@ boolean call(Map config = [:]) {
         case 'Unit Test bdev':
         case 'Unit Test bdev on EL 8':
         case 'Unit Test bdev on EL 8.8':
-        case 'Unit Test bdev':
             return !paramsValue('CI_UNIT_TEST', true) ||
                    skip_stage_pragma('unit-test') ||
                    skip_stage_pragma('run_test') ||
@@ -437,8 +435,6 @@ boolean call(Map config = [:]) {
         case 'Fault injection testing on CentOS 8':
         case 'Fault injection testing on EL 8':
         case 'Fault injection testing on EL 8.8':
-        case 'Fault injection testing on EL 9':
-        case 'Fault injection testing on EL 9.7':
             return skip_stage_pragma('fault-injection-test') ||
                    !paramsValue('CI_FI_TEST', true) ||
                    !paramsValue('CI_FI_el8_TEST', true) || /* release/2.6 Jenkinsfile still uses CI_FI_el8_TEST */
