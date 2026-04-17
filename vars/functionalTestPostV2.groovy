@@ -53,7 +53,7 @@ void call(Map config = [:]) {
     }
     String prev_result = currentBuild.result
 
-    junit(testResults: junit_results)
+    junit(testResults: junit_results, keepTestNames: true)
 
     if (prev_result != currentBuild.result) {
         println('Junit or some other stage changed currentBuild result to ' +
