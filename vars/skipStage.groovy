@@ -346,7 +346,7 @@ boolean call(Map config = [:]) {
                     skip_stage_pragma('build') ||
                     rpmTestVersion() != '' ||
                     docOnlyChange(target_branch) ||
-                    skip_build_on_el_gcc(target_branch, '8') ||
+                    skip_build_on_el_gcc(target_branch, '9') ||
                     skip_stage_pragma('unit-tests')
         case 'NLT':
         case 'NLT on CentOS 8':
