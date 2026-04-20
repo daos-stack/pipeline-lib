@@ -525,9 +525,12 @@ boolean call(Map config = [:]) {
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('build-el9-gcc') ||
                    skip_stage_pragma('test') ||
+                   skip_stage_pragma('test-rpms') ||
+                   skip_stage_pragma('test-el-9-rpms', 'true') ||
                    docOnlyChange(target_branch) ||
                    (quickFunctional() &&
-                    !paramsValue('CI_TEST_EL_RPMs', true)) ||
+                    !paramsValue('CI_TEST_EL_RPMs', true) &&
+                    !run_default_skipped_stage('test-el-9-rpms')) ||
                    (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
         case 'Test Leap 15 RPMs':
