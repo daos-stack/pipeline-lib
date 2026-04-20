@@ -38,15 +38,17 @@ List call(String project, String branch, String commit_pragmas = '') {
     // TODO: find out what the / escape is.  I've already tried both %2F and %252F
     //       https://issues.jenkins.io/browse/JENKINS-68857
     // Instead, we will create a branch specifically to test on
-    List knownParameters = ['CI_FI_el8_TEST',
-                            'CI_MORE_FUNCTIONAL_PR_TESTS',
+    List knownParametersTrue = ['CI_MORE_FUNCTIONAL_PR_TESTS',
                             'CI_FUNCTIONAL_el9_TEST',
                             'CI_FUNCTIONAL_el8_TEST',
                             'CI_FUNCTIONAL_leap15_TEST',
-                            'CI_medium_TEST',
-                            'CI_large_TEST'
+                            'CI_ALLOW_UNSTABLE_TEST'
+                            ]
+    List knownParametersFalse = ['CI_medium_TEST',
+                            'CI_large_TEST',
+                            'CI_UNIT_TEST_MEMCHECK'
                            ]
-
+    List knownParameters = knownParametersTrue + knownParametersFalse
     List result = []
     String checkoutDir = project.split('/')[1] + '-' + branch.replaceAll('/', '-')
     withCredentials(githubAccess()) {
@@ -119,9 +121,10 @@ List call(String project, String branch, String commit_pragmas = '') {
     String jenkinsfilePath = checkoutDir + '/Jenkinsfile'
     if (fileExists(jenkinsfilePath)) {
         String jenkinsfileContent = readFile(jenkinsfilePath)
+
         knownParameters.each { param ->
             if (jenkinsfileContent.contains(param)) {
-                Boolean defaultValue = param in ['CI_medium_TEST', 'CI_large_TEST'] ? false : true
+                Boolean defaultValue = param in knownParametersFalse ? false : true
                 result.add(booleanParam(name: param, value: defaultValue))
             }
         }

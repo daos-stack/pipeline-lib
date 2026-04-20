@@ -2,7 +2,7 @@
 /* groovylint-disable DuplicateListLiteral, DuplicateMapLiteral, DuplicateNumberLiteral */
 // groovylint-disable DuplicateStringLiteral, NestedBlockDepth, VariableName
 /* Copyright 2019-2024 Intel Corporation
- * Copyright 2025 Hewlett Packard Enterprise Development LP
+ * Copyright 2025-2026 Hewlett Packard Enterprise Development LP
  * All rights reserved.
  *
  * This file is part of the DAOS Project. It is subject to the license terms
@@ -19,6 +19,7 @@
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
 //@Library(value='pipeline-lib@my_branch_name') _
+@Library(value='pipeline-lib@grom72/SRE-3737') _
 
 /* groovylint-disable-next-line CompileStatic */
 job_status_internal = [:]
