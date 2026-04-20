@@ -197,12 +197,27 @@ Requirements:
 
 - JDK
 
+### Install gradle
+
+It makes things easier if we ensure everyone uses the same version of Gradle, including in CI.
+
+**Note**: We decided not to use gradlew to avoid committing a binary blob to the repository.
+
+From the main directory, run:
+
+```sh
+./gradle-init.sh
+```
+
+If it succeeds, you’ll find a `gradle` symbolic link in the main directory, which you can use like a normal Gradle installation.
+
+
 ### How to run unit tests
 
 From the main directory, run:
 
 ```bash
-gradlew test
+./gradle test
 ```
 
 ## Formatting
@@ -210,5 +225,5 @@ gradlew test
 **Note**: Not all Groovy files are covered yet. You are very welcome to include more though. Please see (build.gradle)[build.gradle].
 
 ```sh
-gradlew spotlessApply
+./gradle spotlessApply
 ```
