@@ -166,12 +166,6 @@ Map call(Map config = [:]) {
     default:
             error "Unsupported distro type: ${distro_type}/distro: ${distro}"
     }
-    String https_proxy = ''
-    if (env.DAOS_HTTPS_PROXY) {
-        https_proxy = "${env.DAOS_HTTPS_PROXY}"
-    } else if (env.HTTPS_PROXY) {
-        https_proxy = "${env.HTTPS_PROXY}"
-    }
     provision_script += ' ' +
                       'NODESTRING=' + nodeString + ' ' +
                       'CONFIG_POWER_ONLY=' + config_power_only + ' ' +
@@ -181,7 +175,8 @@ Map call(Map config = [:]) {
                       // https://issues.jenkins.io/browse/JENKINS-55819
                       'CI_RPM_TEST_VERSION="' + (params.CI_RPM_TEST_VERSION ?: '') + '" ' +
                       'CI_PR_REPOS="' + (params.CI_PR_REPOS ?: '') + '" ' +
-                      'HTTPS_PROXY="' + https_proxy + '" ' +
+                      ((env.DAOS_HTTPS_PROXY ?: env.HTTPS_PROXY) ?
+                          'HTTPS_PROXY="' + (env.DAOS_HTTPS_PROXY ?: env.HTTPS_PROXY) + '" ' : '') +
                       'ci/provisioning/post_provision_config.sh'
     new_config['post_restore'] = provision_script
     try {
