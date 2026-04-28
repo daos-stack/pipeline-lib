@@ -60,7 +60,7 @@ void call(Map config = [:]) {
     if (testResults != 'None' ) {
         // groovylint-disable-next-line NoDouble
         double health_scale = 1.0
-        if (results['ignore_failure']) {
+        if (results.get('ignore_failure', false)) {
             health_scale = 0.0
         }
         junit testResults: testResults,
@@ -81,7 +81,7 @@ void call(Map config = [:]) {
                           class: 'Valgrind',
                           message: 'Valgrind Memcheck error detected',
                           testdata: testdata,
-                          ignoreFailure: results['ignore_failure']
+                          ignoreFailure: results.get('ignore_failure', false)
         String memcheck = sanitizedStageName() + '_memcheck_results.tar.bz2'
         artifact_list.add(memcheck)
     }
@@ -90,12 +90,12 @@ void call(Map config = [:]) {
                flow_name: flow_name,
                result: results['result'],
                junit_files: testResults,
-               ignore_failure: results['ignore_failure']
+               ignore_failure: results.get('ignore_failure', false)
 
     artifact_list.each { artifactPat ->
         println("Archiving Artifacts matching ${artifactPat}")
         archiveArtifacts artifacts: artifactPat,
-                     allowEmptyArchive: results['ignore_failure']
+                     allowEmptyArchive: results.get('ignore_failure', false)
     }
     String target_stash = "${stage_info['target']}-${stage_info['compiler']}"
     if (stage_info['build_type']) {
@@ -142,9 +142,9 @@ void call(Map config = [:]) {
     }
 
     println results['result_code'].getClass()
-    println results['ignore_failure'].getClass()
+    println results.get('ignore_failure', false).getClass()
 
-    if (results['result_code'] != 0  && !results['ignore_failure']) {
+    if (results['result_code'] != 0  && !results.get('ignore_failure', false)) {
         // Extra information for when this happens.
         println("results: ${results}")
         println results['result_code'].getClass()
