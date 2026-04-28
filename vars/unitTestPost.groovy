@@ -128,7 +128,7 @@ void call(Map config = [:]) {
                      name: 'Node local testing',
                      tool: issues(pattern: 'vm_test/nlt-errors.json',
                                   name: 'NLT results',
-                                  id: 'VM_test'),
+                                  id: sanitizedStageName() + '_VM_test'),
                      scm: 'daos-stack/daos'
 
         if (cb_result != currentBuild.result) {
