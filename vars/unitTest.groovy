@@ -209,25 +209,32 @@ Map call(Map config = [:]) {
     p['testResults'] = stage_info.get('testResults', 'test_results/*.xml')
     p['with_valgrind'] = with_valgrind
     p['NLT'] = stage_info['NLT']
-    runTestData = afterTest(p, runData)
-    runTestData.each { resultKey, data -> runData[resultKey] = data }
+
+    // Update the stash inside a finally block so that ignore_failure is always
+    // written even if afterTest() throws.  Without this, unitTestPost() reads
+    // the earlier stash written by runTest() which lacks ignore_failure, causing
+    // allowEmptyArchive: null and a NullPointerException in ArtifactArchiver.
+    String results_map = 'results_map_' + sanitizedStageName()
+    try {
+        runTestData = afterTest(p, runData)
+        runTestData.each { resultKey, data -> runData[resultKey] = data }
+    } finally {
+        int runTime = durationSeconds(startDate)
+        runData['unittest_time'] = runTime
+
+        // Use the original ignore_failure setting for post section
+        runData['ignore_failure'] = config.get('ignore_failure', false)
+        writeYaml file: results_map,
+                  data: runData,
+                  overwrite: true
+        stash name: results_map,
+              includes: results_map
+    }
 
     if (stage_info['compiler'] == 'covc') {
         stash name: config.get('coverage_stash', "${target_stash}-unit-cov"),
             includes: 'test.cov'
     }
-    int runTime = durationSeconds(startDate)
-    runData['unittest_time'] = runTime
-
-    // Update the stash after checking junit/valgrind
-    String results_map = 'results_map_' + sanitizedStageName()
-    // Use the original ignore_failure setting for post section
-    runData['ignore_failure'] = config.get('ignore_failure', false)
-    writeYaml file: results_map,
-              data: runData,
-              overwrite: true
-    stash name: results_map,
-          includes: results_map
 
     // Stash any optional test coverage reports for the stage
     String code_coverage = 'code_coverage_' + sanitizedStageName()
