@@ -1,6 +1,7 @@
 #!/usr/bin/groovy
 /* groovylint-disable DuplicateMapLiteral, DuplicateStringLiteral, NestedBlockDepth, VariableName */
-/* Copyright (C) 2019-2023 Intel Corporation
+/* Copyright 2019-2024 Intel Corporation
+ * Copyright 2025 Hewlett Packard Enterprise Development LP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,9 +49,13 @@
 /* groovylint-disable-next-line CompileStatic, UnusedVariable */
 Map foo = [:]
 
-String test_branch(String target) {
-    return 'ci-' + JOB_NAME.replaceAll('/', '-') +
-            '-' + target.replaceAll('/', '-')
+String skipped_tests_tags(String branch) {
+    List skipped = getSkippedTests(branch)
+    if (skipped) {
+        return ',-' + skipped.join(',-')
+    }
+
+    return ''
 }
 
 /* groovylint-disable-next-line MethodSize, ParameterName */
@@ -223,7 +228,7 @@ void call(Map pipeline_args) {
                         }
                         agent { label 'lightweight' }
                         steps {
-                            sh label: 'Get submdule status',
+                            sh label: 'Get submodule status',
                                script: 'git submodule status'
                             checkoutScm url: 'https://github.com/daos-stack/packaging.git',
                                         checkoutDir: 'packaging-module',
@@ -610,8 +615,8 @@ void call(Map pipeline_args) {
                                 archiveArtifacts artifacts: 'artifacts/leap15/**'
                             }
                         }
-                    } //stage('Build RPM on Leap 15')
-                    stage('Build RPM on Ubuntu 20.04') {
+                    } //stage('Build RPM on Leap 15.5')
+                    stage('Build DEB on Ubuntu 20.04') {
                         when {
                             beforeAgent true
                             expression {
@@ -671,8 +676,8 @@ void call(Map pipeline_args) {
                                                  allowEmptyArchive: true
                             }
                         }
-                    } //stage('Build RPM on Ubuntu 20.04')
-                    stage('Build RPM on Ubuntu rolling') {
+                    } //stage('Build DEB on Ubuntu 20.04')
+                    stage('Build DEB on Ubuntu rolling') {
                         when {
                             beforeAgent true
                             expression { !skipStage() && distros.contains('ubuntu_rolling') }
@@ -727,7 +732,7 @@ void call(Map pipeline_args) {
                                 archiveArtifacts artifacts: 'artifacts/ubuntu_rolling/**'
                             }
                         }
-                    } //stage('Build RPM on Ubuntu rolling')
+                    } //stage('Build DEB on Ubuntu rolling')
                 } // parallel
             } //stage('Build')
             stage('Test') {
@@ -743,7 +748,7 @@ void call(Map pipeline_args) {
                         axis {
                             name 'TEST_BRANCH'
                             values 'master',
-                                   'release/2.4'
+                                   'release/2.6'
                         }
                     }
                     when {
@@ -757,78 +762,15 @@ void call(Map pipeline_args) {
                     stages {
                         stage('Test Packages') {
                             steps {
-                                // TODO: find out what the / escape is.  I've already tried both %2F and %252F
-                                //       https://issues.jenkins.io/browse/JENKINS-68857
-                                // Instead, we will create a branch specifically to test on
-                                withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                                credentialsId: 'daos_jenkins_project_github_access',
-                                                usernameVariable: 'GH_USER',
-                                                passwordVariable: 'GH_PASS']]) {
-                                    sh label: 'Create or update test branch',
-                                       /* groovylint-disable-next-line GStringExpressionWithinString */
-                                       script: 'branch_name=' + test_branch(env.TEST_BRANCH) + '''
-                                               source_branch=origin/''' +
-                                               cachedCommitPragma("Test-${env.TEST_BRANCH}-branch",
-                                                                  env.TEST_BRANCH) + '''
-                                                # dir for checkout since all runs in the matrix share the same workspace
-                                                dir="daos-''' + env.TEST_BRANCH.replaceAll('/', '-') + '''"
-                                                rm -rf "$dir"
-                                                if cd $dir; then
-                                                    git remote update
-                                                    git fetch origin
-                                                else
-                                                    git clone https://''' + env.GH_USER + ':' +
-                                                                            env.GH_PASS +
-                                                                  '''@github.com/daos-stack/daos.git $dir
-                                                    cd $dir
-                                                fi
-                                                # delete the branch if it exists
-                                                if git checkout $branch_name; then
-                                                    if ! git checkout origin/master || \
-                                                       ! git branch -D $branch_name; then
-                                                      git status
-                                                      git branch -a
-                                                      exit 1
-                                                    fi
-                                                fi
-                                                # create the branch
-                                                if ! git checkout -b $branch_name $source_branch; then
-                                                    echo "Error trying to create branch $branch_name"
-                                                    exit 1
-                                                fi
-                                                # remove any triggers so that this test branch doesn't run weekly, etc.
-                                                if grep triggers Jenkinsfile; then
-                                                    sed -i -e '/triggers/,/^$/d' Jenkinsfile
-                                                    msg=' and remove triggers'
-                                                fi
-                                                pipeline_libs="''' + cachedCommitPragma('Test-libs') + '''"
-                                                if [ -n "$pipeline_libs" ]; then
-                                                    sed -i -e "/\\/\\/@Library/c\\
-                                                        @Library(value='$pipeline_libs') _" Jenkinsfile
-                                                    msg="Pipeline-lib PRs${msg:-}"
-                                                else
-                                                    msg="Clear any commit pragmas${msg:-}"
-                                                fi
-                                                git commit --allow-empty -m "${msg}" Jenkinsfile
-                                                git push -f origin $branch_name:$branch_name
-                                                sleep 10'''
-                                } // withCredentials
-                                sh label: 'Delete local test branch',
-                                   script: '''dir="daos-''' + env.TEST_BRANCH.replaceAll('/', '-') + '''"
-                                              if ! cd $dir; then
-                                                  echo "$dir does not exist"
-                                                  exit 1
-                                              fi
-                                              git checkout origin/master
-                                              if ! git branch -D ''' + test_branch(env.TEST_BRANCH) + '''; then
-                                                  git status
-                                                  git branch -a
-                                                  exit 1
-                                              fi'''
-                                build job: 'daos-stack/daos/' + test_branch(env.TEST_BRANCH),
+                                setupDownstreamTesting('daos-stack/daos', env.TEST_BRANCH)
+                                build job: 'daos-stack/daos/' + setupDownstreamTesting.test_branch(env.TEST_BRANCH),
                                       parameters: [string(name: 'TestTag',
                                                           value: ('load_mpi test_core_files ' +
-                                                                   pipeline_args.get('test-tag', '')).trim()),
+                                                                   /* groovylint-disable-next-line LineLength */
+                                                                   pipeline_args.get('test-tag', '')).trim().split(' ').collect {
+                                                                       tag ->
+                                                                       tag + skipped_tests_tags(env.TEST_BRANCH)
+                                                                   }.join(' ')),
                                                    string(name: 'CI_RPM_TEST_VERSION',
                                                           value: pipeline_args.get('skip-build', true) ?
                                                                daosLatestVersion(env.TEST_BRANCH, 'el8') : ''),
@@ -856,32 +798,33 @@ void call(Map pipeline_args) {
                                                    string(name: 'CI_PR_REPOS',
                                                           value: env.JOB_NAME.split('/')[1] + '@' +
                                                                  "${env.BRANCH_NAME}:${env.BUILD_ID}" +
-                                                                 ' ' + cachedCommitPragma('PR-repos'))
+                                                                 ' ' + cachedCommitPragma('PR-repos')),
+                                                   booleanParam(name: 'CI_RPM_el8_NOBUILD',
+                                                                value: pipeline_args.get('skip-build', true) ||
+                                                                  !('el8' in distros)),
+                                                   booleanParam(name: 'CI_RPM_el9_NOBUILD',
+                                                                value: pipeline_args.get('skip-build', true) ||
+                                                                  !('el9' in distros)),
+                                                   booleanParam(name: 'CI_RPM_leap15_NOBUILD',
+                                                                value: pipeline_args.get('skip-build', true) ||
+                                                                  !('leap15' in distros)),
+                                                   booleanParam(name: 'CI_DEB_Ubuntu20_NOBUILD',
+                                                                value: pipeline_args.get('skip-build', true) ||
+                                                                       !('ubuntu20.04' in distros)),
+                                                   booleanParam(name: 'CI_ALLOW_UNSTABLE_TEST',
+                                                                value: cachedCommitPragma('Allow-unstable-test').toLowerCase() == 'true')
                                                   ]
                             } //steps
                             post {
                                 success {
-                                    withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                                    credentialsId: 'daos_jenkins_project_github_access',
-                                                    usernameVariable: 'GH_USER',
-                                                    passwordVariable: 'GH_PASS']]) {
-                                        sh label: 'Delete test branch',
-                                           script: 'if ! git push https://$GH_USER:$GH_PASS@github.com/daos-stack/' +
-                                                      'daos.git --delete ' + test_branch(env.TEST_BRANCH) + '''; then
-                                                        echo "Error trying to delete branch ''' +
-                                                        test_branch(env.TEST_BRANCH) + '''"
-                                                        git remote -v
-                                                        env
-                                                        exit 1
-                                                    fi'''
-                                    } // withCredentials
-                                } // success
+                                    script {
+                                        setupDownstreamTesting.cleanup('daos-stack/daos', env.TEST_BRANCH)
+                                    }
+                                }
                                 always {
-                                    /* groovylint-disable-next-line LineLength */
                                     writeFile file: stageStatusFilename(env.STAGE_NAME,
                                                                         env.TEST_BRANCH.replaceAll('/', '-')),
                                               text: currentBuild.currentResult + '\n'
-                                    /* groovylint-disable-next-line LineLength */
                                     archiveArtifacts artifacts: stageStatusFilename(
                                                                     env.STAGE_NAME,
                                                                     env.TEST_BRANCH.replaceAll('/', '-'))

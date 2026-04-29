@@ -23,7 +23,7 @@
    * config['description']       Description to report for SCM status.
    *                             Default env.STAGE_NAME.
    *
-   * config['failure_artifacts'] Failure aritfifacts to return.
+   * config['failure_artifacts'] Failure artifacts to return.
    *                             Default env.STAGE_NAME.
    *
    * config['ignore_failure']    Ignore test failures.  Default false.
@@ -44,29 +44,27 @@
    *
    * config['test_script']       Script to build RPMs.
    *                             Default 'ci/rpm/test_daos.sh'.
-   *
    */
 
 Map call(Map config = [:]) {
+    Map runData = provisionNodes NODELIST: config.get('NODELIST', env.NODELIST),
+                                 node_count: 1,
+                                 profile: config.get('profile', 'daos_ci'),
+                                 distro: parseStageInfo(config)['ci_target'],
+                                 inst_repos: config.get('inst_repos', ''),
+                                 inst_rpms: config.get('inst_rpms', '')
 
-  Map runData = provisionNodes NODELIST: config.get('NODELIST', env.NODELIST),
-                               node_count: 1,
-                               profile: config.get('profile', 'daos_ci'),
-                               distro: parseStageInfo(config)['ci_target'],
-                               inst_repos: config.get('inst_repos', ''),
-                               inst_rpms: config.get('inst_rpms', '')
-
-
-  Map runtestData = runTest script: 'export DAOS_PKG_VERSION="' +
-                                    config['daos_pkg_version'] + '"\n' +
-                                    config.get('test_script', 'ci/rpm/test_daos.sh'),
+    Map runtestData = runTest script: 'export DAOS_PKG_VERSION="' +
+                                      config['daos_pkg_version'] + '"\n' +
+                                      config.get('test_script', 'ci/rpm/test_daos.sh'),
                     junit_files: config.get('junit_files', null),
                     failure_artifacts: config.get('failure_artifacts', env.STAGE_NAME),
                     ignore_failure: config.get('ignore_failure', false),
                     description: config.get('description', env.STAGE_NAME),
                     context: config.get('context', 'test/' + env.STAGE_NAME)
-  runtestData.each{ resultKey, data -> runData[resultKey] = data }
-  runData['rpmtest_time'] = durationSeconds(new Date())
+    runtestData.each { resultKey, data -> runData[resultKey] = data }
+    long endDate = System.currentTimeMillis()
+    runData['rpmtest_time'] = durationSeconds(endDate)
 
-  return runData
+    return runData
 }

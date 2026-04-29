@@ -1,3 +1,4 @@
+/* groovylint-disable DuplicateNumberLiteral */
 // vars/unitTestPost.groovy
 
   /**
@@ -15,32 +16,43 @@
    * config['testResults']         Junit test result files.
    *                               Default 'test_results/*.xml'
    *
-   * config['valgrind_pattern']    Pattern for Valgind files.
+   * config['valgrind_pattern']    Pattern for Valgrind files.
    *                               Default: '*.memcheck.xml'
    *
-   * config['valgrind_stash']      Name to stash valgrind artifacts
+   * config['valgrind_stash']      Name to stash Valgrind artifacts
    *                               Required if more than one stage is
-   *                               creating valgrind reports.
+   *                               creating Valgrind reports.
    */
 
 // groovylint-disable DuplicateStringLiteral, VariableName
+/* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
     String cbcResult = currentBuild.currentResult
 
-    // Stash the valgrind files for later analysis
+    // Stash the Valgrind files for later analysis
     String valgrind_pattern = stage_info.get('valgrind_pattern',
                                              'unit-test-*memcheck.xml')
     if (config['valgrind_stash']) {
-        stash name: config['valgrind_stash'], includes: valgrind_pattern
+        try {
+            stash name: config['valgrind_stash'], includes: valgrind_pattern
+        } catch (hudson.AbortException e) {
+            println('Failed to stash Valgrind files with pattern ' +
+                    "${valgrind_pattern}: ${e.message}")
+        }
     }
     String context = config.get('context', 'test/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
     String flow_name = config.get('flow_name', env.STAGE_NAME)
     // Need to unstash the script result from runTest
     String results_map = 'results_map_' + sanitizedStageName()
-    unstash name: results_map
-    Map results = readYaml file: results_map
+    Map results = [:]
+    try {
+        unstash name: results_map
+        results = readYaml file: results_map
+    } catch (hudson.AbortException e) {
+        println("Failed to unstash ${results_map}: ${e.message}")
+    }
 
     List artifact_list = config.get('artifacts', ['run_test.sh/*'])
 
@@ -89,20 +101,21 @@ void call(Map config = [:]) {
     if (stage_info['build_type']) {
         target_stash += '-' + stage_info['build_type']
     }
-    // Coverage instrumented tests and Vagrind are probably mutually exclusive
+    // Coverage instrumented tests and Valgrind are probably mutually exclusive
     if (stage_info['compiler'] == 'covc') {
         return
     }
 
     if (stage_info['NLT']) {
         String cb_result = currentBuild.result
-        discoverGitReferenceBuild(
-          referenceJob: config.get('referenceJobName',
-                                   'daos-stack/daos/master'),
-          scm: 'daos-stack/daos')
+        discoverGitReferenceBuild(referenceJob: config.get('referenceJobName',
+                                                           'daos-stack/daos/master'),
+                                  scm: 'daos-stack/daos',
+                                  requiredResult: 'UNSTABLE')
         recordIssues enabledForFailure: true,
+                     /* ignore warning/errors from PMDK logging system */
+                     filters: [excludeFile('pmdk/.+')],
                      failOnError: !results['ignore_failure'],
-                     ignoreFailedBuilds: true,
                      ignoreQualityGate: true,
                      // Set qualitygate to 1 new "NORMAL" priority message
                      // Supporting messages to help identify causes of
@@ -112,10 +125,12 @@ void call(Map config = [:]) {
                        [threshold: 1, type: 'TOTAL_HIGH'],
                        [threshold: 1, type: 'NEW_NORMAL', unstable: true],
                        [threshold: 1, type: 'NEW_LOW', unstable: true]],
-                      name: 'Node local testing',
-                      tool: issues(pattern: 'vm_test/nlt-errors.json',
-                                   name: 'NLT results',
-                                   id: 'VM_test')
+                     name: 'Node local testing',
+                     tool: issues(pattern: 'vm_test/nlt-errors.json',
+                                  name: 'NLT results',
+                                  id: 'VM_test'),
+                     scm: 'daos-stack/daos'
+
         if (cb_result != currentBuild.result) {
             println(
               "The recordIssues step changed result to ${currentBuild.result}.")

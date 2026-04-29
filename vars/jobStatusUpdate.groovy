@@ -1,3 +1,4 @@
+/* groovylint-disable ParameterName, VariableName */
 // vars/jobStatusUpdate.groovy
 
 /**
@@ -12,12 +13,13 @@
 Void call(Map job_result, String stage, Map result) {
     echo "[jobStatus] Updating job result for stage ${stage} with result: ${result}"
     String stage_key = jobStatusKey(stage)
-    if (!job_result.containsKey("${stage_key}")) {
+    if (!job_result.containsKey(stage_key)) {
         job_result."${stage_key}" = [:]
     }
     result.each { key, value ->
         job_result."${stage_key}"."${key}" = value
     }
+    return
 }
 
 /**
@@ -32,6 +34,7 @@ Void call(Map job_result, String stage, Map result) {
 Void call(Map job_result, String stage, String result) {
     Map result_map = ['result': result]
     jobStatusUpdate(job_result, stage, result_map)
+    return
 }
 
 /**
@@ -44,6 +47,7 @@ Void call(Map job_result, String stage, String result) {
  */
 Void call(Map job_result, String stage) {
     jobStatusUpdate(job_result, stage, currentBuild.currentResult)
+    return
 }
 
 /**
@@ -55,4 +59,5 @@ Void call(Map job_result, String stage) {
  */
 Void call(Map job_result) {
     jobStatusUpdate(job_result, env.STAGE_NAME)
+    return
 }

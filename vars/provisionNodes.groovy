@@ -1,5 +1,9 @@
 /* groovylint-disable DuplicateNumberLiteral, DuplicateStringLiteral, VariableName */
 // vars/provisionNodes.groovy
+/*
+ * Copyright 2020-2024 Intel Corporation
+ * Copyright 2025-2026 Hewlett Packard Enterprise Development LP
+ */
 
 /**
  * provisionNodes.groovy
@@ -13,7 +17,7 @@
  * @param config Map of parameters passed.
  *
  * config['arch']       Architecture to use.  Default 'x86_64'
- * config['distro']     Distribution to use.  Default 'el7'
+ * config['distro']     Distribution to use.  Default 'el9'
  * config['NODELIST']   Comma separated list of nodes available.
  * config['node_count'] Optional lower number of nodes to provision.
  * config['pool']       Optional pool from which to get image (i.e. test)
@@ -39,13 +43,14 @@
                      May be used in the future as SUSE free development
                      licenses do currently allow them to be used for
                      CI automation, and SUSE also has offered site licenses.
-   Prefix "leap":    Specifically OpenSUSE leap oprating system builds of
+   Prefix "leap":    Specifically OpenSUSE leap operating system builds of
                      Suse Linux Enterprise Server.
+                     Note: Leap 15 development ended with 15.6.
+                     For 15.7+, use sles15.7 instead.
 */
 /* groovylint-disable-next-line MethodSize */
 Map call(Map config = [:]) {
-    /* groovylint-disable-next-line NoJavaUtilDate */
-    Date startDate = new Date()
+    long startDate = System.currentTimeMillis()
     String nodeString = config['NODELIST']
     List node_list = config['NODELIST'].split(',')
     int node_max_cnt = node_list.size()
@@ -90,7 +95,7 @@ Map call(Map config = [:]) {
     }
 
     String distro_type
-    String distro = config.get('distro', 'el7')
+    String distro = config.get('distro', 'el9')
     if (distro.startsWith('centos') || distro.startsWith('el') ||
         distro.startsWith('rocky') || distro.startsWith('almalinux') ||
         distro.startsWith('rhel')) {
@@ -122,7 +127,9 @@ Map call(Map config = [:]) {
 
     if (!fileExists('ci/provisioning/log_cleanup.sh') ||
         !fileExists('ci/provisioning/post_provision_config.sh')) {
-        return provisionNodesV1(config)
+        provisionNodesV1(config)
+        int runTime = durationSeconds(startDate)
+        return ['provision_time': runTime]
     }
 
     String cleanup_logs = 'NODESTRING=' + nodeString + ' ' +
@@ -139,8 +146,13 @@ Map call(Map config = [:]) {
             provision_script += 'EL_7'
             break
     case 'el8':
-    case 'el9':
             provision_script += 'EL_8'
+            break
+    case 'el9':
+            provision_script += 'EL_9'
+            break
+    case 'el10':
+            provision_script += 'EL_9'
             break
     case 'suse':
             provision_script += 'LEAP_15'
@@ -163,6 +175,8 @@ Map call(Map config = [:]) {
                       // https://issues.jenkins.io/browse/JENKINS-55819
                       'CI_RPM_TEST_VERSION="' + (params.CI_RPM_TEST_VERSION ?: '') + '" ' +
                       'CI_PR_REPOS="' + (params.CI_PR_REPOS ?: '') + '" ' +
+                      ((env.DAOS_HTTPS_PROXY ?: env.HTTPS_PROXY) ?
+                          'HTTPS_PROXY="' + (env.DAOS_HTTPS_PROXY ?: env.HTTPS_PROXY) + '" ' : '') +
                       'ci/provisioning/post_provision_config.sh'
     new_config['post_restore'] = provision_script
     try {

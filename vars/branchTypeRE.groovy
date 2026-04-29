@@ -22,7 +22,7 @@ String call(String branch_type) {
 
         case 'release':
             // Match a release branch name, e.g. release/2.4
-            return(/^release\/[\d.]+$/)
+            return(/^release\/[\d.]+/)
 
         case 'downstream':
             // Match a downstream testing branch e.g. ci-daos-do-packer-ofed-images-PR-11-release-2.2,
@@ -35,6 +35,10 @@ String call(String branch_type) {
             // Match any *-testing branch (including weekly and provider)
             // Also support older branch names not ending in 'testing'
             return(testBranchRE())
+
+        case 'feature':
+            // Match a feature branch name
+            return(/^feature\//)
 
         default:
             error "Unsupported branch type: ${branch_type}"

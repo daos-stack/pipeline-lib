@@ -1,7 +1,8 @@
 #!/usr/bin/env groovy
 /* groovylint-disable DuplicateListLiteral, DuplicateMapLiteral, DuplicateNumberLiteral */
 // groovylint-disable DuplicateStringLiteral, NestedBlockDepth, VariableName
-/* Copyright (C) 2019-2023 Intel Corporation
+/* Copyright 2019-2024 Intel Corporation
+ * Copyright 2025-2026 Hewlett Packard Enterprise Development LP
  * All rights reserved.
  *
  * This file is part of the DAOS Project. It is subject to the license terms
@@ -75,11 +76,6 @@ void job_step_update(def value) {
 // Don't define this as a type or it loses it's global scope
 target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
 
-String test_branch(String target) {
-    return 'ci-' + JOB_NAME.replaceAll('/', '-') +
-            '-' + target.replaceAll('/', '-')
-}
-
 Void distro_version_test(String branch, String distro, String expected) {
     println("Test branch: ${branch}, distro: ${distro}, expecting: ${expected}")
     withEnv(["BRANCH_NAME=${branch}"]) {
@@ -89,14 +85,12 @@ Void distro_version_test(String branch, String distro, String expected) {
                       "instead of string starting with '${expected}'")
         }
     }
+    return
 }
 
 /* groovylint-disable-next-line CompileStatic */
 pipeline {
     agent { label 'lightweight' }
-    libraries {
-        lib("pipeline-lib@${env.BRANCH_NAME}")
-    }
 
     environment {
         SSH_KEY_FILE = 'ci_key'
@@ -144,12 +138,34 @@ pipeline {
             }
         }
         stage('Test') {
+            when {
+                beforeAgent true
+                expression { !skipStage() }
+            }
             parallel {
+                stage('JUnit Tests') {
+                    agent {
+                        label 'JUnit_jdk_tests'
+                    }
+                    steps {
+                        sh '''
+                        ./gradle-init.sh
+                        ./gradle spotlessCheck test --no-daemon
+                        '''
+                    }
+                    post {
+                        always {
+                            junit 'build/test-results/test/*.xml'
+                        }
+                    }
+                }
                 stage('daosLatestVersion() tests') {
                     steps {
                         script {
-                            assert(daosLatestVersion('master', 'el8').matches(/2.5\.\d+.*/))
+                            assert(daosLatestVersion('master', 'el8').matches(/2.9\.\d+.*/))
                             assert(daosLatestVersion('release/2.4', 'el8').matches(/2.[34]\.\d+.*/))
+                            assert(daosLatestVersion('release/2.6', 'el8').matches(/2.[56]\.\d+.*/))
+                            assert(daosLatestVersion('release/2.8', 'el8').matches(/2.[78]\.\d+.*/))
                         }
                     }
                 }
@@ -157,7 +173,16 @@ pipeline {
                     steps {
                         distro_version_test('release/2.4', 'el8', '8')
                         distro_version_test('release/2.4', 'leap15', '15')
+                        distro_version_test('release/2.6', 'el8', '8')
+                        distro_version_test('release/2.6', 'el9', '9')
+                        distro_version_test('release/2.6', 'leap15', '15')
+                        distro_version_test('release/2.8', 'el8', '8')
+                        distro_version_test('release/2.8', 'el9', '9')
+                        distro_version_test('release/2.8', 'leap15', '15')
+                        distro_version_test('master', 'el8', '8')
                         distro_version_test('master', 'el9', '9')
+                        distro_version_test('master', 'leap15', '15')
+                        distro_version_test('master', 'ubuntu20', '20.04')
                     }
                 }
                 stage('grep JUnit results tests failure case') {
@@ -217,12 +242,15 @@ pipeline {
                 stage('publishToRepository RPM tests') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != 'true' }
+                        /* disabled until https://daosio.atlassian.net/browse/SRE-3161 is fixed
+                        expression { env.NO_CI_TESTING != 'true' } */
+                        expression { false }
                     }
                     agent {
                         dockerfile {
                             filename 'docker/Dockerfile.el.8'
                             label 'docker_runner'
+                            additionalBuildArgs dockerBuildArgs()
                         }
                     }
                     steps {
@@ -256,13 +284,15 @@ pipeline {
                 stage('publishToRepository DEB tests') {
                     when {
                         beforeAgent true
-                        expression { env.NO_CI_TESTING != 'true' }
+                        /* disabled until https://daosio.atlassian.net/browse/SRE-3161 is fixed
+                        expression { env.NO_CI_TESTING != 'true' } */
+                        expression { false }
                     }
                     agent {
                         dockerfile {
                             filename 'docker/Dockerfile.el.8'
                             label 'docker_runner'
-                            additionalBuildArgs dockerBuildArgs(cachebust: false, add_repos: false)
+                            additionalBuildArgs dockerBuildArgs(cachebust: false)
                         }
                     }
                     steps {
@@ -296,11 +326,14 @@ pipeline {
                 stage('provisionNodes on EL 9 with master Repo') {
                     when {
                         beforeAgent true
+                        /* disabled until https://daosio.atlassian.net/browse/SRE-3162 is fixed
                         expression {
                             env.NO_CI_TESTING != 'true' &&
                             cachedCommitPragma('Skip-el9-provisioning-test') != 'true' &&
                             daosLatestVersion('master') != ''
                         }
+                        */
+                        expression { false }
                     }
                     agent {
                         label 'ci_vm1'
@@ -339,10 +372,13 @@ pipeline {
                 stage('provisionNodes on EL 8 with slurm') {
                     when {
                         beforeAgent true
+                        /* disabled until https://daosio.atlassian.net/browse/SRE-3162 is fixed
                         expression {
                             env.NO_CI_TESTING != 'true' &&
                             daosLatestVersion('master') != ''
                         }
+                        */
+                        expression { false }
                     }
                     agent {
                         label 'ci_vm1'
@@ -371,10 +407,13 @@ pipeline {
                 stage('provisionNodes on Leap 15 with slurm') {
                     when {
                         beforeAgent true
+                        /* disabled until https://daosio.atlassian.net/browse/SRE-3162 is fixed
                         expression {
                             env.NO_CI_TESTING != 'true' &&
                             daosLatestVersion('master') != ''
                         }
+                        */
+                        expression { false }
                     }
                     agent {
                         label 'ci_vm1'
@@ -411,7 +450,7 @@ pipeline {
                                       'Functional Hardware Large']
                             commits = [[pragmas: [''],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), !isPr(), !isPr(), true, !isPr()]],
+                                        skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-test: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [true, true, true, true, true, true, true, true]],
@@ -438,37 +477,37 @@ pipeline {
                                         skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-func-test-hw: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
+                                        skips: [false, false, false, false, true, true, true, true]],
                                        [pragmas: ['Skip-func-test-hw-medium: true\n' +
                                                   'Skip-func-test-hw-medium-verbs-provider: true\n' +
                                                   'Skip-func-test-hw-medium-ucx-provider: true\n' +
                                                   'Skip-func-test-hw-large: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
+                                        skips: [false, false, false, false, true, true, true, true]],
                                        [pragmas: ['Skip-func-test-hw-medium: false\n' +
                                                   'Skip-func-test-hw-medium-verbs-provider: false\n' +
                                                   'Skip-func-test-hw-medium-ucx-provider: false\n' +
                                                   'Skip-func-test-hw-large: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), false, false, false, false]],
+                                        skips: [false, false, false, false, false, false, false, false]],
                                        [pragmas: ['Skip-func-hw-test: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
+                                        skips: [false, false, false, false, true, true, true, true]],
                                        [pragmas: ['Skip-func-hw-test-medium: true\n' +
                                                   'Skip-func-hw-test-medium-verbs-provider: true\n' +
                                                   'Skip-func-hw-test-medium-ucx-provider: true\n' +
                                                   'Skip-func-hw-test-large: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), true, true, true, true]],
+                                        skips: [false, false, false, false, true, true, true, true]],
                                        [pragmas: ['Skip-func-hw-test-medium: false\n' +
                                                   'Skip-func-hw-test-medium-verbs-provider: false\n' +
                                                   'Skip-func-hw-test-medium-ucx-provider: false\n' +
                                                   'Skip-func-hw-test-large: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), false, false, false, false]],
+                                        skips: [false, false, false, false, false, false, false, false]],
                                        [pragmas: ['Run-daily-stages: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), false, false, false, false]],
+                                        skips: [false, false, false, false, false, false, false, false]],
                                        [pragmas: ['Skip-build-leap15-rpm: true\n' +
                                                   'Skip-build-el7-rpm: true\n' +
                                                   'Skip-build-el8-rpm: true\n' +
@@ -480,7 +519,7 @@ pipeline {
                                                   'Skip-build-el8-rpm: false\n' +
                                                   'Skip-build-el9-rpm: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
-                                        skips: [isPr(), isPr(), false, isPr(), !isPr(), !isPr(), true, !isPr()]]]
+                                        skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]]]
                             errors = 0
                             commits.each { commit ->
                                 cm = 'Test commit\n\n'
@@ -493,6 +532,8 @@ pipeline {
                                 println(cm)
                                 actual_skips = []
                                 i = 0
+                                // save current value
+                                env.pragmas_sav = env.pragmas
                                 // assign Map to env. var to serialize it
                                 env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
                                 stages.each { stage ->
@@ -521,6 +562,8 @@ pipeline {
                                 }
                                 println('')
                                 cachedCommitPragma(clear: true)
+                                // restore actual pragmas for later stages
+                                env.pragmas = env.pragmas_sav
                             }
                             assert(errors == 0)
                         }
@@ -531,6 +574,10 @@ pipeline {
                                  Features: foobar
                               4. Features: datamover foobar
                               5. Test-tag: datamover foobar
+                              Would like to add this case, but see below…
+                              6. Test-tag: datamover
+                                 Features: foobar
+                                 Skip-list: test_to_skip:DAOS-1234
                         */
                         // lots more test cases could be cooked up, to be sure
                         script {
@@ -549,7 +596,6 @@ pipeline {
                                                       'pr,@commits.value@,@stages.tag@ ' +
                                                       'daily_regression,@commits.value@,@stages.tag@ ' +
                                                       'full_regression,@commits.value@,@stages.tag@'],
-                                       /* groovylint-disable-next-line DuplicateMapLiteral */
                                        [tags: [[tag: 'Test-tag', value: 'datamover'],
                                                [tag: 'Features', value: 'foobar']],
                                         tag_template: '@commits.value@,@stages.tag@ ' +
@@ -571,8 +617,17 @@ pipeline {
                                                [tag: 'Test-tag', value: 'line3'],
                                                [tag: 'Test-tag', value: 'line4'],],
                                         tag_template: 'line1,@stages.tag@ line2,@stages.tag@ ' +
-                                                      'line3,@stages.tag@ line4,@stages.tag@']]
-                            commits.each { commit ->
+                                                      'line3,@stages.tag@ line4,@stages.tag@'],
+                                    /* this one doesn't quite work due to the @commits.value@ substitution
+                                       not accounting for the skip-list
+                                       [tags: [[tag: 'Test-tag', value: 'datamover'],
+                                               [tag: 'Features', value: 'foobar'],
+                                               [tag: 'Skip-list', value: 'test_to_skip:DAOS-1234']],
+                                        tag_template: '@commits.value@,@stages.tag@ ' +
+                                                      'pr,foobar,-test_to_skip,@stages.tag@ ' +
+                                                      'daily_regression,foobar,-test_to_skip,@stages.tag@ ' +
+                                                      'full_regression,foobar,-test_to_skip,@stages.tag@'] */]
+                            commits.eachWithIndex { commit, index ->
                                 cm = '''\
                                         Test commit\n'''
                                 commit.tags.each { tag ->
@@ -580,6 +635,7 @@ pipeline {
 
                                         ${tag.tag}: ${tag.value}"""
                                 }
+                                echo 'Running test with commit #' + (index + 1) + ' with commit:\n' + cm
                                 // assign Map to env. var to serialize it
                                 env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
                                 stages.each { stage ->
@@ -589,7 +645,8 @@ pipeline {
                                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
                                         cmp = commit.tag_template.replace('@commits.value@', commit.tags[0].value)
                                         cmp = cmp.replace('@stages.tag@', stage.tag)
-                                        assert(parseStageInfo()['test_tag'] == cmp), parseStageInfo()['test_tag'] + ' != ' + cmp
+                                        assert(parseStageInfo()['test_tag'] == cmp),
+                                               parseStageInfo()['test_tag'] + ' != ' + cmp
                                     }
                                 }
                             }
@@ -666,7 +723,7 @@ pipeline {
                             sequences.eachWithIndex { sequence, index ->
                                 cachedCommitPragma(clear: true)
                                 println("${index}: ${sequence['description']}")
-                                commit_message = "Test commit\n\n${sequence['pragma']}\n"
+                                String commit_message = "Test commit\n\n${sequence['pragma']}\n"
                                 println(commit_message)
                                 env.tmp_pragmas = pragmasToEnv(commit_message.stripIndent())
                                 withEnv(['STAGE_NAME=Functional Hardware Medium',
@@ -683,9 +740,9 @@ pipeline {
                             println('  Result  Expect  Actual  Test')
                             println('  ------  ------  ------  ----------------------------------------------')
                             sequences.eachWithIndex { sequence, index ->
-                                result = 'PASS'
-                                expect = 'run '
-                                actual = 'run '
+                                String result = 'PASS'
+                                String expect = 'run '
+                                String actual = 'run '
                                 if (sequence['expect']) { expect = 'skip' }
                                 if (sequence['actual']) { actual = 'skip' }
                                 if (expect != actual) { result = 'FAIL' }
@@ -696,6 +753,11 @@ pipeline {
                         }
                     } // steps
                 } // stage ('Commit Pragma tests')
+                stage('Self Unit Test') {
+                    steps {
+                        selfUnitTest()
+                    } // steps
+                } // stage ('Self Unit Test')
             } // parallel
         } // stage('Test')
         stage('DAOS Build and Test') {
@@ -710,9 +772,9 @@ pipeline {
                     axis {
                         name 'TEST_BRANCH'
                         values 'master',
-                               'release/2.4',
+                               'release/2.6',
                                'weekly-testing',
-                               'weekly-2.4-testing'
+                               'weekly-2.6-testing'
                     }
                 }
                 when {
@@ -726,113 +788,14 @@ pipeline {
                 stages {
                     stage('Test Library') {
                         steps {
-                            // TODO: find out what the / escape is.  I've already tried both %2F and %252F
-                            //       https://issues.jenkins.io/browse/JENKINS-68857
-                            // Instead, we will create a branch specifically to test on
-                            withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                            credentialsId: 'daos_jenkins_project_github_access',
-                                            usernameVariable: 'GH_USER',
-                                            passwordVariable: 'GH_PASS']]) {
-                                sh label: 'Create or update test branch',
-                                   script: 'branch_name=' + test_branch(env.TEST_BRANCH) + '''
-                                            # To override downstream test branch:
-                                            # i.e. Test-master-branch: foo/bar
-                                           source_branch=origin/''' +
-                                           cachedCommitPragma("Test-${env.TEST_BRANCH}-branch",
-                                                              env.TEST_BRANCH) + '''
-                                            # dir for checkout since all runs in the matrix share the same
-                                            # workspace
-                                            dir="daos-''' + env.TEST_BRANCH.replaceAll('/', '-') + '''"
-                                            if cd $dir; then
-                                                git remote update
-                                                git fetch origin
-                                            else
-                                                git clone https://''' + env.GH_USER + ':' +
-                                                                        env.GH_PASS +
-                                                              """@github.com/daos-stack/daos.git \$dir
-                                                cd \$dir
-                                            fi
-                                            if git checkout \$branch_name; then
-                                                git fetch origin
-                                                git rebase \$source_branch
-                                            else
-                                                if ! git checkout -b \$branch_name \$source_branch; then
-                                                    echo "Error trying to create branch \$branch_name"
-                                                    exit 1
-                                                fi
-                                            fi
-                                            # if a PR...
-                                            if [ -n "\$CHANGE_BRANCH" ]; then
-                                                # edit to use this PR as the pipeline-lib branch
-                                                sed -i -e '/^\\/\\/@Library/s/^\\/\\///' """ +
-                                                      "-e \"/^@Library/s/'/\\\"/g\" " +
-                                                      "-e '/^@Library/s/-lib@.*/-lib@" +
-                                                    (env.CHANGE_BRANCH ?: '').replaceAll('\\/', '\\\\/') +
-                                                    "\") _/' Jenkinsfile" + '''
-                                            fi
-                                            if [ -n "$(git status -s)" ]; then
-                                                git commit -m "Update pipeline-lib branch to self''' +
-                                                  (cachedCommitPragma('Test-skip-build', 'true') == 'true' ? '' :
-                                                           '\n\nSkip-unit-tests: true') +
-                                                  (cachedCommitPragma('Test-downstream-test', 'true') == 'true' ? '' :
-                                                           '\n\nSkip-test: true') + '''" Jenkinsfile
-                                            else
-                                                git show
-                                            fi
-                                            git push -f origin $branch_name:$branch_name
-                                            sleep 10'''
-                                sh label: 'Delete local test branch',
-                                   script: '''dir="daos-''' + env.TEST_BRANCH.replaceAll('/', '-') + '''"
-                                              if ! cd $dir; then
-                                                  echo "$dir does not exist"
-                                                  exit 1
-                                              fi
-                                              git checkout origin/master
-                                              if ! git branch -D ''' + test_branch(env.TEST_BRANCH) + '''; then
-                                                  git status
-                                                  git branch -a
-                                                  exit 1
-                                              fi'''
-                            } // withCredentials
-                            build job: 'daos-stack/daos/' + test_branch(env.TEST_BRANCH),
-                                  parameters: [string(name: 'TestTag',
-                                                      value: cachedCommitPragma(
-                                                        'Test-tag',
-                                                        'load_mpi test_core_files ' +
-                                                        'test_pool_info_query')),
-                                               string(name: 'CI_RPM_TEST_VERSION',
-                                                      value: cachedCommitPragma('Test-skip-build', 'false') == 'true' ?
-                                                               daosLatestVersion(env.TEST_BRANCH) : ''),
-                                               string(name: 'BuildPriority', value: params.BuildPriority),
-                                               booleanParam(name: 'CI_UNIT_TEST', value: false),
-                                               booleanParam(name: 'CI_FI_el8_TEST', value: true),
-                                               booleanParam(name: 'CI_FUNCTIONAL_el7_TEST', value: true),
-                                               booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
-                                               booleanParam(name: 'CI_FUNCTIONAL_el8_TEST', value: true),
-                                               booleanParam(name: 'CI_FUNCTIONAL_leap15_TEST', value: true),
-                                               booleanParam(name: 'CI_SCAN_RPMS_el7_TEST', value: true),
-                                               booleanParam(name: 'CI_RPMS_el7_TEST', value: true),
-                                               booleanParam(name: 'CI_medium_TEST', value: true),
-                                               booleanParam(name: 'CI_large_TEST', value: false)
-                                              ]
+                            buildDaosJob(env.TEST_BRANCH, params.BuildPriority)
                         } // steps
                         post {
                             success {
-                                /* groovylint-disable-next-line DuplicateMapLiteral */
-                                withCredentials([[$class: 'UsernamePasswordMultiBinding',
-                                                credentialsId: 'daos_jenkins_project_github_access',
-                                                usernameVariable: 'GH_USER',
-                                                passwordVariable: 'GH_PASS']]) {
-                                    sh label: 'Delete test branch',
-                                       script: 'if ! git push https://$GH_USER:$GH_PASS@github.com/daos-stack/' +
-                                                  'daos.git --delete ' + test_branch(env.TEST_BRANCH) + '''; then
-                                                    echo "Error trying to delete branch ''' +
-                                                    test_branch(env.TEST_BRANCH) + '''"
-                                                    git remote -v
-                                                    exit 1
-                                                fi'''
-                                } // withCredentials
-                            } // success
+                                script {
+                                    setupDownstreamTesting.cleanup('daos-stack/daos', env.TEST_BRANCH)
+                                }
+                            }
                             always {
                                 writeFile file: stageStatusFilename(env.STAGE_NAME,
                                                                     env.TEST_BRANCH.replaceAll('/', '-')),

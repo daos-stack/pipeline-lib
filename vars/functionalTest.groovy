@@ -1,5 +1,9 @@
 /* groovylint-disable VariableName */
 // vars/functionalTest.groovy
+/*
+ * Copyright 2020-2024 Intel Corporation
+ * Copyright 2025 Hewlett Packard Enterprise Development LP
+ */
 
   /**
    * functionalTest step method
@@ -22,7 +26,7 @@
    * config['description']       Description to report for SCM status.
    *                             Default env.STAGE_NAME.
    *
-   * config['failure_artifacts'] Failure aritfifacts to return.
+   * config['failure_artifacts'] Failure artifacts to return.
    *                             Default env.STAGE_NAME.
    *
    * config['ignore_failure']    Ignore test failures.  Default false.
@@ -37,10 +41,10 @@
    *
    * config['node_count']        Count of nodes that will actually be used
    *                             the test.  Default will be based on the
-   *                             enviroment variables for the stage.
+   *                             environment variables for the stage.
    *
    * config['stashes']           List of stashes to use.  Default will be
-   *                             baed on the environment variables for the
+   *                             based on the environment variables for the
    *                             stage.
    *
    * config['target']            Target distribution, such as 'centos7',
@@ -58,12 +62,15 @@
    */
 
 Map call(Map config = [:]) {
-    Date startDate = new Date()
+    long startDate = System.currentTimeMillis()
     String nodelist = config.get('NODELIST', env.NODELIST)
     String context = config.get('context', 'test/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
 
     Map stage_info = parseStageInfo(config)
+
+    String image_version = config.get('image_version') ?:
+        (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version']
 
     // Install any additional rpms required for this stage
     String stage_inst_rpms = config.get('inst_rpms', '')
@@ -80,10 +87,11 @@ Map call(Map config = [:]) {
                           subject: 'CI Test failure - CI Configuration test issue.')
     }
 
+    echo "Running provisionNodes() on ${nodelist} with the ${image_version} image"
     Map runData = provisionNodes(
                  NODELIST: nodelist,
                  node_count: stage_info['node_count'],
-                 distro: (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
+                 distro: image_version,
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: stage_inst_rpms)
 
@@ -105,37 +113,6 @@ Map call(Map config = [:]) {
     run_test_config['ftest_arg'] = config.get('ftest_arg', stage_info['ftest_arg'])
     run_test_config['context'] = context
     run_test_config['description'] = description
-
-    sh label: 'Install Launchable',
-     script: '''# can't use --upgrade with pip3 because it tries to upgrade everything
-                v=$(pip3 install --user launchable== 2>&1 | \
-                    sed -ne '/Could not find a version/s/.*, \\(.*\\))/\\1/p')
-                if ! pip3 install --user launchable==$v; then
-                  echo "Failed to install launchable"
-                  id
-                  pip3 list --user || true
-                  find ~/.local/lib -type d
-                  hostname
-                  exit 1
-                fi
-                pip3 list --user || true
-                '''
-
-    try {
-        withCredentials([string(credentialsId: 'launchable-test', variable: 'LAUNCHABLE_TOKEN')]) {
-            sh label: 'Send build data',
-            /* groovylint-disable-next-line GStringExpressionWithinString */
-            script: '''export PATH=$PATH:$HOME/.local/bin
-                    launchable record build --name ${BUILD_TAG//%2F/-} --source src=.
-                    launchable subset --time 60m --build ${BUILD_TAG//%2F/-} ''' +
-                    '--get-tests-from-previous-sessions --rest=rest.txt raw > subset.txt'
-        }
-    /* groovylint-disable-next-line CatchException */
-    } catch (Exception error) {
-        println(
-            "Ignoring failure to record " + env.STAGE_NAME + " tests with launchable: " +
-            error.getMessage())
-    }
 
     Map runtestData = [:]
     if (config.get('test_function', 'runTestFunctional') ==

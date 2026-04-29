@@ -1,5 +1,9 @@
 /* groovylint-disable DuplicateStringLiteral, VariableName */
 // vars/buildRpm.groovy
+/*
+ * Copyright 2020-2024 Intel Corporation
+ * Copyright 2025 Hewlett Packard Enterprise Development LP
+ */
 
   /**
    * buildRpm step method
@@ -40,7 +44,7 @@
    */
 
 Map call(Map config = [:]) {
-    Date startDate = new Date()
+    long startDate = System.currentTimeMillis()
     String context = config.get('context', 'build/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
     String build_script = config.get('build_script', 'ci/rpm/build.sh')
@@ -60,6 +64,10 @@ Map call(Map config = [:]) {
         env_vars = ' CHROOT_NAME=' + config['chroot_name']
     }
 
+    env_vars += (env.DAOS_HTTPS_PROXY ? \
+        ' HTTPS_PROXY="' + env.DAOS_HTTPS_PROXY + '"' : '')
+    env_vars += (env.DAOS_NO_PROXY ? \
+        ' NO_PROXY="' + env.DAOS_NO_PROXY + '"' : '')
     String error_stage_result = 'FAILURE'
     String error_build_result = 'FAILURE'
     if (config['unstable']) {

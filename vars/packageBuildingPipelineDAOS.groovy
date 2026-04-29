@@ -1,6 +1,6 @@
 #!/usr/bin/groovy
 /* groovylint-disable DuplicateMapLiteral, DuplicateStringLiteral, NestedBlockDepth, VariableName */
-/* Copyright (C) 2019-2023 Intel Corporation
+/* Copyright 2019-2023 Intel Corporation
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -613,7 +613,7 @@ void call(Map pipeline_args) {
                             }
                         }
                     } //stage('Build RPM on Leap 15')
-                    stage('Build RPM on Ubuntu 20.04') {
+                    stage('Build DEB on Ubuntu 20.04') {
                         when {
                             beforeAgent true
                             expression {
@@ -673,8 +673,8 @@ void call(Map pipeline_args) {
                                                  allowEmptyArchive: true
                             }
                         }
-                    } //stage('Build RPM on Ubuntu 20.04')
-                    stage('Build RPM on Ubuntu rolling') {
+                    } //stage('Build DEB on Ubuntu 20.04')
+                    stage('Build DEB on Ubuntu rolling') {
                         when {
                             beforeAgent true
                             expression { !skipStage() && distros.contains('ubuntu_rolling') }
@@ -729,7 +729,7 @@ void call(Map pipeline_args) {
                                 archiveArtifacts artifacts: 'artifacts/ubuntu_rolling/**'
                             }
                         }
-                    } //stage('Build RPM on Ubuntu rolling')
+                    } //stage('Build DEB on Ubuntu rolling')
                 } // parallel
             } //stage('Build')
             stage('Test') {
@@ -749,7 +749,7 @@ void call(Map pipeline_args) {
                         axis {
                             name 'BRANCH'
                             values 'master',
-                                   'release/2.4'
+                                   'release/2.6'
                         }
                     }
                     when {

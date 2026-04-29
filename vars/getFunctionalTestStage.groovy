@@ -1,3 +1,4 @@
+/* groovylint-disable VariableName */
 // vars/getFunctionalTestStage.groovy
 
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
@@ -18,6 +19,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      default_nvme    launch.py --nvme argument to use when no parameter or commit pragma exist
  *      provider        launch.py --provider argument to use
  *      distro          functional test stage distro (VM)
+ *      image_version   image version to use for provisioning, e.g. el8.8, leap15.6, etc.
  *      base_branch     if specified, checkout sources from this branch before running tests
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
@@ -35,14 +37,16 @@ Map call(Map kwargs = [:]) {
     String default_nvme = kwargs.get('default_nvme')
     String provider = kwargs.get('provider', '')
     String distro = kwargs.get('distro')
+    String image_version = kwargs.get('image_version', null)
     String base_branch = kwargs.get('base_branch')
+    String other_packages = kwargs.get('other_packages', '')
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
     Map job_status = kwargs.get('job_status', [:])
 
     return {
         stage("${name}") {
-            // Get the tags for thge stage. Use either the build parameter, commit pragma, or
+            // Get the tags for the stage. Use either the build parameter, commit pragma, or
             // default tags. All tags are combined with the stage tags to ensure only tests that
             // 'fit' the cluster will be run.
             String tags = getFunctionalTags(
@@ -55,30 +59,31 @@ Map call(Map kwargs = [:]) {
                 'run_if_pr': run_if_pr,
                 'run_if_landing': run_if_landing]
             if (skipFunctionalTestStage(skip_kwargs)) {
-                echo "[${name}] Stage skipped by skipFunctionalTestStage()"
+                println("[${name}] Stage skipped by skipFunctionalTestStage()")
                 Utils.markStageSkippedForConditional("${name}")
             } else {
                 node(cachedCommitPragma("Test-label${pragma_suffix}", label)) {
                     // Ensure access to any branch provisioning scripts exist
-                    echo "[${name}] Check out '${base_branch}' from version control"
+                    println("[${name}] Check out '${base_branch}' from version control")
                     if (base_branch) {
                         checkoutScm(
                             url: 'https://github.com/daos-stack/daos.git',
                             branch: base_branch,
-                            withSubmodules: true,
+                            withSubmodules: false,
                             pruneStaleBranch: true)
                     } else {
                         checkoutScm(pruneStaleBranch: true)
                     }
 
                     try {
-                        echo "[${name}] Running functionalTest() on ${label} with tags=${tags}"
+                        println("[${name}] Running functionalTest() on ${label} with tags=${tags}")
                         jobStatusUpdate(
                             job_status,
                             name,
                             functionalTest(
+                                image_version: image_version,
                                 inst_repos: daosRepos(distro),
-                                inst_rpms: functionalPackages(1, next_version, 'tests-internal'),
+                                inst_rpms: functionalPackages(1, next_version, 'tests-internal') + ' ' + other_packages,
                                 test_tag: tags,
                                 ftest_arg: getFunctionalArgs(
                                     pragma_suffix: pragma_suffix,
@@ -87,13 +92,13 @@ Map call(Map kwargs = [:]) {
                                     provider: provider)['ftest_arg'],
                                 test_function: 'runTestFunctionalV2'))
                     } finally {
-                        echo "[${name}] Running functionalTestPostV2()"
+                        println("[${name}] Running functionalTestPostV2()")
                         functionalTestPostV2()
                         jobStatusUpdate(job_status, name)
                     }
                 }
             }
-            echo "[${name}] Finished with ${job_status}"
+            println("[${name}] Finished with ${job_status}")
         }
     }
 }

@@ -26,7 +26,7 @@
    * config['description']       Description to report for SCM status.
    *                             Default env.STAGE_NAME.
    *
-   * config['failure_artifacts'] Failure aritfifacts to return.
+   * config['failure_artifacts'] Failure artifacts to return.
    *                             Default env.STAGE_NAME.
    *
    * config['ignore_failure']    Ignore test failures.  Default false.
@@ -43,10 +43,10 @@
    *
    * config['node_count']        Count of nodes that will actually be used
    *                             the test.  Default will be based on the
-   *                             enviroment variables for the stage.
+   *                             environment variables for the stage.
    *
    * config['stashes']           List of stashes to use.  Default will be
-   *                             baed on the environment variables for the
+   *                             based on the environment variables for the
    *                             stage.
    *
    * config['target']            Target distribution, such as 'centos7',
@@ -61,16 +61,18 @@
    *                             SSH_KEY_ARGS and NODELIST environment
    *                             variables set.
    *
-   * config['timeout_time']      Timelimit for test run, not including
+   * config['timeout_time']      Time limit for test run, not including
    *                             provisioning time.
    *                             Default is 120 Minutes.
    *
-   * config['timeout_units']     Timelimit units.  Default is minutes.
+   * config['timeout_units']     Time limit units.  Default is minutes.
    *
-   * config['unstash_opt']       Unstash -opt-tar instead of -opt,
+   * config['unstash_opt']       Un-stash -opt-tar instead of -opt,
    *                             default is false.
    *
-   * config['unstash_tests']     Unstash -tests, default is true.
+   * config['unstash_tests']     Un-stash -tests, default is true.
+   *
+   * config['image_version']     Image version to use for provisioning, e.g. el8.8, leap15.6, etc.
    */
 
 Map afterTest(Map config, Map testRunInfo) {
@@ -122,10 +124,9 @@ Map afterTest(Map config, Map testRunInfo) {
     return result
 }
 
+/* groovylint-disable-next-line MethodSize */
 Map call(Map config = [:]) {
-    // Must use Date() in pipeline-lib
-    // groovylint-disable-next-line NoJavaUtilDate
-    Date startDate = new Date()
+    long startDate = System.currentTimeMillis()
     String nodelist = config.get('NODELIST', env.NODELIST)
     String test_script = config.get('test_script', 'ci/unit/test_main.sh')
     Map stage_info = parseStageInfo(config)
@@ -137,14 +138,20 @@ Map call(Map config = [:]) {
         }
     }
 
+    String image_version = config.get('image_version', '') ?:
+        (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version']
+
     Map runData = provisionNodes(
                  NODELIST: nodelist,
                  node_count: stage_info['node_count'],
-                 distro: (stage_info['ci_target'] =~
-                          /([a-z]+)(.*)/)[0][1] + stage_info['distro_version'],
+                 distro: image_version,
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: inst_rpms)
-    String target_stash = "${stage_info['target']}-${stage_info['compiler']}"
+
+    /* el9-gcc-tests */
+    String target_stash = (image_version ?: ${stage_info['target']}).split('\\.')[0]
+
+    target_stash += '-' + stage_info['compiler']
     if (stage_info['build_type']) {
         target_stash += '-' + stage_info['build_type']
     }
@@ -221,6 +228,12 @@ Map call(Map config = [:]) {
               overwrite: true
     stash name: results_map,
           includes: results_map
+
+    // Stash any optional test coverage reports for the stage
+    String code_coverage = 'code_coverage_' + sanitizedStageName()
+    stash name: code_coverage,
+          includes: '**/code_coverage.json',
+          allowEmpty: true
 
     return runData
 }

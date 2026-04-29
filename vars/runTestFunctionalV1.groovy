@@ -1,12 +1,13 @@
+/* groovylint-disable DuplicateStringLiteral, GStringExpressionWithinString, LineLength, VariableName */
 // vars/runTestFunctionalV1.groovy
 
 /**
  * runTestFunctionalV1.groovy
  *
  * runTestFunctionalV1 pipeline step
- *
  */
 
+/* groovylint-disable-next-line MethodSize */
 Map call(Map config = [:]) {
   /**
    * runTestFunctionalV1 step method
@@ -39,7 +40,7 @@ Map call(Map config = [:]) {
    */
 
     String test_rpms = 'false'
-    if (config['test_rpms'] == "true") {
+    if (config['test_rpms'] == 'true') {
         test_rpms = 'true'
     }
     String functional_test_script = '''test_tag=$(git show -s --format=%%B | sed -ne "/^Test-tag%s:/s/^.*: *//p")
@@ -107,10 +108,10 @@ Map call(Map config = [:]) {
                                      config['test_tag'],
                                      config['node_count'],
                                      config['ftest_arg'])
-    config['junit_files'] = "install/lib/daos/TESTING/ftest/avocado/job-results/job-*/*.xml install/lib/daos/TESTING/ftest/*_results.xml"
+    config['junit_files'] = 'install/lib/daos/TESTING/ftest/avocado/job-results/job-*/*.xml install/lib/daos/TESTING/ftest/*_results.xml'
     config['failure_artifacts'] = 'Functional'
 
-    if (test_rpms == 'true' && config['stashes']){
+    if (test_rpms == 'true' && config['stashes']) {
         // we don't need (and might not even have) stashes if testing
         // from RPMs
         config.remove('stashes')
@@ -123,5 +124,4 @@ Map call(Map config = [:]) {
     config.remove('test_rpms')
 
     return runTest(config)
-
 }
