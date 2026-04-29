@@ -526,7 +526,7 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build-el9-gcc') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
-                   skip_stage_pragma('test-el-9-rpms', 'true') ||
+                   skip_stage_pragma('test-el-9-rpms') ||
                    docOnlyChange(target_branch) ||
                    (quickFunctional() &&
                     !paramsValue('CI_TEST_EL_RPMs', true) &&
@@ -544,17 +544,19 @@ boolean call(Map config = [:]) {
         case 'Test RPMs on Leap 15.4':
         case 'Test RPMs on Leap 15.5':
         case 'Test RPMs on Leap 15.6':
+        case 'Test RPMs on Leap 15':
             return !paramsValue('CI_RPMS_leap15_TEST', true) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('build-leap15-rpm') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
-                   skip_stage_pragma('test-leap-15-rpms', 'true') ||
+                   skip_stage_pragma('test-leap-15-rpms') ||
                    docOnlyChange(target_branch) ||
                    (quickFunctional() &&
                     !paramsValue('CI_RPMS_leap15_TEST', true) &&
                     !run_default_skipped_stage('test-leap-15-rpms')) ||
                    (rpmTestVersion() != '') ||
+                   !startedByLanding() ||
                    stageAlreadyPassed()
         case 'Test Packages':
             return docOnlyChange(target_branch)
