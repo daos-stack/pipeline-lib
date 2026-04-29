@@ -106,8 +106,10 @@ Map afterTest(Map config, Map testRunInfo) {
                                       flattenFiles: false,
                                       includes: valgrind_pattern,
                                       targetLocation: memcheck_dir)])
-        sh label: 'Create tarball of Valgrind xml files',
-           script: "tar -cjf ${memcheck_dir}.tar.bz2 ${memcheck_dir}"
+        if (fileExists(memcheck_dir)) {
+            sh label: 'Create tarball of Valgrind xml files',
+               script: "tar -cjf ${memcheck_dir}.tar.bz2 ${memcheck_dir}"
+        }
     }
 
     if (config['ignore_failure'] && (result['result'] != 'SUCCESS')) {
