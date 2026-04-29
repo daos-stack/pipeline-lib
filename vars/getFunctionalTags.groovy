@@ -35,6 +35,9 @@ Map call(Map kwargs = [:]) {
     // Builds started from a commit should finally use the default tags for the stage
     requested_tags = requested_tags ?: default_tags
 
+    // Replace any newlines with spaces
+    requested_tags = requested_tags.replaceAll(/\r?\n/, ' ')
+
     // Append any commit pragma 'Features:' tags if defined
     String features = commitPragma('Features', '')
     if (features) {
