@@ -36,6 +36,7 @@ Map call(Map kwargs = [:]) {
     requested_tags = requested_tags ?: default_tags
 
     // Replace any newlines with spaces
+    echo "getFunctionalTags: Requested tags before formatting: '${requested_tags}'"
     requested_tags = requested_tags.replaceAll(/\r?\n/, ' ')
 
     // Append any commit pragma 'Features:' tags if defined
