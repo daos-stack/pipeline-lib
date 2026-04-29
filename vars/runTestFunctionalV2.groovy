@@ -57,6 +57,8 @@ Map call(Map config = [:]) {
                        'NODE_COUNT="' + config['node_count'] + '" ' +
                        'OPERATIONS_EMAIL="' + env.OPERATIONS_EMAIL + '" ' +
                        "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
+                       (env.DAOS_HTTPS_PROXY ? 'DAOS_HTTPS_PROXY="' + env.DAOS_HTTPS_PROXY + '" ' : '') +
+                       (env.DAOS_NO_PROXY ? 'DAOS_NO_PROXY="' + env.DAOS_NO_PROXY + '" ' : '') +
                        'ci/functional/test_main.sh'
 
     String basedir = 'install/lib/daos/TESTING/ftest/avocado/job-results/'
