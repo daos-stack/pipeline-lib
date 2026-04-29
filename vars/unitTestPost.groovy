@@ -22,9 +22,10 @@
    * config['valgrind_stash']      Name to stash Valgrind artifacts
    *                               Required if more than one stage is
    *                               creating Valgrind reports.
-   */
-
-// groovylint-disable DuplicateStringLiteral, VariableName
+ *
+ * config['nlt_name']            Display name for the NLT recordIssues
+ *                               section in the Jenkins UI.
+ *                               Default: 'Node local testing'
 /* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
@@ -125,7 +126,7 @@ void call(Map config = [:]) {
                        [threshold: 1, type: 'TOTAL_HIGH'],
                        [threshold: 1, type: 'NEW_NORMAL', unstable: true],
                        [threshold: 1, type: 'NEW_LOW', unstable: true]],
-                     name: 'Node local testing',
+                     name: config.get('nlt_name', 'Node local testing'),
                      tool: issues(pattern: 'vm_test/nlt-errors.json',
                                   name: 'NLT results',
                                   id: sanitizedStageName() + '_VM_test'),
