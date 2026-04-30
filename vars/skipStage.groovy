@@ -311,7 +311,6 @@ boolean call(Map config = [:]) {
                     prRepos('el8') == '') ||
                    quickBuild()
         case 'Build on EL 9':
-        case 'Build on EL 9.7':
             return skip_build_on_el_gcc(target_branch, '9') ||
                    (docOnlyChange(target_branch) &&
                     prRepos('el9') == '') ||
@@ -347,14 +346,12 @@ boolean call(Map config = [:]) {
                     skip_stage_pragma('build') ||
                     rpmTestVersion() != '' ||
                     docOnlyChange(target_branch) ||
-                    skip_build_on_el_gcc(target_branch, '8') ||
+                    skip_build_on_el_gcc(target_branch, '9') ||
                     skip_stage_pragma('unit-tests')
         case 'NLT':
         case 'NLT on CentOS 8':
         case 'NLT on EL 8':
         case 'NLT on EL 8.8':
-        case 'NLT on EL 9':
-        case 'NLT on EL 9.7':
             return skip_stage_pragma('nlt') ||
                    quickBuild() ||
                    stageAlreadyPassed()
@@ -364,15 +361,12 @@ boolean call(Map config = [:]) {
         case 'Unit Test Bullseye on EL 8.8':
             return skip_stage_pragma('bullseye', 'true') ||
                    stageAlreadyPassed()
+        case 'Unit Test bdev with memcheck':
         case 'Unit Test bdev with memcheck on EL 8':
         case 'Unit Test bdev with memcheck on EL 8.8':
         case 'Unit Test with memcheck on CentOS 8':
         case 'Unit Test with memcheck on EL 8':
         case 'Unit Test with memcheck on EL 8.8':
-        case 'Unit Test with memcheck on EL 9':
-        case 'Unit Test with memcheck on EL 9.7':
-        case 'Unit Test bdev with memcheck on EL 9':
-        case 'Unit Test bdev with memcheck on EL 9.7':
         case 'Unit Test with memcheck':
             return !paramsValue('CI_UNIT_TEST_MEMCHECK', true) ||
                    skip_stage_pragma('unit-test-memcheck') ||
@@ -381,12 +375,9 @@ boolean call(Map config = [:]) {
         case 'Unit Test on CentOS 8':
         case 'Unit Test on EL 8':
         case 'Unit Test on EL 8.8':
+        case 'Unit Test bdev':
         case 'Unit Test bdev on EL 8':
         case 'Unit Test bdev on EL 8.8':
-        case 'Unit Test on EL 9':
-        case 'Unit Test on EL 9.7':
-        case 'Unit Test bdev on EL 9':
-        case 'Unit Test bdev on EL 9.7':
             return !paramsValue('CI_UNIT_TEST', true) ||
                    skip_stage_pragma('unit-test') ||
                    skip_stage_pragma('run_test') ||
@@ -425,15 +416,11 @@ boolean call(Map config = [:]) {
         case 'Functional on EL 8 with Valgrind':
         case 'Functional on EL 8.8 with Valgrind':
             return skip_ftest_valgrind('el8', target_branch, tags)
-        case 'Functional on EL 9 with Valgrind':
-        case 'Functional on EL 9.7 with Valgrind':
-            return skip_ftest_valgrind('el9', target_branch, tags)
         case 'Functional on CentOS 8':
         case 'Functional on EL 8':
         case 'Functional on EL 8.8':
             return skip_ftest('el8', target_branch, tags)
         case 'Functional on EL 9':
-        case 'Functional on EL 9.7':
             return skip_ftest('el9', target_branch, tags)
         case 'Functional on Leap 15':
         case 'Functional on Leap 15.4':
@@ -450,16 +437,8 @@ boolean call(Map config = [:]) {
         case 'Fault injection testing on EL 8':
         case 'Fault injection testing on EL 8.8':
             return skip_stage_pragma('fault-injection-test') ||
-                   !paramsValue('CI_FI_el8_TEST', true) ||
-                   quickFunctional() ||
-                   docOnlyChange(target_branch) ||
-                   skip_stage_pragma('func-test') ||
-                   skip_stage_pragma('func-test-vm') ||
-                   stageAlreadyPassed()
-        case 'Fault injection testing on EL 9':
-        case 'Fault injection testing on EL 9.7':
-            return skip_stage_pragma('fault-injection-test') ||
-                   !paramsValue('CI_FI_el9_TEST', true) ||
+                   !paramsValue('CI_FI_TEST', true) ||
+                   !paramsValue('CI_FI_el8_TEST', true) || /* release/2.6 Jenkinsfile still uses CI_FI_el8_TEST */
                    quickFunctional() ||
                    docOnlyChange(target_branch) ||
                    skip_stage_pragma('func-test') ||
@@ -541,14 +520,18 @@ boolean call(Map config = [:]) {
                    (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
         case 'Test RPMs on EL':
+        case 'Test RPMs on EL 9.6':
             return !paramsValue('CI_TEST_EL_RPMs', true) ||
                    (paramsValue('CI_RPM_TEST_VERSION', '') != '') ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('build-el9-gcc') ||
                    skip_stage_pragma('test') ||
+                   skip_stage_pragma('test-rpms') ||
+                   skip_stage_pragma('test-el-9-rpms', 'true') ||
                    docOnlyChange(target_branch) ||
                    (quickFunctional() &&
-                    !paramsValue('CI_TEST_EL_RPMs', true)) ||
+                    !paramsValue('CI_TEST_EL_RPMs', true) &&
+                    !run_default_skipped_stage('test-el-9-rpms')) ||
                    (rpmTestVersion() != '') ||
                    stageAlreadyPassed()
         case 'Test Leap 15 RPMs':

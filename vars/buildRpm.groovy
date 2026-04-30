@@ -64,14 +64,10 @@ Map call(Map config = [:]) {
         env_vars = ' CHROOT_NAME=' + config['chroot_name']
     }
 
-    String https_proxy = ''
-    if (env.DAOS_HTTPS_PROXY) {
-        https_proxy = "${env.DAOS_HTTPS_PROXY}"
-    }
-    if (https_proxy) {
-        env_vars += ' HTTPS_PROXY=' + https_proxy
-    }
-
+    env_vars += (env.DAOS_HTTPS_PROXY ? \
+        ' HTTPS_PROXY="' + env.DAOS_HTTPS_PROXY + '"' : '')
+    env_vars += (env.DAOS_NO_PROXY ? \
+        ' NO_PROXY="' + env.DAOS_NO_PROXY + '"' : '')
     String error_stage_result = 'FAILURE'
     String error_build_result = 'FAILURE'
     if (config['unstable']) {
