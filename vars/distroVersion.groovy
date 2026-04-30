@@ -39,7 +39,7 @@ String call(String distro, String branch) {
                          '2.8':    '9.7'],
             'leap15':   ['master': '15.6',
                          '2.4':    '15.6',
-                         '2.6':    '15.6',
+                         '2.6':    '15.5',
                          '2.8':    '15.6'],
             'sles15':   ['master': '15.7',
                          '2.4':    '15.7',
@@ -50,7 +50,7 @@ String call(String distro, String branch) {
 
 /* groovylint-disable-next-line CompileStatic */
 assert(call('leap15', '2.4') == '15.6')
-assert(call('leap15', '2.6') == '15.6')
+assert(call('leap15', '2.6') == '15.5')
 assert(call('leap15', 'master') == '15.6')
 assert(call('el8', '2.4') == '8.8')
 assert(call('el8', '2.6') == '8.8')
