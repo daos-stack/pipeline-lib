@@ -2,7 +2,7 @@
 /* groovylint-disable DuplicateListLiteral, DuplicateMapLiteral, DuplicateNumberLiteral */
 // groovylint-disable DuplicateStringLiteral, NestedBlockDepth, VariableName
 /* Copyright 2019-2024 Intel Corporation
- * Copyright 2025 Hewlett Packard Enterprise Development LP
+ * Copyright 2025-2026 Hewlett Packard Enterprise Development LP
  * All rights reserved.
  *
  * This file is part of the DAOS Project. It is subject to the license terms
@@ -143,6 +143,22 @@ pipeline {
                 expression { !skipStage() }
             }
             parallel {
+                stage('JUnit Tests') {
+                    agent {
+                        label 'JUnit_jdk_tests'
+                    }
+                    steps {
+                        sh '''
+                        ./gradle-init.sh
+                        ./gradle spotlessCheck test --no-daemon
+                        '''
+                    }
+                    post {
+                        always {
+                            junit 'build/test-results/test/*.xml'
+                        }
+                    }
+                }
                 stage('daosLatestVersion() tests') {
                     steps {
                         script {
