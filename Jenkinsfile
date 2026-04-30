@@ -612,6 +612,12 @@ pipeline {
                                                       'full_regression,foobar,@stages.tag@'],
                                        [tags: [[tag: 'Test-tag', value: 'datamover foobar']],
                                         tag_template: 'datamover,@stages.tag@ foobar,@stages.tag@'],
+                                       [tags: [[tag: 'Test-tag', value: 'line1'],
+                                               [tag: 'Test-tag', value: 'line2'],
+                                               [tag: 'Test-tag', value: 'line3'],
+                                               [tag: 'Test-tag', value: 'line4'],],
+                                        tag_template: 'line1,@stages.tag@ line2,@stages.tag@ ' +
+                                                      'line3,@stages.tag@ line4,@stages.tag@'],
                                     /* this one doesn't quite work due to the @commits.value@ substitution
                                        not accounting for the skip-list
                                        [tags: [[tag: 'Test-tag', value: 'datamover'],
