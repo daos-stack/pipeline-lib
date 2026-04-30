@@ -22,10 +22,10 @@
    * config['valgrind_stash']      Name to stash Valgrind artifacts
    *                               Required if more than one stage is
    *                               creating Valgrind reports.
- *
- * config['nlt_name']            Display name for the NLT recordIssues
- *                               section in the Jenkins UI.
- *                               Default: 'Node local testing'
+   *
+   * config['nlt_name']            Display name for the NLT recordIssues
+   *                               section in the Jenkins UI.
+   *                               Default: 'Node local testing'
 /* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
@@ -67,7 +67,7 @@ void call(Map config = [:]) {
         junit testResults: testResults,
               healthScaleFactor: health_scale
     }
-    if (stage_info['with_valgrind'] || stage_info['NLT']) {
+    if (stage_info['with_valgrind']) {
         String suite = sanitizedStageName()
         int vgfail = 0
         String testdata
@@ -113,6 +113,14 @@ void call(Map config = [:]) {
                                                            'daos-stack/daos/master'),
                                   scm: 'daos-stack/daos',
                                   requiredResult: 'UNSTABLE')
+        List nltTools = [issues(pattern: 'vm_test/nlt-errors.json',
+                                name: 'NLT results',
+                                id: sanitizedStageName() + '_VM_test')]
+        if (stage_info['FI']) {
+            nltTools << issues(pattern: 'nlt-client-leaks.json',
+                               name: 'Fault injection leaks',
+                               id: 'NLT_client')
+        }
         recordIssues enabledForFailure: true,
                      /* ignore warning/errors from PMDK logging system */
                      filters: [excludeFile('pmdk/.+')],
@@ -127,9 +135,7 @@ void call(Map config = [:]) {
                        [threshold: 1, type: 'NEW_NORMAL', unstable: true],
                        [threshold: 1, type: 'NEW_LOW', unstable: true]],
                      name: config.get('nlt_name', 'Node local testing'),
-                     tool: issues(pattern: 'vm_test/nlt-errors.json',
-                                  name: 'NLT results',
-                                  id: sanitizedStageName() + '_VM_test'),
+                     tools: nltTools,
                      scm: 'daos-stack/daos'
 
         if (cb_result != currentBuild.result) {
