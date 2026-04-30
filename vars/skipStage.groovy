@@ -432,6 +432,7 @@ boolean call(Map config = [:]) {
             skip_ftest('ubuntu20', target_branch, tags) */
             return true
         case 'Fault injection testing':
+        case 'NLT Fault injection testing':
         case 'Fault injection testing on CentOS 8':
         case 'Fault injection testing on EL 8':
         case 'Fault injection testing on EL 8.8':

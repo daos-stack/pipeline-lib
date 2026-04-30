@@ -94,7 +94,7 @@ Map afterTest(Map config, Map testRunInfo) {
     } else {
         result['result'] = checkJunitFiles(testResults: testResults)
     }
-    if (config['with_valgrind'] || config['NLT']) {
+    if (config['with_valgrind']) {
         vgrcs = sh label: 'Check for Valgrind errors',
                    script: "grep -E '<error( |>)' ${valgrind_pattern} || true",
                    returnStdout: true
@@ -210,7 +210,6 @@ Map call(Map config = [:]) {
                                            'unit-test-*memcheck.xml')
     p['testResults'] = stage_info.get('testResults', 'test_results/*.xml')
     p['with_valgrind'] = with_valgrind
-    p['NLT'] = stage_info['NLT']
 
     // Update the stash inside a finally block so that ignore_failure is always
     // written even if afterTest() throws.  Without this, unitTestPost() reads
