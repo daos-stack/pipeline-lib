@@ -88,10 +88,10 @@ Map call(Map kwargs = [:]) {
                                 image_version: image_version,
                                 inst_repos: daosRepos(distro),
                                 inst_rpms: functionalPackages(
-                                    distro: rpm_version,
-                                    client_ver: 1,
-                                    next_version: next_version,
-                                    add_daos_pkgs: 'tests-internal') + ' ' + other_packages,
+                                    clientVersion: 1,
+                                    nextVersion: next_version,
+                                    addDaosPkgs: 'tests-internal',
+                                    distroVersion: rpm_version) + ' ' + other_packages,
                                 test_tag: tags,
                                 ftest_arg: getFunctionalArgs(
                                     pragma_suffix: pragma_suffix,

@@ -12,46 +12,81 @@
  */
 
 String call(Integer client_ver, BigDecimal next_version) {
-    return functionalPackages(client_ver, next_version.toString(), null)
+    return functionalPackages(
+        clientVersion: client_ver,
+        nextVersion: next_version.toString(),
+    )
 }
 
 String call(Integer client_ver, BigDecimal next_version, String add_daos_pkgs) {
-    return functionalPackages(client_ver, next_version.toString(), add_daos_pkgs)
+    return functionalPackages(
+        clientVersion: client_ver,
+        nextVersion: next_version.toString(),
+        addDaosPkgs: add_daos_pkgs
+    )
 }
 
 String call(Integer client_ver, String next_version) {
-    return functionalPackages(client_ver, next_version, null)
+    return functionalPackages(
+        clientVersion: client_ver,
+        nextVersion: next_version,
+        addDaosPkgs: null,
+        distroVersion: ''
+    )
 }
 
-String call(Integer client_ver, String next_version, String add_daos_pkgs) {
-    return functionalPackages(parseStageInfo()['target'], client_ver, next_version, add_daos_pkgs)
+String call(Integer client_ver, String next_version, String add_daos_pkgs, String distroVersion='') {
+    return functionalPackages(
+        clientVersion: client_ver,
+        nextVersion: next_version,
+        addDaosPkgs: add_daos_pkgs,
+        distroVersion: distroVersion
+    )
 }
 
 String call(String distro, Integer client_ver, String next_version) {
-    return functionalPackages(distro, client_ver, next_version, null)
+    return functionalPackages(
+        distro: distro,
+        clientVersion: client_ver,
+        nextVersion: next_version
+    )
 }
 
 String call(String distro, Integer client_ver, String next_version, String add_daos_pkgs) {
-    String _distro = distro ?: parseStageInfo()['target']
-    String daos_pkgs = getDAOSPackages(_distro, next_version.toString(), add_daos_pkgs)
+    return functionalPackages(
+        distro: distro,
+        clientVersion: client_ver,
+        nextVersion: next_version,
+        addDaosPkgs: add_daos_pkgs
+    )
+}
+
+String call(Map args) {
+    String distro = args.get('distro', parseStageInfo()['target'])
+    Integer clientVersion = args.get('clientVersion', 1)
+    String nextVersion = args.get('nextVersion', '')
+    String addDaosPkgs = args.get('addDaosPkgs', null)
+    String distroVersion = args.get('distroVersion', '')
+
+    String daos_pkgs = getDAOSPackages(distro, nextVersion, addDaosPkgs, distroVersion)
     String pkgs = ''
     if (fileExists('ci/functional/required_packages.sh')) {
-        pkgs = sh(script: "ci/functional/required_packages.sh ${_distro} " +
-                          client_ver,
+        pkgs = sh(script: "ci/functional/required_packages.sh ${distro} " +
+                          clientVersion,
                   returnStdout: true)
     } else {
         echo "ci/functional/required_packages.sh doesn't exist.  " +
              'Hopefully the daos-tests packages have the dependencies configured.'
     }
 
-    if (_distro.startsWith('leap') || _distro.startsWith('sles') ||
-        _distro.startsWith('el') || _distro.startsWith('centos') ||
-        _distro.startsWith('rocky') || _distro.startsWith('almalinux') ||
-        _distro.startsWith('rhel') || _distro.startsWith('ubuntu')) {
+    if (distro.startsWith('leap') || distro.startsWith('sles') ||
+        distro.startsWith('el') || distro.startsWith('centos') ||
+        distro.startsWith('rocky') || distro.startsWith('almalinux') ||
+        distro.startsWith('rhel') || distro.startsWith('ubuntu')) {
         return daos_pkgs + ' ' + pkgs
     }
 
-    error "functionalPackages not implemented for ${_distro}"
+    error "functionalPackages not implemented for ${distro}"
 
     return ''
 }

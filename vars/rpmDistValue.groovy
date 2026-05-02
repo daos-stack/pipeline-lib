@@ -10,7 +10,7 @@
  * Method to return the %{dist} value of an OS
  */
 
-String call(String distro) {
+String call(String distro, String distroVersion='') {
     if (distro.startsWith('el7') || distro.startsWith('centos7')) {
         return '.el7'
     } else if (distro.startsWith('el8') || distro.startsWith('centos8') ||
@@ -22,7 +22,8 @@ String call(String distro) {
                distro.startsWith('rhel9')) {
         return '.el9'
     } else if (distro.startsWith('leap15')) {
-        return '.suse.lp' + parseStageInfo()['distro_version'].replaceAll('\\.', '')
+        String version = distroVersion ?: parseStageInfo()['distro_version']
+        return '.suse.lp' + version.replaceAll('\\.', '')
     }
     error("Don't know what the RPM %{dist} is for ${distro}")
     return
