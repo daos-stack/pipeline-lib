@@ -32,10 +32,11 @@ String call(String distro, Integer client_ver, String next_version) {
 }
 
 String call(String distro, Integer client_ver, String next_version, String add_daos_pkgs) {
-    String daos_pkgs = getDAOSPackages(distro, next_version.toString(), add_daos_pkgs)
+    String _distro = distro ?: parseStageInfo()['target']
+    String daos_pkgs = getDAOSPackages(_distro, next_version.toString(), add_daos_pkgs)
     String pkgs = ''
     if (fileExists('ci/functional/required_packages.sh')) {
-        pkgs = sh(script: "ci/functional/required_packages.sh ${distro} " +
+        pkgs = sh(script: "ci/functional/required_packages.sh ${_distro} " +
                           client_ver,
                   returnStdout: true)
     } else {
@@ -43,14 +44,14 @@ String call(String distro, Integer client_ver, String next_version, String add_d
              'Hopefully the daos-tests packages have the dependencies configured.'
     }
 
-    if (distro.startsWith('leap') || distro.startsWith('sles') ||
-        distro.startsWith('el') || distro.startsWith('centos') ||
-        distro.startsWith('rocky') || distro.startsWith('almalinux') ||
-        distro.startsWith('rhel') || distro.startsWith('ubuntu')) {
+    if (_distro.startsWith('leap') || _distro.startsWith('sles') ||
+        _distro.startsWith('el') || _distro.startsWith('centos') ||
+        _distro.startsWith('rocky') || _distro.startsWith('almalinux') ||
+        _distro.startsWith('rhel') || _distro.startsWith('ubuntu')) {
         return daos_pkgs + ' ' + pkgs
     }
 
-    error 'functionalPackages not implemented for ' + distro
+    error "functionalPackages not implemented for ${_distro}"
 
     return ''
 }
