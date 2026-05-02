@@ -20,10 +20,10 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      provider        launch.py --provider argument to use
  *      distro          functional test stage distro (VM)
  *      image_version   image version to use for provisioning, e.g. el8.8, leap15.6, etc.
+ *      rpm_version     version to use for daos packages when installing on the test nodes;
+ *                          if not specified, image_version will be used
  *      base_branch     if specified, checkout sources from this branch before running tests
  *      other_packages  space-separated string of additional RPM packages to install
- *      inst_rpms       space-separated string of RPM packages to install on the test nodes;
- *                          exclusive of other_packages.
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
  *      job_status      Map of status for each stage in the job/build
@@ -39,8 +39,9 @@ Map call(Map kwargs = [:]) {
     String nvme = kwargs.get('nvme')
     String default_nvme = kwargs.get('default_nvme')
     String provider = kwargs.get('provider', '')
-    String distro = kwargs.get('distro', '')
+    String distro = kwargs.get('distro', null)
     String image_version = kwargs.get('image_version', null)
+    String rpm_version = kwargs.get('rpm_version', image_version)
     String base_branch = kwargs.get('base_branch')
     String other_packages = kwargs.get('other_packages', '')
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
@@ -87,7 +88,7 @@ Map call(Map kwargs = [:]) {
                                 image_version: image_version,
                                 inst_repos: daosRepos(distro),
                                 inst_rpms: functionalPackages(
-                                    distro: distro,
+                                    distro: rpm_version,
                                     client_ver: 1,
                                     next_version: next_version,
                                     add_daos_pkgs: 'tests-internal') + ' ' + other_packages,
