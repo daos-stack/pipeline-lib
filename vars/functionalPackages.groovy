@@ -66,9 +66,9 @@ String call(Map args) {
     Integer clientVersion = args.get('clientVersion', 1)
     String nextVersion = args.get('nextVersion', '')
     String addDaosPkgs = args.get('addDaosPkgs', null)
-    String distroVersion = args.get('distroVersion', '')
+    String rpmDistribution = args.get('rpmDistribution', '')
 
-    String daos_pkgs = getDAOSPackages(distro, nextVersion, addDaosPkgs, distroVersion)
+    String daos_pkgs = getDAOSPackages(distro, nextVersion, addDaosPkgs, rpmDistribution)
     String pkgs = ''
     if (fileExists('ci/functional/required_packages.sh')) {
         pkgs = sh(script: "ci/functional/required_packages.sh ${distro} " +
