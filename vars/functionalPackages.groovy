@@ -14,7 +14,7 @@
 String call(Integer client_ver, BigDecimal next_version) {
     return functionalPackages(
         clientVersion: client_ver,
-        nextVersion: next_version.toString(),
+        nextVersion: next_version.toString()
     )
 }
 
@@ -29,18 +29,15 @@ String call(Integer client_ver, BigDecimal next_version, String add_daos_pkgs) {
 String call(Integer client_ver, String next_version) {
     return functionalPackages(
         clientVersion: client_ver,
-        nextVersion: next_version,
-        addDaosPkgs: null,
-        distroVersion: ''
+        nextVersion: next_version
     )
 }
 
-String call(Integer client_ver, String next_version, String add_daos_pkgs, String distroVersion='') {
+String call(Integer client_ver, String next_version, String add_daos_pkgs) {
     return functionalPackages(
         clientVersion: client_ver,
         nextVersion: next_version,
-        addDaosPkgs: add_daos_pkgs,
-        distroVersion: distroVersion
+        addDaosPkgs: add_daos_pkgs
     )
 }
 
@@ -64,9 +61,9 @@ String call(String distro, Integer client_ver, String next_version, String add_d
 String call(Map args) {
     String distro = args.get('distro', parseStageInfo()['target'])
     Integer clientVersion = args.get('clientVersion', 1)
-    String nextVersion = args.get('nextVersion', '')
+    String nextVersion = args.get('nextVersion', '1000').toString()
     String addDaosPkgs = args.get('addDaosPkgs', null)
-    String rpmDistribution = args.get('rpmDistribution', '')
+    String rpmDistribution = args.get('rpmDistribution', null)
 
     String daos_pkgs = getDAOSPackages(distro, nextVersion, addDaosPkgs, rpmDistribution)
     String pkgs = ''
