@@ -25,7 +25,7 @@
    *
    * config['nlt_name']            Display name for the NLT recordIssues
    *                               section in the Jenkins UI.
-   *                               Default: 'Node local testing'
+   *                               Default: 'NLT'
 /* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
@@ -114,9 +114,12 @@ void call(Map config = [:]) {
                                   scm: 'daos-stack/daos',
                                   requiredResult: 'UNSTABLE')
         List nltTools = [issues(pattern: 'vm_test/nlt-errors.json',
-                                name: 'NLT results',
+                                name: 'NLT errors',
                                 id: sanitizedStageName() + '_VM_test')]
         if (stage_info['FI']) {
+            nltTools = [issues(pattern: 'vm_test/nlt-errors.json',
+                                name: 'Fault injection',
+                                id: sanitizedStageName() + '_VM_test')]
             nltTools << issues(pattern: 'nlt-client-leaks.json',
                                name: 'Fault injection leaks',
                                id: 'NLT_client')
@@ -134,7 +137,7 @@ void call(Map config = [:]) {
                        [threshold: 1, type: 'TOTAL_HIGH'],
                        [threshold: 1, type: 'NEW_NORMAL', unstable: true],
                        [threshold: 1, type: 'NEW_LOW', unstable: true]],
-                     name: config.get('nlt_name', 'Node local testing'),
+                     name: config.get('nlt_name', 'NLT'),
                      tools: nltTools,
                      scm: 'daos-stack/daos'
 
