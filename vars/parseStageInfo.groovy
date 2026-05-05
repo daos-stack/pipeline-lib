@@ -285,17 +285,16 @@ Map call(Map config = [:]) {
         result['ftest_arg'] = config['ftest_arg']
     }
 
-    if (stage_name.toLowerCase().contains('nlt fault injection')) {
+    if(stage_name.contains('NLT')) {
         result['NLT'] = true
-        result['FI'] = true
         result['always_script'] = config.get('always_script', 'ci/unit/test_nlt_post.sh')
         result['testResults'] = config.get('testResults', 'nlt-junit.xml')
-    } else if (stage_name.contains('NLT')) {
-        result['NLT'] = true
-        result['valgrind_pattern'] = config.get('valgrind_pattern', '*memcheck.xml')
-        result['always_script'] = config.get('always_script', 'ci/unit/test_nlt_post.sh')
-        result['testResults'] = config.get('testResults', 'nlt-junit.xml')
-        result['with_valgrind'] = 'memcheck'
+        if (stage_name.toLowerCase().contains('nlt fault injection')) {
+            result['FI'] = true
+        } else {
+            result['valgrind_pattern'] = config.get('valgrind_pattern', '*memcheck.xml')
+            result['with_valgrind'] = 'memcheck'
+        }
     } else {
         result['NLT'] = false
         if (config['valgrind_pattern']) {
