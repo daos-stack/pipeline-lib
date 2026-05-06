@@ -113,11 +113,11 @@ void call(Map config = [:]) {
                                                            'daos-stack/daos/master'),
                                   scm: 'daos-stack/daos',
                                   requiredResult: 'UNSTABLE')
-        List nltTools = [issues(pattern: 'vm_test/nlt-errors.json',
+        List nltTools = [issues(pattern: 'nlt-errors.json',
                                 name: 'NLT errors',
                                 id: sanitizedStageName() + '_VM_test')]
         if (stage_info['FI']) {
-            nltTools = [issues(pattern: 'vm_test/nlt-errors.json',
+            nltTools = [issues(pattern: 'nlt-errors.json',
                                 name: 'Fault injection',
                                 id: sanitizedStageName() + '_VM_test')]
             nltTools << issues(pattern: 'nlt-client-leaks.json',
