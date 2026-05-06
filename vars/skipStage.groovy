@@ -426,6 +426,7 @@ boolean call(Map config = [:]) {
         case 'Functional on Leap 15.4':
         case 'Functional on Leap 15.5':
         case 'Functional on Leap 15.6':
+        case 'Functional on SLES 15':
         case 'Functional on SLES 15.7':
             return skip_ftest('leap15', target_branch, tags)
         case 'Functional on Ubuntu 20.04':
