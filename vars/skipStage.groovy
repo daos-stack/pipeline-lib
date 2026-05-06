@@ -547,6 +547,9 @@ boolean call(Map config = [:]) {
         case 'Test RPMs on Leap 15.6':
         case 'Test RPMs on Leap 15.7':
         case 'Test RPMs on SLES 15':
+            if (startedByLanding()) {
+                return false
+            }
             return !paramsValue('CI_RPMS_leap15_TEST', true) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('build-leap15-rpm') ||
@@ -558,7 +561,6 @@ boolean call(Map config = [:]) {
                     !paramsValue('CI_RPMS_leap15_TEST', true) &&
                     !run_default_skipped_stage('test-leap-15-rpms')) ||
                    (rpmTestVersion() != '') ||
-                   !startedByLanding() ||
                    stageAlreadyPassed()
         case 'Test Packages':
             return docOnlyChange(target_branch)
