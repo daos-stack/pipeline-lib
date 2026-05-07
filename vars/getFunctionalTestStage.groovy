@@ -20,9 +20,14 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      distro          functional test stage distro (VM)
  *      image_version   image version to use for provisioning, e.g. el8.8, leap15.6, etc.
  *      base_branch     if specified, checkout sources from this branch before running tests
+ *      next_version    next daos package version; used to determine which daos packages to install
+ *                      on the test nodes if 'inst_rpms' is not specified.
+ *      rpm_distro      distribution to use for daos packages installed on the test nodes, e.g.
+ *                      '.el9', '.suse.lp156', etc.  If not specified, it will be determined by
+ *                      rpmDistValue(distro); Exclusive of 'inst_rpms'.
  *      other_packages  space-separated string of additional RPM packages to install
  *      inst_rpms       space-separated string of RPM packages to install on the test nodes;
- *                          exclusive of other_packages.
+ *                          exclusive of next_version, rpm_distro, and other_packages.
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
  *      job_status      Map of status for each stage in the job/build
@@ -38,11 +43,19 @@ Map call(Map kwargs = [:]) {
     String nvme = kwargs.get('nvme')
     String default_nvme = kwargs.get('default_nvme')
     String provider = kwargs.get('provider', '')
-    String distro = kwargs.get('distro')
+    String distro = kwargs.get('distro', null)
     String image_version = kwargs.get('image_version', null)
     String base_branch = kwargs.get('base_branch')
+    String next_version = kwargs.get('next_version', null)
+    String rpm_distro = kwargs.get('rpm_distro', null)
+    String other_packages = kwargs.get('other_packages', '')
     String instRpms = kwargs.get(
-        'inst_rpms', getFunctionalPackages(kwargs.get('other_packages', '')))
+        'inst_rpms',
+        functionalPackages(
+            clientVersion: 1,
+            nextVersion: next_version,
+            addDaosPkgs: 'tests-internal',
+            rpmDistribution: rpm_distro) + ' ' + other_packages),
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
     Map job_status = kwargs.get('job_status', [:])

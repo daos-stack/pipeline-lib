@@ -426,6 +426,7 @@ boolean call(Map config = [:]) {
         case 'Functional on Leap 15.4':
         case 'Functional on Leap 15.5':
         case 'Functional on Leap 15.6':
+        case 'Functional on SLES 15':
         case 'Functional on SLES 15.7':
             return skip_ftest('leap15', target_branch, tags)
         case 'Functional on Ubuntu 20.04':
@@ -527,7 +528,7 @@ boolean call(Map config = [:]) {
                    skip_stage_pragma('build-el9-gcc') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
-                   skip_stage_pragma('test-el-9-rpms', 'true') ||
+                   skip_stage_pragma('test-el-9-rpms') ||
                    docOnlyChange(target_branch) ||
                    (quickFunctional() &&
                     !paramsValue('CI_TEST_EL_RPMs', true) &&
@@ -545,13 +546,17 @@ boolean call(Map config = [:]) {
         case 'Test RPMs on Leap 15.4':
         case 'Test RPMs on Leap 15.5':
         case 'Test RPMs on Leap 15.6':
-        case 'Test RPMs on SLES 15.7':
+        case 'Test RPMs on Leap 15.7':
+        case 'Test RPMs on SLES 15':
+            if (startedByLanding()) {
+                return false
+            }
             return !paramsValue('CI_RPMS_leap15_TEST', true) ||
                    target_branch =~ branchTypeRE('weekly') ||
                    skip_stage_pragma('build-leap15-rpm') ||
                    skip_stage_pragma('test') ||
                    skip_stage_pragma('test-rpms') ||
-                   skip_stage_pragma('test-leap-15-rpms', 'true') ||
+                   skip_stage_pragma('test-leap-15-rpms') ||
                    docOnlyChange(target_branch) ||
                    (quickFunctional() &&
                     !paramsValue('CI_RPMS_leap15_TEST', true) &&

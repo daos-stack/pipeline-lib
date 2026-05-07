@@ -18,7 +18,7 @@ String call(String distro, String next_version) {
     return getDAOSPackages(distro, next_version, null)
 }
 
-String call(String distro, String next_version, String add_daos_pkgs) {
+String call(String distro, String next_version, String add_daos_pkgs, String rpmDistribution='') {
     String _add_daos_pkgs = ''
     if (add_daos_pkgs) {
         _add_daos_pkgs = ',-' + add_daos_pkgs
@@ -32,7 +32,7 @@ String call(String distro, String next_version, String add_daos_pkgs) {
         pkgs = 'daos{,-client}'
     }
 
-    String version = daosPackagesVersion(distro, next_version)
+    String version = daosPackagesVersion(distro, next_version, rpmDistribution)
 
     if (version) {
         if (distro.startsWith('ubuntu20')) {
