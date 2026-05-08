@@ -23,9 +23,6 @@
    *                               Required if more than one stage is
    *                               creating Valgrind reports.
    *
-   * config['nlt_name']            Display name for the NLT recordIssues
-   *                               section in the Jenkins UI.
-   *                               Default: 'NLT'
 /* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
@@ -137,7 +134,7 @@ void call(Map config = [:]) {
                        [threshold: 1, type: 'TOTAL_HIGH'],
                        [threshold: 1, type: 'NEW_NORMAL', unstable: true],
                        [threshold: 1, type: 'NEW_LOW', unstable: true]],
-                     name: config.get('nlt_name', 'NLT'),
+                     name: stage_info['FI']?'Fault injection':'NLT',
                      tools: nltTools,
                      scm: 'daos-stack/daos'
 
