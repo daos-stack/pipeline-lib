@@ -21,7 +21,7 @@ String call(String distro) {
                distro.startsWith('rocky9') || distro.startsWith('almalinux9') ||
                distro.startsWith('rhel9')) {
         return '.el9'
-    } else if (distro.startsWith('leap15')) {
+    } else if (distro.startsWith('leap15') || distro.startsWith('sles15')) {
         return '.suse.lp' + parseStageInfo()['distro_version'].replaceAll('\\.', '')
     }
     error("Don't know what the RPM %{dist} is for ${distro}")
