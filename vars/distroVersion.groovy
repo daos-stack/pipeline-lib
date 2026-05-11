@@ -30,6 +30,7 @@ String call(String distro) {
 }
 
 String call(String distro, String branch) {
+    println("Determining distro version for ${distro} and branch ${branch}")
     return ['el8':      ['master': '8.8',
                          '2.4':    '8.8',
                          '2.6':    '8.8',
