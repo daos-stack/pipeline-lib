@@ -30,6 +30,16 @@ String call(String name, String def_val = null) {
 
         String key = name.toLowerCase()
         def value = pragmas[key]
+
+        if (key == 'test-tag') {
+            if (value instanceof List) {
+                return value.join(' ')
+            }
+            if (value != null) {
+                return value.toString()
+            }
+            return def_val ?: ''
+        }
         
         if (value instanceof List) {
             return value.join(' ')
@@ -39,5 +49,11 @@ String call(String name, String def_val = null) {
         }
         return def_val ?: ''
     }
-    return commitPragmaTrusted(name, def_val)
+
+    if (name.toLowerCase() == 'test-tag') {
+        return def_val ?: ''
+    }
+
+    def trusted = commitPragmaTrusted(name, def_val)
+    return (trusted instanceof List) ? trusted.join(' ') : trusted
 }
