@@ -8,12 +8,18 @@
  */
 
 Map call() {
+    if (!env.pragmas) {
+        return [:]
+    }
+
+    if (env.pragmas instanceof Map) {
+        return (Map) env.pragmas
+    }
+
     Map pragmas = [:]
-    if (env.pragmas) {
-        pragmas = "${env.pragmas}"[1..-2].split(', ').collectEntries { entry ->
-            String[] pair = entry.split('=', 2)
-            [(pair.first()): pair.last()]
-        }
+    pragmas = "${env.pragmas}"[1..-2].split(', ').collectEntries { entry ->
+        String[] pair = entry.split('=', 2)
+        [(pair.first()): pair.last()]
     }
 
     return pragmas
