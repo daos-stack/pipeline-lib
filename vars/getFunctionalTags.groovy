@@ -30,7 +30,23 @@ Map call(Map kwargs = [:]) {
         requested_tags = default_tags
     }
     // Builds started from a commit should first use any commit pragma 'Test-tag*:' tags if defined
-    requested_tags = requested_tags ?: commitPragma('Test-tag' + pragma_suffix, commitPragma('Test-tag', ''))
+    if (!requested_tags) {
+        // Collect all Test-tag pragmas (multiple allowed)
+        def tags = []
+        
+        // With suffix
+        def t1 = commitPragma('Test-tag' + pragma_suffix, null)
+        if (t1 instanceof List) {
+            tags.addAll(t1)
+        } else if (t1) {
+            tags << t1
+        }
+        
+        // Without suffix
+        def t2 = commitPragma('Test-tag', null)
+        if (t2 instanceof List) tags.addAll(t2) else if (t2) tags << t2
+        requested_tags = tags ? tags.join(' ') : ''
+    }
 
     // Builds started from a commit should finally use the default tags for the stage
     requested_tags = requested_tags ?: default_tags
