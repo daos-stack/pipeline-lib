@@ -22,7 +22,23 @@ Map call(String commit_message) {
                 // this returns from the .each closure, not the method
                 return
             }
-            pragmas[key.toLowerCase()] = value.trim()
+            String k = key.toLowerCase()
+            String v = value.trim()
+            
+            // Special handling: allow multiple Test-tag pragmas
+            if (k == 'test-tag') {
+                def existing = pragmas[k]
+                if (existing == null) {
+                    pragmas[k] = [v]
+                } else if (existing instanceof List) {
+                    pragmas[k] << v
+                } else {
+                    pragmas[k] = [existing, v]
+                }
+            } else {
+                // default behavior for all other pragmas
+                pragmas[k] = v
+            }
         /* groovylint-disable-next-line CatchArrayIndexOutOfBoundsException */
         } catch (ArrayIndexOutOfBoundsException ignored) {
             // ignore and move on to the next line
