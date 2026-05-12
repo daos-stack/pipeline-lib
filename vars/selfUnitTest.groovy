@@ -95,6 +95,11 @@ Signed-off-by: Brian J. Murrell <brian.murrell@intel.com>'''
     println("    expected_map = ${expected_map}")
     assert(result_map == expected_map)
 
+    println "env.pragmas = ${env.pragmas} (${env.pragmas?.getClass()})"
+    println "envToPragmas()['test-tag'] = ${envToPragmas()['test-tag']} (${envToPragmas()['test-tag']?.getClass()})"
+    println "commitPragma('Test-tag') = ${commitPragma('Test-tag')} (${commitPragma('Test-tag')?.getClass()})"
+    println "parseStageInfo()['test_tag'] = ${parseStageInfo()['test_tag']}"
+
     println('  with overwrite=false')
     updatePragmas('Test-tag: should_not_overwrite', false)
     result_map = envToPragmas()
