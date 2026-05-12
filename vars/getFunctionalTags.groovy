@@ -23,6 +23,8 @@ Map call(Map kwargs = [:]) {
     if (raw_default_tags instanceof List) {
         // join list into a single space-separated string
         default_tags = raw_default_tags.join(' ')
+    } else if (raw_default_tags instanceof String && raw_default_tags.contains(',')) {
+        default_tags = raw_default_tags
     } else {
         default_tags = raw_default_tags
     }
@@ -48,7 +50,9 @@ Map call(Map kwargs = [:]) {
     }
 
     // Builds started from a commit should finally use the default tags for the stage
-    requested_tags = requested_tags ?: default_tags
+    if (!requested_tags) {
+        requested_tags = default_tags
+    }
 
     // Append any commit pragma 'Features:' tags if defined
     String features = commitPragma('Features', '')
