@@ -17,7 +17,15 @@ Map call(Map kwargs = [:]) {
     String pragma_suffix = kwargs.get('pragma_suffix', getPragmaSuffix())
     /* groovylint-disable-next-line UnnecessaryGetter */
     String stage_tags = kwargs.get('stage_tags', getFunctionalStageTags())
-    String default_tags = kwargs.get('default_tags', 'pr')
+    // default_tags may be a List (from multiple Test-tag pragmas)
+    def raw_default_tags = kwargs.get('default_tags', 'pr')
+    String default_tags
+    if (raw_default_tags instanceof List) {
+        // join list into a single space-separated string
+        default_tags = raw_default_tags.join(' ')
+    } else {
+        default_tags = raw_default_tags
+    }
     String requested_tags = ''
 
     // Define the test tags to use in this stage
@@ -31,21 +39,12 @@ Map call(Map kwargs = [:]) {
     }
     // Builds started from a commit should first use any commit pragma 'Test-tag*:' tags if defined
     if (!requested_tags) {
-        // Collect all Test-tag pragmas (multiple allowed)
-        def tags = []
-        
-        // With suffix
-        def t1 = commitPragma('Test-tag' + pragma_suffix, null)
-        if (t1 instanceof List) {
-            tags.addAll(t1)
-        } else if (t1) {
-            tags << t1
+        def t = commitPragma('Test-tag' + pragma_suffix, commitPragma('Test-tag', ''))
+        if (t instanceof List) {
+            requested_tags = t.join(' ')
+        } else {
+            requested_tags = t ?: ''
         }
-        
-        // Without suffix
-        def t2 = commitPragma('Test-tag', null)
-        if (t2 instanceof List) tags.addAll(t2) else if (t2) tags << t2
-        requested_tags = tags ? tags.join(' ') : ''
     }
 
     // Builds started from a commit should finally use the default tags for the stage
