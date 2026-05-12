@@ -28,9 +28,16 @@ String call(String name, String def_val = null) {
     if (env.pragmas) {
         Map pragmas = envToPragmas()
 
-        if (pragmas[name.toLowerCase()]) {
-            return pragmas[name.toLowerCase()]
-        } else if (def_val) {
+        String key = name.toLowerCase()
+        def value = pragmas[key]
+
+        if (key == 'test-tag' && value instanceof List) {
+            return value.join(' ')
+        }
+        if (value) {
+            return value
+        }
+        if (def_val) {
             return def_val
         }
         return ''
