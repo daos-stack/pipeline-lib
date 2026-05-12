@@ -246,7 +246,13 @@ Map call(Map config = [:]) {
         Map kwargs = [:]
         kwargs['pragma_suffix'] = result['pragma_suffix']
         kwargs['stage_tags'] = getFunctionalStageTags()
-        kwargs['default_tags'] = config['test_tag']
+        def dt = config['test_tag']
+        if (dt instanceof List) {
+            kwargs['default_tags'] = dt.join(' ')
+        } else {
+            kwargs['default_tags'] = dt ?: ''
+        }
+
         if (!kwargs['default_tags']) {
             if (startedByTimer() && env.BRANCH_NAME =~ branchTypeRE('weekly')) {
                 kwargs['default_tags'] = 'full_regression'
