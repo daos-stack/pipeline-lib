@@ -49,13 +49,7 @@ Map call(Map kwargs = [:]) {
     String next_version = kwargs.get('next_version', null)
     String rpm_distro = kwargs.get('rpm_distro', null)
     String other_packages = kwargs.get('other_packages', '')
-    String instRpms = kwargs.get(
-        'inst_rpms',
-        functionalPackages(
-            clientVersion: 1,
-            nextVersion: next_version,
-            addDaosPkgs: 'tests-internal',
-            rpmDistribution: rpm_distro) + ' ' + other_packages),
+    String instRpms = kwargs.get('inst_rpms', null)
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
     Map job_status = kwargs.get('job_status', [:])
@@ -100,7 +94,11 @@ Map call(Map kwargs = [:]) {
                             functionalTest(
                                 image_version: image_version,
                                 inst_repos: daosRepos(distro),
-                                inst_rpms: instRpms,
+                                inst_rpms: instRpms ?: functionalPackages(
+                                    clientVersion: 1,
+                                    nextVersion: next_version,
+                                    addDaosPkgs: 'tests-internal',
+                                    rpmDistribution: rpm_distro) + ' ' + other_packages,
                                 test_tag: tags,
                                 ftest_arg: getFunctionalArgs(
                                     pragma_suffix: pragma_suffix,
