@@ -149,7 +149,7 @@ Map call(Map config = [:]) {
                  distro: image_version,
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: inst_rpms,
-                 environment: stage_info['NLT']?"VM_CPUS=14":"")
+                 prov_env_vars: stage_info['NLT']?'VM_CPUS=14':'')
 
     /* el9-gcc-tests */
     String target_stash = (image_version ?: ${stage_info['target']}).split('\\.')[0]
