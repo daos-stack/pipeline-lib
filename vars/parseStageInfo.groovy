@@ -215,20 +215,21 @@ Map call(Map config = [:]) {
         result['test'] = 'Functional'
         result['node_count'] = 9
         result['always_script'] = config.get('always_script', 'ci/functional/job_cleanup.sh')
+
         if (stage_name.contains('Hardware')) {
             ftest_arg_nvme = get_default_nvme()
+
             if (stage_name.contains('Small')) {
                 result['node_count'] = 3
             } else if (stage_name.contains('Medium')) {
                 result['node_count'] = 5
+
                 if (stage_name.contains('Provider')) {
                     if (stage_name.contains('Verbs')) {
                         ftest_arg_provider = 'ofi+verbs'
-                    }
-                    else if (stage_name.contains('UCX')) {
+                    } else if (stage_name.contains('UCX')) {
                         ftest_arg_provider = 'ucx+dc_x'
-                    }
-                    else if (stage_name.contains('TCP')) {
+                    } else if (stage_name.contains('TCP')) {
                         ftest_arg_provider = 'ofi+tcp'
                     }
                 }
@@ -236,22 +237,44 @@ Map call(Map config = [:]) {
                 result['node_count'] = 24
             }
         }
+
         if (stage_name.contains('with Valgrind')) {
             result['with_valgrind'] = 'memcheck'
             config['test_tag'] = 'memcheck'
         }
+
         result['pragma_suffix'] = getPragmaSuffix()
 
         // Get the ftest tags
         Map kwargs = [:]
         kwargs['pragma_suffix'] = result['pragma_suffix']
         kwargs['stage_tags'] = getFunctionalStageTags()
+
         def dt = config['test_tag']
+
+        if (!dt && config['tags'] instanceof List) {
+            def testTagValues = config['tags']
+                .findAll { it.tag?.toLowerCase() == 'test-tag' }
+                .collect { it.value?.toString() }
+
+            if (testTagValues && !testTagValues.isEmpty()) {
+                dt = testTagValues.join(' ')
+            }
+        }
+
         if (dt instanceof List) {
             kwargs['default_tags'] = dt.join(' ')
         } else {
             kwargs['default_tags'] = dt ?: ''
         }
+    }
+
+    if (dt instanceof List) {
+        kwargs['default_tags'] = dt.join(' ')
+    } else {
+        kwargs['default_tags'] = dt ?: ''
+    }
+
 
         if (!kwargs['default_tags']) {
             if (startedByTimer() && env.BRANCH_NAME =~ branchTypeRE('weekly')) {
