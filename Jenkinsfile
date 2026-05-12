@@ -616,9 +616,18 @@ pipeline {
                                                [tag: 'Test-tag', value: 'line2'],
                                                [tag: 'Test-tag', value: 'line3'],
                                                [tag: 'Test-tag', value: 'line4'],],
-                                        tag_template: 'line1,@stages.tag@ line2,@stages.tag@' +
-                                                      'line3,@stages.tag@ line4,@stages.tag@']]
-                            commits.each { commit ->
+                                        tag_template: 'line1,@stages.tag@ line2,@stages.tag@ ' +
+                                                      'line3,@stages.tag@ line4,@stages.tag@'],
+                                        /* this one doesn't quite work due to the @commits.value@ substitution
+                                       not accounting for the skip-list
+                                       [tags: [[tag: 'Test-tag', value: 'datamover'],
+                                               [tag: 'Features', value: 'foobar'],
+                                               [tag: 'Skip-list', value: 'test_to_skip:DAOS-1234']],
+                                        tag_template: '@commits.value@,@stages.tag@ ' +
+                                                      'pr,foobar,-test_to_skip,@stages.tag@ ' +
+                                                      'daily_regression,foobar,-test_to_skip,@stages.tag@ ' +
+                                                      'full_regression,foobar,-test_to_skip,@stages.tag@'] */]
+                            commits.eachWithIndex { commit, index ->
                                 cm = '''\
                                         Test commit\n'''
                                 commit.tags.each { tag ->
