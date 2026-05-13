@@ -27,7 +27,6 @@ String call(Map config = [:]) {
 String call(String name, String def_val = null) {
     if (env.pragmas) {
         Map pragmas = envToPragmas()
-
         String key = name.toLowerCase()
         def value = pragmas[key]
 
@@ -40,7 +39,7 @@ String call(String name, String def_val = null) {
             }
             return def_val ?: ''
         }
-        
+
         if (value instanceof List) {
             return value.join(' ')
         }
@@ -50,10 +49,13 @@ String call(String name, String def_val = null) {
         return def_val ?: ''
     }
 
+    // fallback: trusted source
     if (name.toLowerCase() == 'test-tag') {
-        return def_val ?: ''
+        def trusted = commitPragmaTrusted(name, def_val)
+        return (trusted instanceof List) ? trusted.join(' ') : (trusted ?: def_val ?: '')
     }
 
     def trusted = commitPragmaTrusted(name, def_val)
-    return (trusted instanceof List) ? trusted.join(' ') : trusted
+    return (trusted instanceof List) ? trusted.join(' ') : (trusted ?: def_val ?: '')
 }
+

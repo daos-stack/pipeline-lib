@@ -250,31 +250,19 @@ Map call(Map config = [:]) {
         kwargs['pragma_suffix'] = result['pragma_suffix']
         kwargs['stage_tags'] = getFunctionalStageTags()
 
+        // przed użyciem kwargs
         def dt = config['test_tag']
 
         if (!dt && config['tags'] instanceof List) {
             def testTagValues = config['tags']
                 .findAll { it.tag?.toLowerCase() == 'test-tag' }
                 .collect { it.value?.toString() }
-
             if (testTagValues && !testTagValues.isEmpty()) {
-                dt = testTagValues.join(' ')
+                dt = testTagValues
             }
         }
 
-        if (dt instanceof List) {
-            kwargs['default_tags'] = dt.join(' ')
-        } else {
-            kwargs['default_tags'] = dt ?: ''
-        }
-    }
-
-    if (dt instanceof List) {
-        kwargs['default_tags'] = dt.join(' ')
-    } else {
-        kwargs['default_tags'] = dt ?: ''
-    }
-
+        kwargs['default_tags'] = (dt instanceof List) ? dt : (dt ? [dt.toString()] : [])
 
         if (!kwargs['default_tags']) {
             if (startedByTimer() && env.BRANCH_NAME =~ branchTypeRE('weekly')) {
