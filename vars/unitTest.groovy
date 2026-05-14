@@ -225,7 +225,7 @@ Map call(Map config = [:]) {
     }
     int runTime = durationSeconds(startDate)
     runData['unittest_time'] = runTime
-    
+ 
     // Update the stash after checking junit/valgrind
     String results_map = 'results_map_' + sanitizedStageName()
     // Use the original ignore_failure setting for post section
