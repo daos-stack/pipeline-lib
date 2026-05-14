@@ -22,7 +22,7 @@
    * config['valgrind_stash']      Name to stash Valgrind artifacts
    *                               Required if more than one stage is
    *                               creating Valgrind reports.
-   *
+   */
 /* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
@@ -58,7 +58,7 @@ void call(Map config = [:]) {
     if (testResults != 'None' ) {
         // groovylint-disable-next-line NoDouble
         double health_scale = 1.0
-        if (results.get('ignore_failure', false)) {
+        if (results['ignore_failure']) {
             health_scale = 0.0
         }
         junit testResults: testResults,
@@ -79,7 +79,7 @@ void call(Map config = [:]) {
                           class: 'Valgrind',
                           message: 'Valgrind Memcheck error detected',
                           testdata: testdata,
-                          ignoreFailure: results.get('ignore_failure', false)
+                          ignoreFailure: results['ignore_failure']
         String memcheck = sanitizedStageName() + '_memcheck_results.tar.bz2'
         archiveArtifacts artifacts: memcheck, allowEmptyArchive: true
     }
@@ -88,12 +88,12 @@ void call(Map config = [:]) {
                flow_name: flow_name,
                result: results['result'],
                junit_files: testResults,
-               ignore_failure: results.get('ignore_failure', false)
+               ignore_failure: results['ignore_failure']
 
     artifact_list.each { artifactPat ->
         println("Archiving Artifacts matching ${artifactPat}")
         archiveArtifacts artifacts: artifactPat,
-                     allowEmptyArchive: results.get('ignore_failure', false)
+                     allowEmptyArchive: results['ignore_failure']
     }
     String target_stash = "${stage_info['target']}-${stage_info['compiler']}"
     if (stage_info['build_type']) {
@@ -146,9 +146,9 @@ void call(Map config = [:]) {
     }
 
     println results['result_code'].getClass()
-    println results.get('ignore_failure', false).getClass()
+    println results['ignore_failure'].getClass()
 
-    if (results['result_code'] != 0  && !results.get('ignore_failure', false)) {
+    if (results['result_code'] != 0  && !results['ignore_failure']) {
         // Extra information for when this happens.
         println("results: ${results}")
         println results['result_code'].getClass()
