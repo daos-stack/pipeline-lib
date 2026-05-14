@@ -12,7 +12,7 @@
  *      default_tags    launch.py tag argument to use when no parameter or commit pragma tags exist
  * @return String of test tags to run in the stage
  */
-Map call(Map kwargs = [:]) {
+String call(Map kwargs = [:]) {
     /* groovylint-disable-next-line UnnecessaryGetter */
     String pragma_suffix = kwargs.get('pragma_suffix', getPragmaSuffix())
     /* groovylint-disable-next-line UnnecessaryGetter */
