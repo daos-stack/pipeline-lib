@@ -72,7 +72,13 @@
    *
    * config['unstash_tests']     Un-stash -tests, default is true.
    *
-   * config['image_version']     Image version to use for provisioning, e.g. el8.8, leap15.6, etc.
+   * config['image_version']     Image version to use for provisioning,
+   *                             e.g. el8.8, leap15.6, etc.
+   *
+   * config['prov_env_vars']     Optional provisioning environment to use.
+   *                             Default ''.
+   *                             Formatted as 'KEY=VALUE' space-separated pairs
+   *                             and passed to the provisionNodesSystem call.
    */
 
 Map afterTest(Map config, Map testRunInfo) {
@@ -149,7 +155,7 @@ Map call(Map config = [:]) {
                  distro: image_version,
                  inst_repos: config.get('inst_repos', ''),
                  inst_rpms: inst_rpms,
-                 prov_env_vars: stage_info['NLT']?'VM_CPUS=14':'')
+                 prov_env_vars: config.get('prov_env_vars', ''))
 
     /* el9-gcc-tests */
     String target_stash = (image_version ?: ${stage_info['target']}).split('\\.')[0]
