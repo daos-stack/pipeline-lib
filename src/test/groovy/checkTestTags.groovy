@@ -138,6 +138,6 @@ class TagTemplateSpec extends Specification {
         def tagTemplate = 'line1,vm line2,vm line3,vm line4,vm'
 
         def result = expandTagTemplate(tags)
-        assertEquals(result, tagTemplate)
+        assertEquals(tagTemplate, result)
     }
 }
