@@ -113,7 +113,7 @@ Map afterTest(Map config, Map testRunInfo) {
                                       includes: valgrind_pattern,
                                       targetLocation: memcheck_dir)])
         sh label: 'Create tarball of Valgrind xml files',
-            script: "tar -cjf ${memcheck_dir}.tar.bz2 ${memcheck_dir}"
+           script: "tar -cjf ${memcheck_dir}.tar.bz2 ${memcheck_dir}"
     }
 
     if (config['ignore_failure'] && (result['result'] != 'SUCCESS')) {
@@ -218,7 +218,7 @@ Map call(Map config = [:]) {
     p['NLT'] = stage_info['NLT']
     runTestData = afterTest(p, runData)
     runTestData.each { resultKey, data -> runData[resultKey] = data }
-        
+
     if (stage_info['compiler'] == 'covc') {
         stash name: config.get('coverage_stash', "${target_stash}-unit-cov"),
             includes: 'test.cov'
