@@ -81,7 +81,7 @@ void call(Map config = [:]) {
                           testdata: testdata,
                           ignoreFailure: results['ignore_failure']
         String memcheck = sanitizedStageName() + '_memcheck_results.tar.bz2'
-        archiveArtifacts artifacts: memcheck, allowEmptyArchive: true
+        artifact_list.add(memcheck)
     }
     stepResult name: description,
                context: context,
