@@ -285,7 +285,7 @@ Map call(Map config = [:]) {
         result['ftest_arg'] = config['ftest_arg']
     }
 
-    if(stage_name.contains('NLT')) {
+    if (stage_name.contains('NLT')) {
         result['NLT'] = true
         result['always_script'] = config.get('always_script', 'ci/unit/test_nlt_post.sh')
         result['testResults'] = config.get('testResults', 'nlt-junit.xml')
