@@ -114,6 +114,8 @@ class TagTemplateSpec extends Specification {
         // assign Map to env. var to serialize it
         Script pragmasToEnv = loadPragmasToEnv()
         String tmp_pragmas = pragmasToEnv.call(cm.stripIndent())
+        println('tmp_pragmas == "' + tmp_pragmas + '"')
+        println('tmp_pragmas.type == ' + tmp_pragmas.getClass().getName())
         Map env = [
             STAGE_NAME: stage_name,
             UNIT_TEST: 'true',

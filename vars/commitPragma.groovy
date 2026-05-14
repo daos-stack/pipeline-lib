@@ -27,16 +27,26 @@ String call(Map config = [:]) {
 String call(String name, String def_val = null) {
     if (env.pragmas) {
         Map pragmas = envToPragmas()
+        println('pragmas.type == ' + pragmas.getClass())
+        println('envToPragmas output:')
+        pragmas.each { k, v ->
+            println("  '${k}': '${v}'")
+        }
+
         String key = name.toLowerCase()
         def value = pragmas[key]
 
         if (key == 'test-tag') {
+            println('value.type == ' + value.getClass())
             if (value instanceof List) {
+                println('exit A')
                 return value.join(' ')
             }
             if (value != null) {
+                println('exit B')
                 return value.toString()
             }
+            println('exit C')
             return def_val ?: ''
         }
 
