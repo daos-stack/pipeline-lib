@@ -7,6 +7,7 @@
 package com.daos.pipeline
 
 import static org.junit.jupiter.api.Assertions.*
+
 import spock.lang.Specification
 
 class TagTemplateSpec extends Specification {
@@ -52,7 +53,8 @@ class TagTemplateSpec extends Specification {
         extraBinding.error = { String a ->}
         extraBinding.getPragmaSuffix = {-> return 'XXD' }
 
-        Closure getFunctionalStageTagsWrap = { ->
+        Closure getFunctionalStageTagsWrap = {
+            ->
             Script getFunctionalStageTags = loadScript('getFunctionalStageTags', [
                 env: extraBinding.env,
             ])
@@ -62,13 +64,15 @@ class TagTemplateSpec extends Specification {
         extraBinding.startedByTimer = {-> return false }
         extraBinding.branchTypeRE = { String a -> return 'XXE' }
 
-        Closure getPragmaSuffixWrap = { ->
+        Closure getPragmaSuffixWrap = {
+            ->
             Script getPragmaSuffix = loadScript('getPragmaSuffix', [
                 env: extraBinding.env,
             ])
             return getPragmaSuffix.call()
         }
-        Closure envToPragmasWrap = { ->
+        Closure envToPragmasWrap = {
+            ->
             Script envToPragmas = loadScript('envToPragmas', [
                 env: extraBinding.env,
             ])
@@ -89,7 +93,9 @@ class TagTemplateSpec extends Specification {
                 startedByUpstream: {-> return false },
                 startedByTimer: {-> return false },
                 commitPragma: commitPragmaWrap,
-                getSkippedTests: {-> return [] }
+                getSkippedTests: {
+                    -> return []
+                }
             ])
             return getFunctionalTags.call(kwargs)
         }
