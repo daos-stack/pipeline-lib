@@ -30,7 +30,10 @@ Map call() {
         return m
     }
 
-    String s = env.pragmas.toString().trim()
+    def pragmas = env.pragmas
+    String s = (pragmas instanceof String) ? pragmas.trim() :
+                (pragmas instanceof List)   ? pragmas.collect { it?.toString()?.trim() }.join(',') :
+                pragmas?.toString()?.trim()
 
     // Try several common serialized forms and parse them robustly
 
@@ -51,8 +54,10 @@ Map call() {
 
 \s*$/
     if (m1.matches()) {
-        String key = m1[0][1].trim().toLowerCase()
-        String inner = m1[0][2].trim()
+        def rawKey = m1[0][1]
+        String key = (rawKey instanceof String) ? rawKey.trim().toLowerCase() : rawKey?.toString()?.trim()?.toLowerCase()
+        def rawInner = m1[0][2]
+        String inner = (rawInner instanceof String) ? rawInner.trim() : rawInner?.toString()?.trim()
         List values = inner ? inner.split(/\s*,\s*/).collect { it.trim() } : []
         return [(key): values]
     }
@@ -61,16 +66,16 @@ Map call() {
     //    or {test-tag:[line1, line2], other:val}
     // Normalize braces and separators, then parse top-level entries
     try {
-        String body = s
+        String body = s ?: ''
         if (body.startsWith('{') && body.endsWith('}')) {
-            body = body[1..-2].trim()
+            body = (body.length() > 2) ? body[1..-2].trim() : ''
         } else if (body.startsWith('[') && body.endsWith(']')) {
             // already handled the nested-list case above; fall back to inner content
-            body = body[1..-2].trim()
+            body = (body.length() > 2) ? body[1..-2].trim() : ''
         }
 
-        Map pragmas = [:]
-        // split top-level entries on comma that are not inside brackets
+        Map pragmasMap = [:]
+        // split top-level entries on comma that are not inside brackets/braces
         def parts = []
         int depth = 0
         StringBuilder cur = new StringBuilder()
@@ -91,28 +96,43 @@ Map call() {
             // accept both key=value, key: value, key=[...], key:[...]
             def kv = entry.split(/[:=]/, 2)
             if (kv.length == 0) return
-            String key = kv[0].trim().toLowerCase()
-            String rawVal = (kv.length > 1) ? kv[1].trim() : ''
-            // strip surrounding braces/brackets
-            if (rawVal.startsWith('[') && rawVal.endsWith(']')) {
-                String inner = rawVal[1..-2].trim()
-                List vals = inner ? inner.split(/\s*,\s*/).collect { it.trim() } : []
-                pragmas[key] = vals
-            } else if (rawVal.startsWith('{') && rawVal.endsWith('}')) {
-                // nested map — keep as string representation
-                pragmas[key] = rawVal
+            String key = kv[0]?.toString()?.trim()?.toLowerCase()
+            String rawVal = (kv.length > 1) ? kv[1]?.toString()?.trim() : ''
+
+            if (rawVal) {
+                String rv = rawVal
+                // strip surrounding whitespace
+                rv = rv.trim()
+                if (rv.startsWith('[') && rv.endsWith(']')) {
+                    String inner = (rv.length() > 2) ? rv[1..-2].trim() : ''
+                    List values = []
+                    if (inner) {
+                        def arr = inner.split(/\s*,\s*/) as List
+                        values = arr.collect { it?.toString()?.trim() }
+                    }
+                    pragmasMap[key] = values
+                } else if (rv.startsWith('{') && rv.endsWith('}')) {
+                    // nested map — keep as string representation (trimmed)
+                    pragmasMap[key] = rv
+                } else {
+                    // plain scalar (strip optional surrounding quotes)
+                    String scalar = rv
+                    if ((scalar.startsWith('"') && scalar.endsWith('"')) || (scalar.startsWith("'") && scalar.endsWith("'"))) {
+                        scalar = scalar[1..-2]
+                    }
+                    pragmasMap[key] = scalar
+                }
             } else {
-                // plain scalar
-                pragmas[key] = rawVal
+                pragmasMap[key] = ''
             }
         }
 
         // Ensure test-tag is a list
-        if (pragmas['test-tag'] != null && !(pragmas['test-tag'] instanceof List)) {
-            pragmas['test-tag'] = [pragmas['test-tag'].toString()]
+        if (pragmasMap['test-tag'] != null && !(pragmasMap['test-tag'] instanceof List)) {
+            pragmasMap['test-tag'] = [pragmasMap['test-tag'].toString()]
         }
 
-        return pragmas
+        return pragmasMap
     } catch (Exception e) {
         // fallback: return empty map to avoid NPEs downstream
         return [:]
