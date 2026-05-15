@@ -110,12 +110,8 @@ class TagTemplateSpec extends Specification {
 
                 ${tag.tag}: ${tag.value}"""
         }
-        // print('Running test with commit:\n' + cm)
-        // assign Map to env. var to serialize it
         Script pragmasToEnv = loadPragmasToEnv()
         String tmp_pragmas = pragmasToEnv.call(cm.stripIndent())
-        println('tmp_pragmas == "' + tmp_pragmas + '"')
-        println('tmp_pragmas.type == ' + tmp_pragmas.getClass().getName())
         Map env = [
             STAGE_NAME: stage_name,
             UNIT_TEST: 'true',
@@ -125,7 +121,6 @@ class TagTemplateSpec extends Specification {
         ]
         Script parseStageInfo = loadParseStageInfo([env: env])
         Map info = parseStageInfo.call()
-        // print(info)
         return info['test_tag']
     }
 
