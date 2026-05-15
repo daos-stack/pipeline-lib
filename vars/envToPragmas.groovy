@@ -12,6 +12,11 @@ Map call() {
         return [:]
     }
 
+    if (env.pragmas instanceof java.util.regex.Matcher) {
+        def m = (java.util.regex.Matcher) env.pragmas
+        env.pragmas = m.find() ? m.group(0) : m.toString()
+    }
+
     // If already a Map, return as-is (normalize keys to lowercase)
     if (env.pragmas instanceof Map) {
         Map m = [:]
