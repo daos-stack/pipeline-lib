@@ -79,6 +79,21 @@
    *                             Default ''.
    *                             Formatted as 'KEY=VALUE' space-separated pairs
    *                             and passed to the provisionNodesSystem call.
+   *
+   * config['testResults']       Junit test result files.
+   *                             Default 'test_results/*.xml'
+   *
+   * config['with_valgrind']     Valgrind tools name (e.g. memcheck).
+   *                             Default is '' (no Valgrind).
+   *
+   * config['always_script']     Script to run for cleanup and artifact collection
+   *                             Default is 'ci/unit/test_post_always.sh'.  This
+   *                             script will be run even if the test script fails
+   *                             to allow for artifact collection and cleanup.
+   *
+   * config['valgrind_pattern']  Pattern for Valgrind files.
+   *                             Default: 'unit-test-*.memcheck.xml'
+   *
    */
 
 Map afterTest(Map config, Map testRunInfo) {
@@ -187,7 +202,8 @@ Map call(Map config = [:]) {
                 outputFile: 'bullseye.tar'
     }
 
-    String with_valgrind = stage_info.get('with_valgrind', '')
+    String with_valgrind = config.get('with_valgrind',
+                                      stage_info.get('with_valgrind', ''))
     Map p = [:]
     p['stashes'] = stashes
     p['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
@@ -209,13 +225,16 @@ Map call(Map config = [:]) {
         runTestData = runTest p
         runTestData.each { resultKey, data -> runData[resultKey] = data }
     }
-    p['always_script'] = stage_info.get('always_script',
-                                        'ci/unit/test_post_always.sh')
-    p['valgrind_pattern'] = stage_info.get('valgrind_pattern',
-                                           'unit-test-*memcheck.xml')
-    p['testResults'] = stage_info.get('testResults', 'test_results/*.xml')
+    p['always_script'] = config.get('always_script',
+                                    stage_info.get('always_script',
+                                                   'ci/unit/test_post_always.sh'))
+    p['valgrind_pattern'] = config.get('valgrind_pattern',
+                                       stage_info.get('valgrind_pattern',
+                                                      'unit-test-*memcheck.xml'))
+    p['testResults'] = config.get('testResults',
+                                  stage_info.get('testResults',
+                                                 'test_results/*.xml'))
     p['with_valgrind'] = with_valgrind
-    p['NLT'] = stage_info['NLT']
     runTestData = afterTest(p, runData)
     runTestData.each { resultKey, data -> runData[resultKey] = data }
 

@@ -17,11 +17,17 @@
    *                               Default 'test_results/*.xml'
    *
    * config['valgrind_pattern']    Pattern for Valgrind files.
-   *                               Default: '*.memcheck.xml'
+   *                               Default: 'unit-test-*.memcheck.xml'
    *
    * config['valgrind_stash']      Name to stash Valgrind artifacts
    *                               Required if more than one stage is
    *                               creating Valgrind reports.
+   *
+   * config['NLT']                 Set to true for NLT.
+   *
+   * config['FI']                  Set to true for Fault Injection testing.
+   *                               FI also set NLT to true.
+   *
    */
 /* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
@@ -29,9 +35,10 @@ void call(Map config = [:]) {
     String cbcResult = currentBuild.currentResult
 
     // Stash the Valgrind files for later analysis
-    String valgrind_pattern = stage_info.get('valgrind_pattern',
-                                             'unit-test-*memcheck.xml')
     if (config['valgrind_stash']) {
+        String valgrind_pattern = config.get('valgrind_pattern', 
+                                             stage_info.get('valgrind_pattern',
+                                                            'unit-test-*memcheck.xml'))
         try {
             stash name: config['valgrind_stash'], includes: valgrind_pattern
         } catch (hudson.AbortException e) {
@@ -54,7 +61,9 @@ void call(Map config = [:]) {
 
     List artifact_list = config.get('artifacts', ['run_test.sh/*'])
 
-    String testResults = stage_info.get('testResults', 'test_results/*.xml')
+    String testResults = config.get('testResults',
+                                    stage_info.get('testResults',
+                                                   'test_results/*.xml'))
     if (testResults != 'None' ) {
         // groovylint-disable-next-line NoDouble
         double health_scale = 1.0
@@ -104,16 +113,18 @@ void call(Map config = [:]) {
         return
     }
 
-    if (stage_info['NLT']) {
+    Boolean fi = config.get('FI', false)
+    Boolean nlt = fi || config.get('NLT',stage_info.get('NLT', false))
+    if (nlt) {
         String cb_result = currentBuild.result
         discoverGitReferenceBuild(referenceJob: config.get('referenceJobName',
                                                            'daos-stack/daos/master'),
                                   scm: 'daos-stack/daos',
                                   requiredResult: 'UNSTABLE')
         List nltTools = [issues(pattern: 'vm_test/nlt-errors.json',
-                                name: stage_info['FI'] ? 'Fault injection' : 'NLT errors',
+                                name: fi ? 'Fault injection' : 'NLT errors',
                                 id: sanitizedStageName() + '_VM_test')]
-        if (stage_info['FI']) {
+        if (fi) {
             nltTools << issues(pattern: 'nlt-client-leaks.json',
                                name: 'Fault injection leaks',
                                id: 'NLT_client')
@@ -131,7 +142,7 @@ void call(Map config = [:]) {
                        [threshold: 1, type: 'TOTAL_HIGH'],
                        [threshold: 1, type: 'NEW_NORMAL', unstable: true],
                        [threshold: 1, type: 'NEW_LOW', unstable: true]],
-                     name: stage_info['FI']?'Fault injection':'NLT',
+                     name: fi?'Fault injection':'NLT',
                      tools: nltTools,
                      scm: 'daos-stack/daos'
 
