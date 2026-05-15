@@ -158,7 +158,8 @@ boolean call(Map config = [:]) {
     }
 
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
-    String tags = config['tags'] ?: parseStageInfo()['test_tag']
+    Map stageInfo = parseStageInfo()
+    String tags = config['tags'] ?: stageInfo['test_tag']
 
     switch (env.STAGE_NAME) {
         case 'Cancel Previous Builds':
@@ -353,6 +354,7 @@ boolean call(Map config = [:]) {
         case 'NLT on EL 8':
         case 'NLT on EL 8.8':
             return skip_stage_pragma('nlt') ||
+                   skip_build_on_el_gcc(target_branch, stageInfo['target'].replaceFirst('^el(\\d+).*', '$1')) ||
                    quickBuild() ||
                    stageAlreadyPassed()
         case 'Unit Test Bullseye':
@@ -441,10 +443,8 @@ boolean call(Map config = [:]) {
             return skip_stage_pragma('fault-injection-test') ||
                    !paramsValue('CI_FI_TEST', true) ||
                    !paramsValue('CI_FI_el8_TEST', true) || /* release/2.6 Jenkinsfile still uses CI_FI_el8_TEST */
-                   quickFunctional() ||
-                   docOnlyChange(target_branch) ||
+                   skip_build_on_el_gcc(target_branch, stageInfo['target'].replaceFirst('^el(\\d+).*', '$1')) ||
                    skip_stage_pragma('func-test') ||
-                   skip_stage_pragma('func-test-vm') ||
                    stageAlreadyPassed()
         case 'Test CentOS 7 RPMs':
             return !paramsValue('CI_RPMS_el7_TEST', true) ||
