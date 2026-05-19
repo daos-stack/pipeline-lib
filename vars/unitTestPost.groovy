@@ -142,7 +142,7 @@ void call(Map config = [:]) {
                        [threshold: 1, type: 'TOTAL_HIGH'],
                        [threshold: 1, type: 'NEW_NORMAL', unstable: true],
                        [threshold: 1, type: 'NEW_LOW', unstable: true]],
-                     name: fi?'Fault injection':'NLT',
+                     name: fi?'Fault injection testing':'NLT',
                      tools: nltTools,
                      scm: 'daos-stack/daos'
 
