@@ -8,75 +8,65 @@
  */
 
 Map call() {
+    // Work on a local copy to avoid storing non-serializable objects in env
     if (!env.pragmas) {
         return [:]
     }
 
-    if (env.pragmas instanceof java.util.regex.Matcher) {
-        def m = (java.util.regex.Matcher) env.pragmas
-        def pragmasString = m.find() ? m.group(0) : m.toString()
-        env.pragmas = pragmasString
+    def raw = env.pragmas
+
+    // If someone accidentally put a Matcher into env.pragmas, convert it immediately
+    if (raw instanceof java.util.regex.Matcher) {
+        raw = raw.find() ? raw.group(0) : raw.toString()
     }
 
-    // If already a Map, return as-is (normalize keys to lowercase)
-    if (env.pragmas instanceof Map) {
+    // If already a Map, normalize keys and ensure list types for test-tag
+    if (raw instanceof Map) {
         Map m = [:]
-        ((Map) env.pragmas).each { k, v ->
+        ((Map) raw).each { k, v ->
             m[k.toString().toLowerCase()] = v
         }
-        // ensure test-tag is a list if present
         if (m['test-tag'] != null && !(m['test-tag'] instanceof List)) {
-            m['test-tag'] = (m['test-tag'] instanceof String) ? [m['test-tag']] : [m['test-tag'].toString()]
+            m['test-tag'] = safeUtils.ensureList(m['test-tag'])
         }
         return m
     }
 
-    def pragmas = env.pragmas
-    String s = (pragmas instanceof String) ? pragmas.trim() :
-                (pragmas instanceof List)   ? pragmas.collect { it?.toString()?.trim() }.join(',') :
-                pragmas?.toString()?.trim()
+    // Convert raw to a trimmed String representation for parsing
+    String s = (raw instanceof String) ? raw.trim() :
+               (raw instanceof List)   ? raw.collect { it?.toString()?.trim() }.join(',') :
+               raw?.toString()?.trim()
 
-    // Try several common serialized forms and parse them robustly
-
-    // 1) Form like: [test-tag:[line1, line2, line3]]
-    def m1 = s =~ /^\s*
-
-\[([^\:
-
-\[\]
-
-]+)\:\s*
-
-\[([^\]
-
-]*)\]
-
-\]
-
-\s*$/
-    if (m1.matches()) {
-        def rawKey = m1[0][1]
-        String key = (rawKey instanceof String) ? rawKey.trim().toLowerCase() : rawKey?.toString()?.trim()?.toLowerCase()
-        def rawInner = m1[0][2]
-        String inner = (rawInner instanceof String) ? rawInner.trim() : rawInner?.toString()?.trim()
-        List values = inner ? inner.split(/\s*,\s*/).collect { it.trim() } : []
-        return [(key): values]
+    if (!s) {
+        return [:]
     }
 
-    // 2) Form like: {test-tag=[line1, line2], other=val}
-    //    or {test-tag:[line1, line2], other:val}
-    // Normalize braces and separators, then parse top-level entries
     try {
-        String body = s ?: ''
-        if (body.startsWith('{') && body.endsWith('}')) {
-            body = (body.length() > 2) ? body[1..-2].trim() : ''
-        } else if (body.startsWith('[') && body.endsWith(']')) {
-            // already handled the nested-list case above; fall back to inner content
+        // 1) Form like: [test-tag:[line1, line2, line3]]
+        def m1 = (s =~ /^\s*
+\[([^\:
+\[\]
+]+)\s*:\s*
+\[([^\]
+]*)\]
+\s*\]
+$/)
+
+        if (m1.matches()) {
+            def rawKey = m1[0][1]
+            String key = rawKey.toString().trim().toLowerCase()
+            String inner = m1[0][2].toString().trim()
+            List values = inner ? inner.split(/\s*,\s*/).collect { it.trim() } : []
+            return [(key): values]
+        }
+
+        // 2) Generic map-like forms: {k=v, k2=[a,b], k3:val}
+        String body = s
+        if ((body.startsWith('{') && body.endsWith('}')) || (body.startsWith('[') && body.endsWith(']'))) {
             body = (body.length() > 2) ? body[1..-2].trim() : ''
         }
 
         Map pragmasMap = [:]
-        // split top-level entries on comma that are not inside brackets/braces
         def parts = []
         int depth = 0
         StringBuilder cur = new StringBuilder()
@@ -94,34 +84,23 @@ Map call() {
 
         parts.each { entry ->
             if (!entry) return
-            // accept both key=value, key: value, key=[...], key:[...]
             def kv = entry.split(/[:=]/, 2)
             if (kv.length == 0) return
             String key = kv[0]?.toString()?.trim()?.toLowerCase()
             String rawVal = (kv.length > 1) ? kv[1]?.toString()?.trim() : ''
 
             if (rawVal) {
-                String rv = rawVal
-                // strip surrounding whitespace
-                rv = rv.trim()
+                String rv = rawVal.trim()
                 if (rv.startsWith('[') && rv.endsWith(']')) {
                     String inner = (rv.length() > 2) ? rv[1..-2].trim() : ''
-                    List values = []
-                    if (inner) {
-                        def arr = inner.split(/\s*,\s*/) as List
-                        values = arr.collect { it?.toString()?.trim() }
-                    }
-                    pragmasMap[key] = values
-                } else if (rv.startsWith('{') && rv.endsWith('}')) {
-                    // nested map — keep as string representation (trimmed)
-                    pragmasMap[key] = rv
+                    List values = inner ? inner.split(/\s*,\s*/) as List : []
+                    pragmasMap[key] = values.collect { it?.toString()?.trim() }
                 } else {
-                    // plain scalar (strip optional surrounding quotes)
                     String scalar = rv
                     if ((scalar.startsWith('"') && scalar.endsWith('"')) || (scalar.startsWith("'") && scalar.endsWith("'"))) {
                         scalar = scalar[1..-2]
                     }
-                    pragmasMap[key] = scalar
+                    pragmasMap[key] = scalar.trim()
                 }
             } else {
                 pragmasMap[key] = ''
@@ -130,12 +109,11 @@ Map call() {
 
         // Ensure test-tag is a list
         if (pragmasMap['test-tag'] != null && !(pragmasMap['test-tag'] instanceof List)) {
-            pragmasMap['test-tag'] = [pragmasMap['test-tag'].toString()]
+            pragmasMap['test-tag'] = safeUtils.ensureList(pragmasMap['test-tag'])
         }
 
         return pragmasMap
     } catch (Exception e) {
-        // fallback: return empty map to avoid NPEs downstream
         return [:]
     }
 }
