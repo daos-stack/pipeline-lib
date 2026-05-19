@@ -54,9 +54,10 @@ $/)
 
         if (m1.matches()) {
             def rawKey = m1[0][1]
-            String key = rawKey.toString().trim().toLowerCase()
-            String inner = m1[0][2].toString().trim()
-            List values = inner ? inner.split(/\s*,\s*/).collect { it.trim() } : []
+            String key = rawKey?.toString()?.trim()?.toLowerCase() ?: ''
+            def innerVal = m1[0][2]
+            String inner = innerVal?.toString()?.trim() ?: ''
+            List values = inner ? inner.split(/\s*,\s*/).collect { it?.toString()?.trim() } : []
             return [(key): values]
         }
 
@@ -86,15 +87,18 @@ $/)
             if (!entry) return
             def kv = entry.split(/[:=]/, 2)
             if (kv.length == 0) return
-            String key = kv[0]?.toString()?.trim()?.toLowerCase()
-            String rawVal = (kv.length > 1) ? kv[1]?.toString()?.trim() : ''
+            String key = kv[0]?.toString()?.trim()?.toLowerCase() ?: ''
+            String rawVal = (kv.length > 1) ? kv[1] : ''
 
-            if (rawVal) {
-                String rv = rawVal.trim()
+            if (rawVal instanceof List) {
+                pragmasMap[key] = rawVal.collect { it?.toString()?.trim() }
+            } else {
+                String rawValStr = rawVal?.toString()?.trim() ?: ''
+                String rv = rawValStr
                 if (rv.startsWith('[') && rv.endsWith(']')) {
                     String inner = (rv.length() > 2) ? rv[1..-2].trim() : ''
-                    List values = inner ? inner.split(/\s*,\s*/) as List : []
-                    pragmasMap[key] = values.collect { it?.toString()?.trim() }
+                    List values = inner ? inner.split(/\s*,\s*/).collect { it?.toString()?.trim() } : []
+                    pragmasMap[key] = values
                 } else {
                     String scalar = rv
                     if ((scalar.startsWith('"') && scalar.endsWith('"')) || (scalar.startsWith("'") && scalar.endsWith("'"))) {
@@ -102,8 +106,6 @@ $/)
                     }
                     pragmasMap[key] = scalar.trim()
                 }
-            } else {
-                pragmasMap[key] = ''
             }
         }
 
