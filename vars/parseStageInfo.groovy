@@ -250,7 +250,6 @@ Map call(Map config = [:]) {
         kwargs['pragma_suffix'] = result['pragma_suffix']
         kwargs['stage_tags'] = getFunctionalStageTags()
 
-        // przed użyciem kwargs
         def dt = config['test_tag']
 
         if (!dt && config['tags'] instanceof List) {

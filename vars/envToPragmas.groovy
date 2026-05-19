@@ -14,7 +14,8 @@ Map call() {
 
     if (env.pragmas instanceof java.util.regex.Matcher) {
         def m = (java.util.regex.Matcher) env.pragmas
-        env.pragmas = m.find() ? m.group(0) : m.toString()
+        def pragmasString = m.find() ? m.group(0) : m.toString()
+        env.pragmas = pragmasString
     }
 
     // If already a Map, return as-is (normalize keys to lowercase)
