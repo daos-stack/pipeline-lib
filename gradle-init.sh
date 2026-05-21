@@ -34,6 +34,9 @@ else
         fi
 fi
 
+# Link Gradle binary globally
+sudo ln -s "$(pwd)/.gradle/gradle-9.0.0/bin/gradle" /usr/local/bin/gradle
+
 SYM=gradle
 rm -f $SYM
 ln -s "$BIN" $SYM
