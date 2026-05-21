@@ -72,7 +72,28 @@
    *
    * config['unstash_tests']     Un-stash -tests, default is true.
    *
-   * config['image_version']     Image version to use for provisioning, e.g. el8.8, leap15.6, etc.
+   * config['image_version']     Image version to use for provisioning,
+   *                             e.g. el8.8, leap15.6, etc.
+   *
+   * config['prov_env_vars']     Optional provisioning environment to use.
+   *                             Default ''.
+   *                             Formatted as 'KEY=VALUE' space-separated pairs
+   *                             and passed to the provisionNodesSystem call.
+   *
+   * config['testResults']       Junit test result files.
+   *                             Default 'test_results/*.xml'
+   *
+   * config['with_valgrind']     Valgrind tools name (e.g. memcheck).
+   *                             Default is '' (no Valgrind).
+   *
+   * config['always_script']     Script to run for cleanup and artifact collection
+   *                             Default is 'ci/unit/test_post_always.sh'.  This
+   *                             script will be run even if the test script fails
+   *                             to allow for artifact collection and cleanup.
+   *
+   * config['valgrind_pattern']  Pattern for Valgrind files.
+   *                             Default: 'unit-test-*.memcheck.xml'
+   *
    */
 
 Map afterTest(Map config, Map testRunInfo) {
@@ -94,7 +115,7 @@ Map afterTest(Map config, Map testRunInfo) {
     } else {
         result['result'] = checkJunitFiles(testResults: testResults)
     }
-    if (config['with_valgrind'] || config['NLT']) {
+    if (config['with_valgrind']) {
         vgrcs = sh label: 'Check for Valgrind errors',
                    script: "grep -E '<error( |>)' ${valgrind_pattern} || true",
                    returnStdout: true
@@ -146,7 +167,8 @@ Map call(Map config = [:]) {
                  node_count: stage_info['node_count'],
                  distro: image_version,
                  inst_repos: config.get('inst_repos', ''),
-                 inst_rpms: inst_rpms)
+                 inst_rpms: inst_rpms,
+                 prov_env_vars: config.get('prov_env_vars', ''))
 
     /* el9-gcc-tests */
     String target_stash = (image_version ?: ${stage_info['target']}).split('\\.')[0]
@@ -180,7 +202,8 @@ Map call(Map config = [:]) {
                 outputFile: 'bullseye.tar'
     }
 
-    String with_valgrind = stage_info.get('with_valgrind', '')
+    String with_valgrind = config.get('with_valgrind',
+                                      stage_info.get('with_valgrind', ''))
     Map p = [:]
     p['stashes'] = stashes
     p['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
@@ -202,13 +225,16 @@ Map call(Map config = [:]) {
         runTestData = runTest p
         runTestData.each { resultKey, data -> runData[resultKey] = data }
     }
-    p['always_script'] = stage_info.get('always_script',
-                                        'ci/unit/test_post_always.sh')
-    p['valgrind_pattern'] = stage_info.get('valgrind_pattern',
-                                           'unit-test-*memcheck.xml')
-    p['testResults'] = stage_info.get('testResults', 'test_results/*.xml')
+    p['always_script'] = config.get('always_script',
+                                    stage_info.get('always_script',
+                                                   'ci/unit/test_post_always.sh'))
+    p['valgrind_pattern'] = config.get('valgrind_pattern',
+                                       stage_info.get('valgrind_pattern',
+                                                      'unit-test-*memcheck.xml'))
+    p['testResults'] = config.get('testResults',
+                                  stage_info.get('testResults',
+                                                 'test_results/*.xml'))
     p['with_valgrind'] = with_valgrind
-    p['NLT'] = stage_info['NLT']
     runTestData = afterTest(p, runData)
     runTestData.each { resultKey, data -> runData[resultKey] = data }
 
