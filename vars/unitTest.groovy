@@ -72,7 +72,28 @@
    *
    * config['unstash_tests']     Un-stash -tests, default is true.
    *
-   * config['image_version']     Image version to use for provisioning, e.g. el8.8, leap15.6, etc.
+   * config['image_version']     Image version to use for provisioning,
+   *                             e.g. el8.8, leap15.6, etc.
+   *
+   * config['prov_env_vars']     Optional provisioning environment to use.
+   *                             Default ''.
+   *                             Formatted as 'KEY=VALUE' space-separated pairs
+   *                             and passed to the provisionNodesSystem call.
+   *
+   * config['testResults']       Junit test result files.
+   *                             Default 'test_results/*.xml'
+   *
+   * config['with_valgrind']     Valgrind tools name (e.g. memcheck).
+   *                             Default is '' (no Valgrind).
+   *
+   * config['always_script']     Script to run for cleanup and artifact collection
+   *                             Default is 'ci/unit/test_post_always.sh'.  This
+   *                             script will be run even if the test script fails
+   *                             to allow for artifact collection and cleanup.
+   *
+   * config['valgrind_pattern']  Pattern for Valgrind files.
+   *                             Default: 'unit-test-*.memcheck.xml'
+   *
    */
 
 Map afterTest(Map config, Map testRunInfo) {
@@ -94,7 +115,7 @@ Map afterTest(Map config, Map testRunInfo) {
     } else {
         result['result'] = checkJunitFiles(testResults: testResults)
     }
-    if (config['check_valgrind_errors']) {
+    if (config['with_valgrind']) {
         vgrcs = sh label: 'Check for Valgrind errors',
                    script: "grep -E '<error( |>)' ${valgrind_pattern} || true",
                    returnStdout: true
@@ -139,24 +160,18 @@ Map call(Map config = [:]) {
     String compiler = config.get('compiler', stage_info['compiler'])
     String build_type = config.get('build_type', stage_info['build_type'])
     String with_valgrind = config.get('with_valgrind', stage_info.get('with_valgrind', ''))
-    Boolean NLT = config.get('NLT', stage_info.get('NLT', false))
-    String always_script = config.get(
-        'always_script', stage_info.get('always_script', 'ci/unit/test_post_always.sh'))
-    String valgrind_pattern = config.get(
-        'valgrind_pattern', stage_info.get('valgrind_pattern', 'unit-test-*memcheck.xml'))
-    String test_results = config.get(
-        'test_results', stage_info.get('testResults', 'test_results/*.xml'))
 
     String image_version = config.get('image_version', '') ?:
         (target  =~ /([a-z]+)(.*)/)[0][1] + distro_version
 
     Map runData = provisionNodes(
-                 NODELIST: nodelist,
-                 node_count: node_count,
-                 distro: image_version,
-                 inst_repos: config.get('inst_repos', ''),
-                 inst_rpms: inst_rpms,
-                 bullseye: compiler == 'covc')
+        NODELIST: nodelist,
+        node_count: node_count,
+        distro: image_version,
+        inst_repos: config.get('inst_repos', ''),
+        inst_rpms: inst_rpms,
+        prov_env_vars: config.get('prov_env_vars', ''),
+        bullseye: compiler == 'covc')
 
     /* el9-gcc-tests */
     String target_stash = (image_version ?: target).split('\\.')[0]
@@ -202,10 +217,16 @@ Map call(Map config = [:]) {
         runTestData = runTest params
         runTestData.each { resultKey, data -> runData[resultKey] = data }
     }
-    params['always_script'] = always_script
-    params['valgrind_pattern'] = valgrind_pattern
-    params['testResults'] = test_results
-    params['check_valgrind_errors'] = (with_valgrind || NLT) && (compiler != 'covc')
+    params['always_script'] = config.get(
+        'always_script',
+        stage_info.get('always_script', 'ci/unit/test_post_always.sh'))
+    params['valgrind_pattern'] = config.get(
+        'valgrind_pattern',
+        stage_info.get('valgrind_pattern', 'unit-test-*memcheck.xml'))
+    params['testResults'] = config.get(
+        'testResults',
+        stage_info.get('testResults', 'test_results/*.xml'))
+    params['with_valgrind'] = with_valgrind
     runTestData = afterTest(params, runData)
     runTestData.each { resultKey, data -> runData[resultKey] = data }
 
