@@ -209,6 +209,13 @@ From the main directory, run:
 ./gradle-init.sh
 ```
 
+After that do this:
+
+```sh
+ # Link Gradle binary globally
+sudo ln -s "$(pwd)/.gradle/gradle-*/bin/gradle" /usr/local/bin/gradle
+```
+
 If it succeeds, you’ll find a `gradle` symbolic link in the main directory, which you can use like a normal Gradle installation.
 
 
