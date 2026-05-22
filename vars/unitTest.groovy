@@ -160,10 +160,6 @@ Map call(Map config = [:]) {
     String compiler = config.get('compiler', stage_info['compiler'])
     String build_type = config.get('build_type', stage_info['build_type'])
     String with_valgrind = config.get('with_valgrind', stage_info.get('with_valgrind', ''))
-    if (compiler == 'covc') {
-        // Bullseye does not support Valgrind, so ignore the setting if compiler is covc
-        params['with_valgrind'] = ''
-    }
 
     String image_version = config.get('image_version', '') ?:
         (target  =~ /([a-z]+)(.*)/)[0][1] + distro_version
@@ -230,7 +226,12 @@ Map call(Map config = [:]) {
     params['testResults'] = config.get(
         'testResults',
         stage_info.get('testResults', 'test_results/*.xml'))
-    params['with_valgrind'] = with_valgrind
+    if (compiler == 'covc') {
+        // Bullseye does not support Valgrind, so ignore the setting if compiler is covc
+        params['with_valgrind'] = ''
+    } else {
+        params['with_valgrind'] = with_valgrind
+    }
     runTestData = afterTest(params, runData)
     runTestData.each { resultKey, data -> runData[resultKey] = data }
 
