@@ -39,8 +39,6 @@ void call(Map config = [:]) {
     String compiler = config.get('compiler', stage_info['compiler'])
     String build_type = config.get('build_type', stage_info['build_type'])
     String with_valgrind = config.get('with_valgrind', stage_info.get('with_valgrind', ''))
-    String valgrind_pattern = config.get(
-        'valgrind_pattern', stage_info.get('valgrind_pattern', 'unit-test-*memcheck.xml'))
     String testResults = config.get(
         'testResults', stage_info.get('testResults', 'test_results/*.xml'))
 
