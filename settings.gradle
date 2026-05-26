@@ -1,0 +1,28 @@
+/*
+ * Copyright 2026 Hewlett Packard Enterprise Development LP
+ *
+ * SPDX-License-Identifier: BSD-2-Clause-Patent
+ */
+
+pluginManagement {
+    settings.ext.artifactoryBaseUrl = 'https://artifactory.daos.hpc.amslabs.hpecorp.net/artifactory'
+
+    repositories {
+        maven {
+            url = uri("${settings.ext.artifactoryBaseUrl}/gradle-plugins-proxy")
+        }
+        maven {
+            url = uri("${settings.ext.artifactoryBaseUrl}/maven-proxy")
+        }
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositories {
+        maven {
+            url = uri("${settings.ext.artifactoryBaseUrl}/maven-proxy")
+        }
+        mavenCentral()
+    }
+}
