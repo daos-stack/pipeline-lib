@@ -5,7 +5,7 @@
  */
 
 pluginManagement {
-    settings.ext.artifactoryBaseUrl = 'https://artifactory.daos.hpc.amslabs.hpecorp.net/artifactory'
+    settings.ext.artifactoryBaseUrl = System.getenv('ARTIFACTORY_URL') ?: 'https://your.domain/artifactory'
 
     repositories {
         maven {
@@ -14,15 +14,8 @@ pluginManagement {
         maven {
             url = uri("${settings.ext.artifactoryBaseUrl}/maven-central-proxy")
         }
-        gradlePluginPortal()
-    }
-}
-
-dependencyResolutionManagement {
-    repositories {
-        maven {
-            url = uri("${settings.ext.artifactoryBaseUrl}/maven-central-proxy")
-        }
-        mavenCentral()
+        // Uncomment to access directories without proxy
+        // gradlePluginPortal()
+        // mavenCentral()
     }
 }
