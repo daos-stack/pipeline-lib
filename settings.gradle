@@ -12,7 +12,7 @@ pluginManagement {
             url = uri("${settings.ext.artifactoryBaseUrl}/gradle-plugins-proxy")
         }
         maven {
-            url = uri("${settings.ext.artifactoryBaseUrl}/maven-proxy")
+            url = uri("${settings.ext.artifactoryBaseUrl}/maven-central-proxy")
         }
         gradlePluginPortal()
     }
@@ -21,7 +21,7 @@ pluginManagement {
 dependencyResolutionManagement {
     repositories {
         maven {
-            url = uri("${settings.ext.artifactoryBaseUrl}/maven-proxy")
+            url = uri("${settings.ext.artifactoryBaseUrl}/maven-central-proxy")
         }
         mavenCentral()
     }
