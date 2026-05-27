@@ -14,8 +14,8 @@ pluginManagement {
         maven {
             url = uri("${settings.ext.artifactoryBaseUrl}/maven-central-proxy")
         }
-        // Uncomment to access directories without proxy
-        gradlePluginPortal()
-        mavenCentral()
+        // Uncomment to access repositories without proxy
+        // gradlePluginPortal()
+        // mavenCentral()
     }
 }
