@@ -149,14 +149,27 @@ pipeline {
                     }
                     steps {
                         sh '''
+                        set -euxo pipefail
                         rm -rf ${HOME}/.gradle
                         ./gradle-init.sh
-                        ./gradle spotlessCheck test --no-daemon --debug --stacktrace --max-workers=1 -Dorg.gradle.logging.stacktrace=full
+
+                        if ! command -v mitmdump >/dev/null 2>&1; then
+                            echo "mitmdump is not installed on this agent" >&2
+                            exit 1
+                        fi
+
+                        mitmdump --listen-host 127.0.0.1 --listen-port 8080 -v > mitmproxy.log 2>&1 &
+                        MITM_PID=$!
+                        trap 'kill ${MITM_PID} >/dev/null 2>&1 || true; wait ${MITM_PID} >/dev/null 2>&1 || true' EXIT
+
+                        JAVA_TOOL_OPTIONS="-Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=8080 -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=8080" \
+                            ./gradle spotlessCheck test --debug
                         '''
                     }
                     post {
                         always {
                             junit 'build/test-results/test/*.xml'
+                            archiveArtifacts artifacts: 'mitmproxy.log', allowEmptyArchive: true
                         }
                     }
                 }
