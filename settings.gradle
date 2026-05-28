@@ -19,3 +19,12 @@ pluginManagement {
         // mavenCentral()
     }
 }
+
+dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.PREFER_SETTINGS
+    repositories {
+        maven {
+            url = uri("${settings.ext.artifactoryBaseUrl}/maven-central-proxy")
+        }
+    }
+}
