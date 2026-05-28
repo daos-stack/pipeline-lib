@@ -9,12 +9,6 @@ plugins {
     id 'com.diffplug.spotless' version '8.6.0'
 }
 
-def artifactoryBaseUrl = System.getenv('ARTIFACTORY_URL') ?: 'https://your.domain/artifactory'
-def eclipseP2Mirrors = [
-    'https://download.eclipse.org/': artifactoryBaseUrl + '/eclipse-p2/',
-    'https://groovy.jfrog.io/': artifactoryBaseUrl + '/groovy-p2/'
-]
-
 dependencies {
     implementation localGroovy()
     testImplementation localGroovy()
@@ -26,13 +20,13 @@ spotless {
     groovy {
         target 'src/test/**/*.groovy'
         importOrder()
+        indentWithSpaces(4)
         endWithNewline()
-        greclipse().configFile('greclipse.properties').withP2Mirrors(eclipseP2Mirrors)
     }
     groovyGradle {
         target '*.gradle'
+        indentWithSpaces(4)
         endWithNewline()
-        greclipse().configFile('greclipse.properties').withP2Mirrors(eclipseP2Mirrors)
     }
 }
 
