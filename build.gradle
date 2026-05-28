@@ -9,7 +9,7 @@ plugins {
     id 'com.diffplug.spotless' version '8.6.0'
 }
 
-String artifactoryBaseUrl = System.getenv('ARTIFACTORY_URL') ?: 'https://your.domain/artifactory'
+def artifactoryBaseUrl = System.getenv('ARTIFACTORY_URL') ?: 'https://your.domain/artifactory'
 def eclipseP2Mirrors = [
     'https://download.eclipse.org/': "${artifactoryBaseUrl}/eclipse-p2/",
 ]
