@@ -149,7 +149,7 @@ pipeline {
                     }
                     steps {
                         sh '''
-                        // set -euxo pipefail
+                        # set -euxo pipefail
                         rm -rf ${HOME}/.gradle
                         ./gradle-init.sh
 
