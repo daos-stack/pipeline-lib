@@ -162,11 +162,21 @@ pipeline {
                             exit 1
                         fi
 
-                        mitmdump --listen-host 127.0.0.1 --listen-port 8080 -v > mitmproxy.log 2>&1 &
+                        mitmdump --listen-host 127.0.0.1 --listen-port 8080 --set ssl_insecure=true -v > mitmproxy.log 2>&1 &
                         MITM_PID=$!
                         trap 'kill ${MITM_PID} >/dev/null 2>&1 || true; wait ${MITM_PID} >/dev/null 2>&1 || true' EXIT
 
-                        JAVA_TOOL_OPTIONS="-Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=8080 -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=8080" \
+                        MITM_CA="${HOME}/.mitmproxy/mitmproxy-ca-cert.pem"
+                        if [[ ! -f "${MITM_CA}" ]]; then
+                            echo "mitmproxy CA certificate not found at ${MITM_CA}" >&2
+                            exit 1
+                        fi
+                        rm -f mitmproxy-truststore.jks
+                        keytool -importcert -noprompt -alias mitmproxy \
+                            -file "${MITM_CA}" -keystore mitmproxy-truststore.jks \
+                            -storepass changeit
+
+                        JAVA_TOOL_OPTIONS="-Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=8080 -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=8080 -Djavax.net.ssl.trustStore=${WORKSPACE}/mitmproxy-truststore.jks -Djavax.net.ssl.trustStorePassword=changeit" \
                             ./gradle spotlessCheck test --debug
                         '''
                     }
