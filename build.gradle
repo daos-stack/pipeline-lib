@@ -12,6 +12,7 @@ plugins {
 def artifactoryBaseUrl = System.getenv('ARTIFACTORY_URL') ?: 'https://your.domain/artifactory'
 def eclipseP2Mirrors = [
     'https://download.eclipse.org/': artifactoryBaseUrl + '/eclipse-p2/',
+    'https://groovy.jfrog.io/': artifactoryBaseUrl + '/groovy-p2/'
 ]
 
 dependencies {
