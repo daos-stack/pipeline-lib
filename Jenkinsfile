@@ -153,6 +153,10 @@ pipeline {
                         rm -rf ${HOME}/.gradle
                         ./gradle-init.sh
 
+                        python3 -m venv mitm-env
+                        source mitm-env/bin/activate
+                        pip install mitmproxy
+
                         if ! command -v mitmdump >/dev/null 2>&1; then
                             echo "mitmdump is not installed on this agent" >&2
                             exit 1
