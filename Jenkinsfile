@@ -151,7 +151,7 @@ pipeline {
                         sh '''
                         rm -rf ${HOME}/.gradle
                         ./gradle-init.sh
-                        ./gradle spotlessCheck test --no-daemon --info
+                        ./gradle spotlessCheck test --no-daemon --stacktrace --debug
                         '''
                     }
                     post {
