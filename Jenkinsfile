@@ -177,7 +177,7 @@ pipeline {
                         #     -storepass changeit
 
                         # JAVA_TOOL_OPTIONS="-Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=8080 -Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=8080 -Djavax.net.ssl.trustStore=${WORKSPACE}/mitmproxy-truststore.jks -Djavax.net.ssl.trustStorePassword=changeit" \
-                        ./gradle spotlessCheck test --info
+                        ./gradle spotlessCheck test --no-daemon --info
 
                         # echo
                         # cat mitmproxy.log
