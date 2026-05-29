@@ -207,6 +207,8 @@ From the main directory, run:
 
 ```sh
 ./gradle-init.sh
+# It is required to download plugins and dependencies, which happens when running specific Gradle commands.
+export ARTIFACTORY_URL=https://artifactory.daos.hpc.amslabs.hpecorp.net/artifactory
 ```
 
 If it succeeds, you’ll find a `gradle` symbolic link in the main directory, which you can use like a normal Gradle installation.
@@ -216,6 +218,8 @@ If it succeeds, you’ll find a `gradle` symbolic link in the main directory, wh
 
 From the main directory, run:
 
+**Note**: “It uses the `ARTIFACTORY_URL` environment variable to look up the required plugins and dependencies.
+
 ```bash
 ./gradle test
 ```
@@ -223,6 +227,8 @@ From the main directory, run:
 ## Formatting
 
 **Note**: Not all Groovy files are covered yet. You are very welcome to include more though. Please see (build.gradle)[build.gradle].
+
+**Note**: “It uses the `ARTIFACTORY_URL` environment variable to look up the required plugins and dependencies.
 
 ```sh
 ./gradle spotlessApply
