@@ -140,7 +140,7 @@ pipeline {
         stage('Test') {
             when {
                 beforeAgent true
-                expression { false }
+                expression { !skipStage() }
             }
             parallel {
                 stage('JUnit Tests') {
@@ -767,7 +767,7 @@ pipeline {
             when {
                 beforeAgent true
                 expression {
-                    !skipStage()
+                    currentBuild.currentResult == 'SUCCESS' && !skipStage()
                 }
             }
             matrix {
