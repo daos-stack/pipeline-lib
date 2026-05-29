@@ -27,7 +27,6 @@ String call(Map config = [:]) {
 String call(String name, String def_val = null) {
     if (env.pragmas) {
         Map pragmas = envToPragmas()
-        pragmas.keySet().each { println it }
 
         if (pragmas[name.toLowerCase()]) {
             return pragmas[name.toLowerCase()]

@@ -41,7 +41,6 @@ String call(String name, String def_val = null) {
         commit_pragma_cache[_name] = commitPragma(_name)
     }
 
-
     if (commit_pragma_cache[_name]) {
         return commit_pragma_cache[_name]
     } else if (_def_val) {
