@@ -148,7 +148,7 @@ pipeline {
                         label 'JUnit_jdk_tests'
                     }
                     environment {
-                        CARGS = '--no-daemon --info' // common Gradle command arguments
+                        CARGS = '--no-daemon' // common Gradle command arguments
                     }
                     steps {
                         sh label: 'Remove Gradle cache',
@@ -156,7 +156,7 @@ pipeline {
                         sh label: 'Initialize Gradle',
                            script: './gradle-init.sh'
                         sh label: 'Refresh dependencies',
-                           script: "./gradle ${env.CARGS} --refresh-dependencies testClasses"
+                           script: "./gradle ${env.CARGS} --info --refresh-dependencies testClasses"
                         sh label: 'Run Spotless checks',
                            script: "./gradle ${env.CARGS} spotlessCheck"
                         sh label: 'Run unit tests',
