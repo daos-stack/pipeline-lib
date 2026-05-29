@@ -20,12 +20,12 @@ spotless {
     groovy {
         target 'src/test/**/*.groovy'
         importOrder()
-        indentWithSpaces(4)
+        leadingTabsToSpaces()
         endWithNewline()
     }
     groovyGradle {
         target '*.gradle'
-        indentWithSpaces(4)
+        leadingTabsToSpaces()
         endWithNewline()
     }
 }
