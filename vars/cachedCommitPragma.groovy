@@ -38,16 +38,13 @@ String call(String name, String def_val = null) {
 
     /* groovylint-disable-next-line CouldBeElvis */
     if (!commit_pragma_cache[_name]) {
-        println("!commit_pragma_cache[_name]")
         commit_pragma_cache[_name] = commitPragma(_name)
     }
 
 
     if (commit_pragma_cache[_name]) {
-        println("cachedCommitPragma[${_name}] -> ${commit_pragma_cache[_name]}")
         return commit_pragma_cache[_name]
     } else if (_def_val) {
-        println("cachedCommitPragma[${_name}] -> ${_def_val} (default)")
         return _def_val
     }
 

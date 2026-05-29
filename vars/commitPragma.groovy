@@ -26,18 +26,14 @@ String call(Map config = [:]) {
  */
 String call(String name, String def_val = null) {
     if (env.pragmas) {
-        println("env.pragmas")
         Map pragmas = envToPragmas()
         pragmas.keySet().each { println it }
 
         if (pragmas[name.toLowerCase()]) {
-            println("pragmas[${name.toLowerCase()}] -> ${pragmas[name.toLowerCase()]}")
             return pragmas[name.toLowerCase()]
         } else if (def_val) {
-            println("${def_val} (default)")
             return def_val
         }
-        println("(empty string)")
         return ''
     }
     return commitPragmaTrusted(name, def_val)
