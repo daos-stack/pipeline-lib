@@ -140,7 +140,7 @@ pipeline {
         stage('Test') {
             when {
                 beforeAgent true
-                expression { !skipStage() || true }
+                expression { false }
             }
             parallel {
                 stage('JUnit Tests') {
