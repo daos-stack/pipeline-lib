@@ -10,9 +10,6 @@
 String call(String commit_message) {
     Map pragmas = pragmasToMap(commit_message)
 
-    println("pragmasToEnv")
-    pragmas.keySet().each { println it }
-
     // put the pragmas into the environment as a String
     // note this converts the Map to a string in the format "{foo=bar, bat=ball}"
     // instead of the expected format of "[foo:bar, bat:ball]"
