@@ -76,11 +76,11 @@ class TestUnitTest {
     @Test
     void 'provisionNodes() gets basic arguments'() {
         Closure provisionNodes = { Map m ->
-            assertNotNull(m)
+           assertNotNull(m)
             assertEquals(TestUnitTest.NODELIST_MOCK, m.NODELIST)
             assertEquals(TestUnitTest.NODE_COUNT_MOCK, m.node_count)
             assertEquals(TestUnitTest.IMAGE_VERSION_MOCK, m.distro)
-            assertEquals(TestUnitTest.INST_RPMS_DEFAULT, m.inst_rpms)
+            assertEquals(TestUnitTest.INST_RPMS_DEFAULT, m.distro)
 
             return [:]
         }
