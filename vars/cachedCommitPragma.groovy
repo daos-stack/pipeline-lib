@@ -38,6 +38,7 @@ String call(String name, String def_val = null) {
 
     /* groovylint-disable-next-line CouldBeElvis */
     if (!commit_pragma_cache[_name]) {
+        println("!commit_pragma_cache[_name]")
         commit_pragma_cache[_name] = commitPragma(_name)
     }
 
