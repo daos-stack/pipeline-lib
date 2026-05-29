@@ -80,7 +80,7 @@ class TestUnitTest {
             assertEquals(TestUnitTest.NODELIST_MOCK, m.NODELIST)
             assertEquals(TestUnitTest.NODE_COUNT_MOCK, m.node_count)
             assertEquals(TestUnitTest.IMAGE_VERSION_MOCK, m.distro)
-            assertEquals(TestUnitTest.INST_RPMS_DEFAULT, m.distro)
+            assertEquals(TestUnitTest.INST_RPMS_DEFAULT, m.inst_rpms)
 
             return [:]
         }
