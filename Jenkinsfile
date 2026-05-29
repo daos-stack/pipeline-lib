@@ -767,7 +767,7 @@ pipeline {
             when {
                 beforeAgent true
                 expression {
-                    currentBuild.currentResult == 'SUCCESS' && !skipStage()
+                    !skipStage()
                 }
             }
             matrix {
