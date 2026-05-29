@@ -161,6 +161,8 @@ boolean call(Map config = [:]) {
     Map stageInfo = parseStageInfo()
     String tags = config['tags'] ?: stageInfo['test_tag']
 
+    println("Determining whether to skip stage \"${env.STAGE_NAME}\" for branch \"${target_branch}\" with tags \"${tags}\"")
+
     switch (env.STAGE_NAME) {
         case 'Cancel Previous Builds':
             return cachedCommitPragma('Cancel-prev-build') == 'false' ||
@@ -611,6 +613,7 @@ boolean call(Map config = [:]) {
             return env.BULLSEYE == null ||
                    skip_stage_pragma('bullseye', 'true')
         case 'DAOS Build and Test':
+            println("BINGO!")
             return skip_stage_pragma('daos-build-and-test') ||
                 docOnlyChange(target_branch)
         default:
