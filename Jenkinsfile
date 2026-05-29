@@ -446,316 +446,316 @@ pipeline {
                     }
                     // runTest handles SCM notification via stepResult
                 } // stage('provisionNodes on Leap 15 with slurm') {
-                // stage('Commit Pragma tests') {
-                //     steps {
-                //         script {
-                //             stages = ['Functional on Leap 15',
-                //                       'Functional on CentOS 7',
-                //                       'Functional on EL 8',
-                //                       'Functional on EL 9',
-                //                       'Functional Hardware Medium',
-                //                       'Functional Hardware Medium Verbs Provider',
-                //                       'Functional Hardware Medium UCX Provider',
-                //                       'Functional Hardware Large']
-                //             commits = [[pragmas: [''],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]],
-                //                        [pragmas: ['Skip-test: true'],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [true, true, true, true, true, true, true, true]],
-                //                        [pragmas: ['Skip-func-test: true'],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [true, true, true, true, true, true, true, true]],
-                //                        [pragmas: ['Skip-func-test-vm: true'],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [true, true, true, true, !isPr(), !isPr(), true, !isPr()]],
-                //                        [pragmas: ['Skip-func-test-vm-all: true'],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [true, true, true, true, !isPr(), !isPr(), true, !isPr()]],
-                //                        [pragmas: ['Skip-func-test-leap15: true\n' +
-                //                                   'Skip-func-test-el7: true\n' +
-                //                                   'Skip-func-test-el8: true\n' +
-                //                                   'Skip-func-test-el9: true'],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [true, true, true, true, !isPr(), !isPr(), true, !isPr()]],
-                //                        [pragmas: ['Skip-func-test-leap15: false\n' +
-                //                                   'Skip-func-test-el7: false\n' +
-                //                                   'Skip-func-test-el8: false\n' +
-                //                                   'Skip-func-test-el9: false'],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]],
-                //                        [pragmas: ['Skip-func-test-hw: true'],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [false, false, false, false, true, true, true, true]],
-                //                        [pragmas: ['Skip-func-test-hw-medium: true\n' +
-                //                                   'Skip-func-test-hw-medium-verbs-provider: true\n' +
-                //                                   'Skip-func-test-hw-medium-ucx-provider: true\n' +
-                //                                   'Skip-func-test-hw-large: true'],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [false, false, false, false, true, true, true, true]],
-                //                        [pragmas: ['Skip-func-test-hw-medium: false\n' +
-                //                                   'Skip-func-test-hw-medium-verbs-provider: false\n' +
-                //                                   'Skip-func-test-hw-medium-ucx-provider: false\n' +
-                //                                   'Skip-func-test-hw-large: false'],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [false, false, false, false, false, false, false, false]],
-                //                        [pragmas: ['Skip-func-hw-test: true'],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [false, false, false, false, true, true, true, true]],
-                //                        [pragmas: ['Skip-func-hw-test-medium: true\n' +
-                //                                   'Skip-func-hw-test-medium-verbs-provider: true\n' +
-                //                                   'Skip-func-hw-test-medium-ucx-provider: true\n' +
-                //                                   'Skip-func-hw-test-large: true'],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [false, false, false, false, true, true, true, true]],
-                //                        [pragmas: ['Skip-func-hw-test-medium: false\n' +
-                //                                   'Skip-func-hw-test-medium-verbs-provider: false\n' +
-                //                                   'Skip-func-hw-test-medium-ucx-provider: false\n' +
-                //                                   'Skip-func-hw-test-large: false'],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [false, false, false, false, false, false, false, false]],
-                //                        [pragmas: ['Run-daily-stages: true'],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [false, false, false, false, false, false, false, false]],
-                //                        [pragmas: ['Skip-build-leap15-rpm: true\n' +
-                //                                   'Skip-build-el7-rpm: true\n' +
-                //                                   'Skip-build-el8-rpm: true\n' +
-                //                                   'Skip-build-el9-rpm: true'],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [true, true, true, true, true, true, true, true]],
-                //                        [pragmas: ['Skip-build-leap15-rpm: false\n' +
-                //                                   'Skip-build-el7-rpm: false\n' +
-                //                                   'Skip-build-el8-rpm: false\n' +
-                //                                   'Skip-build-el9-rpm: false'],
-                //                         /* groovylint-disable-next-line UnnecessaryGetter */
-                //                         skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]]]
-                //             errors = 0
-                //             commits.each { commit ->
-                //                 cm = 'Test commit\n\n'
-                //                 commit.pragmas.each { pragma ->
-                //                     cm += "${pragma}\n"
-                //                 }
-                //                 println('-------------------------')
-                //                 println('Unit test commit message:')
-                //                 println('')
-                //                 println(cm)
-                //                 actual_skips = []
-                //                 i = 0
-                //                 // save current value
-                //                 env.pragmas_sav = env.pragmas
-                //                 // assign Map to env. var to serialize it
-                //                 env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
-                //                 stages.each { stage ->
-                //                     withEnv(['STAGE_NAME=' + stage,
-                //                              'UNIT_TEST=true',
-                //                              'pragmas=' + env.tmp_pragmas,
-                //                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
-                //                         actual_skips.add(skipStage(commit_msg: cm))
-                //                         if (actual_skips[i] != commit.skips[i]) { errors++ }
-                //                         i++
-                //                     }
-                //                 }
-                //                 println('')
-                //                 println('  Result  Expect  Actual  Stage')
-                //                 println('  ------  ------  ------  ------------------------------------------')
-                //                 i = 0
-                //                 stages.each { stage ->
-                //                     result = 'PASS'
-                //                     expect = 'run '
-                //                     actual = 'run '
-                //                     if (commit.skips[i]) { expect = 'skip' }
-                //                     if (actual_skips[i]) { actual = 'skip' }
-                //                     if (expect != actual) { result = 'FAIL' }
-                //                     println('  ' + result + '    ' + expect + '    ' + actual + '    ' + stage)
-                //                     i++
-                //                 }
-                //                 println('')
-                //                 cachedCommitPragma(clear: true)
-                //                 // restore actual pragmas for later stages
-                //                 env.pragmas = env.pragmas_sav
-                //             }
-                //             assert(errors == 0)
-                //         }
-                //         /* tests for all stages:
-                //               1. Test-tag: datamover
-                //               2. Features: datamover
-                //               3. Test-tag: datamover
-                //                  Features: foobar
-                //               4. Features: datamover foobar
-                //               5. Test-tag: datamover foobar
-                //               Would like to add this case, but see below…
-                //               6. Test-tag: datamover
-                //                  Features: foobar
-                //                  Skip-list: test_to_skip:DAOS-1234
-                //         */
-                //         // lots more test cases could be cooked up, to be sure
-                //         script {
-                //             stages = [[name: 'Fake CentOS 7 Functional stage',
-                //                        tag: 'vm'],
-                //                       [name: 'Fake CentOS 7 Functional Hardware Medium stage',
-                //                        tag: 'hw,medium,-provider'],
-                //                       [name: 'Fake CentOS 7 Functional Hardware Medium Provider stage',
-                //                        tag: 'hw,medium,provider'],
-                //                       [name: 'Fake CentOS 7 Functional Hardware Large stage',
-                //                        tag: 'hw,large']]
-                //             commits = [[tags: [[tag: 'Test-tag', value: 'datamover']],
-                //                        tag_template: '@commits.value@,@stages.tag@'],
-                //                        [tags: [[tag: 'Features', value: 'datamover']],
-                //                         tag_template: 'pr,@stages.tag@ ' +
-                //                                       'pr,@commits.value@,@stages.tag@ ' +
-                //                                       'daily_regression,@commits.value@,@stages.tag@ ' +
-                //                                       'full_regression,@commits.value@,@stages.tag@'],
-                //                        [tags: [[tag: 'Test-tag', value: 'datamover'],
-                //                                [tag: 'Features', value: 'foobar']],
-                //                         tag_template: '@commits.value@,@stages.tag@ ' +
-                //                                       'pr,foobar,@stages.tag@ ' +
-                //                                       'daily_regression,foobar,@stages.tag@ ' +
-                //                                       'full_regression,foobar,@stages.tag@'],
-                //                        [tags: [[tag: 'Features', value: 'datamover foobar']],
-                //                         tag_template: 'pr,@stages.tag@ ' +
-                //                                       'pr,datamover,@stages.tag@ ' +
-                //                                       'daily_regression,datamover,@stages.tag@ ' +
-                //                                       'full_regression,datamover,@stages.tag@ ' +
-                //                                       'pr,foobar,@stages.tag@ ' +
-                //                                       'daily_regression,foobar,@stages.tag@ ' +
-                //                                       'full_regression,foobar,@stages.tag@'],
-                //                        [tags: [[tag: 'Test-tag', value: 'datamover foobar']],
-                //                         tag_template: 'datamover,@stages.tag@ foobar,@stages.tag@'],
-                //                     /* this one doesn't quite work due to the @commits.value@ substitution
-                //                        not accounting for the skip-list
-                //                        [tags: [[tag: 'Test-tag', value: 'datamover'],
-                //                                [tag: 'Features', value: 'foobar'],
-                //                                [tag: 'Skip-list', value: 'test_to_skip:DAOS-1234']],
-                //                         tag_template: '@commits.value@,@stages.tag@ ' +
-                //                                       'pr,foobar,-test_to_skip,@stages.tag@ ' +
-                //                                       'daily_regression,foobar,-test_to_skip,@stages.tag@ ' +
-                //                                       'full_regression,foobar,-test_to_skip,@stages.tag@'] */]
-                //             commits.eachWithIndex { commit, index ->
-                //                 cm = '''\
-                //                         Test commit\n'''
-                //                 commit.tags.each { tag ->
-                //                     cm += """\
+                stage('Commit Pragma tests') {
+                    steps {
+                        script {
+                            stages = ['Functional on Leap 15',
+                                      'Functional on CentOS 7',
+                                      'Functional on EL 8',
+                                      'Functional on EL 9',
+                                      'Functional Hardware Medium',
+                                      'Functional Hardware Medium Verbs Provider',
+                                      'Functional Hardware Medium UCX Provider',
+                                      'Functional Hardware Large']
+                            commits = [[pragmas: [''],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]],
+                                       [pragmas: ['Skip-test: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, true, true, true, true, true, true, true]],
+                                       [pragmas: ['Skip-func-test: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, true, true, true, true, true, true, true]],
+                                       [pragmas: ['Skip-func-test-vm: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, true, true, true, !isPr(), !isPr(), true, !isPr()]],
+                                       [pragmas: ['Skip-func-test-vm-all: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, true, true, true, !isPr(), !isPr(), true, !isPr()]],
+                                       [pragmas: ['Skip-func-test-leap15: true\n' +
+                                                  'Skip-func-test-el7: true\n' +
+                                                  'Skip-func-test-el8: true\n' +
+                                                  'Skip-func-test-el9: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, true, true, true, !isPr(), !isPr(), true, !isPr()]],
+                                       [pragmas: ['Skip-func-test-leap15: false\n' +
+                                                  'Skip-func-test-el7: false\n' +
+                                                  'Skip-func-test-el8: false\n' +
+                                                  'Skip-func-test-el9: false'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]],
+                                       [pragmas: ['Skip-func-test-hw: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [false, false, false, false, true, true, true, true]],
+                                       [pragmas: ['Skip-func-test-hw-medium: true\n' +
+                                                  'Skip-func-test-hw-medium-verbs-provider: true\n' +
+                                                  'Skip-func-test-hw-medium-ucx-provider: true\n' +
+                                                  'Skip-func-test-hw-large: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [false, false, false, false, true, true, true, true]],
+                                       [pragmas: ['Skip-func-test-hw-medium: false\n' +
+                                                  'Skip-func-test-hw-medium-verbs-provider: false\n' +
+                                                  'Skip-func-test-hw-medium-ucx-provider: false\n' +
+                                                  'Skip-func-test-hw-large: false'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [false, false, false, false, false, false, false, false]],
+                                       [pragmas: ['Skip-func-hw-test: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [false, false, false, false, true, true, true, true]],
+                                       [pragmas: ['Skip-func-hw-test-medium: true\n' +
+                                                  'Skip-func-hw-test-medium-verbs-provider: true\n' +
+                                                  'Skip-func-hw-test-medium-ucx-provider: true\n' +
+                                                  'Skip-func-hw-test-large: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [false, false, false, false, true, true, true, true]],
+                                       [pragmas: ['Skip-func-hw-test-medium: false\n' +
+                                                  'Skip-func-hw-test-medium-verbs-provider: false\n' +
+                                                  'Skip-func-hw-test-medium-ucx-provider: false\n' +
+                                                  'Skip-func-hw-test-large: false'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [false, false, false, false, false, false, false, false]],
+                                       [pragmas: ['Run-daily-stages: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [false, false, false, false, false, false, false, false]],
+                                       [pragmas: ['Skip-build-leap15-rpm: true\n' +
+                                                  'Skip-build-el7-rpm: true\n' +
+                                                  'Skip-build-el8-rpm: true\n' +
+                                                  'Skip-build-el9-rpm: true'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [true, true, true, true, true, true, true, true]],
+                                       [pragmas: ['Skip-build-leap15-rpm: false\n' +
+                                                  'Skip-build-el7-rpm: false\n' +
+                                                  'Skip-build-el8-rpm: false\n' +
+                                                  'Skip-build-el9-rpm: false'],
+                                        /* groovylint-disable-next-line UnnecessaryGetter */
+                                        skips: [false, false, false, false, !isPr(), !isPr(), true, !isPr()]]]
+                            errors = 0
+                            commits.each { commit ->
+                                cm = 'Test commit\n\n'
+                                commit.pragmas.each { pragma ->
+                                    cm += "${pragma}\n"
+                                }
+                                println('-------------------------')
+                                println('Unit test commit message:')
+                                println('')
+                                println(cm)
+                                actual_skips = []
+                                i = 0
+                                // save current value
+                                env.pragmas_sav = env.pragmas
+                                // assign Map to env. var to serialize it
+                                env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
+                                stages.each { stage ->
+                                    withEnv(['STAGE_NAME=' + stage,
+                                             'UNIT_TEST=true',
+                                             'pragmas=' + env.tmp_pragmas,
+                                             'COMMIT_MESSAGE=' + cm.stripIndent()]) {
+                                        actual_skips.add(skipStage(commit_msg: cm))
+                                        if (actual_skips[i] != commit.skips[i]) { errors++ }
+                                        i++
+                                    }
+                                }
+                                println('')
+                                println('  Result  Expect  Actual  Stage')
+                                println('  ------  ------  ------  ------------------------------------------')
+                                i = 0
+                                stages.each { stage ->
+                                    result = 'PASS'
+                                    expect = 'run '
+                                    actual = 'run '
+                                    if (commit.skips[i]) { expect = 'skip' }
+                                    if (actual_skips[i]) { actual = 'skip' }
+                                    if (expect != actual) { result = 'FAIL' }
+                                    println('  ' + result + '    ' + expect + '    ' + actual + '    ' + stage)
+                                    i++
+                                }
+                                println('')
+                                cachedCommitPragma(clear: true)
+                                // restore actual pragmas for later stages
+                                env.pragmas = env.pragmas_sav
+                            }
+                            assert(errors == 0)
+                        }
+                        /* tests for all stages:
+                              1. Test-tag: datamover
+                              2. Features: datamover
+                              3. Test-tag: datamover
+                                 Features: foobar
+                              4. Features: datamover foobar
+                              5. Test-tag: datamover foobar
+                              Would like to add this case, but see below…
+                              6. Test-tag: datamover
+                                 Features: foobar
+                                 Skip-list: test_to_skip:DAOS-1234
+                        */
+                        // lots more test cases could be cooked up, to be sure
+                        script {
+                            stages = [[name: 'Fake CentOS 7 Functional stage',
+                                       tag: 'vm'],
+                                      [name: 'Fake CentOS 7 Functional Hardware Medium stage',
+                                       tag: 'hw,medium,-provider'],
+                                      [name: 'Fake CentOS 7 Functional Hardware Medium Provider stage',
+                                       tag: 'hw,medium,provider'],
+                                      [name: 'Fake CentOS 7 Functional Hardware Large stage',
+                                       tag: 'hw,large']]
+                            commits = [[tags: [[tag: 'Test-tag', value: 'datamover']],
+                                       tag_template: '@commits.value@,@stages.tag@'],
+                                       [tags: [[tag: 'Features', value: 'datamover']],
+                                        tag_template: 'pr,@stages.tag@ ' +
+                                                      'pr,@commits.value@,@stages.tag@ ' +
+                                                      'daily_regression,@commits.value@,@stages.tag@ ' +
+                                                      'full_regression,@commits.value@,@stages.tag@'],
+                                       [tags: [[tag: 'Test-tag', value: 'datamover'],
+                                               [tag: 'Features', value: 'foobar']],
+                                        tag_template: '@commits.value@,@stages.tag@ ' +
+                                                      'pr,foobar,@stages.tag@ ' +
+                                                      'daily_regression,foobar,@stages.tag@ ' +
+                                                      'full_regression,foobar,@stages.tag@'],
+                                       [tags: [[tag: 'Features', value: 'datamover foobar']],
+                                        tag_template: 'pr,@stages.tag@ ' +
+                                                      'pr,datamover,@stages.tag@ ' +
+                                                      'daily_regression,datamover,@stages.tag@ ' +
+                                                      'full_regression,datamover,@stages.tag@ ' +
+                                                      'pr,foobar,@stages.tag@ ' +
+                                                      'daily_regression,foobar,@stages.tag@ ' +
+                                                      'full_regression,foobar,@stages.tag@'],
+                                       [tags: [[tag: 'Test-tag', value: 'datamover foobar']],
+                                        tag_template: 'datamover,@stages.tag@ foobar,@stages.tag@'],
+                                    /* this one doesn't quite work due to the @commits.value@ substitution
+                                       not accounting for the skip-list
+                                       [tags: [[tag: 'Test-tag', value: 'datamover'],
+                                               [tag: 'Features', value: 'foobar'],
+                                               [tag: 'Skip-list', value: 'test_to_skip:DAOS-1234']],
+                                        tag_template: '@commits.value@,@stages.tag@ ' +
+                                                      'pr,foobar,-test_to_skip,@stages.tag@ ' +
+                                                      'daily_regression,foobar,-test_to_skip,@stages.tag@ ' +
+                                                      'full_regression,foobar,-test_to_skip,@stages.tag@'] */]
+                            commits.eachWithIndex { commit, index ->
+                                cm = '''\
+                                        Test commit\n'''
+                                commit.tags.each { tag ->
+                                    cm += """\
 
-                //                         ${tag.tag}: ${tag.value}"""
-                //                 }
-                //                 echo 'Running test with commit #' + (index + 1) + ' with commit:\n' + cm
-                //                 // assign Map to env. var to serialize it
-                //                 env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
-                //                 stages.each { stage ->
-                //                     withEnv(['STAGE_NAME=' + stage.name,
-                //                              'UNIT_TEST=true',
-                //                              'pragmas=' + env.tmp_pragmas,
-                //                              'COMMIT_MESSAGE=' + cm.stripIndent()]) {
-                //                         cmp = commit.tag_template.replace('@commits.value@', commit.tags[0].value)
-                //                         cmp = cmp.replace('@stages.tag@', stage.tag)
-                //                         assert(parseStageInfo()['test_tag'] == cmp),
-                //                                parseStageInfo()['test_tag'] + ' != ' + cmp
-                //                     }
-                //                 }
-                //             }
-                //         }
-                //         // Unit test for skipFunctionalTestStage()
-                //         script {
-                //             println('------------------------------------------------------------')
-                //             println('skipFunctionalTestStage() Unit Test')
-                //             println('------------------------------------------------------------')
-                //             sequences = [
-                //                 [description: 'run_if_pr=true',
-                //                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                //                  pragma: '',
-                //                  expect: false],
-                //                 [description: 'run_if_pr=false',
-                //                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
-                //                  pragma: '',
-                //                  /* groovylint-disable-next-line UnnecessaryGetter */
-                //                  expect: isPr()],
-                //                 [description: 'Distro set',
-                //                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: 'el8', run_if_pr: true],
-                //                  pragma: '',
-                //                  expect: false],
-                //                 [description: 'Skip-test: true',
-                //                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                //                  pragma: 'Skip-test: true',
-                //                  expect: true],
-                //                 [description: 'Skip-func-test: true',
-                //                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                //                  pragma: 'Skip-func-test: true',
-                //                  expect: true],
-                //                 [description: 'Skip-func-test-hw: true',
-                //                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                //                  pragma: 'Skip-func-test-hw: true',
-                //                  expect: true],
-                //                 [description: 'Skip-func-test-hw-medium: true',
-                //                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                //                  pragma: 'Skip-func-test-hw-medium: true',
-                //                  expect: true],
-                //                 [description: 'Skip-func-test-hw: false',
-                //                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
-                //                  pragma: 'Skip-func-test-hw: false',
-                //                  expect: false],
-                //                 [description: 'Skip-func-test-hw-medium: false',
-                //                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
-                //                  pragma: 'Skip-func-test-hw-medium: false',
-                //                  expect: false],
-                //                 [description: 'Skip-func-test-hw-large: true',
-                //                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                //                  pragma: 'Skip-func-test-hw-large: true',
-                //                  expect: false],
-                //                 [description: 'Run-daily-stages: true',
-                //                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
-                //                  pragma: 'Run-daily-stages: true',
-                //                  expect: false],
-                //                 [description: 'Run-daily-stages: false',
-                //                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                //                  pragma: 'Run-daily-stages: false',
-                //                  expect: true],
-                //                 [description: 'Run-GHA: true',
-                //                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
-                //                  pragma: 'Run-GHA: true',
-                //                  expect: true],
-                //                 [description: 'Skip-build-el8-rpm: true',
-                //                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: 'el8', run_if_pr: true],
-                //                  pragma: 'Skip-build-el8-rpm: true',
-                //                  expect: true],
-                //                 [description: 'Skip-build-el9-rpm: true',
-                //                  kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: 'el8', run_if_pr: true],
-                //                  pragma: 'Skip-build-el9-rpm: true',
-                //                  expect: false],
-                //             ]
-                //             errors = 0
-                //             sequences.eachWithIndex { sequence, index ->
-                //                 cachedCommitPragma(clear: true)
-                //                 println("${index}: ${sequence['description']}")
-                //                 String commit_message = "Test commit\n\n${sequence['pragma']}\n"
-                //                 println(commit_message)
-                //                 env.tmp_pragmas = pragmasToEnv(commit_message.stripIndent())
-                //                 withEnv(['STAGE_NAME=Functional Hardware Medium',
-                //                          'UNIT_TEST=true',
-                //                          'pragmas=' + env.tmp_pragmas,
-                //                          'COMMIT_MESSAGE=' + commit_message.stripIndent()]) {
-                //                     sequences[index]['actual'] = skipFunctionalTestStage(sequence['kwargs'])
-                //                     println("skipFunctionalTestStage() -> ${sequence['actual']}")
-                //                     if (sequence['expect'] != sequence['actual']) { errors++ }
-                //                 }
-                //                 println('------------------------------------------------------------')
-                //             }
-                //             println('')
-                //             println('  Result  Expect  Actual  Test')
-                //             println('  ------  ------  ------  ----------------------------------------------')
-                //             sequences.eachWithIndex { sequence, index ->
-                //                 String result = 'PASS'
-                //                 String expect = 'run '
-                //                 String actual = 'run '
-                //                 if (sequence['expect']) { expect = 'skip' }
-                //                 if (sequence['actual']) { actual = 'skip' }
-                //                 if (expect != actual) { result = 'FAIL' }
-                //                 println("  ${result}    ${expect}    ${actual}    ${index}: " +
-                //                         "${sequence['description']} (${sequence['kwargs']})")
-                //             }
-                //             assert(errors == 0)
-                //         }
-                //     } // steps
-                // } // stage ('Commit Pragma tests')
+                                        ${tag.tag}: ${tag.value}"""
+                                }
+                                echo 'Running test with commit #' + (index + 1) + ' with commit:\n' + cm
+                                // assign Map to env. var to serialize it
+                                env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
+                                stages.each { stage ->
+                                    withEnv(['STAGE_NAME=' + stage.name,
+                                             'UNIT_TEST=true',
+                                             'pragmas=' + env.tmp_pragmas,
+                                             'COMMIT_MESSAGE=' + cm.stripIndent()]) {
+                                        cmp = commit.tag_template.replace('@commits.value@', commit.tags[0].value)
+                                        cmp = cmp.replace('@stages.tag@', stage.tag)
+                                        assert(parseStageInfo()['test_tag'] == cmp),
+                                               parseStageInfo()['test_tag'] + ' != ' + cmp
+                                    }
+                                }
+                            }
+                        }
+                        // Unit test for skipFunctionalTestStage()
+                        script {
+                            println('------------------------------------------------------------')
+                            println('skipFunctionalTestStage() Unit Test')
+                            println('------------------------------------------------------------')
+                            sequences = [
+                                [description: 'run_if_pr=true',
+                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+                                 pragma: '',
+                                 expect: false],
+                                [description: 'run_if_pr=false',
+                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
+                                 pragma: '',
+                                 /* groovylint-disable-next-line UnnecessaryGetter */
+                                 expect: isPr()],
+                                [description: 'Distro set',
+                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: 'el8', run_if_pr: true],
+                                 pragma: '',
+                                 expect: false],
+                                [description: 'Skip-test: true',
+                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+                                 pragma: 'Skip-test: true',
+                                 expect: true],
+                                [description: 'Skip-func-test: true',
+                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+                                 pragma: 'Skip-func-test: true',
+                                 expect: true],
+                                [description: 'Skip-func-test-hw: true',
+                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+                                 pragma: 'Skip-func-test-hw: true',
+                                 expect: true],
+                                [description: 'Skip-func-test-hw-medium: true',
+                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+                                 pragma: 'Skip-func-test-hw-medium: true',
+                                 expect: true],
+                                [description: 'Skip-func-test-hw: false',
+                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
+                                 pragma: 'Skip-func-test-hw: false',
+                                 expect: false],
+                                [description: 'Skip-func-test-hw-medium: false',
+                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
+                                 pragma: 'Skip-func-test-hw-medium: false',
+                                 expect: false],
+                                [description: 'Skip-func-test-hw-large: true',
+                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+                                 pragma: 'Skip-func-test-hw-large: true',
+                                 expect: false],
+                                [description: 'Run-daily-stages: true',
+                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: false],
+                                 pragma: 'Run-daily-stages: true',
+                                 expect: false],
+                                [description: 'Run-daily-stages: false',
+                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+                                 pragma: 'Run-daily-stages: false',
+                                 expect: true],
+                                [description: 'Run-GHA: true',
+                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: null, run_if_pr: true],
+                                 pragma: 'Run-GHA: true',
+                                 expect: true],
+                                [description: 'Skip-build-el8-rpm: true',
+                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: 'el8', run_if_pr: true],
+                                 pragma: 'Skip-build-el8-rpm: true',
+                                 expect: true],
+                                [description: 'Skip-build-el9-rpm: true',
+                                 kwargs: [tags: 'pr', pragma_suffix: '-hw-medium', distro: 'el8', run_if_pr: true],
+                                 pragma: 'Skip-build-el9-rpm: true',
+                                 expect: false],
+                            ]
+                            errors = 0
+                            sequences.eachWithIndex { sequence, index ->
+                                cachedCommitPragma(clear: true)
+                                println("${index}: ${sequence['description']}")
+                                String commit_message = "Test commit\n\n${sequence['pragma']}\n"
+                                println(commit_message)
+                                env.tmp_pragmas = pragmasToEnv(commit_message.stripIndent())
+                                withEnv(['STAGE_NAME=Functional Hardware Medium',
+                                         'UNIT_TEST=true',
+                                         'pragmas=' + env.tmp_pragmas,
+                                         'COMMIT_MESSAGE=' + commit_message.stripIndent()]) {
+                                    sequences[index]['actual'] = skipFunctionalTestStage(sequence['kwargs'])
+                                    println("skipFunctionalTestStage() -> ${sequence['actual']}")
+                                    if (sequence['expect'] != sequence['actual']) { errors++ }
+                                }
+                                println('------------------------------------------------------------')
+                            }
+                            println('')
+                            println('  Result  Expect  Actual  Test')
+                            println('  ------  ------  ------  ----------------------------------------------')
+                            sequences.eachWithIndex { sequence, index ->
+                                String result = 'PASS'
+                                String expect = 'run '
+                                String actual = 'run '
+                                if (sequence['expect']) { expect = 'skip' }
+                                if (sequence['actual']) { actual = 'skip' }
+                                if (expect != actual) { result = 'FAIL' }
+                                println("  ${result}    ${expect}    ${actual}    ${index}: " +
+                                        "${sequence['description']} (${sequence['kwargs']})")
+                            }
+                            assert(errors == 0)
+                        }
+                    } // steps
+                } // stage ('Commit Pragma tests')
                 stage('Self Unit Test') {
                     steps {
                         selfUnitTest()
