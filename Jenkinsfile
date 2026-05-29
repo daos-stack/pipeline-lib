@@ -449,6 +449,9 @@ pipeline {
                 stage('Commit Pragma tests') {
                     steps {
                         script {
+                            println("Save the env.pragmas value")
+                            env.pragmas_sav = env.pragmas
+
                             stages = ['Functional on Leap 15',
                                       'Functional on CentOS 7',
                                       'Functional on EL 8',
@@ -541,8 +544,6 @@ pipeline {
                                 println(cm)
                                 actual_skips = []
                                 i = 0
-                                // save current value
-                                env.pragmas_sav = env.pragmas
                                 // assign Map to env. var to serialize it
                                 env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
                                 stages.each { stage ->
@@ -571,8 +572,6 @@ pipeline {
                                 }
                                 println('')
                                 cachedCommitPragma(clear: true)
-                                // restore actual pragmas for later stages
-                                env.pragmas = env.pragmas_sav
                             }
                             assert(errors == 0)
                         }
@@ -755,6 +754,14 @@ pipeline {
                             assert(errors == 0)
                         }
                     } // steps
+                    post {
+                        always {
+                            script {
+                                println("Restore the env.pragmas value")
+                                env.pragmas = env.pragmas_sav
+                            }
+                        }
+                    }
                 } // stage ('Commit Pragma tests')
                 stage('Self Unit Test') {
                     steps {
