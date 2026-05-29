@@ -147,12 +147,20 @@ pipeline {
                     agent {
                         label 'JUnit_jdk_tests'
                     }
+                    environment {
+                        CARGS = '--no-daemon --info' // common Gradle command arguments
+                    }
                     steps {
-                        sh '''
-                        rm -rf ${HOME}/.gradle
-                        ./gradle-init.sh
-                        ./gradle spotlessCheck test --no-daemon --info
-                        '''
+                        sh label: 'Remove Gradle cache',
+                           script: 'rm -rf ${HOME}/.gradle'
+                        sh label: 'Initialize Gradle',
+                           script: './gradle-init.sh'
+                        sh label: 'Refresh dependencies',
+                           script: "./gradle ${env.CARGS} --refresh-dependencies testClasses"
+                        sh label: 'Run Spotless checks',
+                           script: "./gradle ${env.CARGS} spotlessCheck"
+                        sh label: 'Run unit tests',
+                           script: "./gradle ${env.CARGS} test"
                     }
                     post {
                         always {
