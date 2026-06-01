@@ -441,7 +441,6 @@ pipeline {
                     steps {
                         script {
                             stages = ['Functional on Leap 15',
-                                      'Functional on CentOS 7',
                                       'Functional on EL 8',
                                       'Functional on EL 9',
                                       'Functional Hardware Medium',
@@ -464,13 +463,11 @@ pipeline {
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [true, true, true, true, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-func-test-leap15: true\n' +
-                                                  'Skip-func-test-el7: true\n' +
                                                   'Skip-func-test-el8: true\n' +
                                                   'Skip-func-test-el9: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [true, true, true, true, !isPr(), !isPr(), true, !isPr()]],
                                        [pragmas: ['Skip-func-test-leap15: false\n' +
-                                                  'Skip-func-test-el7: false\n' +
                                                   'Skip-func-test-el8: false\n' +
                                                   'Skip-func-test-el9: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
@@ -509,13 +506,11 @@ pipeline {
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [false, false, false, false, false, false, false, false]],
                                        [pragmas: ['Skip-build-leap15-rpm: true\n' +
-                                                  'Skip-build-el7-rpm: true\n' +
                                                   'Skip-build-el8-rpm: true\n' +
                                                   'Skip-build-el9-rpm: true'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
                                         skips: [true, true, true, true, true, true, true, true]],
                                        [pragmas: ['Skip-build-leap15-rpm: false\n' +
-                                                  'Skip-build-el7-rpm: false\n' +
                                                   'Skip-build-el8-rpm: false\n' +
                                                   'Skip-build-el9-rpm: false'],
                                         /* groovylint-disable-next-line UnnecessaryGetter */
@@ -581,13 +576,13 @@ pipeline {
                         */
                         // lots more test cases could be cooked up, to be sure
                         script {
-                            stages = [[name: 'Fake CentOS 7 Functional stage',
+                            stages = [[name: 'Fake EL 9 Functional stage',
                                        tag: 'vm'],
-                                      [name: 'Fake CentOS 7 Functional Hardware Medium stage',
+                                      [name: 'Fake EL 9 Functional Hardware Medium stage',
                                        tag: 'hw,medium,-provider'],
-                                      [name: 'Fake CentOS 7 Functional Hardware Medium Provider stage',
+                                      [name: 'Fake EL 9 Functional Hardware Medium Provider stage',
                                        tag: 'hw,medium,provider'],
-                                      [name: 'Fake CentOS 7 Functional Hardware Large stage',
+                                      [name: 'Fake EL 9 Functional Hardware Large stage',
                                        tag: 'hw,large']]
                             commits = [[tags: [[tag: 'Test-tag', value: 'datamover']],
                                        tag_template: '@commits.value@,@stages.tag@'],
