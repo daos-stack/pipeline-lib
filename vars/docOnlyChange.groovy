@@ -36,7 +36,11 @@ boolean call(String target_branch) {
                     exit 0
                   fi
                   git diff --no-commit-id --name-only origin/${TARGET_BRANCH} HEAD |
-                     grep -v -e "^docs/" -e "\\.md$" -e "^.*LICENSE.*$"'''
+                    grep -v -e "^docs/" \
+                            -e "\\.md$" \
+                            -e "^mkdocs.yml$" \
+                            -e "^README.*" \
+                            -e "^.*LICENSE.*$"'''
     }
     return sh(label: 'Determine if doc-only change',
               script: script,
