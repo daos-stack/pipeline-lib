@@ -206,10 +206,10 @@ It makes things easier if we ensure everyone uses the same version of Gradle, in
 From the main directory, run:
 
 ```sh
-export ARTIFACTORY_URL=https://artifactory.daos.hpc.amslabs.hpecorp.net/artifactory
-export GRADLE_DIR=gradle-services-proxy/distributions
 ./gradle-init.sh
 ```
+
+You can use custom location of gradle source distribution by setting GRADLE_URL variable
 
 If it succeeds, you will find a `gradle` symbolic link in the main directory, which you can use like a normal Gradle installation.
 
@@ -217,7 +217,11 @@ If it succeeds, you will find a `gradle` symbolic link in the main directory, wh
 
 From the main directory, run:
 
-**Note**: It uses the `ARTIFACTORY_URL` environment variable to look up the required plugins and dependencies. Unless you will use the No-Artifactory setup described below.
+**Note**: Gradle plugin and dependency repositories are configured through
+`GRADLE_PLUGINS_URL` and `MAVEN_CENTRAL_URL`.
+
+- In CI, these variables are set from `ARTIFACTORY_URL` in `Jenkinsfile`.
+- For local/non-CI usage, they default to public endpoints in `settings.gradle`.
 
 ```bash
 ./gradle test
@@ -227,40 +231,25 @@ From the main directory, run:
 
 **Note**: Not all Groovy files are covered yet. You are very welcome to include more though. Please see [build.gradle](build.gradle).
 
-**Note**: It uses the `ARTIFACTORY_URL` environment variable to look up the required plugins and dependencies. Unless you will use the No-Artifactory setup described below.
+**Note**: Same repository settings apply as in unit tests:
+`GRADLE_PLUGINS_URL` and `MAVEN_CENTRAL_URL` (CI maps them from
+`ARTIFACTORY_URL`; local runs default to public repositories).
 
 ```sh
 ./gradle spotlessApply
 ```
 
-### No-Artifactory setup
+**Note**: You do not need to edit `settings.gradle` anymore for a public setup.
+By default, it uses:
 
-**Note**: This setup is recommended only when Artifactory is not available in the network you work from.
+- `https://plugins.gradle.org/m2/` for Gradle plugins
+- `https://repo1.maven.org/maven2/` for dependencies
 
-You can install gradle from the official repository directly as follows:
+If needed, you can override those explicitly:
 
 ```bash
-ARTIFACTORY_URL=https://services.gradle.org/distributions ./gradle-init.sh
-```
-
-**Note**: The `ARTIFACTORY_URL` variable is NOT required later on so no need to export it.
-
-To use official repositories for plugins and dependencies you have to replace the [settings.gradle](settings.gradle) file contents.
-
-```groovy
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        mavenCentral()
-    }
-}
-
-dependencyResolutionManagement {
-    repositoriesMode = RepositoriesMode.PREFER_SETTINGS
-    repositories {
-        mavenCentral()
-    }
-}
+export GRADLE_PLUGINS_URL=https://plugins.gradle.org/m2/
+export MAVEN_CENTRAL_URL=https://repo1.maven.org/maven2/
 ```
 
 Run gradle commands as normal.

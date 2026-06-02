@@ -6,12 +6,13 @@
 #
 set -euo pipefail
 
-echo "ARTIFACTORY_URL=$ARTIFACTORY_URL"
-echo "GRADLE_DIR=${GRADLE_DIR:-}"
+: "${GRADLE_URL:=https://services.gradle.org/distributions}"
+
+echo "GRADLE_URL=${GRADLE_URL}"
 echo
 
 DIST_FILE='gradle-9.0-bin.zip'
-DIST_URL="$ARTIFACTORY_URL/${GRADLE_DIR:-}/$DIST_FILE"
+DIST_URL="$GRADLE_URL/$DIST_FILE"
 DIST_DIR='gradle-9.0.0' # it must match the name of the directory stored inside the ZIP
 
 GRADLE_USER_HOME='.gradle'
