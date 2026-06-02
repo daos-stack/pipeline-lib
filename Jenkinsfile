@@ -149,9 +149,9 @@ pipeline {
                     }
                     environment {
                         CARGS = '--no-daemon' // common Gradle command arguments
-                        GRADLE_URL = env.ARTIFACTORY_URL + '/gradle-services-proxy/distributions'
-                        GRADLE_PLUGINS_URL = env.ARTIFACTORY_URL + '/gradle-plugins-proxy'
-                        MAVEN_CENTRAL_URL = env.ARTIFACTORY_URL + '/maven-central-proxy'
+                        GRADLE_URL = "${ARTIFACTORY_URL}/gradle-services-proxy/distributions"
+                        GRADLE_PLUGINS_URL = "${ARTIFACTORY_URL}/gradle-plugins-proxy"
+                        MAVEN_CENTRAL_URL = "${ARTIFACTORY_URL}/maven-central-proxy"
                     }
                     steps {
                         sh label: 'Remove Gradle cache',
