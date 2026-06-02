@@ -206,30 +206,61 @@ It makes things easier if we ensure everyone uses the same version of Gradle, in
 From the main directory, run:
 
 ```sh
-./gradle-init.sh
-# It is required to download plugins and dependencies, which happens when running specific Gradle commands.
 export ARTIFACTORY_URL=https://artifactory.daos.hpc.amslabs.hpecorp.net/artifactory
+export GRADLE_DIR=gradle-services-proxy/distributions
+./gradle-init.sh
 ```
 
-If it succeeds, you’ll find a `gradle` symbolic link in the main directory, which you can use like a normal Gradle installation.
-
+If it succeeds, you will find a `gradle` symbolic link in the main directory, which you can use like a normal Gradle installation.
 
 ### How to run unit tests
 
 From the main directory, run:
 
-**Note**: “It uses the `ARTIFACTORY_URL` environment variable to look up the required plugins and dependencies.
+**Note**: It uses the `ARTIFACTORY_URL` environment variable to look up the required plugins and dependencies. Unless you will use the No-Artifactory setup described below.
 
 ```bash
 ./gradle test
 ```
 
-## Formatting
+### Formatting
 
-**Note**: Not all Groovy files are covered yet. You are very welcome to include more though. Please see (build.gradle)[build.gradle].
+**Note**: Not all Groovy files are covered yet. You are very welcome to include more though. Please see [build.gradle](build.gradle).
 
-**Note**: “It uses the `ARTIFACTORY_URL` environment variable to look up the required plugins and dependencies.
+**Note**: It uses the `ARTIFACTORY_URL` environment variable to look up the required plugins and dependencies. Unless you will use the No-Artifactory setup described below.
 
 ```sh
 ./gradle spotlessApply
 ```
+
+### No-Artifactory setup
+
+**Note**: This setup is recommended only when Artifactory is not available in the network you work from.
+
+You can install gradle from the official repository directly as follows:
+
+```bash
+ARTIFACTORY_URL=https://services.gradle.org/distributions ./gradle-init.sh
+```
+
+**Note**: The `ARTIFACTORY_URL` variable is NOT required later on so no need to export it.
+
+To use official repositories for plugins and dependencies you have to replace the [settings.gradle](settings.gradle) file contents.
+
+```groovy
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.PREFER_SETTINGS
+    repositories {
+        mavenCentral()
+    }
+}
+```
+
+Run gradle commands as normal.

@@ -149,6 +149,7 @@ pipeline {
                     }
                     environment {
                         CARGS = '--no-daemon' // common Gradle command arguments
+                        GRADLE_DIR = 'gradle-services-proxy/distributions'
                     }
                     steps {
                         sh label: 'Remove Gradle cache',
@@ -156,11 +157,11 @@ pipeline {
                         sh label: 'Initialize Gradle',
                            script: './gradle-init.sh'
                         sh label: 'Refresh dependencies',
-                           script: "./gradle ${env.CARGS} --info --refresh-dependencies testClasses"
+                           script: './gradle ${CARGS} --info --refresh-dependencies testClasses'
                         sh label: 'Run Spotless checks',
-                           script: "./gradle ${env.CARGS} spotlessCheck"
+                           script: './gradle ${CARGS} spotlessCheck'
                         sh label: 'Run unit tests',
-                           script: "./gradle ${env.CARGS} test"
+                           script: './gradle ${CARGS} test'
                     }
                     post {
                         always {
