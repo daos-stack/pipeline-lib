@@ -147,11 +147,23 @@ pipeline {
                     agent {
                         label 'JUnit_jdk_tests'
                     }
+                    environment {
+                        GRADLE_URL = "${ARTIFACTORY_URL}/gradle-services-proxy/distributions"
+                        GRADLE_PLUGINS_URL = "${ARTIFACTORY_URL}/gradle-plugins-proxy"
+                        MAVEN_CENTRAL_URL = "${ARTIFACTORY_URL}/maven-central-proxy"
+                        CARGS = '--no-daemon' // common Gradle commands arguments
+                    }
                     steps {
-                        sh '''
-                        ./gradle-init.sh
-                        ./gradle spotlessCheck test --no-daemon
-                        '''
+                        sh label: 'Remove Gradle cache',
+                           script: 'rm -rf ${HOME}/.gradle'
+                        sh label: 'Initialize Gradle',
+                           script: './gradle-init.sh'
+                        sh label: 'Refresh dependencies',
+                           script: './gradle ${CARGS} --info --refresh-dependencies testClasses'
+                        sh label: 'Run Spotless checks',
+                           script: './gradle ${CARGS} spotlessCheck'
+                        sh label: 'Run unit tests',
+                           script: './gradle ${CARGS} test'
                     }
                     post {
                         always {
@@ -440,6 +452,9 @@ pipeline {
                 stage('Commit Pragma tests') {
                     steps {
                         script {
+                            println("Save the env.pragmas value")
+                            env.pragmas_sav = env.pragmas
+
                             stages = ['Functional on Leap 15',
                                       'Functional on CentOS 7',
                                       'Functional on EL 8',
@@ -532,8 +547,6 @@ pipeline {
                                 println(cm)
                                 actual_skips = []
                                 i = 0
-                                // save current value
-                                env.pragmas_sav = env.pragmas
                                 // assign Map to env. var to serialize it
                                 env.tmp_pragmas = pragmasToEnv(cm.stripIndent())
                                 stages.each { stage ->
@@ -562,8 +575,6 @@ pipeline {
                                 }
                                 println('')
                                 cachedCommitPragma(clear: true)
-                                // restore actual pragmas for later stages
-                                env.pragmas = env.pragmas_sav
                             }
                             assert(errors == 0)
                         }
@@ -746,6 +757,14 @@ pipeline {
                             assert(errors == 0)
                         }
                     } // steps
+                    post {
+                        always {
+                            script {
+                                println("Restore the env.pragmas value")
+                                env.pragmas = env.pragmas_sav
+                            }
+                        }
+                    }
                 } // stage ('Commit Pragma tests')
                 stage('Self Unit Test') {
                     steps {

@@ -197,11 +197,11 @@ Requirements:
 
 - JDK
 
-### Install gradle
+### Install Gradle
 
-It makes things easier if we ensure everyone uses the same version of Gradle, including in CI.
+It is easier if we ensure everyone uses the same version of Gradle, including in CI.
 
-**Note**: We decided not to use gradlew to avoid committing a binary blob to the repository.
+**Note**: We decided not to use `gradlew` to avoid committing a binary blob to the repository.
 
 From the main directory, run:
 
@@ -209,10 +209,15 @@ From the main directory, run:
 ./gradle-init.sh
 ```
 
-If it succeeds, you’ll find a `gradle` symbolic link in the main directory, which you can use like a normal Gradle installation.
+If it succeeds, you will find a `gradle` symbolic link in the main directory, which you can use like a normal Gradle installation.
 
+**Note**: You can provide a custom location of the Gradle distribution by setting the `GRADLE_URL` environment variable.
 
-### How to run unit tests
+### Gradle commands
+
+The [build.gradle](build.gradle) file makes use of Gradle plugins and dependency repositories and it can access them at various points when executing any of the Gradle commands. By default it uses standard public repositories. If necessary, custom repositories can be provided by setting the `GRADLE_PLUGINS_URL` and `MAVEN_CENTRAL_URL` environment variables.
+
+#### Run unit tests
 
 From the main directory, run:
 
@@ -220,9 +225,9 @@ From the main directory, run:
 ./gradle test
 ```
 
-## Formatting
+#### Apply formatting
 
-**Note**: Not all Groovy files are covered yet. You are very welcome to include more though. Please see (build.gradle)[build.gradle].
+**Note**: Not all Groovy files are covered yet. You are very welcome to add more coverage. See [build.gradle](build.gradle).
 
 ```sh
 ./gradle spotlessApply
