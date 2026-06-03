@@ -213,9 +213,11 @@ If it succeeds, you will find a `gradle` symbolic link in the main directory, wh
 
 **Note**: You can provide a custom location of the Gradle distribution by setting the `GRADLE_URL` environment variable.
 
-**Note**: The [build.gradle](build.gradle) file makes use of Gradle plugins and dependency repositories and it can access them at various points when executing any of the Gradle commands. By default it uses standard public repositories. If necessary, custom repositories can be provided by setting the `GRADLE_PLUGINS_URL` and `MAVEN_CENTRAL_URL` environment variables.
+### Gradle commands
 
-### How to run unit tests
+The [build.gradle](build.gradle) file makes use of Gradle plugins and dependency repositories and it can access them at various points when executing any of the Gradle commands. By default it uses standard public repositories. If necessary, custom repositories can be provided by setting the `GRADLE_PLUGINS_URL` and `MAVEN_CENTRAL_URL` environment variables.
+
+#### Run unit tests
 
 From the main directory, run:
 
@@ -223,7 +225,7 @@ From the main directory, run:
 ./gradle test
 ```
 
-### Formatting
+#### Apply formatting
 
 **Note**: Not all Groovy files are covered yet. You are very welcome to add more coverage. See [build.gradle](build.gradle).
 
