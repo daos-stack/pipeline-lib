@@ -1,0 +1,28 @@
+/*
+ * Copyright 2026 Hewlett Packard Enterprise Development LP
+ *
+ * SPDX-License-Identifier: BSD-2-Clause-Patent
+ */
+
+pluginManagement {
+    settings.ext.gradlePluginsUrl = System.getenv('GRADLE_PLUGINS_URL') ?: 'https://plugins.gradle.org/m2/'
+    settings.ext.mavenCentralUrl = System.getenv('MAVEN_CENTRAL_URL') ?: 'https://repo1.maven.org/maven2/'
+
+    repositories {
+        maven {
+            url = uri(settings.ext.gradlePluginsUrl)
+        }
+        maven {
+            url = uri(settings.ext.mavenCentralUrl)
+        }
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.PREFER_SETTINGS
+    repositories {
+        maven {
+            url = uri(settings.ext.mavenCentralUrl)
+        }
+    }
+}

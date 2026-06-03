@@ -6,11 +6,7 @@
 
 plugins {
     id 'groovy'
-    id 'com.diffplug.spotless' version 'latest.release'
-}
-
-repositories {
-    mavenCentral()
+    id 'com.diffplug.spotless' version '8.6.0'
 }
 
 dependencies {
@@ -24,13 +20,13 @@ spotless {
     groovy {
         target 'src/test/**/*.groovy'
         importOrder()
+        leadingTabsToSpaces()
         endWithNewline()
-        greclipse().configFile(rootProject.file('greclipse.properties'))
     }
     groovyGradle {
         target '*.gradle'
+        leadingTabsToSpaces()
         endWithNewline()
-        greclipse().configFile(rootProject.file('greclipse.properties'))
     }
 }
 
