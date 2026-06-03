@@ -148,10 +148,10 @@ pipeline {
                         label 'JUnit_jdk_tests'
                     }
                     environment {
-                        CARGS = '--no-daemon' // common Gradle command arguments
                         GRADLE_URL = "${ARTIFACTORY_URL}/gradle-services-proxy/distributions"
                         GRADLE_PLUGINS_URL = "${ARTIFACTORY_URL}/gradle-plugins-proxy"
                         MAVEN_CENTRAL_URL = "${ARTIFACTORY_URL}/maven-central-proxy"
+                        CARGS = '--no-daemon' // common Gradle commands arguments
                     }
                     steps {
                         sh label: 'Remove Gradle cache',

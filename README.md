@@ -197,11 +197,11 @@ Requirements:
 
 - JDK
 
-### Install gradle
+### Install Gradle
 
-It makes things easier if we ensure everyone uses the same version of Gradle, including in CI.
+It is easier if we ensure everyone uses the same version of Gradle, including in CI.
 
-**Note**: We decided not to use gradlew to avoid committing a binary blob to the repository.
+**Note**: We decided not to use `gradlew` to avoid committing a binary blob to the repository.
 
 From the main directory, run:
 
@@ -209,19 +209,15 @@ From the main directory, run:
 ./gradle-init.sh
 ```
 
-You can use custom location of gradle source distribution by setting GRADLE_URL variable
-
 If it succeeds, you will find a `gradle` symbolic link in the main directory, which you can use like a normal Gradle installation.
+
+**Note**: You can provide a custom location of the Gradle distribution by setting the `GRADLE_URL` environment variable.
+
+**Note**: The [build.gradle](build.gradle) file makes use of Gradle plugins and dependency repositories and it can access them at various points when executing any of the Gradle commands. By default it uses standard public repositories. If necessary, custom repositories can be provided by setting the `GRADLE_PLUGINS_URL` and `MAVEN_CENTRAL_URL` environment variables.
 
 ### How to run unit tests
 
 From the main directory, run:
-
-**Note**: Gradle plugin and dependency repositories are configured through
-`GRADLE_PLUGINS_URL` and `MAVEN_CENTRAL_URL`.
-
-- In CI, these variables are set from `ARTIFACTORY_URL` in `Jenkinsfile`.
-- For local/non-CI usage, they default to public endpoints in `settings.gradle`.
 
 ```bash
 ./gradle test
@@ -229,27 +225,8 @@ From the main directory, run:
 
 ### Formatting
 
-**Note**: Not all Groovy files are covered yet. You are very welcome to include more though. Please see [build.gradle](build.gradle).
-
-**Note**: Same repository settings apply as in unit tests:
-`GRADLE_PLUGINS_URL` and `MAVEN_CENTRAL_URL` (CI maps them from
-`ARTIFACTORY_URL`; local runs default to public repositories).
+**Note**: Not all Groovy files are covered yet. You are very welcome to add more coverage. See [build.gradle](build.gradle).
 
 ```sh
 ./gradle spotlessApply
 ```
-
-**Note**: You do not need to edit `settings.gradle` anymore for a public setup.
-By default, it uses:
-
-- `https://plugins.gradle.org/m2/` for Gradle plugins
-- `https://repo1.maven.org/maven2/` for dependencies
-
-If needed, you can override those explicitly:
-
-```bash
-export GRADLE_PLUGINS_URL=https://plugins.gradle.org/m2/
-export MAVEN_CENTRAL_URL=https://repo1.maven.org/maven2/
-```
-
-Run gradle commands as normal.

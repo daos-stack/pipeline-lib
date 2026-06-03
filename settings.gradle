@@ -5,8 +5,8 @@
  */
 
 pluginManagement {
-    settings.ext.gradlePluginsUrl = System.getenv('GRADLE_PLUGINS_URL') ?: "https://plugins.gradle.org/m2/"
-    settings.ext.mavenCentralUrl = System.getenv('MAVEN_CENTRAL_URL') ?: "https://repo1.maven.org/maven2/"
+    settings.ext.gradlePluginsUrl = System.getenv('GRADLE_PLUGINS_URL') ?: 'https://plugins.gradle.org/m2/'
+    settings.ext.mavenCentralUrl = System.getenv('MAVEN_CENTRAL_URL') ?: 'https://repo1.maven.org/maven2/'
 
     repositories {
         maven {
