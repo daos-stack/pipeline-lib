@@ -39,6 +39,8 @@ Map call(Map config = [:]) {
    *
    * config['description']  Description to report for SCM status.
    *                        Default env.STAGE_NAME.
+   * config['trusted_host']  Artifactory trusted host URL.  Default
+   *                         to the host in env.REPO_FILE_URL.
    */
 
     Map stage_info = parseStageInfo(config)
@@ -51,6 +53,11 @@ Map call(Map config = [:]) {
     if (config['test_rpms'] == 'true') {
         test_rpms = true
     }
+    String trusted_host = config.get('trusted_host', '')
+    if (!trusted_host) {
+        URI repoFileUrl = new URI(config.get('trusted_host', env.REPO_FILE_URL))
+        trusted_host = "${repoFileUrl.scheme}://${repoFileUrl.authority}"
+    }
     config['script'] = 'TEST_TAG="' + config['test_tag'] + '" ' +
                        'FTEST_ARG="' + config['ftest_arg'] + '" ' +
                        'PRAGMA_SUFFIX="' + config['pragma_suffix'] + '" ' +
@@ -59,6 +66,7 @@ Map call(Map config = [:]) {
                        "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
                        (env.DAOS_HTTPS_PROXY ? 'DAOS_HTTPS_PROXY="' + env.DAOS_HTTPS_PROXY + '" ' : '') +
                        (env.DAOS_NO_PROXY ? 'DAOS_NO_PROXY="' + env.DAOS_NO_PROXY + '" ' : '') +
+                       'TRUSTED_HOST="' + trusted_host + '" ' +
                        'ci/functional/test_main.sh'
 
     String basedir = 'install/lib/daos/TESTING/ftest/avocado/job-results/'

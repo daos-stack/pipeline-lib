@@ -59,6 +59,9 @@
    *
    * config['ftest_arg']         Functional test launch.py arguments.
    *                             Default determined by parseStageInfo().
+   *
+   * config['trusted_host']      Artifactory trusted host URL.  Default
+   *                             to the host in env.REPO_FILE_URL.
    */
 
 Map call(Map config = [:]) {
@@ -104,6 +107,12 @@ Map call(Map config = [:]) {
         stashes.add("${target_compiler}-build-vars")
     }
 
+    String trusted_host = config.get('trusted_host', '')
+    if (!trusted_host) {
+        URI repoFileUrl = new URI(config.get('trusted_host', env.REPO_FILE_URL))
+        trusted_host = "${repoFileUrl.scheme}://${repoFileUrl.authority}"
+    }
+
     Map run_test_config = [:]
     run_test_config['stashes'] = stashes
     run_test_config['test_rpms'] = config.get('test_rpms', env.TEST_RPMS)
@@ -113,6 +122,7 @@ Map call(Map config = [:]) {
     run_test_config['ftest_arg'] = config.get('ftest_arg', stage_info['ftest_arg'])
     run_test_config['context'] = context
     run_test_config['description'] = description
+    run_test_config['trusted_host'] = trusted_host
 
     Map runtestData = [:]
     if (config.get('test_function', 'runTestFunctional') ==
