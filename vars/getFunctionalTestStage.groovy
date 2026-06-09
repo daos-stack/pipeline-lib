@@ -52,6 +52,7 @@ Map call(Map kwargs = [:]) {
     String instRpms = kwargs.get('inst_rpms', null)
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
+    Boolean runStage = kwargs.get('runStage', true)
     Map job_status = kwargs.get('job_status', [:])
     String coverage_stash = kwargs.get('coverage_stash', '')
 
@@ -63,55 +64,63 @@ Map call(Map kwargs = [:]) {
             String tags = getFunctionalTags(
                 pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
 
-            Map skip_kwargs = [
-                'tags': tags,
-                'pragma_suffix': pragma_suffix,
-                'distro': distro,
-                'run_if_pr': run_if_pr,
-                'run_if_landing': run_if_landing]
-            if (skipFunctionalTestStage(skip_kwargs)) {
-                println("[${name}] Stage skipped by skipFunctionalTestStage()")
+            if (!runStage) {
+                println("[${name}] Stage skipped by runStage=false")
                 Utils.markStageSkippedForConditional("${name}")
+                return
             } else {
-                node(cachedCommitPragma("Test-label${pragma_suffix}", label)) {
-                    // Ensure access to any branch provisioning scripts exist
-                    println("[${name}] Check out '${base_branch}' from version control")
-                    if (base_branch) {
-                        checkoutScm(
-                            url: 'https://github.com/daos-stack/daos.git',
-                            branch: base_branch,
-                            withSubmodules: false,
-                            pruneStaleBranch: true)
-                    } else {
-                        checkoutScm(pruneStaleBranch: true)
-                    }
+                // To be removed once all stages have been converted to use runStage.
+                Map skip_kwargs = [
+                    'tags': tags,
+                    'pragma_suffix': pragma_suffix,
+                    'distro': distro,
+                    'run_if_pr': run_if_pr,
+                    'run_if_landing': run_if_landing]
+                if (skipFunctionalTestStage(skip_kwargs)) {
+                    println("[${name}] Stage skipped by skipFunctionalTestStage()")
+                    Utils.markStageSkippedForConditional("${name}")
+                    return
+                }
+            }
 
-                    try {
-                        println("[${name}] Running functionalTest() on ${label} with tags=${tags}")
-                        jobStatusUpdate(
-                            job_status,
-                            name,
-                            functionalTest(
-                                image_version: image_version,
-                                inst_repos: daosRepos(distro),
-                                inst_rpms: instRpms ?: functionalPackages(
-                                    clientVersion: 1,
-                                    nextVersion: next_version,
-                                    addDaosPkgs: 'tests-internal',
-                                    rpmDistribution: rpm_distro) + ' ' + other_packages,
-                                test_tag: tags,
-                                ftest_arg: getFunctionalArgs(
-                                    pragma_suffix: pragma_suffix,
-                                    nvme: nvme,
-                                    default_nvme: default_nvme,
-                                    provider: provider)['ftest_arg'],
-                                test_function: 'runTestFunctionalV2',
-                                coverage_stash: coverage_stash))
-                    } finally {
-                        println("[${name}] Running functionalTestPostV2()")
-                        functionalTestPostV2()
-                        jobStatusUpdate(job_status, name)
-                    }
+            node(cachedCommitPragma("Test-label${pragma_suffix}", label)) {
+                // Ensure access to any branch provisioning scripts exist
+                println("[${name}] Check out '${base_branch}' from version control")
+                if (base_branch) {
+                    checkoutScm(
+                        url: 'https://github.com/daos-stack/daos.git',
+                        branch: base_branch,
+                        withSubmodules: false,
+                        pruneStaleBranch: true)
+                } else {
+                    checkoutScm(pruneStaleBranch: true)
+                }
+
+                try {
+                    println("[${name}] Running functionalTest() on ${label} with tags=${tags}")
+                    jobStatusUpdate(
+                        job_status,
+                        name,
+                        functionalTest(
+                            image_version: image_version,
+                            inst_repos: daosRepos(distro),
+                            inst_rpms: instRpms ?: functionalPackages(
+                                clientVersion: 1,
+                                nextVersion: next_version,
+                                addDaosPkgs: 'tests-internal',
+                                rpmDistribution: rpm_distro) + ' ' + other_packages,
+                            test_tag: tags,
+                            ftest_arg: getFunctionalArgs(
+                                pragma_suffix: pragma_suffix,
+                                nvme: nvme,
+                                default_nvme: default_nvme,
+                                provider: provider)['ftest_arg'],
+                            test_function: 'runTestFunctionalV2',
+                            coverage_stash: coverage_stash))
+                } finally {
+                    println("[${name}] Running functionalTestPostV2()")
+                    functionalTestPostV2()
+                    jobStatusUpdate(job_status, name)
                 }
             }
             println("[${name}] Finished with ${job_status}")
