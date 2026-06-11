@@ -28,6 +28,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      other_packages  space-separated string of additional RPM packages to install
  *      inst_rpms       space-separated string of RPM packages to install on the test nodes;
  *                          exclusive of next_version, rpm_distro, and other_packages.
+ *      bullseye        whether or not to use the bullseye-sepecific repo for provisioning
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
  *      job_status      Map of status for each stage in the job/build
@@ -50,6 +51,7 @@ Map call(Map kwargs = [:]) {
     String rpm_distro = kwargs.get('rpm_distro', null)
     String other_packages = kwargs.get('other_packages', '')
     String instRpms = kwargs.get('inst_rpms', null)
+    Boolean bullseye = kwargs.get('bullseye', false)
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
 
@@ -123,6 +125,7 @@ Map call(Map kwargs = [:]) {
                                 default_nvme: default_nvme,
                                 provider: provider)['ftest_arg'],
                             test_function: 'runTestFunctionalV2',
+                            bullseye: bullseye,
                             coverage_stash: coverage_stash))
                 } finally {
                     println("[${name}] Running functionalTestPostV2()")
