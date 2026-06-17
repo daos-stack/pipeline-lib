@@ -25,6 +25,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *                      rpmDistValue(distro)
  *      base_branch     if specified, checkout sources from this branch before running tests
  *      other_packages  space-separated string of additional RPM packages to install
+ *      runStage        whether or not to run the stage; overrides skipFunctionalTestStage()
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
  *      job_status      Map of status for each stage in the job/build
@@ -47,7 +48,14 @@ Map call(Map kwargs = [:]) {
     String other_packages = kwargs.get('other_packages', '')
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
-    Boolean runStage = kwargs.get('runStage', true)
+
+    // Temporarily use a String to allow determing if the value was unset, but when used pass the
+    // value in as a Boolean. This allows stages that have not yet been converted to use runStage
+    // to be skipped by the existing skipFunctionalTestStage logic, while new stages can use
+    // runStage directly. Once all stages have been converted to use runStage, this should be
+    // changed to a Boolean.
+    String runStage = kwargs.get('runStage', 'undefined').toString()
+
     Map job_status = kwargs.get('job_status', [:])
 
     return {
@@ -58,11 +66,11 @@ Map call(Map kwargs = [:]) {
             String tags = getFunctionalTags(
                 pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
 
-            if (!runStage) {
+            if (runStage == 'false') {
                 println("[${name}] Stage skipped by runStage=false")
                 Utils.markStageSkippedForConditional("${name}")
                 return
-            } else {
+            } else if (runStage == 'undefined') {
                 // To be removed once all stages have been converted to use runStage.
                 Map skip_kwargs = [
                 'tags': tags,
