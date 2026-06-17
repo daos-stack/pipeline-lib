@@ -90,6 +90,10 @@ Map call(Map kwargs = [:]) {
                     Utils.markStageSkippedForConditional("${name}")
                     return
                 }
+            } else if (!testsInStage(tags)) {
+                println("[${name}] Stage skipped by no tests matching the '${tags}' tags")
+                Utils.markStageSkippedForConditional("${name}")
+                return
             }
 
             node(cachedCommitPragma("Test-label${pragma_suffix}", label)) {
