@@ -84,7 +84,7 @@ Map call(Map kwargs = [:]) {
                     return
                 }
             } else if (!testsInStage(tags)) {
-                println("[${name}] No tests matching the '${tags}' tags, skipping")
+                println("[${name}] Stage skipped by no tests matching the '${tags}' tags")
                 Utils.markStageSkippedForConditional("${name}")
                 return
             }
