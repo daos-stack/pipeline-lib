@@ -18,10 +18,14 @@
 Map call(Map kwargs = [:]) {
     String tags = kwargs['tags'] ?: parseStageInfo()['test_tag']
     String pragma_suffix = kwargs['pragma_suffix'] ?: '-vm'
-    String size = pragma_suffix.replace('-hw-', '')
+    String size = pragma_suffix.replaceFirst('^-(hw|cb)-', '')
     String distro = kwargs['distro'] ?: hwDistroTarget(size)
-    String build_param = (pragma_suffix == '-vm') ?
-        "CI_FUNCTIONAL_${distro}_TEST" : "CI_${size.replace('-', '_')}_TEST"
+    String build_param
+    if (pragma_suffix == '-vm') {
+        build_param = "CI_FUNCTIONAL_${distro}_TEST"
+    } else {
+        build_param = "CI_${size.replace('-', '_')}_TEST"
+    }
     /* groovylint-disable-next-line UnnecessaryToString */
     String build_param_value = paramsValue(build_param, '').toString()
     Boolean run_if_landing = kwargs['run_if_landing'] ?: false
@@ -98,6 +102,10 @@ Map call(Map kwargs = [:]) {
         commit_pragmas.add("Skip-func-hw-test-${size}")
         commit_pragmas.add('Skip-func-test-hw')
         commit_pragmas.add('Skip-func-hw-test')
+        commit_pragmas.add('Run-daily-stages')
+    } else if (pragma_suffix.contains('-cb')) {
+        commit_pragmas.add("Skip-func-test-cb-${size}")
+        commit_pragmas.add('Skip-func-test-cb')
         commit_pragmas.add('Run-daily-stages')
     } else {
         commit_pragmas.add("Skip-func-test-vm-${distro}")
