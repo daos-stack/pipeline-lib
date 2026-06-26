@@ -26,16 +26,8 @@ String call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
     String target = stage_info['target']
 
-    boolean quick_build = quickBuild()
-
     if (target.startsWith('centos') || target.startsWith('el')) {
-        if (quick_build) {
-            // the script run below will read from this file
-            unstash target + '-required-mercury-rpm-version'
-        }
-
-        return sh(script: "${script} ${target} " +
-                          String.valueOf(quick_build),
+        return sh(script: "${script} ${target}",
                   returnStdout: true)
     }
     error 'unitPackages not implemented for ' + target

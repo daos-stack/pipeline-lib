@@ -92,17 +92,14 @@ Map call(Map config = [:]) {
 
     // Stash code coverage file if it exists
     String coverage_stash = config.get('coverage_stash', '')
-    String coverage_dir = "${basedir}bullseye_coverage_logs"
-    String coverage_file = "${coverage_dir}/test.cov"
     if (coverage_stash) {
-        if (fileExists(coverage_file)) {
-            // String name = 'func' + stage_info['pragma_suffix'] + '-cov'
-            println("[${env.STAGE_NAME}] Stashing ${coverage_file} in ${coverage_stash}")
-            dir(coverage_dir) {
-                stash name: coverage_stash, includes: 'test.cov'
-            }
-        } else {
-            println("[${env.STAGE_NAME}] No ${coverage_file} file found for ${coverage_stash}!")
+        try {
+            stash name: coverage_stash, includes: '**/test.cov'
+            println("[${env.STAGE_NAME}] Stashed code coverage file in ${coverage_stash}")
+        } catch (hudson.AbortException e) {
+            println(
+                "[${env.STAGE_NAME}] Failed to stash code coverage file in ${coverage_stash}: " +
+                "${e.message}")
         }
     }
 

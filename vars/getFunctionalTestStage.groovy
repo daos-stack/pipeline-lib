@@ -29,6 +29,9 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      inst_rpms       space-separated string of RPM packages to install on the test nodes;
  *                          exclusive of next_version, rpm_distro, and other_packages.
  *      bullseye        whether or not to use the bullseye-sepecific repo for provisioning
+ *      node_count      number of nodes to provision and use for the stage; overrides the count
+ *                      that would otherwise be inferred from the stage name by parseStageInfo()
+ *      runStage        whether or not to run the stage; overrides skipFunctionalTestStage()
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
  *      job_status      Map of status for each stage in the job/build
@@ -52,6 +55,7 @@ Map call(Map kwargs = [:]) {
     String other_packages = kwargs.get('other_packages', '')
     String instRpms = kwargs.get('inst_rpms', null)
     Boolean bullseye = kwargs.get('bullseye', false)
+    Integer node_count = kwargs.get('node_count') as Integer
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
 
@@ -80,11 +84,11 @@ Map call(Map kwargs = [:]) {
             } else if (runStage == 'undefined') {
                 // To be removed once all stages have been converted to use runStage.
                 Map skip_kwargs = [
-                    'tags': tags,
-                    'pragma_suffix': pragma_suffix,
-                    'distro': distro,
-                    'run_if_pr': run_if_pr,
-                    'run_if_landing': run_if_landing]
+                'tags': tags,
+                'pragma_suffix': pragma_suffix,
+                'distro': distro,
+                'run_if_pr': run_if_pr,
+                'run_if_landing': run_if_landing]
                 if (skipFunctionalTestStage(skip_kwargs)) {
                     println("[${name}] Stage skipped by skipFunctionalTestStage()")
                     Utils.markStageSkippedForConditional("${name}")
@@ -111,33 +115,37 @@ Map call(Map kwargs = [:]) {
 
                 try {
                     println("[${name}] Running functionalTest() on ${label} with tags=${tags}")
+                    Map ftestConfig = [
+                        image_version: image_version,
+                        inst_repos: daosRepos(distro),
+                        inst_rpms: instRpms ?: functionalPackages(
+                            clientVersion: 1,
+                            nextVersion: next_version,
+                            addDaosPkgs: 'tests-internal',
+                            rpmDistribution: rpm_distro) + ' ' + other_packages,
+                        test_tag: tags,
+                        ftest_arg: getFunctionalArgs(
+                            pragma_suffix: pragma_suffix,
+                            nvme: nvme,
+                            default_nvme: default_nvme,
+                            provider: provider)['ftest_arg'],
+                        test_function: 'runTestFunctionalV2',
+                        bullseye: bullseye,
+                        coverage_stash: coverage_stash]
+                    if (node_count != null) {
+                        ftestConfig['node_count'] = node_count
+                    }
                     jobStatusUpdate(
                         job_status,
                         name,
-                        functionalTest(
-                            image_version: image_version,
-                            inst_repos: daosRepos(distro),
-                            inst_rpms: instRpms ?: functionalPackages(
-                                clientVersion: 1,
-                                nextVersion: next_version,
-                                addDaosPkgs: 'tests-internal',
-                                rpmDistribution: rpm_distro) + ' ' + other_packages,
-                            test_tag: tags,
-                            ftest_arg: getFunctionalArgs(
-                                pragma_suffix: pragma_suffix,
-                                nvme: nvme,
-                                default_nvme: default_nvme,
-                                provider: provider)['ftest_arg'],
-                            test_function: 'runTestFunctionalV2',
-                            bullseye: bullseye,
-                            coverage_stash: coverage_stash))
+                        functionalTest(ftestConfig))
                 } finally {
                     println("[${name}] Running functionalTestPostV2()")
                     functionalTestPostV2()
                     jobStatusUpdate(job_status, name)
                 }
             }
-            println("[${name}] Finished with ${job_status}")
         }
+        println("[${name}] Finished with ${job_status}")
     }
 }
