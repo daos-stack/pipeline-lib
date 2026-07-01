@@ -78,7 +78,7 @@ void call(Map config = [:]) {
         junit testResults: testResults,
               healthScaleFactor: health_scale
     }
-    if (config.get('with_valgrind', stage_info.get('with_valgrind', ''))) {
+    if (with_valgrind) {
         String suite = sanitizedStageName()
         int vgfail = 0
         String testdata
