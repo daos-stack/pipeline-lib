@@ -61,81 +61,52 @@ Map call(Map kwargs = [:]) {
 
     Map job_status = kwargs.get('job_status', [:])
 
-    return {
-        stage("${name}") {
-            // Get the tags for the stage. Use either the build parameter, commit pragma, or
-            // default tags. All tags are combined with the stage tags to ensure only tests that
-            // 'fit' the cluster will be run.
-            String tags = getFunctionalTags(
-                pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
+    String tags = getFunctionalTags(
+        pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
 
-            if (runStage == 'false') {
-                println("[${name}] Stage skipped by runStage=false")
-                Utils.markStageSkippedForConditional("${name}")
-                return
-            } else if (runStage == 'undefined') {
-                // To be removed once all stages have been converted to use runStage.
-                Map skip_kwargs = [
-                'tags': tags,
-                'pragma_suffix': pragma_suffix,
-                'distro': distro,
-                'run_if_pr': run_if_pr,
-                'run_if_landing': run_if_landing]
-                if (skipFunctionalTestStage(skip_kwargs)) {
-                    println("[${name}] Stage skipped by skipFunctionalTestStage()")
-                    Utils.markStageSkippedForConditional("${name}")
-                    return
-                }
-            } else if (!testsInStage(tags)) {
-                println("[${name}] Stage skipped by no tests matching the '${tags}' tags")
-                Utils.markStageSkippedForConditional("${name}")
-                return
-            }
-
-            node(cachedCommitPragma("Test-label${pragma_suffix}", label)) {
-                // Ensure access to any branch provisioning scripts exist
-                println("[${name}] Check out '${base_branch}' from version control")
-                if (base_branch) {
-                    checkoutScm(
-                        url: 'https://github.com/daos-stack/daos.git',
-                        branch: base_branch,
-                        withSubmodules: false,
-                        pruneStaleBranch: true)
-                } else {
-                    checkoutScm(pruneStaleBranch: true)
-                }
-
-                try {
-                    println("[${name}] Running functionalTest() on ${label} with tags=${tags}")
-                    Map ftestConfig = [
-                        image_version: image_version,
-                        inst_repos: daosRepos(distro),
-                        inst_rpms: functionalPackages(
-                            clientVersion: 1,
-                            nextVersion: next_version,
-                            addDaosPkgs: 'tests-internal',
-                            rpmDistribution: rpm_distro) + ' ' + other_packages,
-                        test_tag: tags,
-                        ftest_arg: getFunctionalArgs(
-                            pragma_suffix: pragma_suffix,
-                            nvme: nvme,
-                            default_nvme: default_nvme,
-                            provider: provider)['ftest_arg'],
-                        test_function: 'runTestFunctionalV2']
-                    if (node_count != null) {
-                        ftestConfig['node_count'] = node_count
-                    }
-                    jobStatusUpdate(
-                        job_status,
-                        name,
-                        functionalTest(ftestConfig))
-                } finally {
-                    println("[${name}] Running functionalTestPostV2()")
-                    functionalTestPostV2()
-                    jobStatusUpdate(job_status, name)
-                }
-            }
-        }
-        println("[${name}] Finished with ${job_status}")
+    // Backwards compatibility: if runStage is not specified, use skipFunctionalTestStage() to
+    // determine if the stage should be run.
+    if (runStage == 'undefined') {
+        runStage = !skipFunctionalTestStage(
+            tags: tags,
+            pragma_suffix: pragma_suffix,
+            distro: distro,
+            run_if_pr: run_if_pr,
+            run_if_landing: run_if_landing).toString()
     }
+
+    // Avoid extra processing by skipping early if the stage is not to be run.
+    if (runStage == false) {
+        println("[${name}] Stage skipped by runStage=false")
+        Utils.markStageSkippedForConditional("${name}")
+        return
+    }
+
+    Map functionalTestArgs = [
+        image_version: image_version,
+        inst_repos: daosRepos(distro),
+        inst_rpms: functionalPackages(
+            clientVersion: 1,
+            nextVersion: next_version,
+            addDaosPkgs: 'tests-internal',
+            rpmDistribution: rpm_distro) + ' ' + other_packages,
+        test_tag: tags,
+        ftest_arg: getFunctionalArgs(
+            pragma_suffix: pragma_suffix,
+            nvme: nvme,
+            default_nvme: default_nvme,
+            provider: provider)['ftest_arg'],
+        test_function: 'runTestFunctionalV2']
+    if (node_count != null) {
+        functionalTestArgs['node_count'] = node_count
+    }
+
+    return scriptedTestStage(
+        name: name,
+        pragmaSuffix: pragma_suffix,
+        label: label,
+        testBranch: base_branch,
+        jobStatus: job_status,
+        functionalTestArgs: functionalTestArgs,
+        )
 }
