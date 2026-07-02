@@ -83,15 +83,21 @@ Map call(Map kwargs = [:]) {
                     println("[${name}] Running unitTest() on ${label}")
                     jobStatusUpdate(jobStatus, name, unitTest(unitTestArgs))
                 } catch (Exception e) {
-                    println("[${name}] Caught exception: ${e}")
+                    println("[${name}] Caught exception in try: ${e}")
                     jobStatusUpdate(jobStatus, name, 'FAILURE')
                     throw e
                 } finally {
-                    println("[${name}] Running unitTestPost()")
-                    unitTestPost(unitTestPostArgs)
-                    println("[${name}] Running archiveArtifacts()")
-                    archiveArtifacts(archiveArtifactsArgs)
-                    jobStatusUpdate(jobStatus, name)
+                    try {
+                        println("[${name}] Running unitTestPost()")
+                        unitTestPost(unitTestPostArgs)
+                        println("[${name}] Running archiveArtifacts()")
+                        archiveArtifacts(archiveArtifactsArgs)
+                        jobStatusUpdate(jobStatus, name)
+                    } catch (Exception e) {
+                        println("[${name}] Caught exception in finally: ${e}")
+                        jobStatusUpdate(jobStatus, name, 'FAILURE')
+                        throw e
+                    }
                 }
             }
             println("[${name}] Finished with ${jobStatus}")

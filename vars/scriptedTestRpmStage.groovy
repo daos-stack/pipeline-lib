@@ -65,16 +65,22 @@ Map call(Map kwargs = [:]) {
                     println("[${name}] Running testRpm() on ${label}")
                     jobStatusUpdate(jobStatus, name, testRpm(testRpmArgs))
                 } catch (Exception e) {
-                    println("[${name}] Caught exception: ${e}")
+                    println("[${name}] Caught exception in try: ${e}")
                     jobStatusUpdate(jobStatus, name, 'FAILURE')
                     throw e
                 } finally {
-                    if (alwaysScript) {
-                        sh(script: alwaysScript, label: "Running ${alwaysScript}")
+                    try {
+                        if (alwaysScript) {
+                            sh(script: alwaysScript, label: "Running ${alwaysScript}")
+                        }
+                        println("[${name}] Running archiveArtifacts()")
+                        archiveArtifacts(archiveArtifactsArgs)
+                        jobStatusUpdate(jobStatus, name)
+                    } catch (Exception e) {
+                        println("[${name}] Caught exception in finally: ${e}")
+                        jobStatusUpdate(jobStatus, name, 'FAILURE')
+                        throw e
                     }
-                    println("[${name}] Running archiveArtifacts()")
-                    archiveArtifacts(archiveArtifactsArgs)
-                    jobStatusUpdate(jobStatus, name)
                 }
             }
             println("[${name}] Finished with ${jobStatus}")

@@ -135,7 +135,7 @@ Map call(Map kwargs = [:]) {
                     jobStatusUpdate(job_status, name)
                 }
             }
+            println("[${name}] Finished with ${job_status}")
         }
-        println("[${name}] Finished with ${job_status}")
     }
 }

@@ -103,7 +103,7 @@ Map call(Map kwargs = [:]) {
                         }
                     } 
                 } catch (Exception e) {
-                    println("[${name}] Caught exception: ${e}")
+                    println("[${name}] Caught exception in try: ${e}")
                     if (sconsBuildArgs) {
                         // Unsuccessful actions
                         sh """if [ -f config.log ]; then
@@ -115,16 +115,22 @@ Map call(Map kwargs = [:]) {
                     throw e
                 } finally {
                     // Cleanup actions
-                    if (buildRpms) {
-                        uploadNewRPMs(uploadTarget, 'cleanup')
+                    try{
+                        if (buildRpms) {
+                            uploadNewRPMs(uploadTarget, 'cleanup')
+                        }
+                        if (publishHtmlArgs) {
+                            publishHTML(publishHtmlArgs)
+                        }
+                        if (archiveArtifactsArgs) {
+                            archiveArtifacts(archiveArtifactsArgs)
+                        }
+                        jobStatusUpdate(jobStatus, name)
+                    } catch (Exception e) {
+                        println("[${name}] Caught exception in finally: ${e}")
+                        jobStatusUpdate(jobStatus, name, 'FAILURE')
+                        throw e
                     }
-                    if (publishHtmlArgs) {
-                        publishHTML(publishHtmlArgs)
-                    }
-                    if (archiveArtifactsArgs) {
-                        archiveArtifacts(archiveArtifactsArgs)
-                    }
-                    jobStatusUpdate(jobStatus, name)
                 }
             }
             println("[${name}] Finished with ${jobStatus}")
