@@ -79,15 +79,14 @@ Map call(Map kwargs = [:]) {
                     if (functionalTestArgs) {
                         println("[${name}] Running functionalTest() on ${label} with tags=${tags}")
                         jobStatusUpdate(jobStatus, name, functionalTest(functionalTestArgs))
-                    } else if (unitTestArgs) {
+                    }
+                    if (unitTestArgs) {
                         println("[${name}] Running unitTest() on ${label} with tags=${tags}")
                         jobStatusUpdate(jobStatus, name, unitTest(unitTestArgs))
-                    } else if (testRpmArgs) {
+                    }
+                    if (testRpmArgs) {
                         println("[${name}] Running testRpm() on ${label} with tags=${tags}")
                         jobStatusUpdate(jobStatus, name, testRpm(testRpmArgs))
-                    } else {
-                        println("[${name}] No test arguments provided!")
-                        jobStatusUpdate(jobStatus, name, 'FAILED')
                     }
                 } finally {
                     println("[${name}] DEBUG: finally{} started")
