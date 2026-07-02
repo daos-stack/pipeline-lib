@@ -117,12 +117,15 @@ Map call(Map kwargs = [:]) {
                     // Cleanup actions
                     try{
                         if (buildRpms) {
+                            println("[${name}] Running uploadNewRPMs()")
                             uploadNewRPMs(uploadTarget, 'cleanup')
                         }
                         if (publishHtmlArgs) {
+                            println("[${name}] Running publishHTML()")
                             publishHTML(publishHtmlArgs)
                         }
                         if (archiveArtifactsArgs) {
+                            println("[${name}] Running archiveArtifacts()")
                             archiveArtifacts(archiveArtifactsArgs)
                         }
                         jobStatusUpdate(jobStatus, name)

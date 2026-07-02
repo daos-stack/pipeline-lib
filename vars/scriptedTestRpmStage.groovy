@@ -19,6 +19,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      instRpms              testRpm() inst_rpms argument; defaults to 'mercury-libfabric'
  *      ignoreFailure         testRpm() ignore_failure argument; defaults to false
  *      alwaysScript          script to run always after the test stage; defaults to ''.
+ *      archiveArtifactsArgs  Map of arguments to pass to archiveArtifacts() for the stage
  * @return a scripted stage to run in a pipeline
  */ 
 Map call(Map kwargs = [:]) {
@@ -36,6 +37,7 @@ Map call(Map kwargs = [:]) {
         ignore_failure: kwargs.get('ignoreFailure', false)
     ]
     String alwaysScript = kwargs.get('alwaysScript', '')
+    Map archiveArtifactsArgs = kwargs.get('archiveArtifactsArgs', null) ?: [:]
 
     return {
         stage("${name}") {
@@ -71,10 +73,12 @@ Map call(Map kwargs = [:]) {
                 } finally {
                     try {
                         if (alwaysScript) {
-                            sh(script: alwaysScript, label: "Running ${alwaysScript}")
+                            sh(script: alwaysScript, label: "Running alwaysScript: ${alwaysScript}")
                         }
-                        println("[${name}] Running archiveArtifacts()")
-                        archiveArtifacts(archiveArtifactsArgs)
+                        if (archiveArtifactsArgs) {
+                            println("[${name}] Running archiveArtifacts()")
+                            archiveArtifacts(archiveArtifactsArgs)
+                        }
                         jobStatusUpdate(jobStatus, name)
                     } catch (Exception e) {
                         println("[${name}] Caught exception in finally: ${e}")

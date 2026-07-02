@@ -88,10 +88,14 @@ Map call(Map kwargs = [:]) {
                     throw e
                 } finally {
                     try {
-                        println("[${name}] Running unitTestPost()")
-                        unitTestPost(unitTestPostArgs)
-                        println("[${name}] Running archiveArtifacts()")
-                        archiveArtifacts(archiveArtifactsArgs)
+                        if (unitTestPostArgs) {
+                            println("[${name}] Running unitTestPost()")
+                            unitTestPost(unitTestPostArgs)
+                        }
+                        if (archiveArtifactsArgs) {
+                            println("[${name}] Running archiveArtifacts()")
+                            archiveArtifacts(archiveArtifactsArgs)
+                        }
                         jobStatusUpdate(jobStatus, name)
                     } catch (Exception e) {
                         println("[${name}] Caught exception in finally: ${e}")
