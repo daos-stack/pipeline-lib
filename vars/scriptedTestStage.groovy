@@ -47,6 +47,8 @@ Map call(Map kwargs = [:]) {
 
     return {
         stage("${name}") {
+            println("[${name}] Starting stage: kwargs=${kwargs}")
+
             if (!runStage) {
                 println("[${name}] Stage skipped by runStage=false")
                 Utils.markStageSkippedForConditional("${name}")
@@ -58,6 +60,7 @@ Map call(Map kwargs = [:]) {
             }
 
             node(label) {
+                println("[${name}] DEBUG: node(${label}) started")
                 // Ensure access to any branch provisioning scripts exist
                 if (testBranch) {
                     println("[${name}] Check out '${testBranch}' from version control")
@@ -72,6 +75,7 @@ Map call(Map kwargs = [:]) {
                 }
 
                 try {
+                    println("[${name}] DEBUG: try{} started")
                     if (functionalTestArgs) {
                         println("[${name}] Running functionalTest() on ${label} with tags=${tags}")
                         jobStatusUpdate(jobStatus, name, functionalTest(functionalTestArgs))
@@ -83,8 +87,10 @@ Map call(Map kwargs = [:]) {
                         jobStatusUpdate(jobStatus, name, testRpm(testRpmArgs))
                     } else {
                         println("[${name}] No test arguments provided!")
+                        jobStatusUpdate(jobStatus, name, 'FAILED')
                     }
                 } finally {
+                    println("[${name}] DEBUG: finally{} started")
                     if (functionalTestArgs) {
                         println("[${name}] Running functionalTestPostV2()")
                         functionalTestPostV2()
