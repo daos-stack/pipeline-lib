@@ -29,25 +29,25 @@ Map call(Map kwargs = [:]) {
     String pragmaSuffix = kwargs.get('pragmaSuffix', '')
     String label = kwargs.get('label')
     String testBranch = kwargs.get('testBranch', '')
-    Map jobStatus = kwargs.get('jobStatus', [:])
+    Map jobStatus = kwargs.get('jobStatus', null) ?: [:]
 
     // Functional test stage parameters
-    Map functionalTestArgs = kwargs.get('functionalTestArgs', [:])
+    Map functionalTestArgs = kwargs.get('functionalTestArgs', null) ?: [:]
 
     // Unit Test stage parameters
-    Map unitTestArgs = kwargs.get('unitTestArgs', [:])
-    Map unitTestPostArgs = kwargs.get('unitTestPostArgs', [:])
+    Map unitTestArgs = kwargs.get('unitTestArgs', null) ?: [:]
+    Map unitTestPostArgs = kwargs.get('unitTestPostArgs', null) ?: [:]
 
     // Test RPM stage parameters
-    Map testRpmArgs = kwargs.get('testRpmArgs', [:])
-    Map testRpmPostArgs = kwargs.get('testRpmPostArgs', [:])
+    Map testRpmArgs = kwargs.get('testRpmArgs', null) ?: [:]
+    Map testRpmPostArgs = kwargs.get('testRpmPostArgs', null) ?: [:]
 
     // Artifact archiving stage parameters
-    Map archiveArtifactsArgs = kwargs.get('archiveArtifactsArgs', [:])
+    Map archiveArtifactsArgs = kwargs.get('archiveArtifactsArgs', null) ?: [:]
 
     return {
         stage("${name}") {
-            println("[${name}] Starting stage: kwargs=${kwargs}")
+            println("[${name}] Starting stage: kwargs keys=${kwargs.keySet()}")
             println("[${name}] Debug: unitTestArgs:         empty=${unitTestArgs.isEmpty()}; ${unitTestArgs}")
             println("[${name}] Debug: unitTestPostArgs:     empty=${unitTestPostArgs.isEmpty()}; ${unitTestPostArgs}")
             println("[${name}] Debug: testRpmArgs:          empty=${testRpmArgs.isEmpty()}; ${testRpmArgs}")
@@ -81,33 +81,37 @@ Map call(Map kwargs = [:]) {
 
                 try {
                     println("[${name}] Running test steps on ${label}")
-                    if (functionalTestArgs) {
+                    if (!functionalTestArgs.isEmpty()) {
                         println("[${name}] Running functionalTest() on ${label} with tags=${tags}")
                         jobStatusUpdate(jobStatus, name, functionalTest(functionalTestArgs))
                     }
-                    if (unitTestArgs) {
+                    if (!unitTestArgs.isEmpty()) {
                         println("[${name}] Running unitTest() on ${label} with tags=${tags}")
                         jobStatusUpdate(jobStatus, name, unitTest(unitTestArgs))
                     }
-                    if (testRpmArgs) {
+                    if (!testRpmArgs.isEmpty()) {
                         println("[${name}] Running testRpm() on ${label} with tags=${tags}")
                         jobStatusUpdate(jobStatus, name, testRpm(testRpmArgs))
                     }
+                } catch (Exception e) {
+                    println("[${name}] Caught exception: ${e}")
+                    jobStatusUpdate(jobStatus, name, 'FAILURE')
+                    throw e
                 } finally {
                     println("[${name}] Running test cleanup on ${label}")
-                    if (functionalTestArgs) {
+                    if (!functionalTestArgs.isEmpty()) {
                         println("[${name}] Running functionalTestPostV2()")
                         functionalTestPostV2()
                     }
-                    if (unitTestPostArgs) {
+                    if (!unitTestPostArgs.isEmpty()) {
                         println("[${name}] Running unitTestPost()")
                         unitTestPost(unitTestPostArgs)
                     }
-                    if (archiveArtifactsArgs) {
+                    if (!archiveArtifactsArgs.isEmpty()) {
                         println("[${name}] Running archiveArtifacts()")
                         archiveArtifacts(archiveArtifactsArgs)
                     }
-                    if (testRpmArgs) {
+                    if (!testRpmArgs.isEmpty()) {
                         println("[${name}] Running archiveArtifacts()")
                         // Extract first node from comma-delimited list
                         String firstNode = env.NODELIST.split(',')[0].trim()
