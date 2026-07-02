@@ -13,6 +13,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      label                 test stage default cluster label
  *      testBranch            if specified, checkout sources from this branch before running tests
  *      jobStatus             Map of status for each stage in the job/build
+ *      imageVersion          testRpm() target argument; defaults to ''
  *      instRepos             testRpm() inst_repos argument; defaults to daosRepos()
  *      daosPkgVersion        testRpm() daos_pkg_version argument; defaults to
  *                              daosPackagesVersion(next_version())
@@ -30,6 +31,7 @@ Map call(Map kwargs = [:]) {
     String testBranch = kwargs.get('testBranch', '')
     Map jobStatus = kwargs.get('jobStatus', null) ?: [:]
     Map testRpmArgs = [
+        target: kwargs.get('imageVersion', ''),
         inst_repos: kwargs.get('instRepos', daosRepos()),
         daos_pkg_version: kwargs.get(
             'daosPkgVersion', daosPackagesVersion(kwargs.get('next_version', null))),
