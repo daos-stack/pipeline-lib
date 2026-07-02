@@ -48,6 +48,11 @@ Map call(Map kwargs = [:]) {
     return {
         stage("${name}") {
             println("[${name}] Starting stage: kwargs=${kwargs}")
+            println("[${name}] Debug: unitTestArgs:         empty=${unitTestArgs.isEmpty()}; ${unitTestArgs}")
+            println("[${name}] Debug: unitTestPostArgs:     empty=${unitTestPostArgs.isEmpty()}; ${unitTestPostArgs}")
+            println("[${name}] Debug: testRpmArgs:          empty=${testRpmArgs.isEmpty()}; ${testRpmArgs}")
+            println("[${name}] Debug: testRpmPostArgs:      empty=${testRpmPostArgs.isEmpty()}; ${testRpmPostArgs}")
+            println("[${name}] Debug: archiveArtifactsArgs: empty=${archiveArtifactsArgs.isEmpty()}; ${archiveArtifactsArgs}")
 
             if (!runStage) {
                 println("[${name}] Stage skipped by runStage=false")
@@ -75,7 +80,7 @@ Map call(Map kwargs = [:]) {
                 }
 
                 try {
-                    println("[${name}] DEBUG: try{} started")
+                    println("[${name}] Running test steps on ${label}")
                     if (functionalTestArgs) {
                         println("[${name}] Running functionalTest() on ${label} with tags=${tags}")
                         jobStatusUpdate(jobStatus, name, functionalTest(functionalTestArgs))
@@ -89,7 +94,7 @@ Map call(Map kwargs = [:]) {
                         jobStatusUpdate(jobStatus, name, testRpm(testRpmArgs))
                     }
                 } finally {
-                    println("[${name}] DEBUG: finally{} started")
+                    println("[${name}] Running test cleanup on ${label}")
                     if (functionalTestArgs) {
                         println("[${name}] Running functionalTestPostV2()")
                         functionalTestPostV2()
