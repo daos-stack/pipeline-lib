@@ -14,10 +14,11 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      testBranch            if specified, checkout sources from this branch before running tests
  *      jobStatus             Map of status for each stage in the job/build
  *      instRepos             testRpm() inst_repos argument; defaults to daosRepos()
- *      daosPkgVersion        testRpm() daos_pkg_version argument; defaults to daosPackagesVersion(next_version())
+ *      daosPkgVersion        testRpm() daos_pkg_version argument; defaults to
+ *                              daosPackagesVersion(next_version())
  *      instRpms              testRpm() inst_rpms argument; defaults to 'mercury-libfabric'
  *      ignoreFailure         testRpm() ignore_failure argument; defaults to false
- *      nodeList              comma-delimited list of nodes; defaults to env.NODELIST
+ *      alwaysScript          script to run always after the test stage; defaults to ''.
  * @return a scripted stage to run in a pipeline
  */ 
 Map call(Map kwargs = [:]) {
@@ -34,7 +35,7 @@ Map call(Map kwargs = [:]) {
         inst_rpms: kwargs.get('instRpms', 'mercury-libfabric'),
         ignore_failure: kwargs.get('ignoreFailure', false)
     ]
-    String nodeList = kwargs.get('nodeList', env.NODELIST)
+    String alwaysScript = kwargs.get('alwaysScript', '')
 
     return {
         stage("${name}") {
@@ -68,17 +69,11 @@ Map call(Map kwargs = [:]) {
                     jobStatusUpdate(jobStatus, name, 'FAILURE')
                     throw e
                 } finally {
+                    if (alwaysScript) {
+                        sh(script: alwaysScript, label: "Running ${alwaysScript}")
+                    }
                     println("[${name}] Running archiveArtifacts()")
-                    // Extract first node from comma-delimited list
-                    String firstNode = nodeList.split(',')[0].trim()
-                    sh label: 'Fetch and stage artifacts',
-                    script: "hostname; ssh -i ci_key jenkins@${firstNode}" +
-                            " ls -ltar /tmp; mkdir -p \"${name}\" && " +
-                            "scp -i ci_key jenkins@${firstNode}:/tmp/" +
-                            '{{suite_dmg,daos_{server_helper,{control,agent}}}.log,' +
-                            'daos_server.log.*}' +
-                            " \"${name}/\""
-                    archiveArtifacts(artifacts: "${name}/**")
+                    archiveArtifacts(archiveArtifactsArgs)
                     jobStatusUpdate(jobStatus, name)
                 }
             }
