@@ -50,6 +50,10 @@
    * config['rpmlint']             Whether to run rpmlint on resulting RPMs.
    *                               Default false.
    *
+   * config['new_rpm']             Whether we are using new RPM or not
+   *                               Default false.
+   *                               Deprecated, use config['productArtifacts'] instead.
+   *
    * config['productArtifacts']    List of product names and artifact directories to publish.
    *                               Default is to publish the whole target directory.
    *
@@ -90,9 +94,15 @@ void call(Map config = [:]) {
                   includes: rpm_version_file
         }
 
+        List<String> productNames = config.get('productArtifacts', [])
+        // Backwards compatibility for new_rpm parameter.
+        if (productNames.isEmpty() && config.get('new_rpm', false)) {
+            productNames = ['daos', 'deps']
+        }
+
         String product = config.get('product', 'daos-stack')
         Map<String, String> productArtifacts = [:]
-        for (String name : config.get('productArtifacts', [])) {
+        for (String name : productNames) {
             if (name == 'daos') {
                 // Use the product name for daos
                 productArtifacts[product] = "artifacts/${target}/${name}"
