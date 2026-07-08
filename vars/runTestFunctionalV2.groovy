@@ -90,18 +90,14 @@ Map call(Map config = [:]) {
     // Restore the ignore failure setting
     config['ignore_failure'] = ignore_failure
 
-    // Stash code coverage file if it exists
-    String coverage_stash = config.get('coverage_stash', '')
-    if (coverage_stash) {
-        try {
-            stash name: coverage_stash, includes: '**/test.cov'
-            println("[${env.STAGE_NAME}] Stashed code coverage file in ${coverage_stash}")
-        } catch (hudson.AbortException e) {
-            println(
-                "[${env.STAGE_NAME}] Failed to stash code coverage file in ${coverage_stash}: " +
-                "${e.message}")
-        }
+    String coverageFile = 'test.cov'
+    if (!fileExists('test.cov')) {
+        coverageFile += '_not_done'
+        fileOperations([fileCreateOperation(fileName: coverageFile,
+                                            fileContent: '')])
     }
-
+    String name = 'func' + stage_info['pragma_suffix'] + '-cov'
+    stash name: config.get('coverage_stash', name),
+          includes: coverageFile
     return runData
 }

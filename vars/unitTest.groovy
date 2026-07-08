@@ -150,35 +150,32 @@ Map call(Map config = [:]) {
     long startDate = System.currentTimeMillis()
     String nodelist = config.get('NODELIST', env.NODELIST)
     String test_script = config.get('test_script', 'ci/unit/test_main.sh')
+    Map stage_info = parseStageInfo(config)
     String inst_rpms = config.get('inst_rpms', '')
 
-    // Support backwards compatibility with parseStageInfo when config keys are ommitted
-    Map stage_info = parseStageInfo(config)
-    Integer node_count = config.get('node_count', stage_info['node_count'])
-    String target = config.get('target', stage_info['ci_target'])
-    String distro_version = config.get('distro_version', stage_info['distro_version'])
-    String compiler = config.get('compiler', stage_info['compiler'])
-    String build_type = config.get('build_type', stage_info['build_type'])
-    String with_valgrind = config.get('with_valgrind', stage_info.get('with_valgrind', ''))
+    if (stage_info['compiler'] == 'covc') {
+        if (stage_info['java_pkg']) {
+            inst_rpms += " ${stage_info['java_pkg']}"
+        }
+    }
 
     String image_version = config.get('image_version', '') ?:
-        (target  =~ /([a-z]+)(.*)/)[0][1] + distro_version
+        (stage_info['ci_target'] =~ /([a-z]+)(.*)/)[0][1] + stage_info['distro_version']
 
     Map runData = provisionNodes(
-        NODELIST: nodelist,
-        node_count: node_count,
-        distro: image_version,
-        inst_repos: config.get('inst_repos', ''),
-        inst_rpms: inst_rpms,
-        prov_env_vars: config.get('prov_env_vars', ''),
-        bullseye: compiler == 'covc')
+                 NODELIST: nodelist,
+                 node_count: stage_info['node_count'],
+                 distro: image_version,
+                 inst_repos: config.get('inst_repos', ''),
+                 inst_rpms: inst_rpms,
+                 prov_env_vars: config.get('prov_env_vars', ''))
 
     /* el9-gcc-tests */
-    String target_stash = (image_version ?: target).split('\\.')[0]
+    String target_stash = (image_version ?: ${stage_info['target']}).split('\\.')[0]
 
-    target_stash += '-' + compiler
-    if (build_type) {
-        target_stash += '-' + build_type
+    target_stash += '-' + stage_info['compiler']
+    if (stage_info['build_type']) {
+        target_stash += '-' + stage_info['build_type']
     }
 
     List stashes = []
@@ -196,52 +193,55 @@ Map call(Map config = [:]) {
         }
     }
 
-    Map params = [:]
-    params['stashes'] = stashes
-    params['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
-                       "NODELIST=${nodelist} " +
-                       "WITH_VALGRIND=${with_valgrind} " +
-                       test_script
-    params['junit_files'] = config.get('junit_files', 'test_results/*.xml')
-    params['context'] = config.get('context', 'test/' + env.STAGE_NAME)
-    params['description'] = config.get('description', env.STAGE_NAME)
+    if (stage_info['compiler'] == 'covc') {
+        String tools_url = env.JENKINS_URL +
+                    'job/daos-stack/job/tools/job/master' +
+                    '/lastSuccessfulBuild/artifact/'
+        httpRequest url: tools_url + 'bullseyecoverage-linux.tar',
+                httpMode: 'GET',
+                outputFile: 'bullseye.tar'
+    }
+
+    String with_valgrind = config.get('with_valgrind',
+                                      stage_info.get('with_valgrind', ''))
+    Map p = [:]
+    p['stashes'] = stashes
+    p['script'] = "SSH_KEY_ARGS=${env.SSH_KEY_ARGS} " +
+                  "NODELIST=${nodelist} " +
+                  "WITH_VALGRIND=${with_valgrind} " +
+                  test_script
+    p['junit_files'] = config.get('junit_files', 'test_results/*.xml')
+    p['context'] = config.get('context', 'test/' + env.STAGE_NAME)
+    p['description'] = config.get('description', env.STAGE_NAME)
     // Do not let runTest abort the pipeline as want artifact/log collection.
-    params['ignore_failure'] = true
+    p['ignore_failure'] = true
     // runTest no longer knows now to notify for Unit Tests
-    params['notify_result'] = false
+    p['notify_result'] = false
     int time = config.get('timeout_time', 120) as int
     String unit = config.get('timeout_unit', 'MINUTES')
 
     Map runTestData = [:]
     timeout(time: time, unit: unit) {
-        runTestData = runTest params
+        runTestData = runTest p
         runTestData.each { resultKey, data -> runData[resultKey] = data }
     }
-    params['always_script'] = config.get(
-        'always_script',
-        stage_info.get('always_script', 'ci/unit/test_post_always.sh'))
-    params['valgrind_pattern'] = config.get(
-        'valgrind_pattern',
-        stage_info.get('valgrind_pattern', 'unit-test-*memcheck.xml'))
-    params['testResults'] = config.get(
-        'testResults',
-        stage_info.get('testResults', 'test_results/*.xml'))
-    if (compiler == 'covc') {
-        // Bullseye does not support Valgrind, so ignore the setting if compiler is covc
-        params['with_valgrind'] = ''
-    } else {
-        params['with_valgrind'] = with_valgrind
-    }
-    runTestData = afterTest(params, runData)
+    p['always_script'] = config.get('always_script',
+                                    stage_info.get('always_script',
+                                                   'ci/unit/test_post_always.sh'))
+    p['valgrind_pattern'] = config.get('valgrind_pattern',
+                                       stage_info.get('valgrind_pattern',
+                                                      'unit-test-*memcheck.xml'))
+    p['testResults'] = config.get('testResults',
+                                  stage_info.get('testResults',
+                                                 'test_results/*.xml'))
+    p['with_valgrind'] = with_valgrind
+    runTestData = afterTest(p, runData)
     runTestData.each { resultKey, data -> runData[resultKey] = data }
 
-    if (compiler == 'covc') {
-        // Stash the bullseye code coverage report if it was generated
+    if (stage_info['compiler'] == 'covc') {
         stash name: config.get('coverage_stash', "${target_stash}-unit-cov"),
-              includes: '**/test.cov'
-              allowEmpty: true
+            includes: 'test.cov'
     }
-
     int runTime = durationSeconds(startDate)
     runData['unittest_time'] = runTime
 
@@ -254,6 +254,12 @@ Map call(Map config = [:]) {
               overwrite: true
     stash name: results_map,
           includes: results_map
+
+    // Stash any optional test coverage reports for the stage
+    String code_coverage = 'code_coverage_' + sanitizedStageName()
+    stash name: code_coverage,
+          includes: '**/code_coverage.json',
+          allowEmpty: true
 
     return runData
 }
