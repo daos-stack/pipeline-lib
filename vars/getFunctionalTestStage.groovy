@@ -24,13 +24,17 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *                      '.el9', '.suse.lp156', etc.  If not specified, it will be determined by
  *                      rpmDistValue(distro)
  *      base_branch     if specified, checkout sources from this branch before running tests
+ *      inst_rpms       space-separated string of RPM packages to install on the test nodes;
+ *                      exclusive of next_version, rpm_distro, and other_packages.
  *      other_packages  space-separated string of additional RPM packages to install
+ *      bullseye        whether or not to use the bullseye-sepecific repo for provisioning
  *      node_count      number of nodes to provision and use for the stage; overrides the count
  *                      that would otherwise be inferred from the stage name by parseStageInfo()
  *      runStage        whether or not to run the stage; overrides skipFunctionalTestStage()
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
  *      job_status      Map of status for each stage in the job/build
+ *      coverage_stash  name of stash to include code coverage results from the tests
  * @return a scripted stage to run in a pipeline
  */
 Map call(Map kwargs = [:]) {
@@ -47,7 +51,9 @@ Map call(Map kwargs = [:]) {
     String image_version = kwargs.get('image_version', null)
     String rpm_distro = kwargs.get('rpm_distro', null)
     String base_branch = kwargs.get('base_branch')
+    String inst_rpms = kwargs.get('inst_rpms', null)
     String other_packages = kwargs.get('other_packages', '')
+    Boolean bullseye = kwargs.get('bullseye', false)
     Integer node_count = kwargs.get('node_count') as Integer
     Boolean run_if_pr = kwargs.get('run_if_pr', false)
     Boolean run_if_landing = kwargs.get('run_if_landing', false)
@@ -60,6 +66,7 @@ Map call(Map kwargs = [:]) {
     String runStage = kwargs.get('runStage', 'undefined').toString()
 
     Map job_status = kwargs.get('job_status', [:])
+    String coverage_stash = kwargs.get('coverage_stash', '')
 
     return {
         stage("${name}") {
@@ -110,7 +117,7 @@ Map call(Map kwargs = [:]) {
                     Map ftestConfig = [
                         image_version: image_version,
                         inst_repos: daosRepos(distro),
-                        inst_rpms: functionalPackages(
+                        inst_rpms: inst_rpms ?: functionalPackages(
                             clientVersion: 1,
                             nextVersion: next_version,
                             addDaosPkgs: 'tests-internal',
@@ -121,7 +128,9 @@ Map call(Map kwargs = [:]) {
                             nvme: nvme,
                             default_nvme: default_nvme,
                             provider: provider)['ftest_arg'],
-                        test_function: 'runTestFunctionalV2']
+                        test_function: 'runTestFunctionalV2',
+                        bullseye: bullseye,
+                        coverage_stash: coverage_stash]
                     if (node_count != null) {
                         ftestConfig['node_count'] = node_count
                     }
