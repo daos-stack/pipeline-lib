@@ -17,7 +17,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *          buildScript             optional script to run to build dependencies; defaults to ''
  *          stepMethod              method to call to run the stage
  *          stepMethodArgs          arguments to pass to the stepMethod; defaults to [:]
- *          configLogArtifacts      optional config.log name to archive upon exception
+ *          configLog               optional config.log name to archive upon exception
  *          valgrindSconsBuildArgs  optional scons build arguments for valgrind build
  *          generateRpmsScript      optional script to run to generate rpms; defaults to ''
  *          buildRpmPostArgs        optional arguments to pass to buildRpmPost(); defaults to [:]
@@ -37,7 +37,7 @@ Map call(Map kwargs = [:]) {
     String buildScript = kwargs.get('buildScript', '')
     Closure stepMethod = kwargs.get('stepMethod')
     Map stepMethodArgs = kwargs.get('stepMethodArgs', null) ?: [:]
-    String configLogArtifacts = kwargs.get('configLogArtifacts', '')
+    String configLog = kwargs.get('configLog', '')
     Map valgrindSconsBuildArgs = kwargs.get('valgrindSconsBuildArgs', null) ?: [:]
     String generateRpmsScript = kwargs.get('generateRpmsScript', '')
     Map buildRpmPostArgs = kwargs.get('buildRpmPostArgs', null) ?: [:]
@@ -46,6 +46,8 @@ Map call(Map kwargs = [:]) {
 
     return {
         stage("${name}") {
+            println("[${name}] Starting stage: kwargs=${kwargs}")
+
             if (!runStage) {
                 println("[${name}] Marking docker stage as skipped")
                 Utils.markStageSkippedForConditional("${name}")
@@ -87,19 +89,15 @@ Map call(Map kwargs = [:]) {
                                 script: "${generateRpmsScript}"
                         }
                         if (buildRpmPostArgs) {
-                            println("[${name}] Running buildRpmPost(condition: 'success')")
-                            Map args = buildRpmPostArgs.clone()
-                            args['condition'] = 'success'
-                            buildRpmPost(args)
+                            println("[${name}] Running buildRpmPost()")
+                            buildRpmPost(buildRpmPostArgs)
                         }
                     }
                 } catch (Exception e) {
                     println("[${name}] Caught exception in try: ${e}")
-                    if (configLogArtifacts) {
-                        // Unsuccessful actions
-                        sh """if [ -f config.log ]; then
-                                mv config.log ${configLogArtifacts}
-                            fi"""
+                    if (configLog) {
+                        sh label: 'Archive config.log',
+                           script: "if [ -f config.log ]; then mv config.log ${configLog}; fi"
                         archiveArtifacts artifacts: "${configLogArtifacts}", allowEmptyArchive: true
                     }
                     jobStatusUpdate(jobStatus, name, 'FAILURE')
@@ -107,12 +105,6 @@ Map call(Map kwargs = [:]) {
                 } finally {
                     // Cleanup actions
                     try{
-                        if (buildRpmPostArgs) {
-                            println("[${name}] Running buildRpmPost(condition: 'cleanup')")
-                            Map args = buildRpmPostArgs.clone()
-                            args['condition'] = 'cleanup'
-                            buildRpmPost(args)
-                        }
                         if (publishHtmlArgs) {
                             println("[${name}] Running publishHTML()")
                             publishHTML(publishHtmlArgs)
