@@ -64,12 +64,6 @@ Map call(Map kwargs = [:]) {
 
     return {
         stage("${name}") {
-            // Get the tags for the stage. Use either the build parameter, commit pragma, or
-            // default tags. All tags are combined with the stage tags to ensure only tests that
-            // 'fit' the cluster will be run.
-            String tags = getFunctionalTags(
-                pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
-
             /* groovylint-disable-next-line DuplicateStringLiteral */
             if (runStage == 'false') {
                 println("[${name}] Stage skipped by runStage=false")
@@ -77,6 +71,12 @@ Map call(Map kwargs = [:]) {
                 return
             }
 
+            // Get the tags for the stage. Use either the build parameter, commit pragma, or
+            // default tags. All tags are combined with the stage tags to ensure only tests that
+            // 'fit' the cluster will be run.
+            String tags = getFunctionalTags(
+                pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
+            println("[${name}] Functional test tags for stage: ${tags}")
             if (runStage == 'true' && !testsInStage(tags)) {
                 println("[${name}] Stage skipped by no tests matching the '${tags}' tags")
                 Utils.markStageSkippedForConditional("${name}")
@@ -112,6 +112,7 @@ Map call(Map kwargs = [:]) {
                     checkoutScm(pruneStaleBranch: true)
                 }
 
+                Throwable tryError = null
                 try {
                     println("[${name}] Running functionalTest() on ${label} with tags=${tags}")
                     Map ftestConfig = [
@@ -137,10 +138,26 @@ Map call(Map kwargs = [:]) {
                         job_status,
                         name,
                         functionalTest(ftestConfig))
+                /* groovylint-disable-next-line CatchException */
+                } catch (Exception e) {
+                    tryError = e
+                    println("[${name}] Caught exception in try: ${tryError}")
+                    jobStatusUpdate(job_status, name, 'FAILURE')
+                    throw tryError
                 } finally {
-                    println("[${name}] Running functionalTestPostV2()")
-                    functionalTestPostV2()
-                    jobStatusUpdate(job_status, name)
+                    try{
+                        println("[${name}] Running functionalTestPostV2()")
+                        functionalTestPostV2()
+                        jobStatusUpdate(job_status, name)
+                    } catch (Exception finallyError) {
+                        println("[${name}] Caught exception in finally: ${finallyError}")
+                        /* groovylint-disable-next-line DuplicateStringLiteral */
+                        jobStatusUpdate(job_status, name, 'FAILURE')
+                        if (tryError == null) {
+                            /* groovylint-disable-next-line ThrowExceptionFromFinallyBlock */
+                            throw finallyError
+                        }
+                    }
                 }
             }
             println("[${name}] Finished with ${job_status}")
