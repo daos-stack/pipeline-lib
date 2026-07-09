@@ -37,6 +37,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      coverage_stash  name of stash to include code coverage results from the tests
  * @return a scripted stage to run in a pipeline
  */
+/* groovylint-disable-next-line MethodSize */
 Map call(Map kwargs = [:]) {
     String name = kwargs.get('name', 'Unknown Functional Test Stage')
     String pragma_suffix = kwargs.get('pragma_suffix')
@@ -63,7 +64,8 @@ Map call(Map kwargs = [:]) {
     // to be skipped by the existing skipFunctionalTestStage logic, while new stages can use
     // runStage directly. Once all stages have been converted to use runStage, this should be
     // changed to a Boolean.
-    String runStage = kwargs.get('runStage', 'undefined').toString()
+    final String RUNSTAGE_UNSET = 'undefined'
+    String runStage = kwargs.get('runStage', RUNSTAGE_UNSET)
 
     Map job_status = kwargs.get('job_status', [:])
     String coverage_stash = kwargs.get('coverage_stash', '')
@@ -76,11 +78,12 @@ Map call(Map kwargs = [:]) {
             String tags = getFunctionalTags(
                 pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
 
+            /* groovylint-disable-next-line DuplicateStringLiteral */
             if (runStage == 'false') {
                 println("[${name}] Stage skipped by runStage=false")
                 Utils.markStageSkippedForConditional("${name}")
                 return
-            } else if (runStage == 'undefined') {
+            } else if (runStage == RUNSTAGE_UNSET) {
                 // To be removed once all stages have been converted to use runStage.
                 Map skip_kwargs = [
                 'tags': tags,
@@ -132,6 +135,7 @@ Map call(Map kwargs = [:]) {
                         bullseye: bullseye,
                         coverage_stash: coverage_stash]
                     if (node_count != null) {
+                        /* groovylint-disable-next-line DuplicateStringLiteral */
                         ftestConfig['node_count'] = node_count
                     }
                     jobStatusUpdate(

@@ -61,6 +61,7 @@
    *                               Default 'ci/rpm/build_unsuccessful.sh'
    */
 
+/* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
 
@@ -96,7 +97,7 @@ void call(Map config = [:]) {
 
         List<String> productNames = config.get('productArtifacts', [])
         // Backwards compatibility for new_rpm parameter.
-        if (productNames.isEmpty() && config.get('new_rpm', false)) {
+        if (!productNames && config.get('new_rpm', false)) {
             productNames = ['daos', 'deps']
         }
 
