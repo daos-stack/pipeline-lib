@@ -26,8 +26,6 @@
  * config['timeout']    Timeout in minutes.  Default 30.
  * config['inst_repos'] DAOS stack repos that should be configured.
  * config['inst_rpms']  DAOS stack RPMs that should be installed.
- * config['bullseye']   Set to true to use bullseye-specific repo.  Default false.
- *
  *  if timeout is <= 0, then will not wait for provisioning.
  *  if power_only is specified, the nodes will be rebooted and the
  *  provisioning information ignored.
@@ -177,7 +175,6 @@ Map call(Map config = [:]) {
                       // https://issues.jenkins.io/browse/JENKINS-55819
                       'CI_RPM_TEST_VERSION="' + (params.CI_RPM_TEST_VERSION ?: '') + '" ' +
                       'CI_PR_REPOS="' + (params.CI_PR_REPOS ?: '') + '" ' +
-                      'CI_BULLSEYE="' + (config.get('bullseye', false) ? 'true' : 'false') + '" ' +
                       ((env.DAOS_HTTPS_PROXY ?: env.HTTPS_PROXY) ?
                           'HTTPS_PROXY="' + (env.DAOS_HTTPS_PROXY ?: env.HTTPS_PROXY) + '" ' : '') +
                       'ci/provisioning/post_provision_config.sh'

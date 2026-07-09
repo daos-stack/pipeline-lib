@@ -59,13 +59,6 @@
    *
    * config['ftest_arg']         Functional test launch.py arguments.
    *                             Default determined by parseStageInfo().
-   *
-   * config['coverage_stash']    Name to stash coverage artifacts.
-   *                             Default is empty string, which will result in no stashing.
-   *
-   * config['bullseye']          Set to true to use bullseye-sepecific repo.
-   *                             Default false.
-   *
    */
 
 Map call(Map config = [:]) {
@@ -73,8 +66,6 @@ Map call(Map config = [:]) {
     String nodelist = config.get('NODELIST', env.NODELIST)
     String context = config.get('context', 'test/' + env.STAGE_NAME)
     String description = config.get('description', env.STAGE_NAME)
-    String coverage_stash = config.get('coverage_stash', '')
-    Boolean bullseye = config.get('bullseye', false)
 
     Map stage_info = parseStageInfo(config)
 
@@ -102,8 +93,7 @@ Map call(Map config = [:]) {
                  node_count: stage_info['node_count'],
                  distro: image_version,
                  inst_repos: config.get('inst_repos', ''),
-                 inst_rpms: stage_inst_rpms,
-                 bullseye: bullseye)
+                 inst_rpms: stage_inst_rpms)
 
     List stashes = []
     if (config['stashes']) {
@@ -123,7 +113,6 @@ Map call(Map config = [:]) {
     run_test_config['ftest_arg'] = config.get('ftest_arg', stage_info['ftest_arg'])
     run_test_config['context'] = context
     run_test_config['description'] = description
-    run_test_config['coverage_stash'] = coverage_stash
 
     Map runtestData = [:]
     if (config.get('test_function', 'runTestFunctional') ==
