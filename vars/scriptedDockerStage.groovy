@@ -28,7 +28,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
 Map call(Map kwargs = [:]) {
     String name = kwargs.get('name', 'Unknown Docker Stage')
     Boolean runStage = kwargs.get('runStage', true)
-    Map jobStatus = kwargs.get('jobStatus', [:])
+    Map jobStatus = kwargs.get('jobStatus', null) ?: [:]
     String dockerTag = kwargs.get('dockerTag', 'unknown-docker-tag')
     String dockerBuildArgs = kwargs.get('dockerBuildArgs', '')
 
@@ -36,13 +36,13 @@ Map call(Map kwargs = [:]) {
     String installScript = kwargs.get('installScript', '')
     String buildScript = kwargs.get('buildScript', '')
     Closure stepMethod = kwargs.get('stepMethod')
-    Map stepMethodArgs = kwargs.get('stepMethodArgs', [:])
+    Map stepMethodArgs = kwargs.get('stepMethodArgs', null) ?: [:]
     String configLogArtifacts = kwargs.get('configLogArtifacts', '')
-    Map valgrindSconsBuildArgs = kwargs.get('valgrindSconsBuildArgs', [:])
+    Map valgrindSconsBuildArgs = kwargs.get('valgrindSconsBuildArgs', null) ?: [:]
     String generateRpmsScript = kwargs.get('generateRpmsScript', '')
-    Map buildRpmPostArgs = kwargs.get('buildRpmPostArgs', [:])
-    Map publishHtmlArgs = kwargs.get('publishHtmlArgs', [:])
-    Map archiveArtifactsArgs = kwargs.get('archiveArtifactsArgs', [:])
+    Map buildRpmPostArgs = kwargs.get('buildRpmPostArgs', null) ?: [:]
+    Map publishHtmlArgs = kwargs.get('publishHtmlArgs', null) ?: [:]
+    Map archiveArtifactsArgs = kwargs.get('archiveArtifactsArgs', null) ?: [:]
 
     return {
         stage("${name}") {
