@@ -1,4 +1,4 @@
-/* groovylint-disable DuplicateNumberLiteral */
+/* groovylint-disable DuplicateNumberLiteral, VariableName */
 // vars/unitTestPost.groovy
 
   /**
@@ -27,7 +27,6 @@
    *
    * config['FI']                  Set to true for Fault Injection testing.
    *                               FI also set NLT to true.
-   *
    */
 /* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
@@ -44,7 +43,7 @@ void call(Map config = [:]) {
 
     // Stash the Valgrind files for later analysis
     if (config['valgrind_stash']) {
-        String valgrind_pattern = config.get('valgrind_pattern', 
+        String valgrind_pattern = config.get('valgrind_pattern',
                                              stage_info.get('valgrind_pattern',
                                                             'unit-test-*memcheck.xml'))
         try {
@@ -147,7 +146,7 @@ void call(Map config = [:]) {
                        [threshold: 1, type: 'TOTAL_HIGH'],
                        [threshold: 1, type: 'NEW_NORMAL', unstable: true],
                        [threshold: 1, type: 'NEW_LOW', unstable: true]],
-                     name: fi?'Fault injection testing':'NLT',
+                     name: fi ? 'Fault injection testing' : 'NLT',
                      tools: nltTools,
                      scm: 'daos-stack/daos'
 

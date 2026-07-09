@@ -65,7 +65,6 @@
    *
    * config['bullseye']          Set to true to use bullseye-sepecific repo.
    *                             Default false.
-   *
    */
 
 Map call(Map config = [:]) {
