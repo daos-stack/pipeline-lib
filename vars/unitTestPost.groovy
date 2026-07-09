@@ -1,4 +1,4 @@
-/* groovylint-disable DuplicateNumberLiteral, VariableName */
+/* groovylint-disable DuplicateNumberLiteral, DuplicateStringLiteral, VariableName */
 // vars/unitTestPost.groovy
 
   /**
