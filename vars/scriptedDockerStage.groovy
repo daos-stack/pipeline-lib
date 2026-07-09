@@ -14,15 +14,14 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *          jobStatus               Map of status for each stage in the job/build
  *          dockerTag               the docker image tag to use for the build
  *          dockerBuildArgs         optional docker build arguments
- *          installScript           optional script to run to install rpms; defaults to ''
- *          buildScript             optional script to run to build dependencies; defaults to ''
  *          stepMethod              method to call to run the stage
  *          stepMethodArgs          arguments to pass to the stepMethod; defaults to [:]
+ *          installScript           optional script to run to install rpms; defaults to ''
+ *          buildScript             optional script to run to build dependencies; defaults to ''
  *          configLog               optional config.log name to archive upon exception
  *          valgrindSconsBuildArgs  optional scons build arguments for valgrind build
  *          generateRpmsScript      optional script to run to generate rpms; defaults to ''
  *          buildRpmPostArgs        optional arguments to pass to buildRpmPost(); defaults to [:]
- *          publishHtmlArgs         optional arguments to pass to publishHTML()
  *          archiveArtifactsArgs    optional arguments to pass to archiveArtifacts()
  * @return a scripted stage to run in a pipeline
  */
@@ -33,23 +32,20 @@ Map call(Map kwargs = [:]) {
     Map jobStatus = kwargs.get('jobStatus', null) ?: [:]
     String dockerTag = kwargs.get('dockerTag', 'unknown-docker-tag')
     String dockerBuildArgs = kwargs.get('dockerBuildArgs', '')
+    Closure stepMethod = kwargs.get('stepMethod')
+    Map stepMethodArgs = kwargs.get('stepMethodArgs', null) ?: [:]
 
     // Optional scripts and arguments that drive the stage steps
     String installScript = kwargs.get('installScript', '')
     String buildScript = kwargs.get('buildScript', '')
-    Closure stepMethod = kwargs.get('stepMethod')
-    Map stepMethodArgs = kwargs.get('stepMethodArgs', null) ?: [:]
     String configLog = kwargs.get('configLog', '')
     Map valgrindSconsBuildArgs = kwargs.get('valgrindSconsBuildArgs', null) ?: [:]
     String generateRpmsScript = kwargs.get('generateRpmsScript', '')
     Map buildRpmPostArgs = kwargs.get('buildRpmPostArgs', null) ?: [:]
-    Map publishHtmlArgs = kwargs.get('publishHtmlArgs', null) ?: [:]
     Map archiveArtifactsArgs = kwargs.get('archiveArtifactsArgs', null) ?: [:]
 
     return {
         stage("${name}") {
-            println("[${name}] Starting stage: kwargs=${kwargs}")
-
             if (!runStage) {
                 println("[${name}] Marking docker stage as skipped")
                 Utils.markStageSkippedForConditional("${name}")
@@ -75,9 +71,7 @@ Map call(Map kwargs = [:]) {
                                 script: "${buildScript}"
                         }
                         println("[${name}] Running stepMethod: ${stepMethod?.getClass()?.name}")
-                        /* groovylint-disable-next-line NoDef, VariableTypeRequired */
-                        def stepResult = stepMethod.call(stepMethodArgs)
-                        jobStatusUpdate(jobStatus, name, stepResult)
+                        jobStatusUpdate(jobStatus, name, stepMethod.call(stepMethodArgs))
                         if (valgrindSconsBuildArgs) {
                             println("[${name}] Running valgrind build for NLT")
                             // For non-release builds, create a separate build with the valgrind
@@ -115,10 +109,6 @@ Map call(Map kwargs = [:]) {
                 } finally {
                     // Cleanup actions
                     try {
-                        if (publishHtmlArgs) {
-                            println("[${name}] Running publishHTML()")
-                            publishHTML(publishHtmlArgs)
-                        }
                         if (archiveArtifactsArgs) {
                             println("[${name}] Running archiveArtifacts()")
                             archiveArtifacts(archiveArtifactsArgs)
