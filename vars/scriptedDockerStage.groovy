@@ -1,3 +1,4 @@
+/* groovylint-disable NestedBlockDepth */
 // vars/scriptedDockerStage.groovy
 
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
@@ -25,6 +26,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *          archiveArtifactsArgs    optional arguments to pass to archiveArtifacts()
  * @return a scripted stage to run in a pipeline
  */
+/* groovylint-disable-next-line MethodSize */
 Map call(Map kwargs = [:]) {
     String name = kwargs.get('name', 'Unknown Docker Stage')
     Boolean runStage = kwargs.get('runStage', true)
@@ -57,9 +59,11 @@ Map call(Map kwargs = [:]) {
                 println("[${name}] Check out from version control")
                 checkoutScm(pruneStaleBranch: true)
 
+                Throwable tryError = null
+                /* groovylint-disable-next-line NoDef, VariableTypeRequired */
                 def dockerImage = docker.build(dockerTag, dockerBuildArgs)
                 try {
-                    dockerImage.inside() {
+                    dockerImage.inside {
                         if (installScript) {
                             println("[${name}] Running installScript")
                             sh label: 'Install RPMs',
@@ -71,6 +75,7 @@ Map call(Map kwargs = [:]) {
                                 script: "${buildScript}"
                         }
                         println("[${name}] Running stepMethod: ${stepMethod?.getClass()?.name}")
+                        /* groovylint-disable-next-line NoDef, VariableTypeRequired */
                         def stepResult = stepMethod.call(stepMethodArgs)
                         jobStatusUpdate(jobStatus, name, stepResult)
                         if (valgrindSconsBuildArgs) {
@@ -96,18 +101,20 @@ Map call(Map kwargs = [:]) {
                             buildRpmPost(buildRpmPostArgs)
                         }
                     }
+                /* groovylint-disable-next-line CatchException */
                 } catch (Exception e) {
-                    println("[${name}] Caught exception in try: ${e}")
+                    tryError = e
+                    println("[${name}] Caught exception in try: ${tryError}")
                     if (configLog) {
                         sh label: 'Archive config.log',
                            script: "if [ -f config.log ]; then mv config.log ${configLog}; fi"
-                        archiveArtifacts artifacts: "${configLogArtifacts}", allowEmptyArchive: true
+                        archiveArtifacts artifacts: "${configLog}", allowEmptyArchive: true
                     }
                     jobStatusUpdate(jobStatus, name, 'FAILURE')
-                    throw e
+                    throw tryError
                 } finally {
                     // Cleanup actions
-                    try{
+                    try {
                         if (publishHtmlArgs) {
                             println("[${name}] Running publishHTML()")
                             publishHTML(publishHtmlArgs)
@@ -117,10 +124,15 @@ Map call(Map kwargs = [:]) {
                             archiveArtifacts(archiveArtifactsArgs)
                         }
                         jobStatusUpdate(jobStatus, name)
-                    } catch (Exception e) {
-                        println("[${name}] Caught exception in finally: ${e}")
+                    /* groovylint-disable-next-line CatchException */
+                    } catch (Exception finallyError) {
+                        println("[${name}] Caught exception in finally: ${finallyError}")
+                        /* groovylint-disable-next-line DuplicateStringLiteral */
                         jobStatusUpdate(jobStatus, name, 'FAILURE')
-                        throw e
+                        if (tryError == null) {
+                            /* groovylint-disable-next-line ThrowExceptionFromFinallyBlock */
+                            throw finallyError
+                        }
                     }
                 }
             }
