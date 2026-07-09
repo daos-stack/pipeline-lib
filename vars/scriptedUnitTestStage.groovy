@@ -1,3 +1,4 @@
+/* groovylint-disable NestedBlockDepth */
 // vars/scriptedUnitTestStage.groovy
 
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
@@ -30,7 +31,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      unitTestPostArgs      Map of arguments to pass to unitTestPost() for the stage
  *      archiveArtifactsArgs  Map of arguments to pass to archiveArtifacts() for the stage
  * @return a scripted stage to run in a pipeline
- */ 
+ */
 Map call(Map kwargs = [:]) {
     // General parameters
     String name = kwargs.get('name', 'Unknown Unit Test Stage')
@@ -78,13 +79,16 @@ Map call(Map kwargs = [:]) {
                     checkoutScm(pruneStaleBranch: true)
                 }
 
+                Throwable tryError = null
                 try {
                     println("[${name}] Running unitTest() on ${label}")
                     jobStatusUpdate(jobStatus, name, unitTest(unitTestArgs))
+                /* groovylint-disable-next-line CatchException */
                 } catch (Exception e) {
-                    println("[${name}] Caught exception in try: ${e}")
+                    tryError = e
+                    println("[${name}] Caught exception in try: ${tryError}")
                     jobStatusUpdate(jobStatus, name, 'FAILURE')
-                    throw e
+                    throw tryError
                 } finally {
                     try {
                         if (unitTestPostArgs) {
@@ -96,10 +100,15 @@ Map call(Map kwargs = [:]) {
                             archiveArtifacts(archiveArtifactsArgs)
                         }
                         jobStatusUpdate(jobStatus, name)
-                    } catch (Exception e) {
-                        println("[${name}] Caught exception in finally: ${e}")
+                    /* groovylint-disable-next-line CatchException */
+                    } catch (Exception finallyError) {
+                        println("[${name}] Caught exception in finally: ${finallyError}")
+                        /* groovylint-disable-next-line DuplicateStringLiteral */
                         jobStatusUpdate(jobStatus, name, 'FAILURE')
-                        throw e
+                        if (tryError == null) {
+                            /* groovylint-disable-next-line ThrowExceptionFromFinallyBlock */
+                            throw finallyError
+                        }
                     }
                 }
             }
