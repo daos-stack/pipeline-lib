@@ -72,34 +72,41 @@ Map call(Map kwargs = [:]) {
 
     return {
         stage("${name}") {
-            // Get the tags for the stage. Use either the build parameter, commit pragma, or
-            // default tags. All tags are combined with the stage tags to ensure only tests that
-            // 'fit' the cluster will be run.
-            String tags = getFunctionalTags(
-                pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
-
             /* groovylint-disable-next-line DuplicateStringLiteral */
             if (runStage == 'false') {
                 println("[${name}] Stage skipped by runStage=false")
                 Utils.markStageSkippedForConditional("${name}")
                 return
-            } else if (runStage == UNDEFINED) {
-                // To be removed once all stages have been converted to use runStage.
+            }
+
+            // Get the tags for the stage. Use either the build parameter, commit pragma, or
+            // default tags. All tags are combined with the stage tags to ensure only tests that
+            // 'fit' the cluster will be run.
+            String tags = getFunctionalTags(
+                pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
+            println("[${name}] Functional test stage tags: ${tags}")
+            if (runStage == 'true') {
+                println("[${name}] Checking if the tags match any tests to run in the stage")
+                if (!testsInStage(tags)) {
+                    println("[${name}] Stage skipped by no tests matching the '${tags}' tags")
+                    Utils.markStageSkippedForConditional("${name}")
+                    return
+                }
+            }
+
+            // To be removed once all stages have been converted to use runStage.
+            if (runStage == UNDEFINED) {
                 Map skip_kwargs = [
-                'tags': tags,
-                'pragma_suffix': pragma_suffix,
-                'distro': distro,
-                'run_if_pr': run_if_pr,
-                'run_if_landing': run_if_landing]
+                    'tags': tags,
+                    'pragma_suffix': pragma_suffix,
+                    'distro': distro,
+                    'run_if_pr': run_if_pr,
+                    'run_if_landing': run_if_landing]
                 if (skipFunctionalTestStage(skip_kwargs)) {
                     println("[${name}] Stage skipped by skipFunctionalTestStage()")
                     Utils.markStageSkippedForConditional("${name}")
                     return
                 }
-            } else if (!testsInStage(tags)) {
-                println("[${name}] Stage skipped by no tests matching the '${tags}' tags")
-                Utils.markStageSkippedForConditional("${name}")
-                return
             }
 
             node(cachedCommitPragma("Test-label${pragma_suffix}", label)) {
