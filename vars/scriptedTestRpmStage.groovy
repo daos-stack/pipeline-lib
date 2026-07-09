@@ -10,9 +10,10 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *
  * @param kwargs Map containing the following optional arguments (empty strings yield defaults):
  *      name                  test stage name
- *      runStage              whether or not to run the test stage
+ *      runStage              whether or not to run the test stage; defaults to true
  *      label                 test stage default cluster label
- *      testBranch            if specified, checkout sources from this branch before running tests
+ *      testBranch            if specified, checkout sources from this branch before running tests;
+ *                              defaults to ''
  *      jobStatus             Map of status for each stage in the job/build
  *      imageVersion          testRpm() target argument; defaults to ''
  *      instRepos             testRpm() inst_repos argument; defaults to daosRepos()
