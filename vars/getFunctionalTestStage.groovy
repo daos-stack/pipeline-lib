@@ -64,8 +64,8 @@ Map call(Map kwargs = [:]) {
     // to be skipped by the existing skipFunctionalTestStage logic, while new stages can use
     // runStage directly. Once all stages have been converted to use runStage, this should be
     // changed to a Boolean.
-    final String RUNSTAGE_UNSET = 'undefined'
-    String runStage = kwargs.get('runStage', RUNSTAGE_UNSET)
+    final String UNDEFINED = 'undefined'
+    String runStage = kwargs.get('runStage', UNDEFINED)
 
     Map job_status = kwargs.get('job_status', [:])
     String coverage_stash = kwargs.get('coverage_stash', '')
@@ -83,7 +83,7 @@ Map call(Map kwargs = [:]) {
                 println("[${name}] Stage skipped by runStage=false")
                 Utils.markStageSkippedForConditional("${name}")
                 return
-            } else if (runStage == RUNSTAGE_UNSET) {
+            } else if (runStage == UNDEFINED) {
                 // To be removed once all stages have been converted to use runStage.
                 Map skip_kwargs = [
                 'tags': tags,
