@@ -70,9 +70,9 @@ Map call(Map kwargs = [:]) {
                             sh label: 'Build deps',
                                 script: "${buildScript}"
                         }
-                        println("[${name}] Calling stepMethod: ${stepMethod} with args: ${stepMethodArgs}")
-                        jobStatusUpdate(jobStatus, name, stepMethod.call(stepMethodArgs))
-                        println("[${name}] Finished stepMethod: ${stepMethod} with args: ${stepMethodArgs}")
+                        println("[${name}] Running stepMethod: ${stepMethod?.getClass()?.name}")
+                        def stepResult = stepMethod.call(stepMethodArgs)
+                        jobStatusUpdate(jobStatus, name, stepResult)
                         if (valgrindSconsBuildArgs) {
                             println("[${name}] Running valgrind build for NLT")
                             // For non-release builds, create a separate build with the valgrind
