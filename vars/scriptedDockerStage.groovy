@@ -20,7 +20,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *          configLogArtifacts      optional config.log name to archive upon exception
  *          valgrindSconsBuildArgs  optional scons build arguments for valgrind build
  *          generateRpmsScript      optional script to run to generate rpms; defaults to ''
- *          uploadTarget            optional distro to use when uploading rpms; defaults to ''
+ *          buildRpmPostArgs        optional arguments to pass to buildRpmPost(); defaults to [:]
  *          publishHtmlArgs         optional arguments to pass to publishHTML()
  *          archiveArtifactsArgs    optional arguments to pass to archiveArtifacts()
  * @return a scripted stage to run in a pipeline
@@ -40,7 +40,7 @@ Map call(Map kwargs = [:]) {
     String configLogArtifacts = kwargs.get('configLogArtifacts', '')
     Map valgrindSconsBuildArgs = kwargs.get('valgrindSconsBuildArgs', [:])
     String generateRpmsScript = kwargs.get('generateRpmsScript', '')
-    String uploadTarget = kwargs.get('uploadTarget', '')
+    Map buildRpmPostArgs = kwargs.get('buildRpmPostArgs', [:])
     Map publishHtmlArgs = kwargs.get('publishHtmlArgs', [:])
     Map archiveArtifactsArgs = kwargs.get('archiveArtifactsArgs', [:])
 
@@ -59,10 +59,12 @@ Map call(Map kwargs = [:]) {
                 try {
                     dockerImage.inside() {
                         if (installScript) {
+                            println("[${name}] Running installScript")
                             sh label: 'Install RPMs',
                                 script: "${installScript}"
                         }
                         if (buildScript) {
+                            println("[${name}] Running buildScript")
                             sh label: 'Build deps',
                                 script: "${buildScript}"
                         }
@@ -80,9 +82,15 @@ Map call(Map kwargs = [:]) {
                             stash(name: 'opt-daos-valgrind', includes: 'opt-daos-valgrind.tar')
                         }
                         if (generateRpmsScript) {
+                            println("[${name}] Running generateRpmsScript")
                             sh label: 'Generate RPMs',
                                 script: "${generateRpmsScript}"
-                                // script: "./ci/rpm/gen_rpms.sh ${rpmDistro} ${release} ${bullseye}"
+                        }
+                        if (buildRpmPostArgs) {
+                            println("[${name}] Running buildRpmPost(condition: 'success')")
+                            Map args = buildRpmPostArgs.clone()
+                            args['condition'] = 'success'
+                            buildRpmPost(args)
                         }
                     }
                 } catch (Exception e) {
@@ -99,9 +107,11 @@ Map call(Map kwargs = [:]) {
                 } finally {
                     // Cleanup actions
                     try{
-                        if (uploadTarget) {
-                            println("[${name}] Running uploadNewRPMs()")
-                            uploadNewRPMs(uploadTarget, 'cleanup')
+                        if (buildRpmPostArgs) {
+                            println("[${name}] Running buildRpmPost(condition: 'cleanup')")
+                            Map args = buildRpmPostArgs.clone()
+                            args['condition'] = 'cleanup'
+                            buildRpmPost(args)
                         }
                         if (publishHtmlArgs) {
                             println("[${name}] Running publishHTML()")
