@@ -68,8 +68,6 @@ Map call(Map kwargs = [:]) {
 
     return {
         stage("${name}") {
-            println("[${name}] runStage: ${runStage}")
-
             /* groovylint-disable-next-line DuplicateStringLiteral */
             if (runStage == 'false') {
                 println("[${name}] Stage skipped by runStage=false")
@@ -99,6 +97,7 @@ Map call(Map kwargs = [:]) {
                 }
             }
 
+            // Verify tags are valid for the stage and that there are tests to run.
             if (runStage == 'true' && !testsInStage(tags)) {
                 println("[${name}] Stage skipped by no tests matching the '${tags}' tags")
                 Utils.markStageSkippedForConditional("${name}")

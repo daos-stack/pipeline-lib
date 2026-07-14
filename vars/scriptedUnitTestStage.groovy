@@ -15,19 +15,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      testBranch            if specified, checkout sources from this branch before running tests
  *      jobStatus             Map of status for each stage in the job/build
  *      distro                the distro to use for the test stage, e.g. 'el9'; defaults to ''
- *      timeoutTime           unitTest() timeout time in minutes; defaults to 60
- *      instRepos             unitTest() inst_repos argument; defaults to daosRepos()
- *      testScript            unitTest() test_script argument; defaults to ''
- *      withValgrind          unitTest() with_valgrind argument; defaults to ''
- *      alwaysScript          unitTest() always_script argument, e.g.
- *                              'ci/unit/test_nlt_post.sh'; defaults to ''
- *      testResults           unitTest() test_results argument; defaults to 'nlt-junit.xml'
- *      unstashOpt            unitTest() unstash_opt argument; defaults to true
- *      unstashTests          unitTest() unstash_tests argument; defaults to false
- *      instRpms              unitTest() inst_rpms argument; defaults to
- *                              unitPackages(target: distro) + ' daos-client-tests'
- *      imageVersion          unitTest() image_version argument, e.g 'el9.7'; defaults to ''
- *      provEnvVars           unitTest() prov_env_vars argument; defaults to ''
+ *      unitTestArgs          Map of arguments to pass to unitTest; defaults to an empty Map.
  *      unitTestPostArgs      Map of arguments to pass to unitTestPost() for the stage
  *      archiveArtifactsArgs  Map of arguments to pass to archiveArtifacts() for the stage
  * @return a scripted stage to run in a pipeline

@@ -15,15 +15,12 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      testBranch            if specified, checkout sources from this branch before running tests;
  *                              defaults to ''
  *      jobStatus             Map of status for each stage in the job/build
- *      imageVersion          testRpm() target argument; defaults to ''
- *      instRepos             testRpm() inst_repos argument; defaults to daosRepos()
- *      daosPkgVersion        testRpm() daos_pkg_version argument; defaults to
- *                              daosPackagesVersion(next_version())
- *      instRpms              testRpm() inst_rpms argument; defaults to ''
- *      ignoreFailure         testRpm() ignore_failure argument; defaults to false
+ *      testRpmArgs           Map of arguments to pass to testRpm() for the stage
  *      alwaysScript          script to run always after the test stage, e.g.
  *                              'ci/rpm/test_daos_post.sh'; defaults to ''.
  *      archiveArtifactsArgs  Map of arguments to pass to archiveArtifacts() for the stage
+ *      next_version          next daos package version to pass to daosPackagesVersion() if
+ *                              testRpmArgs does not specify a daos_pkg_version; defaults to null
  * @return a scripted stage to run in a pipeline
  */
 Map call(Map kwargs = [:]) {
