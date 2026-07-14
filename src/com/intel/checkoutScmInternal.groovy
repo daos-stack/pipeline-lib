@@ -17,11 +17,12 @@ Map checkoutScmInternal(Map config = [:]) {
    * @return Map of any variables the SCM plugin would set in a
    * Freestyle job.
    *
-    * config['scm'] SCM name, defaults to 'GitSCM'.
-    * config['url'] Url for SCM repository.  If not specified,
-    *  defaults will be used from the scm global variable.
-    * config['checkoutRetries'] Retry count override. Defaults to $SCM_CHECKOUT_RETRY_COUNT env var, then 1.
-    * config['cleanAfterCheckout'] True for clean after checkout.
+   * config['scm'] SCM name, defaults to 'GitSCM'.
+   * config['url'] Url for SCM repository.  If not specified,
+   *  defaults will be used from the scm global variable.
+   * config['checkoutRetries'] Retry count override. If not specified,
+   *  defaults to $SCM_CHECKOUT_RETRY_COUNT env var, then 1.
+   * config['cleanAfterCheckout'] True for clean after checkout.
    * config['checkoutDir'] Optional directory to checkout into.
    * config['branch'] Optional branch to checkout, defaults to master.
    * config['withSubmodules'] Optional checkout submodules if true.
@@ -93,9 +94,10 @@ Map checkoutScmInternal(Map config = [:]) {
            trackingSubmodules: false])
     }
 
-    int maxRetries = (config['checkoutRetries'] != null
-                      ? config['checkoutRetries']
-                      : (env.SCM_CHECKOUT_RETRY_COUNT ?: '1').toInteger())
+    int configuredRetries = (config['checkoutRetries'] != null
+                             ? config['checkoutRetries'].toString().toInteger()
+                             : (env.SCM_CHECKOUT_RETRY_COUNT ?: '1').toInteger())
+    int maxRetries = Math.max(1, configuredRetries)
     int attempt = 0
     while (true) {
         try {
