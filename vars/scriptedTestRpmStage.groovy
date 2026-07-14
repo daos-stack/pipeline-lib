@@ -38,18 +38,6 @@ Map call(Map kwargs = [:]) {
         error("scriptedTestRpmStage() requires a stage 'name' argument")
     }
 
-    // Add defaults for any missing testRpm() arguments
-    if (!testRpmArgs.containsKey('inst_repos')) {
-        // If inst_repos is not specified, use the default daosRepos() for the specified distro
-        /* groovylint-disable-next-line DuplicateStringLiteral */
-        testRpmArgs['inst_repos'] = daosRepos()
-    }
-    if (!testRpmArgs.containsKey('daos_pkg_version')) {
-        // If daos_pkg_version is not specified, use the default daosPackagesVersion()
-        /* groovylint-disable-next-line DuplicateStringLiteral */
-        testRpmArgs['daos_pkg_version'] = daosPackagesVersion(kwargs.get('next_version', null))
-    }
-
     return {
         stage("${name}") {
             if (!runStage) {
@@ -57,6 +45,18 @@ Map call(Map kwargs = [:]) {
                 Utils.markStageSkippedForConditional("${name}")
                 return
             }
+
+            // Add defaults for any missing testRpm() arguments
+            if (!testRpmArgs.containsKey('inst_repos')) {
+                /* groovylint-disable-next-line DuplicateStringLiteral */
+                testRpmArgs['inst_repos'] = daosRepos()
+            }
+            if (!testRpmArgs.containsKey('daos_pkg_version')) {
+                /* groovylint-disable-next-line DuplicateStringLiteral */
+                testRpmArgs['daos_pkg_version'] = daosPackagesVersion(
+                    kwargs.get('next_version', null))
+            }
+
             node(label) {
                 // Ensure access to any branch provisioning scripts exist
                 if (testBranch) {

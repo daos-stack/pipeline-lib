@@ -38,18 +38,6 @@ Map call(Map kwargs = [:]) {
         error("scriptedUnitTestStage() requires a stage 'name' argument")
     }
 
-    // Add defaults for any missing unitTest() arguments
-    if (!unitTestArgs.containsKey('inst_repos')) {
-        // If inst_repos is not specified, use the default daosRepos() for the specified distro
-        /* groovylint-disable-next-line DuplicateStringLiteral */
-        unitTestArgs['inst_repos'] = daosRepos(distro)
-    }
-    if (!unitTestArgs.containsKey('inst_rpms')) {
-        // If inst_rpms is not specified, use the default unitPackages() for the specified distro
-        /* groovylint-disable-next-line DuplicateStringLiteral */
-        unitTestArgs['inst_rpms'] = unitPackages(target: distro) + ' daos-client-tests'
-    }
-
     return {
         stage("${name}") {
             if (!runStage) {
@@ -57,6 +45,17 @@ Map call(Map kwargs = [:]) {
                 Utils.markStageSkippedForConditional("${name}")
                 return
             }
+
+            // Add defaults for any missing unitTest() arguments
+            if (!unitTestArgs.containsKey('inst_repos')) {
+                /* groovylint-disable-next-line DuplicateStringLiteral */
+                unitTestArgs['inst_repos'] = daosRepos(distro)
+            }
+            if (!unitTestArgs.containsKey('inst_rpms')) {
+                /* groovylint-disable-next-line DuplicateStringLiteral */
+                unitTestArgs['inst_rpms'] = unitPackages(target: distro) + ' daos-client-tests'
+            }
+
             node(label) {
                 // Ensure access to any branch provisioning scripts exist
                 if (testBranch) {
