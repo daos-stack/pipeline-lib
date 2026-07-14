@@ -28,21 +28,30 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  */
 Map call(Map kwargs = [:]) {
     // General parameters
-    String name = kwargs.get('name', 'Unknown Test RPM Stage')
+    String name = kwargs.get('name', '')
     Boolean runStage = kwargs.get('runStage', true) as Boolean
     String label = kwargs.get('label')
     String testBranch = kwargs.get('testBranch', '')
     Map jobStatus = kwargs.get('jobStatus', null) ?: [:]
-    Map testRpmArgs = [
-        target: kwargs.get('imageVersion', ''),
-        inst_repos: kwargs.get('instRepos', daosRepos()),
-        daos_pkg_version: kwargs.get(
-            'daosPkgVersion', daosPackagesVersion(kwargs.get('next_version', null))),
-        inst_rpms: kwargs.get('instRpms', ''),
-        ignore_failure: kwargs.get('ignoreFailure', false)
-    ]
+    Map testRpmArgs = kwargs.get('testRpmArgs', null) ?: [:]
     String alwaysScript = kwargs.get('alwaysScript', '')
     Map archiveArtifactsArgs = kwargs.get('archiveArtifactsArgs', null) ?: [:]
+
+    if (!name) {
+        error("scriptedTestRpmStage() requires a stage 'name' argument")
+    }
+
+    // Add defaults for any missing testRpm() arguments
+    if (!testRpmArgs.containsKey('inst_repos')) {
+        // If inst_repos is not specified, use the default daosRepos() for the specified distro
+        /* groovylint-disable-next-line DuplicateStringLiteral */
+        testRpmArgs['inst_repos'] = daosRepos()
+    }
+    if (!testRpmArgs.containsKey('daos_pkg_version')) {
+        // If daos_pkg_version is not specified, use the default daosPackagesVersion()
+        /* groovylint-disable-next-line DuplicateStringLiteral */
+        testRpmArgs['daos_pkg_version'] = daosPackagesVersion(kwargs.get('next_version', null))
+    }
 
     return {
         stage("${name}") {

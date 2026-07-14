@@ -34,7 +34,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  */
 Map call(Map kwargs = [:]) {
     // General parameters
-    String name = kwargs.get('name', 'Unknown Unit Test Stage')
+    String name = kwargs.get('name', '')
     Boolean runStage = kwargs.get('runStage', true) as Boolean
     String label = kwargs.get('label')
     String testBranch = kwargs.get('testBranch', '')
@@ -42,21 +42,25 @@ Map call(Map kwargs = [:]) {
     String distro = kwargs.get('distro', '')
 
     // Unit Test stage parameters
-    Map unitTestArgs = [
-        'timeout_time': kwargs.get('timeoutTime', 60),
-        'inst_repos': kwargs.get('instRepos', daosRepos(distro)),
-        'test_script': kwargs.get('testScript', ''),
-        'with_valgrind': kwargs.get('withValgrind', ''),
-        'always_script': kwargs.get('alwaysScript', ''),
-        'test_results': kwargs.get('testResults', 'nlt-junit.xml'),
-        'unstash_opt': kwargs.get('unstashOpt', true),
-        'unstash_tests': kwargs.get('unstashTests', false),
-        'inst_rpms': kwargs.get('instRpms', unitPackages(target: distro) + ' daos-client-tests'),
-        'image_version': kwargs.get('imageVersion', ''),
-        'prov_env_vars': kwargs.get('provEnvVars', '')
-    ]
+    Map unitTestArgs = kwargs.get('unitTestArgs', null) ?: [:]
     Map unitTestPostArgs = kwargs.get('unitTestPostArgs', null) ?: [:]
     Map archiveArtifactsArgs = kwargs.get('archiveArtifactsArgs', null) ?: [:]
+
+    if (!name) {
+        error("scriptedUnitTestStage() requires a stage 'name' argument")
+    }
+
+    // Add defaults for any missing unitTest() arguments
+    if (!unitTestArgs.containsKey('inst_repos')) {
+        // If inst_repos is not specified, use the default daosRepos() for the specified distro
+        /* groovylint-disable-next-line DuplicateStringLiteral */
+        unitTestArgs['inst_repos'] = daosRepos(distro)
+    }
+    if (!unitTestArgs.containsKey('inst_rpms')) {
+        // If inst_rpms is not specified, use the default unitPackages() for the specified distro
+        /* groovylint-disable-next-line DuplicateStringLiteral */
+        unitTestArgs['inst_rpms'] = unitPackages(target: distro) + ' daos-client-tests'
+    }
 
     return {
         stage("${name}") {

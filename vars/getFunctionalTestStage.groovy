@@ -1,4 +1,4 @@
-/* groovylint-disable VariableName */
+/* groovylint-disable NestedBlockDepth, VariableName */
 // vars/getFunctionalTestStage.groovy
 
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
@@ -35,7 +35,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  */
 /* groovylint-disable-next-line MethodSize */
 Map call(Map kwargs = [:]) {
-    String name = kwargs.get('name', 'Unknown Functional Test Stage')
+    String name = kwargs.get('name', '')
     String pragma_suffix = kwargs.get('pragma_suffix')
     String label = kwargs.get('label')
     String next_version = kwargs.get('next_version', null)
@@ -62,6 +62,10 @@ Map call(Map kwargs = [:]) {
 
     Map job_status = kwargs.get('job_status', [:])
 
+    if (!name) {
+        error("getFunctionalTestStage() requires a stage 'name' argument")
+    }
+
     return {
         stage("${name}") {
             println("[${name}] runStage: ${runStage}")
@@ -78,14 +82,6 @@ Map call(Map kwargs = [:]) {
             // 'fit' the cluster will be run.
             String tags = getFunctionalTags(
                 pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
-            println("[${name}] Functional test tags for stage: ${tags}")
-            Boolean tagMatch = testsInStage(tags)
-            println("[${name}] Functional test tags match the stage: ${tagMatch}")
-            if (runStage == 'true' && !tagMatch) {
-                println("[${name}] Stage skipped by no tests matching the '${tags}' tags")
-                Utils.markStageSkippedForConditional("${name}")
-                return
-            }
 
             // To be removed once all stages have been converted to use runStage.
             /* groovylint-disable-next-line DuplicateStringLiteral */
@@ -101,6 +97,12 @@ Map call(Map kwargs = [:]) {
                     Utils.markStageSkippedForConditional("${name}")
                     return
                 }
+            }
+
+            if (runStage == 'true' && !testsInStage(tags)) {
+                println("[${name}] Stage skipped by no tests matching the '${tags}' tags")
+                Utils.markStageSkippedForConditional("${name}")
+                return
             }
 
             node(cachedCommitPragma("Test-label${pragma_suffix}", label)) {
@@ -149,10 +151,11 @@ Map call(Map kwargs = [:]) {
                     jobStatusUpdate(job_status, name, 'FAILURE')
                     throw tryError
                 } finally {
-                    try{
+                    try {
                         println("[${name}] Running functionalTestPostV2()")
                         functionalTestPostV2()
                         jobStatusUpdate(job_status, name)
+                    /* groovylint-disable-next-line CatchException */
                     } catch (Exception finallyError) {
                         println("[${name}] Caught exception in finally: ${finallyError}")
                         /* groovylint-disable-next-line DuplicateStringLiteral */
