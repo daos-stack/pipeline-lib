@@ -10,6 +10,7 @@
  * @return boolean true if there are tests that match the tags
  */
 boolean call(String tags) {
+    println("[${env.STAGE_NAME}] Determining if tests w/ '${tags}' tags exist for this stage")
     if (env.UNIT_TEST && env.UNIT_TEST == 'true') {
         return true
     }
