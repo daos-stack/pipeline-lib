@@ -10,13 +10,13 @@
  * @return boolean true if there are tests that match the tags
  */
 boolean call(String tags) {
-    println("[${name}] Calling testsInStage(${tags})")
+    println("[testsInStage] Calling testsInStage(${tags})")
     if (env.UNIT_TEST && env.UNIT_TEST == 'true') {
         return true
     }
     /* groovylint-disable-next-line UnnecessaryGetter */
     String verbose = isPr() ? '--verbose ' : ''
-    println("[${name}] Running script; verbose=${verbose}")
+    println("[testsInStage] Running script; verbose=${verbose}")
     return sh(label: 'Get test list',
               /* groovylint-disable-next-line GStringExpressionWithinString */
               script: '''trap 'echo "Got an unhandled error, exiting as if a match was found"; exit 0' ERR
