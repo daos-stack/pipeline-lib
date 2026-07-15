@@ -16,7 +16,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *                              defaults to ''
  *      jobStatus             Map of status for each stage in the job/build
  *      testRpmArgs           Map of arguments to pass to testRpm() for the stage
- *      postScript            script to run after the test stage, e.g.
+ *      alwaysScript          script to always run after the test stage, e.g.
  *                              'ci/rpm/test_daos_post.sh'; defaults to ''.
  *      archiveArtifactsArgs  Map of arguments to pass to archiveArtifacts() for the stage
  *      next_version          next daos package version to pass to daosPackagesVersion() if
@@ -31,7 +31,7 @@ Map call(Map kwargs = [:]) {
     String testBranch = kwargs.get('testBranch', '')
     Map jobStatus = kwargs.get('jobStatus', null) ?: [:]
     Map testRpmArgs = kwargs.get('testRpmArgs', null) ?: [:]
-    String postScript = kwargs.get('postScript', '')
+    String alwaysScript = kwargs.get('alwaysScript', '')
     Map archiveArtifactsArgs = kwargs.get('archiveArtifactsArgs', null) ?: [:]
 
     if (!name) {
@@ -83,8 +83,10 @@ Map call(Map kwargs = [:]) {
                     throw tryError
                 } finally {
                     try {
-                        if (postScript) {
-                            sh(script: postScript, label: "Running postScript: ${postScript}")
+                        if (alwaysScript) {
+                            sh(script: alwaysScript,
+                               label: "Running alwaysScript: ${alwaysScript}",
+                               returnStatus: true)
                         }
                         if (archiveArtifactsArgs) {
                             println("[${name}] Running archiveArtifacts()")
