@@ -17,8 +17,10 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      jobStatus             Map of status for each stage in the job/build
  *      testRpmArgs           Map of arguments to pass to testRpm() for the stage
  *      alwaysScript          script to always run after the test stage, e.g.
- *                              'ci/rpm/test_daos_post.sh'; defaults to ''.
+ *                              'ci/rpm/test_daos_post.sh'; defaults to ''
  *      archiveArtifactsArgs  Map of arguments to pass to archiveArtifacts() for the stage
+ *      distro                the distro to pass to daosRepos() if testRpmArgs does not specify a
+ *                              inst_repos, e.g. 'el9'; defaults to null
  *      next_version          next daos package version to pass to daosPackagesVersion() if
  *                              testRpmArgs does not specify a daos_pkg_version; defaults to null
  * @return a scripted stage to run in a pipeline
@@ -49,7 +51,7 @@ Map call(Map kwargs = [:]) {
             // Add defaults for any missing testRpm() arguments
             if (!testRpmArgs.containsKey('inst_repos')) {
                 /* groovylint-disable-next-line DuplicateStringLiteral */
-                testRpmArgs['inst_repos'] = daosRepos()
+                testRpmArgs['inst_repos'] = daosRepos(kwargs.get('distro', null))
             }
             if (!testRpmArgs.containsKey('daos_pkg_version')) {
                 /* groovylint-disable-next-line DuplicateStringLiteral */
