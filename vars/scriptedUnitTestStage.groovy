@@ -14,10 +14,13 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  *      label                 test stage default cluster label
  *      testBranch            if specified, checkout sources from this branch before running tests
  *      jobStatus             Map of status for each stage in the job/build
- *      distro                the distro to use for the test stage, e.g. 'el9'; defaults to ''
+ *      distro                the distro to use for daosRepos() and unitPackages() when providing
+ *                              default arguments in unitTestArgs, e.g. 'el9'; defaults to ''
  *      unitTestArgs          Map of arguments to pass to unitTest; defaults to an empty Map.
- *      unitTestPostArgs      Map of arguments to pass to unitTestPost() for the stage
- *      archiveArtifactsArgs  Map of arguments to pass to archiveArtifacts() for the stage
+ *      unitTestPostArgs      Map of arguments to pass to unitTestPost() for the stage; defaults to
+ *                              an empty Map.
+ *      archiveArtifactsArgs  Map of arguments to pass to archiveArtifacts() for the stage; defaults
+ *                              to an empty Map.
  * @return a scripted stage to run in a pipeline
  */
 Map call(Map kwargs = [:]) {
