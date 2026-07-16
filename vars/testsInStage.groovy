@@ -12,6 +12,7 @@
 boolean call(String tags) {
     println("[${env.STAGE_NAME}] Determining if tests w/ '${tags}' tags exist for this stage")
     if (env.UNIT_TEST && env.UNIT_TEST == 'true') {
+        println("[${env.STAGE_NAME}] Ignoring the test existence check due to Unit Testing")
         return true
     }
 
@@ -37,8 +38,8 @@ boolean call(String tags) {
             }
             println("[${env.STAGE_NAME}] Neither list_tests.py or launch.py found")
         }
-    } catch (Exception e) {
-        println("[${env.STAGE_NAME}] Caught exception in try: ${e}")
+    } catch (Exception error) {
+        println("[${env.STAGE_NAME}] Caught exception in try: ${error}")
     }
     println("[${env.STAGE_NAME}] Could not determine if tests exist, assuming they do.")
     return true
