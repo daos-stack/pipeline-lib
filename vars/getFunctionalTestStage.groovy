@@ -1,4 +1,4 @@
-/* groovylint-disable NestedBlockDepth, VariableName */
+/* groovylint-disable NestedBlockDepth, VariableName, DuplicateStringLiteral */
 // vars/getFunctionalTestStage.groovy
 
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
@@ -68,7 +68,6 @@ Map call(Map kwargs = [:]) {
 
     return {
         stage("${name}") {
-            /* groovylint-disable-next-line DuplicateStringLiteral */
             if (runStage == 'false') {
                 println("[${name}] Stage skipped by runStage=false")
                 Utils.markStageSkippedForConditional("${name}")
@@ -80,26 +79,17 @@ Map call(Map kwargs = [:]) {
             // 'fit' the cluster will be run.
             String tags = getFunctionalTags(
                 pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
-
-            // To be removed once all stages have been converted to use runStage.
-            /* groovylint-disable-next-line DuplicateStringLiteral */
-            if (runStage == 'undefined') {
-                Map skip_kwargs = [
-                'tags': tags,
-                'pragma_suffix': pragma_suffix,
-                'distro': distro,
-                'run_if_pr': run_if_pr,
-                'run_if_landing': run_if_landing]
-                if (skipFunctionalTestStage(skip_kwargs)) {
-                    println("[${name}] Stage skipped by skipFunctionalTestStage()")
-                    Utils.markStageSkippedForConditional("${name}")
-                    return
-                }
+            Map skipKwargs = ['tags': tags, 'basicCheck': false]
+            if (runStage == 'true') {
+                skipKwargs['basicCheck'] = true
+            } else {
+                skipKwargs['pragma_suffix'] = pragma_suffix
+                skipKwargs['distro'] = distro
+                skipKwargs['run_if_pr'] = run_if_pr
+                skipKwargs['run_if_landing'] = run_if_landing
             }
-
-            // Verify tags are valid for the stage and that there are tests to run.
-            if (runStage == 'true' && !testsInStage(tags)) {
-                println("[${name}] Stage skipped by no tests matching the '${tags}' tags")
+            if (skipFunctionalTestStage(skipKwargs)) {
+                println("[${name}] Stage skipped by skipFunctionalTestStage()")
                 Utils.markStageSkippedForConditional("${name}")
                 return
             }
@@ -136,7 +126,6 @@ Map call(Map kwargs = [:]) {
                             provider: provider)['ftest_arg'],
                         test_function: 'runTestFunctionalV2']
                     if (node_count != null) {
-                        /* groovylint-disable-next-line DuplicateStringLiteral */
                         ftestConfig['node_count'] = node_count
                     }
                     jobStatusUpdate(
@@ -157,7 +146,6 @@ Map call(Map kwargs = [:]) {
                     /* groovylint-disable-next-line CatchException */
                     } catch (Exception finallyError) {
                         println("[${name}] Caught exception in finally: ${finallyError}")
-                        /* groovylint-disable-next-line DuplicateStringLiteral */
                         jobStatusUpdate(job_status, name, 'FAILURE')
                         if (tryError == null) {
                             /* groovylint-disable-next-line ThrowExceptionFromFinallyBlock */

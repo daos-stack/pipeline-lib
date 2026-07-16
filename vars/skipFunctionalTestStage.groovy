@@ -12,6 +12,7 @@
  *      distro          functional test stage distro (required for VM)
  *      run_if_pr       whether or not the stage should run for PR builds
  *      run_if_landing  whether or not the stage should run for landing builds
+ *      basicCheck      only verify if the stage has altready passed and has tests matching the tags
  * @return a String reason why the stage should be skipped; empty if the stage should run
  */
 /* groovylint-disable-next-line MethodSize */
@@ -30,14 +31,19 @@ Map call(Map kwargs = [:]) {
     String build_param_value = paramsValue(build_param, '').toString()
     Boolean run_if_landing = kwargs['run_if_landing'] ?: false
     Boolean run_if_pr = kwargs['run_if_pr'] ?: false
+    Boolean basicCheck = kwargs.get('basicCheck', false)
     String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
 
-    println("[${env.STAGE_NAME}] Running skipFunctionalTestStage: " +
-            "tags=${tags}, pragma_suffix=${pragma_suffix}, size=${size}, distro=${distro}, " +
-            "build_param=${build_param}, build_param_value=${build_param_value}, " +
-            "run_if_landing=${run_if_landing}, run_if_pr=${run_if_pr}, " +
-            "startedByUser()=${startedByUser()}, startedByTimer()=${startedByTimer()}, " +
-            "startedByUpstream()=${startedByUpstream()}, target_branch=${target_branch}")
+    if (basicCheck) {
+        println("[${env.STAGE_NAME}] Running skipFunctionalTestStage: tags=${tags}")
+    } else {
+        println("[${env.STAGE_NAME}] Running skipFunctionalTestStage: " +
+                "tags=${tags}, pragma_suffix=${pragma_suffix}, size=${size}, distro=${distro}, " +
+                "build_param=${build_param}, build_param_value=${build_param_value}, " +
+                "run_if_landing=${run_if_landing}, run_if_pr=${run_if_pr}, " +
+                "startedByUser()=${startedByUser()}, startedByTimer()=${startedByTimer()}, " +
+                "startedByUpstream()=${startedByUpstream()}, target_branch=${target_branch}")
+    }
 
     // Regardless of how the stage has been started always skip a stage that has either already
     // passed or does not contain any tests match the tags.
@@ -48,6 +54,12 @@ Map call(Map kwargs = [:]) {
     if (!testsInStage(tags)) {
         println("[${env.STAGE_NAME}] Skipping the stage due to detecting no tests matching the '${tags}' tags")
         return true
+    }
+
+    // With basicCheck set other stage skip criteria has been already confirmed externally
+    if (basicCheck) {
+        println("[${env.STAGE_NAME}] Stage has not already passed and has tests matching the tags.")
+        return false
     }
 
     // If the stage has been started by the user, e.g. Build with Parameters, or a timer, or an
