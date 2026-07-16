@@ -65,8 +65,6 @@ Map call(Map config = [:]) {
     boolean ignore_failure = config.get('ignore_failure', false)
     boolean notify_result = config.get('notify_result', true)
 
-    println("runTest.DEBUG: Calling scmNotify w/ ${description}")
-
     scmNotify description: description,
               context: context,
               status: 'PENDING'
@@ -81,7 +79,6 @@ Map call(Map config = [:]) {
                           config['failure_artifacts'] + '"'
     }
 
-    println("runTest.DEBUG: Running ${script}")
     String cb_result = currentBuild.result
     int rc = 255
     try {
@@ -137,8 +134,6 @@ Map call(Map config = [:]) {
             error(env.STAGE_NAME + ' failed: ' + rc + msg)
         }
     }
-
-    println("runTest.DEBUG: Updating result ${status}")
 
     long endDate = System.currentTimeMillis()
     int runTime = durationSeconds(startDate, endDate)

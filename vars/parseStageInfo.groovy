@@ -57,11 +57,9 @@ Map call(Map config = [:]) {
     if (env.STAGE_NAME) {
         stage_name = env.STAGE_NAME
     }
-    println("parseStageInfo.DEBUG: stage_name: ${stage_name}")
 
     String new_ci_target = ''
     if (config['target']) {
-        println("parseStageInfo.DEBUG: config['target']: ${config['target']}")
         result['target'] = config['target']
     } else if (env.TARGET) {
         result['target'] = env.TARGET
@@ -74,14 +72,10 @@ Map call(Map config = [:]) {
         // Unified EL version handling for all major/minor releases
         } else if (stage_name.contains(' EL ')) {
             int elIdx = stage_name.indexOf('EL ')
-            println("parseStageInfo.DEBUG: elIdx: ${elIdx}")
             String elPart = stage_name.substring(elIdx + 3).split()[0]
-            println("parseStageInfo.DEBUG: elPart: ${elPart}")
             String[] parts = elPart.split('\\.')
-            println("parseStageInfo.DEBUG: parts: ${parts}")
             String majorVersion = parts[0]
             String minorVersion = parts.length > 1 ? parts[1] : null
-            println("parseStageInfo.DEBUG: majorVersion: ${majorVersion}, minorVersion: ${minorVersion}")
 
             if (minorVersion) {
                 // Point release (e.g., EL 8.6, EL 9.4, EL 10.2)
@@ -153,7 +147,6 @@ Map call(Map config = [:]) {
     } else {
         result['ci_target'] = result['target']
     }
-    println("parseStageInfo.DEBUG: result['ci_target']: ${result['ci_target']}")
 
     if (result['ci_target'].startsWith('el') ||
         result['ci_target'].startsWith('centos') ||
@@ -312,6 +305,5 @@ Map call(Map config = [:]) {
         }
     }
 
-    println("parseStageInfo.DEBUG: return ${result}")
     return result
 }
