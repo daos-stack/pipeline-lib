@@ -58,7 +58,7 @@ Map call(Map kwargs = [:]) {
 
     // With basicCheck set other stage skip criteria has been already confirmed externally
     if (basicCheck) {
-        println("[${env.STAGE_NAME}] Stage has not already passed and has tests matching the tags.")
+        println("[${env.STAGE_NAME}] Stage needs to run and has tests matching the tags.")
         return false
     }
 
