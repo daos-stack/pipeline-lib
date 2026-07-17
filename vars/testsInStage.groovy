@@ -1,4 +1,4 @@
-/* groovylint-disable CatchException, DuplicateNumberLiteral, DuplicateStringLiteral */
+/* groovylint-disable DuplicateStringLiteral */
 // vars/testsInStage.groovy
 
 /**
