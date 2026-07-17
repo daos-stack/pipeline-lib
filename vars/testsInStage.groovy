@@ -11,11 +11,6 @@
  */
 boolean call(String tags) {
     println("[${env.STAGE_NAME}] Determining if tests w/ '${tags}' tags exist for this stage")
-    if (env.UNIT_TEST && env.UNIT_TEST == 'true') {
-        println("[${env.STAGE_NAME}] Ignoring the test existence check due to Unit Testing")
-        return true
-    }
-
     if (!fileExists('src/tests/ftest')) {
         println("[${env.STAGE_NAME}] src/tests/ftest does not exist, assuming tests exist")
         return true
