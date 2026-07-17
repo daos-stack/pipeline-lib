@@ -11,31 +11,31 @@
  */
 boolean call(String tags) {
     println("[${env.STAGE_NAME}] Determining if tests w/ '${tags}' tags exist for this stage")
-    if (!fileExists('src/tests/ftest')) {
-        println("[${env.STAGE_NAME}] src/tests/ftest does not exist, assuming tests exist")
-        return true
-    }
-    try {
-        directory('src/tests/ftest') {
-            if (fileExists('list_tests.py')) {
-                return sh(
-                    label: 'Run list_tests.py',
-                    script: "./list_tests.py ${tags}",
-                    returnStatus: true) == 0
-            }
-            if (fileExists('launch.py')) {
-                /* groovylint-disable-next-line UnnecessaryGetter */
-                String verbose = isPr() ? '--verbose ' : ''
-                return sh(
-                    label: 'Run launch.py',
-                    script: "./launch.py --list ${verbose} ${tags}",
-                    returnStatus: true) == 0
-            }
-            println("[${env.STAGE_NAME}] Neither list_tests.py or launch.py found")
-        }
-    } catch (Exception error) {
-        println("[${env.STAGE_NAME}] Caught exception in try: ${error}")
-    }
-    println("[${env.STAGE_NAME}] Could not determine if tests exist, assuming they do.")
-    return true
+    /* groovylint-disable-next-line UnnecessaryGetter */
+    String verbose = isPr() ? '--verbose ' : ''
+    return sh(label: 'Get test list',
+              /* groovylint-disable-next-line GStringExpressionWithinString */
+              script: '''trap 'echo "Got an unhandled error, exiting as if a match was found"; exit 0' ERR
+                         # This doesn't actually work on weekly-testing branches due to a lack
+                         # src/test/ftest/launch.py (and friends).  We could probably just
+                         # check that out from the branch we are testing against (i.e. master,
+                         # release/*, etc.) but let's save that for another day and just exit
+                         # with a "tests found" for now.
+                         if ! cd src/tests/ftest; then
+                             echo "src/tests/ftest doesn't exist."
+                             echo "Could not determine if tests exist for this stage, assuming they do."
+                             exit 0
+                         fi
+                         if [ -x list_tests.py ]; then
+                             if ./list_tests.py ''' + tags + '''; then
+                                 exit 0
+                             fi
+                         else
+                             if ./launch.py --list ''' + verbose + tags + '''; then
+                                 exit 0
+                             fi
+                         fi
+                         trap '' ERR
+                         exit 1''',
+              returnStatus: true) == 0
 }
