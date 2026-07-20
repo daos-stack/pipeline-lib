@@ -1,4 +1,4 @@
-/* groovylint-disable VariableName */
+/* groovylint-disable NestedBlockDepth, VariableName, DuplicateStringLiteral */
 // vars/getFunctionalTestStage.groovy
 
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
@@ -39,7 +39,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  */
 /* groovylint-disable-next-line MethodSize */
 Map call(Map kwargs = [:]) {
-    String name = kwargs.get('name', 'Unknown Functional Test Stage')
+    String name = kwargs.get('name', '')
     String pragma_suffix = kwargs.get('pragma_suffix')
     String label = kwargs.get('label')
     String next_version = kwargs.get('next_version', null)
@@ -64,15 +64,17 @@ Map call(Map kwargs = [:]) {
     // to be skipped by the existing skipFunctionalTestStage logic, while new stages can use
     // runStage directly. Once all stages have been converted to use runStage, this should be
     // changed to a Boolean.
-    final String UNDEFINED = 'undefined'
-    String runStage = kwargs.get('runStage', UNDEFINED)
+    String runStage = kwargs.get('runStage', 'undefined')
 
     Map job_status = kwargs.get('job_status', [:])
     String coverage_stash = kwargs.get('coverage_stash', '')
 
+    if (!name) {
+        error("getFunctionalTestStage() requires a stage 'name' argument")
+    }
+
     return {
         stage("${name}") {
-            /* groovylint-disable-next-line DuplicateStringLiteral */
             if (runStage == 'false') {
                 println("[${name}] Stage skipped by runStage=false")
                 Utils.markStageSkippedForConditional("${name}")
@@ -84,29 +86,19 @@ Map call(Map kwargs = [:]) {
             // 'fit' the cluster will be run.
             String tags = getFunctionalTags(
                 pragma_suffix: pragma_suffix, stage_tags: stage_tags, default_tags: default_tags)
-            println("[${name}] Functional test stage tags: ${tags}")
+            Map skipKwargs = ['tags': tags, 'basicCheck': false]
             if (runStage == 'true') {
-                println("[${name}] Checking if the tags match any tests to run in the stage")
-                if (!testsInStage(tags)) {
-                    println("[${name}] Stage skipped by no tests matching the '${tags}' tags")
-                    Utils.markStageSkippedForConditional("${name}")
-                    return
-                }
+                skipKwargs['basicCheck'] = true
+            } else {
+                skipKwargs['pragma_suffix'] = pragma_suffix
+                skipKwargs['distro'] = distro
+                skipKwargs['run_if_pr'] = run_if_pr
+                skipKwargs['run_if_landing'] = run_if_landing
             }
-
-            // To be removed once all stages have been converted to use runStage.
-            if (runStage == UNDEFINED) {
-                Map skip_kwargs = [
-                    'tags': tags,
-                    'pragma_suffix': pragma_suffix,
-                    'distro': distro,
-                    'run_if_pr': run_if_pr,
-                    'run_if_landing': run_if_landing]
-                if (skipFunctionalTestStage(skip_kwargs)) {
-                    println("[${name}] Stage skipped by skipFunctionalTestStage()")
-                    Utils.markStageSkippedForConditional("${name}")
-                    return
-                }
+            if (skipFunctionalTestStage(skipKwargs)) {
+                println("[${name}] Stage skipped by skipFunctionalTestStage()")
+                Utils.markStageSkippedForConditional("${name}")
+                return
             }
 
             node(cachedCommitPragma("Test-label${pragma_suffix}", label)) {
@@ -122,6 +114,7 @@ Map call(Map kwargs = [:]) {
                     checkoutScm(pruneStaleBranch: true)
                 }
 
+                Throwable tryError = null
                 try {
                     println("[${name}] Running functionalTest() on ${label} with tags=${tags}")
                     Map ftestConfig = [
@@ -142,20 +135,35 @@ Map call(Map kwargs = [:]) {
                         bullseye: bullseye,
                         coverage_stash: coverage_stash]
                     if (node_count != null) {
-                        /* groovylint-disable-next-line DuplicateStringLiteral */
                         ftestConfig['node_count'] = node_count
                     }
                     jobStatusUpdate(
                         job_status,
                         name,
                         functionalTest(ftestConfig))
+                /* groovylint-disable-next-line CatchException */
+                } catch (Exception e) {
+                    tryError = e
+                    println("[${name}] Caught exception in try: ${tryError}")
+                    jobStatusUpdate(job_status, name, 'FAILURE')
+                    throw tryError
                 } finally {
-                    println("[${name}] Running functionalTestPostV2()")
-                    functionalTestPostV2()
-                    jobStatusUpdate(job_status, name)
+                    try {
+                        println("[${name}] Running functionalTestPostV2()")
+                        functionalTestPostV2()
+                        jobStatusUpdate(job_status, name)
+                    /* groovylint-disable-next-line CatchException */
+                    } catch (Exception finallyError) {
+                        println("[${name}] Caught exception in finally: ${finallyError}")
+                        jobStatusUpdate(job_status, name, 'FAILURE')
+                        if (tryError == null) {
+                            /* groovylint-disable-next-line ThrowExceptionFromFinallyBlock */
+                            throw finallyError
+                        }
+                    }
                 }
             }
+            println("[${name}] Finished with ${job_status}")
         }
-        println("[${name}] Finished with ${job_status}")
     }
 }

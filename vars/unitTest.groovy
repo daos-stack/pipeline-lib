@@ -93,7 +93,6 @@
    *
    * config['valgrind_pattern']  Pattern for Valgrind files.
    *                             Default: 'unit-test-*.memcheck.xml'
-   *
    */
 
 Map afterTest(Map config, Map testRunInfo) {

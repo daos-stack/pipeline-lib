@@ -27,7 +27,7 @@ import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
  */
 /* groovylint-disable-next-line MethodSize */
 Map call(Map kwargs = [:]) {
-    String name = kwargs.get('name', 'Unknown Docker Stage')
+    String name = kwargs.get('name', '')
     Boolean runStage = kwargs.get('runStage', true)
     Map jobStatus = kwargs.get('jobStatus', null) ?: [:]
     String dockerTag = kwargs.get('dockerTag', 'unknown-docker-tag')
@@ -43,6 +43,10 @@ Map call(Map kwargs = [:]) {
     String generateRpmsScript = kwargs.get('generateRpmsScript', '')
     Map buildRpmPostArgs = kwargs.get('buildRpmPostArgs', null) ?: [:]
     Map archiveArtifactsArgs = kwargs.get('archiveArtifactsArgs', null) ?: [:]
+
+    if (!name) {
+        error("scriptedDockerStage() requires a stage 'name' argument")
+    }
 
     return {
         stage("${name}") {

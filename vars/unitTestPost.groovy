@@ -33,14 +33,6 @@ void call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
     String cbcResult = currentBuild.currentResult
 
-    // Support backwards compatibility with parseStageInfo when config keys are ommitted
-    String target = config.get('target', stage_info['ci_target'])
-    String compiler = config.get('compiler', stage_info['compiler'])
-    String build_type = config.get('build_type', stage_info['build_type'])
-    String with_valgrind = config.get('with_valgrind', stage_info.get('with_valgrind', ''))
-    String testResults = config.get(
-        'testResults', stage_info.get('testResults', 'test_results/*.xml'))
-
     // Stash the Valgrind files for later analysis
     if (config['valgrind_stash']) {
         String valgrind_pattern = config.get('valgrind_pattern',
@@ -67,6 +59,9 @@ void call(Map config = [:]) {
     }
 
     List artifact_list = config.get('artifacts', ['run_test.sh/*'])
+    String testResults = config.get('testResults',
+                                    stage_info.get('testResults',
+                                                   'test_results/*.xml'))
 
     if (testResults != 'None' ) {
         // groovylint-disable-next-line NoDouble
@@ -77,7 +72,7 @@ void call(Map config = [:]) {
         junit testResults: testResults,
               healthScaleFactor: health_scale
     }
-    if (with_valgrind) {
+    if (config.get('with_valgrind', stage_info.get('with_valgrind', false))) {
         String suite = sanitizedStageName()
         int vgfail = 0
         String testdata
@@ -108,6 +103,9 @@ void call(Map config = [:]) {
         archiveArtifacts artifacts: artifactPat,
                      allowEmptyArchive: results['ignore_failure']
     }
+    String target = config.get('target', stage_info['ci_target'])
+    String compiler = config.get('compiler', stage_info['compiler'])
+    String build_type = config.get('build_type', stage_info['build_type'])
     String target_stash = "${target}-${compiler}"
     if (build_type) {
         target_stash += "-${build_type}"
