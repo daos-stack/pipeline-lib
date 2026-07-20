@@ -49,13 +49,19 @@
    *
    * config['rpmlint']             Whether to run rpmlint on resulting RPMs.
    *                               Default false.
+   *
    * config['new_rpm']             Whether we are using new RPM or not
-   *                               Default false
+   *                               Default false.
+   *                               Deprecated, use config['productArtifacts'] instead.
+   *
+   * config['productArtifacts']    List of product names and artifact directories to publish.
+   *                               Default is to publish the whole target directory.
    *
    * config['unsuccessful_script'] Script to run if build is not successful.
    *                               Default 'ci/rpm/build_unsuccessful.sh'
    */
 
+/* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
     Map stage_info = parseStageInfo(config)
 
@@ -89,24 +95,37 @@ void call(Map config = [:]) {
                   includes: rpm_version_file
         }
 
+        List<String> productNames = config.get('productArtifacts', [])
+        // Backwards compatibility for new_rpm parameter.
+        if (!productNames && config.get('new_rpm', false)) {
+            productNames = ['daos', 'deps']
+        }
+
         String product = config.get('product', 'daos-stack')
-        String artdir = 'artifacts/' + target
-        if (config.get('new_rpm', false)) {
-            String deps_dir = 'artifacts/' + target + '/deps'
-            if (fileExists(deps_dir)) {
-                publishToRepository product: 'deps',
+        Map<String, String> productArtifacts = [:]
+        for (String name : productNames) {
+            if (name == 'daos') {
+                // Use the product name for daos
+                productArtifacts[product] = "artifacts/${target}/${name}"
+            } else {
+                // Use the specified name or other products, e.g. deps
+                productArtifacts[name] = "artifacts/${target}/${name}"
+            }
+        }
+        if (!productArtifacts) {
+            // Publish the whole target directory if no productArtifacts are specified
+            productArtifacts[product] = "artifacts/${target}"
+        }
+        for (String key in productArtifacts.keySet()) {
+            String artifactDir = productArtifacts[key]
+            if (fileExists(artifactDir)) {
+                publishToRepository product: key,
                                     format: repo_format,
                                     maturity: 'stable',
                                     tech: target,
-                                    repo_dir: deps_dir
+                                    repo_dir: artifactDir
             }
-            artdir = 'artifacts/' + target + '/daos'
         }
-        publishToRepository product: product,
-                            format: repo_format,
-                            maturity: 'stable',
-                            tech: target,
-                            repo_dir: artdir
 
         if (config.get('rpmlint', false)) {
             rpmlintMockResults(sh(label: 'Get chroot name',
