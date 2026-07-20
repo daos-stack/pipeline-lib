@@ -1,4 +1,3 @@
-/* groovylint-disable DuplicateStringLiteral */
 // vars/testsInStage.groovy
 
 /**
@@ -10,7 +9,6 @@
  * @return boolean true if there are tests that match the tags
  */
 boolean call(String tags) {
-    println("[${env.STAGE_NAME}] Determining if tests w/ '${tags}' tags exist for this stage")
     /* groovylint-disable-next-line UnnecessaryGetter */
     String verbose = isPr() ? '--verbose ' : ''
     return sh(label: 'Get test list',
