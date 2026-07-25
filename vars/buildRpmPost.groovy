@@ -52,9 +52,9 @@
    *
    * config['new_rpm']             Whether we are using new RPM or not
    *                               Default false.
-   *                               Deprecated, use config['productArtifacts'] instead.
+   *                               Deprecated, use config['productNames'] instead.
    *
-   * config['productArtifacts']    List of product names and artifact directories to publish.
+   * config['productNames']        List of product names and artifact directories to publish.
    *                               Default is to publish the whole target directory.
    *
    * config['unsuccessful_script'] Script to run if build is not successful.
@@ -95,7 +95,7 @@ void call(Map config = [:]) {
                   includes: rpm_version_file
         }
 
-        List<String> productNames = config.get('productArtifacts', [])
+        List<String> productNames = config.get('productNames', [])
         // Backwards compatibility for new_rpm parameter.
         if (!productNames && config.get('new_rpm', false)) {
             productNames = ['daos', 'deps']
