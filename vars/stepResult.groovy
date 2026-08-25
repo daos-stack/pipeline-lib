@@ -178,7 +178,9 @@ Void call(Map config= [:]) {
     }
     param['status'] = result
 
-    writeFile(file: stageStatusFilename(), text: config['result'])
+    String statusFilename = stageStatusFilename()
+    println("stepResult: Writing ${statusFilename} with ${config['result']}")
+    writeFile(file: statusFilename, text: config['result'])
 
     scmNotify param
     return
