@@ -48,6 +48,12 @@ Map call(Map kwargs = [:]) {
                 return
             }
 
+            if (stageAlreadyPassed()) {
+                println("[${name}] Stage skipped due to passing in the previous build")
+                Utils.markStageSkippedForConditional("${name}")
+                return
+            }
+
             // Add defaults for any missing testRpm() arguments
             if (!testRpmArgs.containsKey('inst_repos')) {
                 /* groovylint-disable-next-line DuplicateStringLiteral */
