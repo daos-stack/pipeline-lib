@@ -1,4 +1,4 @@
-/* groovylint-disable NestedBlockDepth */
+/* groovylint-disable DuplicateStringLiteral, NestedBlockDepth */
 // vars/scriptedTestRpmStage.groovy
 
 import org.jenkinsci.plugins.pipeline.modeldefinition.Utils
@@ -40,10 +40,23 @@ Map call(Map kwargs = [:]) {
         error("scriptedTestRpmStage() requires a stage 'name' argument")
     }
 
+    // Ensure the stage status file is included in the artifacts to be archived
+    if (archiveArtifactsArgs.containsKey('artifacts')) {
+        archiveArtifactsArgs['artifacts'] += ',' + stageStatusFilename(name)
+    } else {
+        archiveArtifactsArgs['artifacts'] = stageStatusFilename(name)
+    }
+
     return {
         stage("${name}") {
             if (!runStage) {
                 println("[${name}] Stage skipped by runStage=false")
+                Utils.markStageSkippedForConditional("${name}")
+                return
+            }
+
+            if (stageAlreadyPassed()) {
+                println("[${name}] Stage skipped due to passing in the previous build")
                 Utils.markStageSkippedForConditional("${name}")
                 return
             }
@@ -90,10 +103,8 @@ Map call(Map kwargs = [:]) {
                                label: "Running alwaysScript: ${alwaysScript}",
                                returnStatus: true)
                         }
-                        if (archiveArtifactsArgs) {
-                            println("[${name}] Running archiveArtifacts()")
-                            archiveArtifacts(archiveArtifactsArgs)
-                        }
+                        println("[${name}] Running archiveArtifacts()")
+                        archiveArtifacts(archiveArtifactsArgs)
                         jobStatusUpdate(jobStatus, name)
                     /* groovylint-disable-next-line CatchException */
                     } catch (Exception finallyError) {
