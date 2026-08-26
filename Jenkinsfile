@@ -174,10 +174,10 @@ pipeline {
                 stage('daosLatestVersion() tests') {
                     steps {
                         script {
-                            assert(daosLatestVersion('master', 'el8').matches(/2.9\.\d+.*/))
+                            assert(daosLatestVersion('master', 'el9').matches(/2.9\.\d+.*/))
                             assert(daosLatestVersion('release/2.4', 'el8').matches(/2.[34]\.\d+.*/))
-                            assert(daosLatestVersion('release/2.6', 'el8').matches(/2.[56]\.\d+.*/))
-                            assert(daosLatestVersion('release/2.8', 'el8').matches(/2.[78]\.\d+.*/))
+                            assert(daosLatestVersion('release/2.6', 'el9').matches(/2.[56]\.\d+.*/))
+                            assert(daosLatestVersion('release/2.8', 'el9').matches(/2.[78]\.\d+.*/))
                         }
                     }
                 }
