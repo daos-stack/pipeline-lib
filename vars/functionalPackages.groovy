@@ -74,7 +74,10 @@ String call(Map args) {
     } else {
         echo "ci/functional/required_packages.sh doesn't exist.  " +
              'Hopefully the daos-tests packages have the dependencies configured.'
+        sh(label: "Debug",
+           script: 'ls -l ci ci/functional || true; git branch || true')
     }
+    echo "pkgs: " + pkgs
 
     if (distro.startsWith('leap') || distro.startsWith('sles') ||
         distro.startsWith('el') || distro.startsWith('centos') ||
