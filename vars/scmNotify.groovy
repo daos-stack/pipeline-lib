@@ -32,5 +32,24 @@ void call(Map config = [:]) {
         // Assume DAOS_JENKINS_NOTIFY_STATUS contains a credential id.
         config['credentialsId'] = env.DAOS_JENKINS_NOTIFY_STATUS
     }
-    scmNotifyTrusted(config)
+
+    int notifyAttempt = 0
+    
+    try {
+        retry(3) {
+            notifyAttempt++
+            
+            try {
+                scmNotifyTrusted(config)
+            } catch (Exception e) {
+                if (notifyAttempt < 3) {
+                    sleep(time: 5, unit: 'SECONDS')
+                }
+
+                throw e
+            }
+        }
+    } catch (Exception e) {
+        echo "WARNING: could not notify GitHub (${e.message}); continuing."
+    }
 }
