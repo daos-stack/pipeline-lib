@@ -138,6 +138,41 @@ boolean skip_build_on_el_gcc(String target_branch, String version) {
            quickFunctional()
 }
 
+// Stages that are cheap enough, or specific enough to a single layer of a
+// stack, that they are still worth running on a mid-stack pull request.
+List<String> stack_mid_stages() {
+    return ['Cancel Previous Builds',
+            'Check Packaging',
+            'Lint',
+            'Pre-build',
+            'checkpatch',
+            'Python Bandit check',
+            'Build',
+            'Build on EL 9']
+}
+
+// Determine if a stage should be skipped because this is a pull request in the
+// middle of a stack.  A stack merges atomically up to and including the pull
+// request being merged, so the top pull request holds the complete set of
+// changes that will land and the layers below it do not need to repeat the
+// expensive verification.
+boolean skip_mid_stack_pr(String stage) {
+    /* groovylint-disable-next-line UnnecessaryGetter */
+    if (isStackTip()) {
+        return false
+    }
+    if (stage in stack_mid_stages()) {
+        return false
+    }
+
+    Map stack = prStack()
+    println("[${stage}] Skipping the stage because this pull request is layer " +
+            "${stack['position']} of ${stack['size']} in stack ${stack['number']}; " +
+            'the full verification runs on the top pull request of the stack ' +
+            "(override with 'Skip-stack-optimization: true')")
+    return true
+}
+
 boolean skip_build_bullseye(String target_branch, String distro) {
     return paramsValue('CI_BUILD_PACKAGES_ONLY', false) ||
            env.NO_CI_TESTING == 'true' ||
@@ -157,7 +192,11 @@ boolean call(Map config = [:]) {
         return true
     }
 
-    String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
+    if (skip_mid_stack_pr(env.STAGE_NAME)) {
+        return true
+    }
+
+    String target_branch = targetBranch()
     Map stageInfo = parseStageInfo()
     String tags = config['tags'] ?: stageInfo['test_tag']
 
