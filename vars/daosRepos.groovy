@@ -12,7 +12,7 @@
  */
 
 String daos_repo() {
-    String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
+    String target_branch = targetBranch()
 
     if (target_branch =~ testBranchRE()) {
         return ''
