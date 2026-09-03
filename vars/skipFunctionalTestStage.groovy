@@ -32,7 +32,7 @@ Map call(Map kwargs = [:]) {
     Boolean run_if_landing = kwargs['run_if_landing'] ?: false
     Boolean run_if_pr = kwargs['run_if_pr'] ?: false
     Boolean basicCheck = kwargs.get('basicCheck', false)
-    String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
+    String target_branch = targetBranch()
 
     if (basicCheck) {
         println("[${env.STAGE_NAME}] Running skipFunctionalTestStage: tags=${tags}")
@@ -53,6 +53,12 @@ Map call(Map kwargs = [:]) {
     }
     if (!testsInStage(tags)) {
         println("[${env.STAGE_NAME}] Skipping the stage due to detecting no tests matching the '${tags}' tags")
+        return true
+    }
+
+    // Every functional test stage is expensive, so skip them all on a pull request that is not the
+    // top of its stack.  The top pull request holds the complete set of changes that will land.
+    if (skipStage.skip_mid_stack_pr(env.STAGE_NAME)) {
         return true
     }
 
