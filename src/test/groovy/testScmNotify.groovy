@@ -84,14 +84,14 @@ class TestScmNotify {
          * This mock reproduces that behavior.
          */
         binding.setVariable('retry', { Integer attempts, Closure body ->
-            Throwable lastFailure = null
+            Exception lastFailure = null
 
             for (int attempt = 1; attempt <= attempts; attempt++) {
                 retryCount++
 
                 try {
                     return body.call()
-                } catch (Throwable failure) {
+                } catch (Exception failure) {
                     lastFailure = failure
                 }
             }
@@ -245,6 +245,7 @@ class TestScmNotify {
 
         assertEquals(3, notifyAttempts)
         assertEquals(3, retryCount)
+
         assertEquals(2, sleepCalls.size())
         assertEquals(
             [time: 5, unit: 'SECONDS'],
@@ -254,11 +255,37 @@ class TestScmNotify {
             [time: 5, unit: 'SECONDS'],
             sleepCalls[1]
         )
+
         assertEquals(1, notifyCalls.size())
+        assertEquals(
+            CONTEXT_MOCK,
+            notifyCalls.first().context
+        )
+
+        assertTrue(
+            logMessages.contains(
+                'WARNING: GitHub notification attempt 1/3 failed ' +
+                    '(Temporary failure 1).'
+            ),
+            "First warning was not logged. Actual messages: ${logMessages}"
+        )
+        assertTrue(
+            logMessages.contains(
+                'WARNING: GitHub notification attempt 2/3 failed ' +
+                    '(Temporary failure 2).'
+            ),
+            "Second warning was not logged. Actual messages: ${logMessages}"
+        )
+        assertFalse(
+            logMessages.any { message ->
+                message.startsWith('ERROR: could not notify GitHub')
+            },
+            "Unexpected final error was logged. Actual messages: ${logMessages}"
+        )
     }
 
     @Test
-    void 'call() logs warning and continues after final failure'() {
+    void 'call() logs each failure and continues after final failure'() {
         Closure scmNotifyTrusted = { Map config ->
             throw new RuntimeException('GitHub unavailable')
         }
@@ -268,28 +295,52 @@ class TestScmNotify {
         ])
 
         /*
-         * If call() throws an exception, JUnit fails this test
-         * automatically. assertDoesNotThrow() is not needed here.
+         * An unhandled exception automatically fails this test.
+         * A successful return confirms that notification failures are non-fatal.
          */
         script.call([
             context: CONTEXT_MOCK
         ])
 
+        assertEquals(3, retryCount)
         assertEquals(2, sleepCalls.size())
         assertEquals(
             [time: 5, unit: 'SECONDS'],
             sleepCalls[0]
-            )
+        )
         assertEquals(
             [time: 5, unit: 'SECONDS'],
             sleepCalls[1]
         )
+
         assertTrue(
             logMessages.contains(
-                'WARNING: could not notify GitHub ' +
-                    '(GitHub unavailable); continuing.'
+                'WARNING: GitHub notification attempt 1/3 failed ' +
+                    '(GitHub unavailable).'
             ),
-            "Expected warning was not logged. Actual messages: ${logMessages}"
+            "First warning was not logged. Actual messages: ${logMessages}"
+        )
+        assertTrue(
+            logMessages.contains(
+                'WARNING: GitHub notification attempt 2/3 failed ' +
+                    '(GitHub unavailable).'
+            ),
+            "Second warning was not logged. Actual messages: ${logMessages}"
+        )
+        assertTrue(
+            logMessages.contains(
+                'WARNING: GitHub notification attempt 3/3 failed ' +
+                    '(GitHub unavailable).'
+            ),
+            "Third warning was not logged. Actual messages: ${logMessages}"
+        )
+        assertTrue(
+            logMessages.contains(
+                'ERROR: could not notify GitHub after 3 attempts ' +
+                    '(GitHub unavailable); continuing because status ' +
+                    'notification is non-fatal.'
+            ),
+            "Final error was not logged. Actual messages: ${logMessages}"
         )
     }
 
@@ -331,6 +382,25 @@ class TestScmNotify {
         assertEquals(
             SYSTEM_CREDENTIALS_MOCK,
             capturedConfig.credentialsId
+        )
+    }
+
+    @Test
+    void 'call() notifies SCM once without sleeping when first attempt succeeds'() {
+        Script script = loadScriptWithMocks()
+
+        script.call([
+            context: CONTEXT_MOCK
+        ])
+
+        assertEquals(1, retryCount)
+        assertEquals(1, notifyCalls.size())
+        assertTrue(sleepCalls.isEmpty())
+        assertFalse(
+            logMessages.any { it.startsWith('WARNING:') }
+        )
+        assertFalse(
+            logMessages.any { it.startsWith('ERROR:') }
         )
     }
 }
