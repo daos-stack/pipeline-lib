@@ -32,12 +32,14 @@ List downstreamPragmas() {
     Boolean fullTest = cachedCommitPragma('Full-downstream-test', 'false') == 'true' &&
                        cachedCommitPragma('Skip-downstream-test', 'false') != 'true'
     if (!fullTest) {
-        // 'Skip-test' only covers the 'Test' parent stage (functional, fault
-        // injection and RPM tests).  Hardware stages on daos master and
-        // release/2.8 are gated by a separate pragma, so both are required for
-        // a genuinely build-only run.
         pragmas.add('Skip-test: true')
+        // 'Skip-test' only covers the 'Test' parent stage.  Hardware stages on
+        // daos master and release/2.8 are gated by their own parent pragma, and
+        // the fault injection stage on release/2.6 is gated by skipStage() which
+        // does not consult 'skip-test', so all three are required for a
+        // genuinely build-only run.
         pragmas.add('Skip-test-hardware: true')
+        pragmas.add('Skip-fault-injection-test: true')
     }
     return pragmas
 }

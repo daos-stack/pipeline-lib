@@ -16,6 +16,7 @@ class TestBuildDaosJob {
     static final String SKIP_BUILD = 'Skip-build: true'
     static final String SKIP_TEST = 'Skip-test: true'
     static final String SKIP_TEST_HARDWARE = 'Skip-test-hardware: true'
+    static final String SKIP_FAULT_INJECTION = 'Skip-fault-injection-test: true'
 
     private Script loadScriptWithMocks(Map pragmas = [:]) {
 
@@ -43,16 +44,18 @@ class TestBuildDaosJob {
 
         assertTrue(SKIP_TEST in pragmas, "expected ${SKIP_TEST} in ${pragmas}")
         assertTrue(SKIP_TEST_HARDWARE in pragmas, "expected ${SKIP_TEST_HARDWARE} in ${pragmas}")
+        assertTrue(SKIP_FAULT_INJECTION in pragmas, "expected ${SKIP_FAULT_INJECTION} in ${pragmas}")
         assertFalse(SKIP_BUILD in pragmas, "unexpected ${SKIP_BUILD} in ${pragmas}")
     }
 
     @Test
-    void 'hardware stages are skipped alongside the Test stage'() {
+    void 'hardware and fault injection are skipped alongside the Test stage'() {
         // Skip-test only covers the 'Test' parent stage, so a build only run
-        // must always emit both pragmas or the hardware stages still run.
+        // must always emit the sibling pragmas or those stages still run.
         List pragmas = pragmasFor()
 
         assertEquals(pragmas.contains(SKIP_TEST), pragmas.contains(SKIP_TEST_HARDWARE))
+        assertEquals(pragmas.contains(SKIP_TEST), pragmas.contains(SKIP_FAULT_INJECTION))
     }
 
     @Test
@@ -61,6 +64,7 @@ class TestBuildDaosJob {
 
         assertFalse(SKIP_TEST in pragmas, "unexpected ${SKIP_TEST} in ${pragmas}")
         assertFalse(SKIP_TEST_HARDWARE in pragmas, "unexpected ${SKIP_TEST_HARDWARE} in ${pragmas}")
+        assertFalse(SKIP_FAULT_INJECTION in pragmas, "unexpected ${SKIP_FAULT_INJECTION} in ${pragmas}")
     }
 
     @Test
