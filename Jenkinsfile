@@ -786,8 +786,9 @@ pipeline {
                         name 'TEST_BRANCH'
                         values 'master',
                                'release/2.6',
+                               'release/2.8',
                                'weekly-testing',
-                               'weekly-2.6-testing'
+                               'weekly-2.8-testing'
                     }
                 }
                 when {
