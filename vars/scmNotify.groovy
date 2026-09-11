@@ -17,10 +17,15 @@
    *
    * See the githubNotify pipeline step for the parameters to pass.
    */
+import groovy.transform.Field
+
+@Field
+final String NO_NOTIFY_MSG =
+    'Jenkins not configured to notify SCM repository of builds.'
+
 void call(Map config = [:]) {
-    String errorText = 'Jenkins not configured to notify SCM repository of builds.'
     if (env.DAOS_JENKINS_NOTIFY_STATUS == null) {
-        println errorText
+        println NO_NOTIFY_MSG
         return
     }
     try {

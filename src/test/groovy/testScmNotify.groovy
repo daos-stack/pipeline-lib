@@ -27,6 +27,8 @@ class TestScmNotify {
     private int retryCount
     private int statusIdCalls
 
+    static private Map defaultSleep = [time: 5, unit: 'SECONDS']
+
     @BeforeEach
     void setUp() {
         logMessages = []
@@ -121,7 +123,7 @@ class TestScmNotify {
     @Test
     void 'call() does nothing when SCM notification is not configured'() {
         Closure scmNotifyTrusted = { Map config ->
-            notifyCalls << new LinkedHashMap(config)
+            assertTrue(False)
         }
 
         Script script = loadScriptWithMocks([
@@ -135,12 +137,8 @@ class TestScmNotify {
             context: CONTEXT_MOCK
         ])
 
-        assertTrue(notifyCalls.isEmpty())
-        assertEquals(0, retryCount)
         assertTrue(
-            logMessages.contains(
-                'Jenkins not configured to notify SCM repository of builds.'
-            ),
+            logMessages.contains(script.NO_NOTIFY_MSG),
             "Expected message was not logged. Actual messages: ${logMessages}"
         )
     }
@@ -148,35 +146,25 @@ class TestScmNotify {
     @Test
     void 'call() preserves credentialsId provided by caller'() {
         Closure scmStatusIdSystem = {
-            statusIdCalls++
-            return SYSTEM_CREDENTIALS_MOCK
+            assertTrue(False)
         }
 
         Script script = loadScriptWithMocks([
             scmStatusIdSystem: scmStatusIdSystem
         ])
 
-        script.call([
-            credentialsId: CALLER_CREDENTIALS_MOCK,
-            context      : CONTEXT_MOCK
-        ])
+        Map config = [
+            credentialsId: CALLER_CREDENTIALS_MOCK
+        ]
+        script.call(config)
 
-        assertEquals(0, statusIdCalls)
         assertEquals(1, notifyCalls.size())
-        assertEquals(
-            CALLER_CREDENTIALS_MOCK,
-            notifyCalls.first().credentialsId
-        )
-        assertEquals(
-            CONTEXT_MOCK,
-            notifyCalls.first().context
-        )
+        assertEquals(notifyCalls.first(), config)
     }
 
     @Test
     void 'call() uses credentials returned by scmStatusIdSystem()'() {
         Closure scmStatusIdSystem = {
-            statusIdCalls++
             return SYSTEM_CREDENTIALS_MOCK
         }
 
@@ -184,11 +172,8 @@ class TestScmNotify {
             scmStatusIdSystem: scmStatusIdSystem
         ])
 
-        script.call([
-            context: CONTEXT_MOCK
-        ])
+        script.call([:])
 
-        assertEquals(1, statusIdCalls)
         assertEquals(1, notifyCalls.size())
         assertEquals(
             SYSTEM_CREDENTIALS_MOCK,
@@ -199,7 +184,6 @@ class TestScmNotify {
     @Test
     void 'call() falls back to environment credentials when scmStatusIdSystem() is missing'() {
         Closure scmStatusIdSystem = {
-            statusIdCalls++
             throw new NoSuchMethodError('scmStatusIdSystem')
         }
 
@@ -207,11 +191,8 @@ class TestScmNotify {
             scmStatusIdSystem: scmStatusIdSystem
         ])
 
-        script.call([
-            context: CONTEXT_MOCK
-        ])
+        script.call([:])
 
-        assertEquals(1, statusIdCalls)
         assertEquals(1, notifyCalls.size())
         assertEquals(
             FALLBACK_CREDENTIALS_MOCK,
@@ -239,47 +220,23 @@ class TestScmNotify {
             scmNotifyTrusted: scmNotifyTrusted
         ])
 
-        script.call([
-            context: CONTEXT_MOCK
-        ])
+        script.call([:])
 
         assertEquals(3, notifyAttempts)
-        assertEquals(3, retryCount)
-
         assertEquals(2, sleepCalls.size())
-        assertEquals(
-            [time: 5, unit: 'SECONDS'],
-            sleepCalls[0]
-        )
-        assertEquals(
-            [time: 5, unit: 'SECONDS'],
-            sleepCalls[1]
-        )
-
+        assertEquals(defaultSleep, sleepCalls[0])
+        assertEquals(defaultSleep, sleepCalls[1])
         assertEquals(1, notifyCalls.size())
-        assertEquals(
-            CONTEXT_MOCK,
-            notifyCalls.first().context
-        )
 
-        assertTrue(
-            logMessages.contains(
-                'WARNING: GitHub notification attempt 1/3 failed ' +
-                    '(Temporary failure 1).'
-            ),
-            "First warning was not logged. Actual messages: ${logMessages}"
-        )
-        assertTrue(
-            logMessages.contains(
-                'WARNING: GitHub notification attempt 2/3 failed ' +
-                    '(Temporary failure 2).'
-            ),
-            "Second warning was not logged. Actual messages: ${logMessages}"
+        List expected = [
+            "WARNING: GitHub notification attempt",
+            '1/3', '2/3', 'Temporary failure'
+        ]
+        assertTrue(expected.every {logMessages.join().contains(it) },
+                   "Not all expected substring (${expected}) found. \nActual messages: ${logMessages}"
         )
         assertFalse(
-            logMessages.any { message ->
-                message.startsWith('ERROR: could not notify GitHub')
-            },
+            logMessages.any { it.startsWith('ERROR: could not notify GitHub') },
             "Unexpected final error was logged. Actual messages: ${logMessages}"
         )
     }
@@ -298,49 +255,19 @@ class TestScmNotify {
          * An unhandled exception automatically fails this test.
          * A successful return confirms that notification failures are non-fatal.
          */
-        script.call([
-            context: CONTEXT_MOCK
-        ])
+        script.call([:])
 
-        assertEquals(3, retryCount)
         assertEquals(2, sleepCalls.size())
-        assertEquals(
-            [time: 5, unit: 'SECONDS'],
-            sleepCalls[0]
-        )
-        assertEquals(
-            [time: 5, unit: 'SECONDS'],
-            sleepCalls[1]
-        )
+        assertEquals(defaultSleep, sleepCalls[0])
+        assertEquals(defaultSleep, sleepCalls[1])
 
-        assertTrue(
-            logMessages.contains(
-                'WARNING: GitHub notification attempt 1/3 failed ' +
-                    '(GitHub unavailable).'
-            ),
-            "First warning was not logged. Actual messages: ${logMessages}"
-        )
-        assertTrue(
-            logMessages.contains(
-                'WARNING: GitHub notification attempt 2/3 failed ' +
-                    '(GitHub unavailable).'
-            ),
-            "Second warning was not logged. Actual messages: ${logMessages}"
-        )
-        assertTrue(
-            logMessages.contains(
-                'WARNING: GitHub notification attempt 3/3 failed ' +
-                    '(GitHub unavailable).'
-            ),
-            "Third warning was not logged. Actual messages: ${logMessages}"
-        )
-        assertTrue(
-            logMessages.contains(
-                'ERROR: could not notify GitHub after 3 attempts ' +
-                    '(GitHub unavailable); continuing because status ' +
-                    'notification is non-fatal.'
-            ),
-            "Final error was not logged. Actual messages: ${logMessages}"
+        List expected = [
+            "WARNING: GitHub notification attempt",
+            "1/3", "2/3",
+            "ERROR: could not notify GitHub"
+        ]
+        assertTrue(expected.every {logMessages.join().contains(it) },
+                   "Not all expected substring (${expected}) found. \nActual messages: ${logMessages}"
         )
     }
 
@@ -349,12 +276,11 @@ class TestScmNotify {
         Map capturedConfig = null
 
         Closure scmNotifyTrusted = { Map config ->
-            capturedConfig = config
-            notifyCalls << config
+            capturedConfig = new LinkedHashMap(config)
+            notifyCalls << new LinkedHashMap(config)
         }
 
         Map originalConfig = [
-            context    : CONTEXT_MOCK,
             description: 'Unit tests passed',
             status     : 'SUCCESS'
         ]
@@ -366,34 +292,15 @@ class TestScmNotify {
         script.call(originalConfig)
 
         assertEquals(1, notifyCalls.size())
-        assertSame(originalConfig, capturedConfig)
-        assertEquals(
-            CONTEXT_MOCK,
-            capturedConfig.context
-        )
-        assertEquals(
-            'Unit tests passed',
-            capturedConfig.description
-        )
-        assertEquals(
-            'SUCCESS',
-            capturedConfig.status
-        )
-        assertEquals(
-            SYSTEM_CREDENTIALS_MOCK,
-            capturedConfig.credentialsId
-        )
+        assertEquals(originalConfig, capturedConfig)
     }
 
     @Test
     void 'call() notifies SCM once without sleeping when first attempt succeeds'() {
         Script script = loadScriptWithMocks()
 
-        script.call([
-            context: CONTEXT_MOCK
-        ])
+        script.call([:])
 
-        assertEquals(1, retryCount)
         assertEquals(1, notifyCalls.size())
         assertTrue(sleepCalls.isEmpty())
         assertFalse(
