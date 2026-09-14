@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test
 
 class TestScmNotify {
 
-    static final String CONTEXT_MOCK = 'unit-test'
     static final String CALLER_CREDENTIALS_MOCK = 'caller-credentials'
     static final String SYSTEM_CREDENTIALS_MOCK = 'system-credentials'
     static final String FALLBACK_CREDENTIALS_MOCK = 'fallback-credentials'
@@ -24,9 +23,6 @@ class TestScmNotify {
     private List<Map> notifyCalls
     private List<Map> sleepCalls
 
-    private int retryCount
-    private int statusIdCalls
-
     static private Map defaultSleep = [time: 5, unit: 'SECONDS']
 
     @BeforeEach
@@ -34,10 +30,7 @@ class TestScmNotify {
         logMessages = []
         notifyCalls = []
         sleepCalls = []
-
-        retryCount = 0
-        statusIdCalls = 0
-    }
+   }
 
     private Script loadScriptWithMocks(Map extraBinding = [:]) {
         Binding binding = new Binding()
@@ -47,20 +40,12 @@ class TestScmNotify {
             DAOS_JENKINS_NOTIFY_STATUS: FALLBACK_CREDENTIALS_MOCK
         ])
 
-        // ---- PIPELINE STEP MOCKS ----
-        commonBindings(binding)
-
         /*
-         * Script.println() writes to the "out" binding variable.
-         * Defining a "println" closure in Binding is not sufficient,
+         * Script.println() writes to the 'out' binding variable.
+         * Defining a 'println' closure in Binding is not sufficient,
          * because groovy.lang.Script already provides println().
          */
         PrintWriter output = new PrintWriter(System.out) {
-
-            @Override
-            void println(Object message) {
-                logMessages << String.valueOf(message)
-            }
 
             @Override
             void println(String message) {
@@ -70,9 +55,6 @@ class TestScmNotify {
 
         binding.setVariable('out', output)
 
-        /*
-         * Override echo from commonBindings() so messages can be verified.
-         */
         binding.setVariable('echo', { String message ->
             logMessages << message
         })
@@ -88,9 +70,7 @@ class TestScmNotify {
         binding.setVariable('retry', { Integer attempts, Closure body ->
             Exception lastFailure = null
 
-            for (int attempt = 1; attempt <= attempts; attempt++) {
-                retryCount++
-
+            for (int attempt = 0; attempt < attempts; attempt++) {
                 try {
                     return body.call()
                 } catch (Exception failure) {
@@ -103,7 +83,6 @@ class TestScmNotify {
 
         // ---- INTERNAL LIBRARY STEPS ----
         binding.setVariable('scmStatusIdSystem', {
-            statusIdCalls++
             return SYSTEM_CREDENTIALS_MOCK
         })
 
@@ -133,13 +112,11 @@ class TestScmNotify {
             scmNotifyTrusted: scmNotifyTrusted
         ])
 
-        script.call([
-            context: CONTEXT_MOCK
-        ])
+        script.call([:])
 
         assertTrue(
             logMessages.contains(script.NO_NOTIFY_MSG),
-            "Expected message was not logged. Actual messages: ${logMessages}"
+            'Expected message was not logged. Actual messages: ${logMessages}'
         )
     }
 
@@ -202,42 +179,47 @@ class TestScmNotify {
 
     @Test
     void 'call() retries notification three times'() {
-        int notifyAttempts = 0
-
+        List<RuntimeException> failures = [
+            new RuntimeException('Temporary failure 1'),
+            new RuntimeException('Temporary failure 2')
+        ]
+            
         Closure scmNotifyTrusted = { Map config ->
-            notifyAttempts++
-
-            if (notifyAttempts < 3) {
-                throw new RuntimeException(
-                    "Temporary failure ${notifyAttempts}"
-                )
+            if (failures) {
+                throw failures.remove(0)
             }
-
+            
             notifyCalls << new LinkedHashMap(config)
         }
-
+        
         Script script = loadScriptWithMocks([
             scmNotifyTrusted: scmNotifyTrusted
         ])
-
+        
         script.call([:])
-
-        assertEquals(3, notifyAttempts)
+        
+        assertTrue(failures.empty)
         assertEquals(2, sleepCalls.size())
         assertEquals(defaultSleep, sleepCalls[0])
         assertEquals(defaultSleep, sleepCalls[1])
         assertEquals(1, notifyCalls.size())
-
-        List expected = [
-            "WARNING: GitHub notification attempt",
+        
+        List<String> expected = [
+            'WARNING: GitHub notification attempt',
             '1/3', '2/3', 'Temporary failure'
         ]
-        assertTrue(expected.every {logMessages.join().contains(it) },
-                   "Not all expected substring (${expected}) found. \nActual messages: ${logMessages}"
+        
+        assertTrue(expected.every {
+            logMessages.join().contains(it) },
+            'Not all expected substrings (${expected}) found.\n' +
+            'Actual messages: ${logMessages}'
         )
-        assertFalse(
-            logMessages.any { it.startsWith('ERROR: could not notify GitHub') },
-            "Unexpected final error was logged. Actual messages: ${logMessages}"
+        
+        assertFalse(logMessages.any {
+                it.startsWith('ERROR: could not notify GitHub')
+            },
+            'Unexpected final error was logged. ' +
+                'Actual messages: ${logMessages}'
         )
     }
 
@@ -262,12 +244,12 @@ class TestScmNotify {
         assertEquals(defaultSleep, sleepCalls[1])
 
         List expected = [
-            "WARNING: GitHub notification attempt",
-            "1/3", "2/3",
-            "ERROR: could not notify GitHub"
+            'WARNING: GitHub notification attempt',
+            '1/3', '2/3', '3/3',
+            'ERROR: could not notify GitHub'
         ]
-        assertTrue(expected.every {logMessages.join().contains(it) },
-                   "Not all expected substring (${expected}) found. \nActual messages: ${logMessages}"
+        assertTrue(expected.every{ logMessages.join().contains(it) },
+                   'Not all expected substring (${expected}) found. \nActual messages: ${logMessages}'
         )
     }
 
