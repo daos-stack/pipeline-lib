@@ -6,13 +6,6 @@ String test_branch(String target) {
             '-' + target.replaceAll('/', '-')
 }
 
-List githubAccess() {
-    return [[$class: 'UsernamePasswordMultiBinding',
-            credentialsId: 'daos_jenkins_project_github_access',
-            usernameVariable: 'GH_USER',
-            passwordVariable: 'GH_PASS']]
-}
-
 void cleanup(String project, String branch) {
     withCredentials(githubAccess()) {
         sh(label: 'Delete test branch',
