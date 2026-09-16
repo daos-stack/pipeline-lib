@@ -44,7 +44,7 @@ class TestSkipStageStack {
     void 'expensive stages are skipped for a mid-stack pull request'() {
         ['Functional on EL 9', 'Functional Hardware Medium', 'Test RPMs on EL 9',
          'Unit Test', 'Unit Test with memcheck', 'NLT', 'Fault injection testing',
-         'Build on Leap 15', 'Build RPM on EL 9'].each { stage ->
+         'Build RPM on EL 9'].each { stage ->
             Script script = loadScriptWithMocks(stage, false)
             assertTrue(script.skip_mid_stack_pr(stage),
                        stage + ' should be skipped for a mid-stack pull request')
@@ -52,9 +52,10 @@ class TestSkipStageStack {
     }
 
     @Test
-    void 'cheap stages and the EL 9 build still run for a mid-stack pull request'() {
+    void 'cheap stages and the compile-only builds still run for a mid-stack pull request'() {
         ['Cancel Previous Builds', 'Pre-build', 'Python Bandit check', 'checkpatch',
-         'Lint', 'Check Packaging', 'Build', 'Build on EL 9'].each { stage ->
+         'Lint', 'Check Packaging', 'Build', 'Build on EL 9',
+         'Build on Leap 15'].each { stage ->
             Script script = loadScriptWithMocks(stage, false)
             assertFalse(script.skip_mid_stack_pr(stage),
                         stage + ' should still run for a mid-stack pull request')

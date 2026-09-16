@@ -148,7 +148,8 @@ List<String> stack_mid_stages() {
             'checkpatch',
             'Python Bandit check',
             'Build',
-            'Build on EL 9']
+            'Build on EL 9',
+            'Build on Leap 15']
 }
 
 // Determine if a stage should be skipped because this is a pull request in the
