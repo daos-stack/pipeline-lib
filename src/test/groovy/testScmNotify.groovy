@@ -116,7 +116,7 @@ class TestScmNotify {
 
         assertTrue(
             logMessages.contains(script.NO_NOTIFY_MSG),
-            'Expected message was not logged. Actual messages: ${logMessages}'
+            "Expected message was not logged. Actual messages: ${logMessages}"
         )
     }
 
@@ -179,9 +179,11 @@ class TestScmNotify {
 
     @Test
     void 'call() retries notification three times'() {
+        String failMsg = 'Temporary failure'
+
         List<RuntimeException> failures = [
-            new RuntimeException('Temporary failure 1'),
-            new RuntimeException('Temporary failure 2')
+            new RuntimeException(failMsg),
+            new RuntimeException(failMsg)
         ]
             
         Closure scmNotifyTrusted = { Map config ->
@@ -206,20 +208,20 @@ class TestScmNotify {
         
         List<String> expected = [
             'WARNING: GitHub notification attempt',
-            '1/3', '2/3', 'Temporary failure'
+            '1/3', '2/3', failMsg
         ]
         
         assertTrue(expected.every {
             logMessages.join().contains(it) },
-            'Not all expected substrings (${expected}) found.\n' +
-            'Actual messages: ${logMessages}'
+            "Not all expected substrings (${expected}) found.\n" +
+            "Actual messages: ${logMessages}"
         )
         
         assertFalse(logMessages.any {
                 it.startsWith('ERROR: could not notify GitHub')
             },
             'Unexpected final error was logged. ' +
-                'Actual messages: ${logMessages}'
+                "Actual messages: ${logMessages}"
         )
     }
 
@@ -249,7 +251,7 @@ class TestScmNotify {
             'ERROR: could not notify GitHub'
         ]
         assertTrue(expected.every{ logMessages.join().contains(it) },
-                   'Not all expected substring (${expected}) found. \nActual messages: ${logMessages}'
+                   "Not all expected substring (${expected}) found. \nActual messages: ${logMessages}"
         )
     }
 
