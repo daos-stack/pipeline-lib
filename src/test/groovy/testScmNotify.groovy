@@ -30,7 +30,7 @@ class TestScmNotify {
         logMessages = []
         notifyCalls = []
         sleepCalls = []
-   }
+    }
 
     private Script loadScriptWithMocks(Map extraBinding = [:]) {
         Binding binding = new Binding()
@@ -65,7 +65,8 @@ class TestScmNotify {
 
         /*
          * Jenkins retry executes the body again whenever it throws.
-         * This mock reproduces that behavior.
+         * Interruption exceptions must be propagated immediately because
+         * they represent an aborted build rather than a retryable failure.
          */
         binding.setVariable('retry', { Integer attempts, Closure body ->
             Exception lastFailure = null
@@ -73,6 +74,8 @@ class TestScmNotify {
             for (int attempt = 0; attempt < attempts; attempt++) {
                 try {
                     return body.call()
+                } catch (InterruptedException interruption) {
+                    throw interruption
                 } catch (Exception failure) {
                     lastFailure = failure
                 }
@@ -102,7 +105,7 @@ class TestScmNotify {
     @Test
     void 'call() does nothing when SCM notification is not configured'() {
         Closure scmNotifyTrusted = { Map config ->
-            assertTrue(False)
+            fail('scmNotifyTrusted() should not be called')
         }
 
         Script script = loadScriptWithMocks([
@@ -123,7 +126,7 @@ class TestScmNotify {
     @Test
     void 'call() preserves credentialsId provided by caller'() {
         Closure scmStatusIdSystem = {
-            assertTrue(False)
+            fail('scmStatusIdSystem() should not be called')
         }
 
         Script script = loadScriptWithMocks([
@@ -136,7 +139,7 @@ class TestScmNotify {
         script.call(config)
 
         assertEquals(1, notifyCalls.size())
-        assertEquals(notifyCalls.first(), config)
+        assertEquals(config, notifyCalls.first())
     }
 
     @Test
@@ -185,39 +188,42 @@ class TestScmNotify {
             new RuntimeException(failMsg),
             new RuntimeException(failMsg)
         ]
-            
+
         Closure scmNotifyTrusted = { Map config ->
             if (failures) {
                 throw failures.remove(0)
             }
-            
+
             notifyCalls << new LinkedHashMap(config)
         }
-        
+
         Script script = loadScriptWithMocks([
             scmNotifyTrusted: scmNotifyTrusted
         ])
-        
+
         script.call([:])
-        
+
         assertTrue(failures.empty)
         assertEquals(2, sleepCalls.size())
         assertEquals(defaultSleep, sleepCalls[0])
         assertEquals(defaultSleep, sleepCalls[1])
         assertEquals(1, notifyCalls.size())
-        
+
         List<String> expected = [
             'WARNING: GitHub notification attempt',
-            '1/3', '2/3', failMsg
+            '1/3',
+            '2/3',
+            failMsg
         ]
-        
-        assertTrue(expected.every {
-            logMessages.join().contains(it) },
+
+        assertTrue(
+            expected.every { logMessages.join().contains(it) },
             "Not all expected substrings (${expected}) found.\n" +
-            "Actual messages: ${logMessages}"
+                "Actual messages: ${logMessages}"
         )
-        
-        assertFalse(logMessages.any {
+
+        assertFalse(
+            logMessages.any {
                 it.startsWith('ERROR: could not notify GitHub')
             },
             'Unexpected final error was logged. ' +
@@ -245,13 +251,89 @@ class TestScmNotify {
         assertEquals(defaultSleep, sleepCalls[0])
         assertEquals(defaultSleep, sleepCalls[1])
 
-        List expected = [
+        List<String> expected = [
             'WARNING: GitHub notification attempt',
-            '1/3', '2/3', '3/3',
+            '1/3',
+            '2/3',
+            '3/3',
             'ERROR: could not notify GitHub'
         ]
-        assertTrue(expected.every{ logMessages.join().contains(it) },
-                   "Not all expected substring (${expected}) found. \nActual messages: ${logMessages}"
+
+        assertTrue(
+            expected.every { logMessages.join().contains(it) },
+            "Not all expected substrings (${expected}) found.\n" +
+                "Actual messages: ${logMessages}"
+        )
+    }
+
+    @Test
+    void 'call() rethrows InterruptedException'() {
+        InterruptedException interruption =
+            new InterruptedException('Build canceled during notification')
+
+        Closure scmNotifyTrusted = { Map config ->
+            throw interruption
+        }
+
+        Script script = loadScriptWithMocks([
+            scmNotifyTrusted: scmNotifyTrusted
+        ])
+
+        InterruptedException thrown = assertThrows(
+            InterruptedException
+        ) {
+            script.call([:])
+        }
+
+        assertSame(interruption, thrown)
+        assertTrue(sleepCalls.isEmpty())
+        assertFalse(
+            logMessages.any {
+                it.startsWith('WARNING:') || it.startsWith('ERROR:')
+            },
+            "Interruption should not be logged as a notification failure. " +
+                "Actual messages: ${logMessages}"
+        )
+    }
+
+    @Test
+    void 'call() rethrows InterruptedException raised during sleep'() {
+        InterruptedException interruption =
+            new InterruptedException('Build canceled during sleep')
+
+        int notifyAttempts = 0
+
+        Closure scmNotifyTrusted = { Map config ->
+            notifyAttempts++
+            throw new RuntimeException('Temporary failure')
+        }
+
+        Closure sleep = { Map config ->
+            sleepCalls << new LinkedHashMap(config)
+            throw interruption
+        }
+
+        Script script = loadScriptWithMocks([
+            scmNotifyTrusted: scmNotifyTrusted,
+            sleep           : sleep
+        ])
+
+        InterruptedException thrown = assertThrows(
+            InterruptedException
+        ) {
+            script.call([:])
+        }
+
+        assertSame(interruption, thrown)
+        assertEquals(1, notifyAttempts)
+        assertEquals(1, sleepCalls.size())
+        assertEquals(defaultSleep, sleepCalls.first())
+        assertFalse(
+            logMessages.any {
+                it.startsWith('ERROR: could not notify GitHub')
+            },
+            "Interruption should not be treated as a non-fatal error. " +
+                "Actual messages: ${logMessages}"
         )
     }
 

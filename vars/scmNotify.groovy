@@ -46,6 +46,8 @@ void call(Map config = [:]) {
 
             try {
                 scmNotifyTrusted(config)
+            } catch (InterruptedException e) {
+                throw e
             } catch (Exception e) {
                 echo "WARNING: GitHub notification attempt ${notifyAttempt}/3 failed " +
                     "(${e.message})."
@@ -58,6 +60,8 @@ void call(Map config = [:]) {
                 throw e
             }
         }
+    } catch (InterruptedException e) {
+        throw e
     } catch (Exception e) {
         echo "ERROR: could not notify GitHub after ${notifyAttempt} attempts " +
             "(${e.message}); continuing because status notification is non-fatal."
