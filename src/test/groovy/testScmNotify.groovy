@@ -211,19 +211,16 @@ class TestScmNotify {
 
         List<String> expected = [
             'WARNING: GitHub notification attempt',
-            '1/3',
-            '2/3',
-            failMsg
+            '1/3', '2/3', failMsg
         ]
 
-        assertTrue(
-            expected.every { logMessages.join().contains(it) },
+        assertTrue( expected.every {
+            logMessages.join().contains(it) },
             "Not all expected substrings (${expected}) found.\n" +
-                "Actual messages: ${logMessages}"
+            "Actual messages: ${logMessages}"
         )
 
-        assertFalse(
-            logMessages.any {
+        assertFalse( logMessages.any {
                 it.startsWith('ERROR: could not notify GitHub')
             },
             'Unexpected final error was logged. ' +
@@ -251,17 +248,15 @@ class TestScmNotify {
         assertEquals(defaultSleep, sleepCalls[0])
         assertEquals(defaultSleep, sleepCalls[1])
 
-        List<String> expected = [
+        List expected = [
             'WARNING: GitHub notification attempt',
-            '1/3',
-            '2/3',
-            '3/3',
+            '1/3', '2/3', '3/3',
             'ERROR: could not notify GitHub'
         ]
 
-        assertTrue(
-            expected.every { logMessages.join().contains(it) },
-            "Not all expected substrings (${expected}) found.\n" +
+        assertTrue( expected.every {
+            logMessages.join().contains(it) },
+                "Not all expected substrings (${expected}) found.\n" +
                 "Actual messages: ${logMessages}"
         )
     }
