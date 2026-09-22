@@ -36,7 +36,7 @@ String call(String next_version) {
 }
 
 String call(String distro, String next_version, String rpmDistribution='') {
-    String target_branch = env.CHANGE_TARGET ? env.CHANGE_TARGET : env.BRANCH_NAME
+    String target_branch = targetBranch()
     String _distro = distro
     String distribution = rpmDistribution ?: rpmDistValue(_distro)
 
