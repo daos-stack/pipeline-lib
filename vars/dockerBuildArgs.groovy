@@ -2,7 +2,7 @@
 // vars/dockerBuildArgs.groovy
 /*
  * Copyright 2020-2024 Intel Corporation
- * Copyright 2025 Hewlett Packard Enterprise Development LP
+ * Copyright 2025-2026 Hewlett Packard Enterprise Development LP
  */
 
 Integer num_proc() {
@@ -40,7 +40,7 @@ String call(Map config = [:]) {
     // The docker agent setup and the provisionNodes step need to know the
     // UID that the build agent is running under.
     String ret_str = ' --build-arg NOBUILD=1 ' +
-                     ' --build-arg UID=' + sh(label: 'getuid()',
+                     ' --build-arg DAOS_SERVER_UID=' + sh(label: 'getuid()',
                                               script: 'id -u',
                                               returnStdout: true).trim() +
                      " --build-arg JENKINS_URL=$env.JENKINS_URL"
