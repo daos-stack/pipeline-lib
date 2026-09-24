@@ -39,9 +39,9 @@ Map call(Map config = [:]) {
    * config['description']  Description to report for SCM status.
    *                        Default env.STAGE_NAME.
    *
-   * config['poll_script'] If set, the script only launches the tests detached
-   *                       from this agent, and this script is polled by
-   *                       waitForDetachedTest() for the result.  Optional.
+   * config['wait_script'] If set, the script only launches the tests detached
+   *                       from this agent, and waitForDetachedTest() runs
+   *                       this script to wait for the result.  Optional.
    * config['kill_script'] Script to stop a detached run on abort.  Optional.
    */
 
@@ -87,10 +87,10 @@ Map call(Map config = [:]) {
     String cb_result = currentBuild.result
     int rc = 255
     try {
-        sh(script: script, label: flow_name)
+        sh(script: script, label: config['wait_script'] ? flow_name + ' (launch)' : flow_name)
         rc = 0
-        if (config['poll_script']) {
-            rc = waitForDetachedTest(script: config['poll_script'],
+        if (config['wait_script']) {
+            rc = waitForDetachedTest(script: config['wait_script'],
                                      kill_script: config.get('kill_script', ''),
                                      label: flow_name)
         }

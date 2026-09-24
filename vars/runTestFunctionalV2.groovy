@@ -68,7 +68,7 @@ Map call(Map config = [:]) {
     if (test_rpms && config.get('detach', true) &&
         fileExists('ci/functional/test_detached.sh')) {
         config['script'] = 'FTEST_DETACH=true ' + config['script']
-        config['poll_script'] = 'ci/functional/test_detached.sh poll'
+        config['wait_script'] = 'ci/functional/test_detached.sh wait'
         config['kill_script'] = 'ci/functional/test_detached.sh kill'
     }
     config.remove('detach')

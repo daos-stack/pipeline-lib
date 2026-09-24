@@ -45,7 +45,7 @@ class TestRunTestFunctionalV2 {
 
         assertTrue(runTestConfig.script.startsWith('FTEST_DETACH=true '))
         assertTrue(runTestConfig.script.endsWith('ci/functional/test_main.sh'))
-        assertEquals('ci/functional/test_detached.sh poll', runTestConfig.poll_script)
+        assertEquals('ci/functional/test_detached.sh wait', runTestConfig.wait_script)
         assertEquals('ci/functional/test_detached.sh kill', runTestConfig.kill_script)
         assertFalse(runTestConfig.containsKey('detach'))
     }
@@ -55,7 +55,7 @@ class TestRunTestFunctionalV2 {
         loadScript().call(baseConfig(test_rpms: 'true', detach: false))
 
         assertFalse(runTestConfig.script.contains('FTEST_DETACH'))
-        assertNull(runTestConfig.poll_script)
+        assertNull(runTestConfig.wait_script)
         assertFalse(runTestConfig.containsKey('detach'))
     }
 
@@ -64,7 +64,7 @@ class TestRunTestFunctionalV2 {
         loadScript().call(baseConfig(test_rpms: 'false'))
 
         assertFalse(runTestConfig.script.contains('FTEST_DETACH'))
-        assertNull(runTestConfig.poll_script)
+        assertNull(runTestConfig.wait_script)
     }
 
     @Test
@@ -75,6 +75,6 @@ class TestRunTestFunctionalV2 {
         script.call(baseConfig(test_rpms: 'true'))
 
         assertFalse(runTestConfig.script.contains('FTEST_DETACH'))
-        assertNull(runTestConfig.poll_script)
+        assertNull(runTestConfig.wait_script)
     }
 }
