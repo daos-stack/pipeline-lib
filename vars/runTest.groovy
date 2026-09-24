@@ -38,6 +38,11 @@ Map call(Map config = [:]) {
    *
    * config['description']  Description to report for SCM status.
    *                        Default env.STAGE_NAME.
+   *
+   * config['poll_script'] If set, the script only launches the tests detached
+   *                       from this agent, and this script is polled by
+   *                       waitForDetachedTest() for the result.  Optional.
+   * config['kill_script'] Script to stop a detached run on abort.  Optional.
    */
 
     // Todo
@@ -84,6 +89,11 @@ Map call(Map config = [:]) {
     try {
         sh(script: script, label: flow_name)
         rc = 0
+        if (config['poll_script']) {
+            rc = waitForDetachedTest(script: config['poll_script'],
+                                     kill_script: config.get('kill_script', ''),
+                                     label: flow_name)
+        }
     } catch (hudson.AbortException e) {
         // groovylint-disable UnnecessaryGetter
         // groovylint-disable-next-line NoDef, VariableTypeRequired

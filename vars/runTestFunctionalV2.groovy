@@ -39,6 +39,10 @@ Map call(Map config = [:]) {
    *
    * config['description']  Description to report for SCM status.
    *                        Default env.STAGE_NAME.
+   *
+   * config['detach'] Run the tests detached from this agent when testing RPMs
+   *                  and the branch provides ci/functional/test_detached.sh,
+   *                  so a Jenkins restart does not kill them.  Default true.
    */
 
     Map stage_info = parseStageInfo(config)
@@ -60,6 +64,14 @@ Map call(Map config = [:]) {
                        (env.DAOS_HTTPS_PROXY ? 'DAOS_HTTPS_PROXY="' + env.DAOS_HTTPS_PROXY + '" ' : '') +
                        (env.DAOS_NO_PROXY ? 'DAOS_NO_PROXY="' + env.DAOS_NO_PROXY + '" ' : '') +
                        'ci/functional/test_main.sh'
+
+    if (test_rpms && config.get('detach', true) &&
+        fileExists('ci/functional/test_detached.sh')) {
+        config['script'] = 'FTEST_DETACH=true ' + config['script']
+        config['poll_script'] = 'ci/functional/test_detached.sh poll'
+        config['kill_script'] = 'ci/functional/test_detached.sh kill'
+    }
+    config.remove('detach')
 
     String basedir = 'install/lib/daos/TESTING/ftest/avocado/job-results/'
     config['junit_files'] = "${basedir}job-*/*.xml " +
