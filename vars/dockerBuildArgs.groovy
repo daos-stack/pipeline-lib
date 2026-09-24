@@ -38,7 +38,7 @@ String call(Map config = [:]) {
     Boolean parallel_build = config.get('parallel_build', false)
 
     // The docker agent setup and the provisionNodes step need to know the
-    // UID that the build agent is running under.
+    // DAOS_SERVER_UID that the build agent is running under.
     String ret_str = ' --build-arg NOBUILD=1 ' +
                      ' --build-arg DAOS_SERVER_UID=' + sh(label: 'getuid()',
                                               script: 'id -u',
