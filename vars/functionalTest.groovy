@@ -59,6 +59,10 @@
    *
    * config['ftest_arg']         Functional test launch.py arguments.
    *                             Default determined by parseStageInfo().
+   *
+   * config['detach']            Run the tests detached from the agent when
+   *                             supported.  See runTestFunctionalV2.
+   *                             Default true.
    */
 
 Map call(Map config = [:]) {
@@ -113,6 +117,7 @@ Map call(Map config = [:]) {
     run_test_config['ftest_arg'] = config.get('ftest_arg', stage_info['ftest_arg'])
     run_test_config['context'] = context
     run_test_config['description'] = description
+    run_test_config['detach'] = config.get('detach', true)
 
     Map runtestData = [:]
     if (config.get('test_function', 'runTestFunctional') ==
