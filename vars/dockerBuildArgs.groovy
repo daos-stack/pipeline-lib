@@ -2,7 +2,7 @@
 // vars/dockerBuildArgs.groovy
 /*
  * Copyright 2020-2024 Intel Corporation
- * Copyright 2025 Hewlett Packard Enterprise Development LP
+ * Copyright 2025-2026 Hewlett Packard Enterprise Development LP
  */
 
 Integer num_proc() {
@@ -37,12 +37,17 @@ String call(Map config = [:]) {
     Boolean deps_build = config.get('deps_build', false)
     Boolean parallel_build = config.get('parallel_build', false)
 
+    String build_agent_uid = sh(label: 'getuid()',
+                                script: 'id -u',
+                                returnStdout: true).trim()
+
     // The docker agent setup and the provisionNodes step need to know the
-    // UID that the build agent is running under.
+    // UID that the build agent is running under. UID is a legacy build
+    // argument required by DAOS 2.6 and temporarily by DAOS 2.8.
+    // Newer versions should use DAOS_SERVER_UID.
     String ret_str = ' --build-arg NOBUILD=1 ' +
-                     ' --build-arg UID=' + sh(label: 'getuid()',
-                                              script: 'id -u',
-                                              returnStdout: true).trim() +
+                     ' --build-arg UID=' + build_agent_uid +
+                     ' --build-arg DAOS_SERVER_UID=' + build_agent_uid +
                      " --build-arg JENKINS_URL=$env.JENKINS_URL"
     if (cachebust) {
         /* groovylint-disable-next-line UnnecessaryGetter */
