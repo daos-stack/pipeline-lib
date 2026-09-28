@@ -8,7 +8,7 @@
 Integer num_proc() {
     return sh(label: 'Get number of processors online',
               script: '/usr/bin/getconf _NPROCESSORS_ONLN',
-              returnStdout: true)
+              returnStdout: true).trim().toInteger()
 }
 
   /**
