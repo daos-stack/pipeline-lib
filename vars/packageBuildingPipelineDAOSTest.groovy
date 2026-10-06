@@ -794,7 +794,7 @@ void call(Map pipeline_args) {
                                                                 value: 'centos7' in distros),
                                                    booleanParam(name: 'CI_medium_TEST',
                                                                 value: 'el8' in distros),
-                                                   booleanParam(name: 'CI_large_TEST', value: false),
+                                                   booleanParam(name: 'CI_large_TEST', value: true),
                                                    string(name: 'CI_PR_REPOS',
                                                           value: env.JOB_NAME.split('/')[1] + '@' +
                                                                  "${env.BRANCH_NAME}:${env.BUILD_ID}" +
