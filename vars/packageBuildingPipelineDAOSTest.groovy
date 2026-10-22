@@ -1,7 +1,7 @@
 #!/usr/bin/groovy
 /* groovylint-disable DuplicateMapLiteral, DuplicateStringLiteral, NestedBlockDepth, VariableName */
 /* Copyright 2019-2024 Intel Corporation
- * Copyright 2025 Hewlett Packard Enterprise Development LP
+ * Copyright 2025-2026 Hewlett Packard Enterprise Development LP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+// SRE-4139, 2026-10-22: archive candidates before VM-only validation and gated publication.
 // To test changes to this pipeline you need push changes to this file to
 // a PR and then to modify the line the Jenkinsfile for a
 // project to point to the above branch.  Then build and test as usual
@@ -84,8 +85,15 @@ void call(Map pipeline_args) {
         publish_branch = 'master'
     }
 
+    Map validation = [candidates: [:], buildUrl: env.BUILD_URL,
+                      upstream: [job: env.JOB_NAME, branch: env.BRANCH_NAME, build: env.BUILD_NUMBER]]
     pipeline {
-        agent { label 'lightweight' }
+        agent none
+        // A waiting approval must not let a newer build publish ahead of this build.
+        options {
+            disableConcurrentBuilds()
+            copyArtifactPermission("/${env.JOB_NAME}")
+        }
 
         /* DO NOT enable this without going and selecting builds in
          * all RPM build projects that should be marked Keep-forever
@@ -94,10 +102,13 @@ void call(Map pipeline_args) {
          * options { buildDiscarder(logRotator(numToKeepStr: '10')) }
          */
 
-        environment {
-            PACKAGING_BRANCH = commitPragma('Packaging-branch', 'master')
-        }
         stages {
+            stage('Build candidates') {
+                agent { label 'lightweight' }
+                environment {
+                    PACKAGING_BRANCH = commitPragma('Packaging-branch', 'master')
+                }
+                stages {
             stage('Validation') {
                 parallel {
                     stage('centos8 changed to el8') {
@@ -133,6 +144,8 @@ void call(Map pipeline_args) {
                         steps {
                             script {
                                 env.RELEASE_BRANCH = releaseBranch()
+                                validation.sourceRevision = sh(script: 'git rev-parse HEAD',
+                                                               returnStdout: true).trim()
                                 echo 'Release branch == ' + env.RELEASE_BRANCH
                             }
                         }
@@ -347,12 +360,9 @@ void call(Map pipeline_args) {
                                               pipeline_args.get('add_archiving_cmds', '').replace('<distro>',
                                                                                                   'centos7') +
                                              '\ncreaterepo artifacts/centos7/'
-                                publishToRepository product: package_name,
-                                                    format: 'yum',
-                                                    maturity: 'stable',
-                                                    tech: 'el-7',
-                                                    repo_dir: 'artifacts/centos7/',
-                                                    publish_branch: publish_branch
+                                script {
+                                    validation.candidates.centos7 = packageCandidateValidation.archiveCandidate('centos7')
+                                }
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
                                                             allowEmptyArchive: true
@@ -423,12 +433,9 @@ void call(Map pipeline_args) {
                                               cp -r . $OLDPWD/artifacts/el8/)\n''' +
                                               pipeline_args.get('add_archiving_cmds', '').replace('<distro>', 'el8') +
                                              '\ncreaterepo artifacts/el8/'
-                                publishToRepository product: package_name,
-                                                    format: 'yum',
-                                                    maturity: 'stable',
-                                                    tech: 'el-8',
-                                                    repo_dir: 'artifacts/el8/',
-                                                    publish_branch: publish_branch
+                                script {
+                                    validation.candidates.el8 = packageCandidateValidation.archiveCandidate('el8')
+                                }
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
                                                             allowEmptyArchive: true
@@ -499,12 +506,9 @@ void call(Map pipeline_args) {
                                               cp -r . $OLDPWD/artifacts/el9/)\n''' +
                                               pipeline_args.get('add_archiving_cmds', '').replace('<distro>', 'el9') +
                                              '\ncreaterepo artifacts/el9/'
-                                publishToRepository product: package_name,
-                                                    format: 'yum',
-                                                    maturity: 'stable',
-                                                    tech: 'el-9',
-                                                    repo_dir: 'artifacts/el9/',
-                                                    publish_branch: publish_branch
+                                script {
+                                    validation.candidates.el9 = packageCandidateValidation.archiveCandidate('el9')
+                                }
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
                                                             allowEmptyArchive: true
@@ -576,12 +580,9 @@ void call(Map pipeline_args) {
                                               pipeline_args.get('add_archiving_cmds', '').replace('<distro>',
                                                                                                   'leap15') +
                                              '\ncreaterepo artifacts/leap15/'
-                                publishToRepository product: package_name,
-                                                    format: 'yum',
-                                                    maturity: 'stable',
-                                                    tech: 'leap-15',
-                                                    repo_dir: 'artifacts/leap15/',
-                                                    publish_branch: publish_branch
+                                script {
+                                    validation.candidates.leap15 = packageCandidateValidation.archiveCandidate('leap15')
+                                }
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
                                                             allowEmptyArchive: true
@@ -659,12 +660,10 @@ void call(Map pipeline_args) {
                                                 dpkg-scanpackages . /dev/null | \
                                                   gzip -9c > Packages.gz
                                               popd'''
-                                publishToRepository product: package_name,
-                                                    format: 'apt',
-                                                    maturity: 'stable',
-                                                    tech: 'ubuntu-20.04',
-                                                    repo_dir: 'artifacts/ubuntu20.04/',
-                                                    publish_branch: publish_branch
+                                script {
+                                    validation.candidates['ubuntu20.04'] =
+                                        packageCandidateValidation.archiveCandidate('ubuntu20.04')
+                                }
                             }
                             unsuccessful {
                                 sh label: 'Collect artifacts',
@@ -716,12 +715,10 @@ void call(Map pipeline_args) {
                                                 dpkg-scanpackages . /dev/null | \
                                                   gzip -9c > Packages.gz
                                               popd'''
-                                publishToRepository product: package_name,
-                                                    format: 'apt',
-                                                    maturity: 'stable',
-                                                    tech: 'ubuntu-rolling',
-                                                    repo_dir: 'artifacts/ubuntu_rolling/',
-                                                    publish_branch: publish_branch
+                                script {
+                                    validation.candidates.ubuntu_rolling =
+                                        packageCandidateValidation.archiveCandidate('ubuntu_rolling')
+                                }
                             }
                             unsuccessful {
                                 sh label: 'Collect artifacts',
@@ -735,105 +732,24 @@ void call(Map pipeline_args) {
                     } //stage('Build DEB on Ubuntu rolling')
                 } // parallel
             } //stage('Build')
-            stage('Test') {
-                when {
-                    beforeAgent true
-                    expression {
-                        currentBuild.currentResult == 'SUCCESS' &&
-                        !skipStage([axes: (env.TEST_BRANCH ?: '').replaceAll('/', '-')])
+                } // candidate build stages
+            } // stage('Build candidates')
+            stage('Validate and publish candidates') {
+                steps {
+                    script {
+                        packageCandidateValidation.call(pipeline_args, distros, validation,
+                                                        package_name, publish_branch)
                     }
                 }
-                matrix {
-                    axes {
-                        axis {
-                            name 'TEST_BRANCH'
-                            values 'master',
-                                   'release/2.6'
-                        }
-                    }
-                    when {
-                        beforeAgent true
-                        expression {
-                            // Need to pass the stage name: https://issues.jenkins.io/browse/JENKINS-69394
-                            !skipStage([stage_name: 'Test Packages',
-                                        axes: env.TEST_BRANCH.replaceAll('/', '-')])
-                        }
-                    }
-                    stages {
-                        stage('Test Packages') {
-                            steps {
-                                setupDownstreamTesting('daos-stack/daos', env.TEST_BRANCH)
-                                build job: 'daos-stack/daos/' + setupDownstreamTesting.test_branch(env.TEST_BRANCH),
-                                      parameters: [string(name: 'TestTag',
-                                                          value: ('load_mpi test_core_files ' +
-                                                                   /* groovylint-disable-next-line LineLength */
-                                                                   pipeline_args.get('test-tag', '')).trim().split(' ').collect {
-                                                                       tag ->
-                                                                       tag + skipped_tests_tags(env.TEST_BRANCH)
-                                                                   }.join(' ')),
-                                                   string(name: 'CI_RPM_TEST_VERSION',
-                                                          value: pipeline_args.get('skip-build', true) ?
-                                                               daosLatestVersion(env.TEST_BRANCH, 'el8') : ''),
-                                                   string(name: 'CI_PROVISIONING_POOL', value: 'default'),
-                                                   string(name: 'CI_BUILD_DESCRIPTION',
-                                                          value: 'Dependency Validation Build Test'),
-                                                   /* groovylint-disable-next-line UnnecessaryGetter */
-                                                   string(name: 'BuildPriority', value: getPriority()),
-                                                   booleanParam(name: 'CI_FI_el8_TEST', value: false),
-                                                   booleanParam(name: 'CI_FUNCTIONAL_el7_TEST',
-                                                                value: 'centos7' in distros),
-                                                   booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
-                                                   booleanParam(name: 'CI_FUNCTIONAL_el8_TEST',
-                                                                value: 'el8' in distros),
-                                                   booleanParam(name: 'CI_FUNCTIONAL_el9_TEST',
-                                                                value: 'el9' in distros),
-                                                   booleanParam(name: 'CI_FUNCTIONAL_leap15_TEST',
-                                                                value: 'leap15' in distros),
-                                                   booleanParam(name: 'CI_SCAN_RPMS_el7_TEST', value: false),
-                                                   booleanParam(name: 'CI_RPMS_el7_TEST',
-                                                                value: 'centos7' in distros),
-                                                   booleanParam(name: 'CI_medium_TEST',
-                                                                value: 'el8' in distros),
-                                                   booleanParam(name: 'CI_large_TEST', value: false),
-                                                   string(name: 'CI_PR_REPOS',
-                                                          value: env.JOB_NAME.split('/')[1] + '@' +
-                                                                 "${env.BRANCH_NAME}:${env.BUILD_ID}" +
-                                                                 ' ' + cachedCommitPragma('PR-repos')),
-                                                   booleanParam(name: 'CI_RPM_el8_NOBUILD',
-                                                                value: pipeline_args.get('skip-build', true) ||
-                                                                  !('el8' in distros)),
-                                                   booleanParam(name: 'CI_RPM_el9_NOBUILD',
-                                                                value: pipeline_args.get('skip-build', true) ||
-                                                                  !('el9' in distros)),
-                                                   booleanParam(name: 'CI_RPM_leap15_NOBUILD',
-                                                                value: pipeline_args.get('skip-build', true) ||
-                                                                  !('leap15' in distros)),
-                                                   booleanParam(name: 'CI_DEB_Ubuntu20_NOBUILD',
-                                                                value: pipeline_args.get('skip-build', true) ||
-                                                                       !('ubuntu20.04' in distros)),
-                                                   booleanParam(name: 'CI_ALLOW_UNSTABLE_TEST',
-                                                                value: cachedCommitPragma('Allow-unstable-test').toLowerCase() == 'true')
-                                                  ]
-                            } //steps
-                            post {
-                                success {
-                                    script {
-                                        setupDownstreamTesting.cleanup('daos-stack/daos', env.TEST_BRANCH)
-                                    }
-                                }
-                                always {
-                                    writeFile file: stageStatusFilename(env.STAGE_NAME,
-                                                                        env.TEST_BRANCH.replaceAll('/', '-')),
-                                              text: currentBuild.currentResult + '\n'
-                                    archiveArtifacts artifacts: stageStatusFilename(
-                                                                    env.STAGE_NAME,
-                                                                    env.TEST_BRANCH.replaceAll('/', '-'))
-                                }
-                            } // post
-                        } // stage('Test Packages')
-                    } // stages
-                } // matrix
-            } // stage('Test')
+            }
         } // stages
+        post {
+            always {
+                script {
+                    validation.candidateBuildResult = validation.candidateBuildResult ?: currentBuild.currentResult
+                    packageCandidateValidation.report(validation)
+                }
+            }
+        }
     } // pipeline
 } // call
