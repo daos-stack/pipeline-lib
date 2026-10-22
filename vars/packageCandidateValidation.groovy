@@ -30,9 +30,9 @@ Map declarations(String jenkinsfile) {
     String block = jenkinsfile.split(/(?m)^\s*parameters\s*\{/, 2).last()
     block = block.split(/(?m)^\s*stages\s*\{/, 2).first()
     block.readLines().findAll { line ->
-        line ==~ /\s*(?:booleanParam|string)\(name:.*$/
+        line ==~ /\s*(?:booleanParam|string|choice|text|password)\(name:.*$/
     }.each { line ->
-        def match = line =~ /(booleanParam|string)\(name:\s*(?:bashName\('([^']+)'\)|'([^']+)')/
+        def match = line =~ /(booleanParam|string|choice|text|password)\(name:\s*(?:bashName\('([^']+)'\)|'([^']+)')/
         if (match.find()) {
             String name = match.group(2) ? match.group(2).replaceAll('[^a-zA-Z0-9]', '_') : match.group(3)
             result[name] = match.group(1)
@@ -41,17 +41,113 @@ Map declarations(String jenkinsfile) {
     return result
 }
 
+/** Configure requested controls explicitly; target declarations only validate this policy. */
+Map configuredParameters(String branch, boolean rebuild, boolean units, List compatible) {
+    Map modern = [
+        CI_IGNORE_SKIP_COMMIT_PRAGMAS: false,
+        Cancel_Previous_Builds: false, Pre_build: rebuild,
+        Python_Bandit_check: rebuild, Build: rebuild,
+        Build_on_EL_9: rebuild && 'el9' in compatible,
+        Build_on_Leap_15: rebuild && 'leap15' in compatible,
+        Unit_Tests: units, Unit_Test: units, Unit_Test_bdev: units, NLT: units,
+        Unit_Test_with_memcheck: units, Unit_Test_bdev_with_memcheck: units,
+        Test: true, Test_Hardware: false,
+        Functional_on_EL_9: 'el9' in compatible,
+        Functional_on_Leap_15: 'leap15' in compatible,
+        Functional_on_Ubuntu_20_04: 'ubuntu20.04' in compatible,
+        Functional_on_SLES_15: false, Functional_on_EL_9_with_Valgrind: false,
+        Fault_injection_testing: false,
+        Test_RPMs_on_EL_9: rebuild && 'el9' in compatible,
+        Test_RPMs_on_Leap_15: rebuild && 'leap15' in compatible,
+        Functional_Hardware_Medium: false,
+        Functional_Hardware_Medium_MD_on_SSD: false,
+        Functional_Hardware_Medium_VMD: false,
+        Functional_Hardware_Large: false,
+        Functional_Hardware_Large_MD_on_SSD: false
+    ]
+    Map policies = [
+        master: modern + [
+            Functional_Hardware_Medium_Provider: false,
+            Functional_Hardware_Medium_Provider_MD_on_SSD: false,
+            Functional_Cluster_Box_Medium_MD_on_SSD: false,
+            Functional_Cluster_Box_Medium_Provider_MD_on_SSD: false
+        ],
+        'release/2.8': modern + [
+            Functional_Hardware_Medium_Verbs_Provider: false,
+            Functional_Hardware_Medium_Verbs_Provider_MD_on_SSD: false,
+            Functional_Hardware_Medium_UCX_Provider: false
+        ],
+        'release/2.6': [
+            CI_CANCEL_PREV_BUILD_SKIP: true, CI_UNIT_TEST: units,
+            CI_NLT_TEST: units, CI_UNIT_TEST_MEMCHECK: units,
+            CI_FI_el8_TEST: false, CI_FUNCTIONAL_TEST_SKIP: false,
+            CI_FUNCTIONAL_HARDWARE_TEST_SKIP: true,
+            CI_MORE_FUNCTIONAL_PR_TESTS: true,
+            CI_FUNCTIONAL_el8_VALGRIND_TEST: false,
+            CI_TEST_EL8_RPMs: rebuild && 'el8' in compatible,
+            CI_TEST_LEAP15_RPMs: rebuild && 'leap15' in compatible,
+            CI_el8_NOBUILD: !rebuild || !('el8' in compatible),
+            CI_el9_NOBUILD: !rebuild || !('el9' in compatible),
+            CI_leap15_NOBUILD: !rebuild || !('leap15' in compatible),
+            CI_RPM_el8_NOBUILD: !rebuild || !('el8' in compatible),
+            CI_RPM_el9_NOBUILD: !rebuild || !('el9' in compatible),
+            CI_RPM_leap15_NOBUILD: !rebuild || !('leap15' in compatible),
+            CI_DEB_Ubuntu20_NOBUILD: !rebuild || !('ubuntu20.04' in compatible),
+            CI_FUNCTIONAL_el8_TEST: 'el8' in compatible,
+            CI_FUNCTIONAL_el9_TEST: 'el9' in compatible,
+            CI_FUNCTIONAL_leap15_TEST: 'leap15' in compatible,
+            CI_FUNCTIONAL_ubuntu20_TEST: 'ubuntu20.04' in compatible,
+            CI_medium_TEST: false,
+            CI_medium_md_on_ssd_TEST: false,
+            CI_medium_vmd_TEST: false,
+            CI_medium_verbs_provider_TEST: false,
+            CI_medium_verbs_provider_md_on_ssd_TEST: false,
+            CI_medium_ucx_provider_TEST: false,
+            CI_large_TEST: false,
+            CI_large_md_on_ssd_TEST: false
+        ]
+    ]
+    if (!policies.containsKey(branch)) {
+        error("No configured DAOS validation parameters for ${branch}")
+    }
+    return [
+        CI_BUILD_PACKAGES_ONLY: false, CI_ALLOW_UNSTABLE_TEST: true,
+        CI_RPM_TEST_VERSION: '', CI_PROVISIONING_POOL: 'default',
+        CI_BUILD_DESCRIPTION: 'Dependency candidate validation (VM only)'
+    ] + policies[branch]
+}
+
+/** Reject schema drift, including newly introduced hardware controls, before launch. */
+void validateParameters(String branch, Map parameters, String jenkinsfile) {
+    Map declared = declarations(jenkinsfile)
+    parameters.each { name, value ->
+        String expected = value instanceof Boolean ? 'booleanParam' : 'string'
+        if (!declared.containsKey(name)) {
+            error("DAOS ${branch} no longer declares configured parameter ${name}")
+        }
+        if (declared[name] != expected) {
+            error("DAOS ${branch} parameter ${name} is ${declared[name]}, expected ${expected}")
+        }
+    }
+    declared.each { name, type ->
+        if (name == 'Test_Hardware' || name == 'CI_FUNCTIONAL_HARDWARE_TEST_SKIP' ||
+            name.startsWith('Functional_Hardware_') || name.startsWith('Functional_Cluster_Box_') ||
+            name.startsWith('CI_medium') || name.startsWith('CI_large') ||
+            name.startsWith('CI_FUNCTIONAL_HARDWARE_') || name.startsWith('CI_CLUSTER_BOX_')) {
+            boolean disabled = name == 'CI_FUNCTIONAL_HARDWARE_TEST_SKIP'
+            if (!parameters.containsKey(name) || parameters[name] != disabled) {
+                error("DAOS ${branch} hardware/cluster-box control ${name} has no configured disable policy")
+            }
+        }
+    }
+}
+
 /** Select only supported coverage with compatible candidate packages. */
 Map coverage(String branch, List distros, Map args, String jenkinsfile) {
+    if (!(branch in branches())) {
+        error("No configured DAOS validation parameters for ${branch}")
+    }
     boolean modern = branch != 'release/2.6'
-    Map declared = declarations(jenkinsfile)
-    String parent = modern ? 'Test_Hardware' : 'CI_FUNCTIONAL_HARDWARE_TEST_SKIP'
-    if (!declared.containsKey(parent) || !declared.containsKey('CI_PR_REPOS')) {
-        error("Unsupported DAOS parameter dialect on ${branch}")
-    }
-    Map params = declared.findAll { name, type -> type == 'booleanParam' }.collectEntries { name, type ->
-        [(name): false]
-    }
     boolean rebuild = !args.get('skip-build', true)
     String primary = modern ? 'el9' : 'el8'
     List compatible = (modern ? ['el9', 'leap15', 'ubuntu20.04'] :
@@ -63,33 +159,11 @@ Map coverage(String branch, List distros, Map args, String jenkinsfile) {
         error("DAOS ${branch} has no enabled Ubuntu rebuild stage; prebuilt DAOS is required for Ubuntu candidates")
     }
     boolean units = rebuild && primary in compatible
-    Map selected = [
-        CI_BUILD_PACKAGES_ONLY: false,
-        CI_ALLOW_UNSTABLE_TEST: true,
-        CI_RPM_TEST_VERSION: '',
-        CI_PROVISIONING_POOL: 'default',
-        CI_BUILD_DESCRIPTION: 'Dependency candidate validation (VM only)'
-    ]
+    Map selected = configuredParameters(branch, rebuild, units, compatible)
     List required = []
     List built = []
     List functional = []
     if (modern) {
-        selected += [
-            Cancel_Previous_Builds: false, Pre_build: rebuild,
-            Python_Bandit_check: rebuild, Build: rebuild,
-            Build_on_EL_9: rebuild && 'el9' in compatible,
-            Build_on_Leap_15: rebuild && 'leap15' in compatible,
-            Unit_Tests: units, Unit_Test: units, Unit_Test_bdev: units, NLT: units,
-            Unit_Test_with_memcheck: units, Unit_Test_bdev_with_memcheck: units,
-            Test: true, Test_Hardware: false,
-            Functional_on_EL_9: 'el9' in compatible,
-            Functional_on_Leap_15: 'leap15' in compatible,
-            Functional_on_Ubuntu_20_04: 'ubuntu20.04' in compatible,
-            Functional_on_SLES_15: false, Functional_on_EL_9_with_Valgrind: false,
-            Fault_injection_testing: false,
-            Test_RPMs_on_EL_9: rebuild && 'el9' in compatible,
-            Test_RPMs_on_Leap_15: rebuild && 'leap15' in compatible
-        ]
         ['el9': 'EL 9', leap15: 'Leap 15'].each { distro, label ->
             if (rebuild && distro in compatible) {
                 built << "Build on ${label}".toString()
@@ -106,28 +180,14 @@ Map coverage(String branch, List distros, Map args, String jenkinsfile) {
             }
         }
     } else {
-        selected += [
-            CI_CANCEL_PREV_BUILD_SKIP: true, CI_UNIT_TEST: units,
-            CI_NLT_TEST: units, CI_UNIT_TEST_MEMCHECK: units,
-            CI_FI_el8_TEST: false, CI_FUNCTIONAL_TEST_SKIP: false,
-            CI_FUNCTIONAL_HARDWARE_TEST_SKIP: true,
-            CI_MORE_FUNCTIONAL_PR_TESTS: true,
-            CI_FUNCTIONAL_el8_VALGRIND_TEST: false,
-            CI_TEST_EL8_RPMs: rebuild && 'el8' in compatible,
-            CI_TEST_LEAP15_RPMs: rebuild && 'leap15' in compatible
-        ]
         ['el8': 'EL 8', 'el9': 'EL 9', leap15: 'Leap 15'].each { distro, label ->
-            selected["CI_${distro}_NOBUILD".toString()] = !rebuild || !(distro in compatible)
-            selected["CI_RPM_${distro}_NOBUILD".toString()] = !rebuild || !(distro in compatible)
             if (rebuild && distro in compatible) {
                 built << "Build on ${label}".toString()
                 built << "Build RPM on ${label}".toString()
             }
         }
-        selected.CI_DEB_Ubuntu20_NOBUILD = !rebuild || !('ubuntu20.04' in compatible)
         ['el8': 'EL 8', 'el9': 'EL 9', leap15: 'Leap 15', ubuntu20: 'Ubuntu 20.04'].each { distro, label ->
             boolean enabled = (distro == 'ubuntu20' ? 'ubuntu20.04' : distro) in compatible
-            selected["CI_FUNCTIONAL_${distro}_TEST".toString()] = enabled
             if (enabled) {
                 functional << "Functional on ${label}".toString()
             }
@@ -143,13 +203,8 @@ Map coverage(String branch, List distros, Map args, String jenkinsfile) {
             required << 'Test RPMs on Leap 15'
         }
     }
-    selected.each { name, value ->
-        if (!declared.containsKey(name)) {
-            error("DAOS ${branch} no longer declares required selector ${name}")
-        }
-        params[name] = value
-    }
-    return [parameters: params, tags: ('load_mpi test_core_files ' + args.get('test-tag', '')).trim(),
+    validateParameters(branch, selected, jenkinsfile)
+    return [parameters: selected, tags: ('load_mpi test_core_files ' + args.get('test-tag', '')).trim(),
             versionDistro: primary in compatible ? primary : compatible.first(),
             required: required + functional, built: built, functional: functional,
             compatibleDistros: compatible, prebuilt: !rebuild]
@@ -514,7 +569,8 @@ Skip-unit-tests: ''' + (args.get('skip-build', true) ||
                             error("No prebuilt DAOS version for ${branch}")
                         }
                     }
-                    job = 'daos-stack/daos/' + setupDownstreamTesting.test_branch(branch, setup)
+                    validateParameters(branch, result.coverage.parameters, setup.jenkinsfile)
+                    job = 'daos-stack/daos/' + setupDownstreamTesting.test_branch(branch)
                     result.job = job
                 }
                 List parameters = result.coverage.parameters.collect { name, value ->
@@ -555,7 +611,7 @@ Skip-unit-tests: ''' + (args.get('skip-build', true) ||
                         }
                         result.evidenceValid = compilerValid && evidenceValid(result, evidence, tests, repos)
                         if (result.result == 'SUCCESS' && result.evidenceValid) {
-                            setupDownstreamTesting.cleanup('daos-stack/daos', branch, setup)
+                            setupDownstreamTesting.cleanup('daos-stack/daos', branch)
                         }
                     }
                 }

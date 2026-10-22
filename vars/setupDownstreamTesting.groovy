@@ -1,12 +1,9 @@
 /* groovylint-disable DuplicateStringLiteral, GStringExpressionWithinString */
 // vars/setupDownstreamTesting.groovy
 
-String test_branch(String target, Map config = [:]) {
-    if (config.validation) {
-        return 'ryon-jensen-ci-' + JOB_NAME.replaceAll('/', '-') +
-               '-' + env.BUILD_NUMBER + '-' + target.replaceAll('/', '-')
-    }
-    return 'ci-' + JOB_NAME.replaceAll('/', '-') + '-' + target.replaceAll('/', '-')
+String test_branch(String target) {
+    return 'ci-' + JOB_NAME.replaceAll('/', '-') +
+            '-' + target.replaceAll('/', '-')
 }
 
 String gitAuthentication() {
@@ -19,10 +16,10 @@ String gitAuthentication() {
     '''
 }
 
-void cleanup(String project, String branch, Map config = [:]) {
+void cleanup(String project, String branch) {
     withCredentials(githubAccess()) {
         withEnv(["DOWNSTREAM_URL=https://github.com/${project}.git",
-                 "DOWNSTREAM_BRANCH=${test_branch(branch, config)}"]) {
+                 "DOWNSTREAM_BRANCH=${test_branch(branch)}"]) {
             sh label: 'Delete test branch',
                script: gitAuthentication() + '''
                    git push "$DOWNSTREAM_URL" --delete "$DOWNSTREAM_BRANCH"
@@ -33,7 +30,7 @@ void cleanup(String project, String branch, Map config = [:]) {
 
 /**
  * Set up a downstream test branch and return the legacy parameter defaults.
- * Optional validation configuration adds a build-unique branch, captured source
+ * Optional validation configuration adds captured source
  * revisions, the actual test Jenkinsfile, and archived execution evidence.
  * Existing callers retain their branch names and returned parameter defaults.
  */
@@ -58,7 +55,7 @@ List call(String project, String branch, String commit_pragmas = '', Map config 
                      '\n\n' + commit_pragmas
     withCredentials(githubAccess()) {
         withEnv(["DOWNSTREAM_URL=https://github.com/${project}.git",
-                 "DOWNSTREAM_BRANCH=${test_branch(branch, config)}",
+                 "DOWNSTREAM_BRANCH=${test_branch(branch)}",
                  "DOWNSTREAM_SOURCE=origin/${cachedCommitPragma("Test-${branch}-branch", branch)}",
                  "DOWNSTREAM_DIR=${checkoutDir}",
                  "DOWNSTREAM_LIBS=${libs ?: ''}"]) {
@@ -125,7 +122,7 @@ List call(String project, String branch, String commit_pragmas = '', Map config 
     } else {
         echo "Warning: Jenkinsfile not found at ${jenkinsfilePath}"
     }
-    withEnv(["DOWNSTREAM_DIR=${checkoutDir}", "DOWNSTREAM_BRANCH=${test_branch(branch, config)}"]) {
+    withEnv(["DOWNSTREAM_DIR=${checkoutDir}", "DOWNSTREAM_BRANCH=${test_branch(branch)}"]) {
         sh label: 'Delete local test branch', script: '''
             set -eu
             cd "$DOWNSTREAM_DIR"
