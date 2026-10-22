@@ -29,7 +29,9 @@ Map declarations(String jenkinsfile) {
     Map result = [:]
     String block = jenkinsfile.split(/(?m)^\s*parameters\s*\{/, 2).last()
     block = block.split(/(?m)^\s*stages\s*\{/, 2).first()
-    block.findAll(/(?m)^\s*(?:booleanParam|string)\(name:.*$/).each { line ->
+    block.readLines().findAll { line ->
+        line ==~ /\s*(?:booleanParam|string)\(name:.*$/
+    }.each { line ->
         def match = line =~ /(booleanParam|string)\(name:\s*(?:bashName\('([^']+)'\)|'([^']+)')/
         if (match.find()) {
             String name = match.group(2) ? match.group(2).replaceAll('[^a-zA-Z0-9]', '_') : match.group(3)
@@ -200,7 +202,7 @@ String instrument(String jenkinsfile, Map config = [:]) {
 /** SCM indexing/webhooks may schedule a new branch with hardware-enabled defaults. */
 String protectLaunch(String jenkinsfile, Map launch) {
     if (!launch?.job || !(launch.build ==~ /\d+/) || !launch.repositories ||
-        jenkinsfile.findAll(/(?m)^pipeline \{/).size() != 1) {
+        jenkinsfile.readLines().findAll { line -> line.startsWith('pipeline {') }.size() != 1) {
         error('Cannot protect synthetic branch launch: missing upstream identity or pipeline anchor')
     }
     String expected = groovy.json.JsonOutput.toJson(launch)

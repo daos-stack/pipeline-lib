@@ -306,6 +306,22 @@ class TestPackageCandidateValidation {
     }
 
     @Test
+    void 'candidate parsing avoids sandbox rejected String findAll overloads'() {
+        String source = new File('vars/packageCandidateValidation.groovy').text
+        assertFalse(source.contains('block.findAll(/'))
+        assertFalse(source.contains('jenkinsfile.findAll(/'))
+        Map launch = [job: 'daos-stack/fio/master', build: '17', repositories: 'fio@master:17']
+        assertThrows(IllegalStateException) {
+            helper().protectLaunch('pipeline { }\npipeline { }', launch)
+        }
+        assertThrows(IllegalStateException) {
+            helper().protectLaunch('// pipeline { }\n', launch)
+        }
+        assertTrue(helper().protectLaunch('// preamble\npipeline { }\n', launch)
+            .contains('getBuildCauses'))
+    }
+
+    @Test
     void 'synthetic branch indexing webhook timer and manual builds cannot enter pipeline defaults'() {
         Map launch = [job: 'daos-stack/fio/master', build: '17', repositories: 'fio@feature/$pin:17']
         String guarded = helper().protectLaunch('pipeline { agent() }', launch)
