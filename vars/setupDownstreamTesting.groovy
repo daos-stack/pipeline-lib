@@ -1,138 +1,137 @@
 /* groovylint-disable DuplicateStringLiteral, GStringExpressionWithinString */
 // vars/setupDownstreamTesting.groovy
 
-String test_branch(String target) {
-    return 'ci-' + JOB_NAME.replaceAll('/', '-') +
-            '-' + target.replaceAll('/', '-')
+String test_branch(String target, Map config = [:]) {
+    if (config.validation) {
+        return 'ryon-jensen-ci-' + JOB_NAME.replaceAll('/', '-') +
+               '-' + env.BUILD_NUMBER + '-' + target.replaceAll('/', '-')
+    }
+    return 'ci-' + JOB_NAME.replaceAll('/', '-') + '-' + target.replaceAll('/', '-')
 }
 
-void cleanup(String project, String branch) {
+String gitAuthentication() {
+    // The helper passes credentials over stdin/stdout, never through argv or a remote URL.
+    return '''
+        export GIT_CONFIG_COUNT=1
+        export GIT_CONFIG_KEY_0=credential.helper
+        export GIT_CONFIG_VALUE_0='!f() { printf "%s\\n" "username=$GH_USER" "password=$GH_PASS"; }; f'
+        export GIT_TERMINAL_PROMPT=0
+    '''
+}
+
+void cleanup(String project, String branch, Map config = [:]) {
     withCredentials(githubAccess()) {
-        sh(label: 'Delete test branch',
-           script: 'if ! git push https://$GH_USER:$GH_PASS@github.com/' + project +
-                      ' --delete ' + test_branch(branch) + '''; then
-                        echo "Error trying to delete branch ''' +
-                        test_branch(branch) + '''"
-                        git remote -v
-                        env
-                        exit 1
-                    fi''')
+        withEnv(["DOWNSTREAM_URL=https://github.com/${project}.git",
+                 "DOWNSTREAM_BRANCH=${test_branch(branch, config)}"]) {
+            sh label: 'Delete test branch',
+               script: gitAuthentication() + '''
+                   git push "$DOWNSTREAM_URL" --delete "$DOWNSTREAM_BRANCH"
+               '''
+        }
     }
 }
 
 /**
- * setupDownstreamTesting.groovy
- *
- * Set up a branch to perform downstream testing on
+ * Set up a downstream test branch and return the legacy parameter defaults.
+ * Optional validation configuration adds a build-unique branch, captured source
+ * revisions, the actual test Jenkinsfile, and archived execution evidence.
+ * Existing callers retain their branch names and returned parameter defaults.
  */
-
-/* groovylint-disable-next-line MethodSize, NoDef, ParameterName */
-List call(String project, String branch, String commit_pragmas = '') {
-    // TODO: find out what the / escape is.  I've already tried both %2F and %252F
-    //       https://issues.jenkins.io/browse/JENKINS-68857
-    // Instead, we will create a branch specifically to test on
+List call(String project, String branch, String commit_pragmas = '', Map config = [:]) {
     List knownParameters = ['CI_FI_el8_TEST',
                             'CI_MORE_FUNCTIONAL_PR_TESTS',
                             'CI_FUNCTIONAL_el9_TEST',
                             'CI_FUNCTIONAL_el8_TEST',
                             'CI_FUNCTIONAL_leap15_TEST',
                             'CI_medium_TEST',
-                            'CI_large_TEST'
-                           ]
-
-    List result = []
-    String checkoutDir = project.split('/')[1] + '-' + branch.replaceAll('/', '-')
+                            'CI_large_TEST']
+    String checkoutDir = project.split('/')[1] + '-' + branch.replaceAll('/', '-') +
+                         (config.validation ? '-' + env.BUILD_NUMBER : '')
+    config.checkoutDir = checkoutDir
+    boolean selfTest = env.CHANGE_BRANCH && env.JOB_NAME.startsWith('daos-stack/pipeline-lib/')
+    String libs = selfTest ? 'pipeline-lib@' + env.CHANGE_BRANCH : cachedCommitPragma('Test-libs')
+    if (libs && !(libs ==~ /[A-Za-z0-9_,\/@.+:-]+/)) {
+        error('Unsupported downstream test-library selector')
+    }
+    String message = (selfTest ? 'Update pipeline-lib branch to self' :
+                                'Clear commit pragmas and update test libraries') +
+                     '\n\n' + commit_pragmas
     withCredentials(githubAccess()) {
-        sh label: 'Create or update test branch',
-           /* groovylint-disable-next-line GStringExpressionWithinString */
-           script: 'branch_name=' + test_branch(branch) + '''
-                   # To override downstream test branch:
-                   # i.e. Test-master-branch: foo/bar
-                   source_branch=origin/''' +
-                   cachedCommitPragma("Test-${branch}-branch",
-                                      branch) + '''
-                    # dir for checkout since all runs in the matrix share the same
-                    # workspace
-                    dir="''' + checkoutDir + '''"
-                    #rm -rf "$dir"
-                    if cd $dir; then
-                        git remote update
-                        git fetch origin --prune
-                    else
-                        git clone https://''' + env.GH_USER + ':' +
-                                                env.GH_PASS +
-                                      '''@github.com/''' + project + '''.git $dir
-                        cd $dir
-                    fi
-                    # delete the branch if it exists
-                    if git checkout $branch_name; then
-                        if ! git checkout origin/master || \
-                           ! git branch -D $branch_name; then
-                          git status
-                          git branch -a
-                          exit 1
-                        fi
-                    fi
-                    # create the branch
-                    if ! git checkout -b $branch_name $source_branch; then
-                        echo "Error trying to create branch $branch_name"
-                        exit 1
-                    fi
-                    # remove any triggers so that this test branch doesn't run weekly, etc.
-                    if grep triggers Jenkinsfile; then
-                        sed -i -e '/triggers/,/^$/d' Jenkinsfile
-                        msg=' and remove triggers'
-                    fi
-                    if [ -n "$CHANGE_BRANCH" ] &&
-                       [[ $JOB_NAME = daos-stack/pipeline-lib/* ]]; then
-                        pipeline_libs="pipeline-lib@''' +
-                        (env.CHANGE_BRANCH ?: '').replaceAll('\\/', '\\\\/') + '''"
-                        msg="Update pipeline-lib branch to self${msg:-}"
-                    else
-                        pipeline_libs="''' + cachedCommitPragma('Test-libs') + '''"
-                        msg="Add any requested pipeline-lib PRs${msg:-}"
-                    fi
-                    if [ -n "$pipeline_libs" ]; then
-                        sed -i -e "/\\/\\/@Library/c\\
-                            @Library(value='$pipeline_libs') _" Jenkinsfile
-                    else
-                        msg="Clear any commit pragmas"$'\n\n'"${msg:-}"
-                    fi
-                    if [ -n "''' + commit_pragmas + '''" ]; then
-                        msg+=$'\n\n'"''' + commit_pragmas + '''"
-                    fi
-                    git commit --allow-empty -m "${msg}" Jenkinsfile
-                    git show
-                    git push -f origin $branch_name:$branch_name
-                    sleep 10'''
-    } // withCredentials
-
-    // Set up parameters for downstream testing
-    // Check which known parameters exist in the Jenkinsfile
+        withEnv(["DOWNSTREAM_URL=https://github.com/${project}.git",
+                 "DOWNSTREAM_BRANCH=${test_branch(branch, config)}",
+                 "DOWNSTREAM_SOURCE=origin/${cachedCommitPragma("Test-${branch}-branch", branch)}",
+                 "DOWNSTREAM_DIR=${checkoutDir}",
+                 "DOWNSTREAM_LIBS=${libs ?: ''}"]) {
+            sh label: 'Create or update test branch',
+               script: gitAuthentication() + '''
+                   set -eu
+                   if [ -d "$DOWNSTREAM_DIR/.git" ]; then
+                       cd "$DOWNSTREAM_DIR"
+                       git remote set-url origin "$DOWNSTREAM_URL"
+                       git fetch origin --prune
+                   else
+                       git clone "$DOWNSTREAM_URL" "$DOWNSTREAM_DIR"
+                       cd "$DOWNSTREAM_DIR"
+                   fi
+                   git checkout --detach origin/master
+                   if git show-ref --verify --quiet "refs/heads/$DOWNSTREAM_BRANCH"; then
+                       git branch -D "$DOWNSTREAM_BRANCH"
+                   fi
+                   git checkout -b "$DOWNSTREAM_BRANCH" "$DOWNSTREAM_SOURCE"
+                   # Do not retain weekly triggers on synthetic branches.
+                   if grep -q triggers Jenkinsfile; then
+                       sed -i -e '/triggers/,/^$/d' Jenkinsfile
+                   fi
+                   if [ -n "$DOWNSTREAM_LIBS" ]; then
+                       sed -i -e "/\\/\\/@Library/c\\
+                           @Library(value='$DOWNSTREAM_LIBS') _" Jenkinsfile
+                   fi
+               '''
+            if (config.validation) {
+                config.sourceRevision = sh(script: "git -C '${checkoutDir}' rev-parse HEAD",
+                                           returnStdout: true).trim()
+                String path = checkoutDir + '/Jenkinsfile'
+                writeFile file: path, text: packageCandidateValidation.instrument(readFile(path), config)
+            }
+            writeFile file: checkoutDir + '/.git/downstream-message', text: message
+            sh label: 'Commit and push test branch',
+               script: gitAuthentication() + '''
+                   set -eu
+                   cd "$DOWNSTREAM_DIR"
+                   git commit ''' + (config.validation ? '-s ' : '') + '''--allow-empty -F .git/downstream-message -- Jenkinsfile
+                   git show
+                   git push -f origin "$DOWNSTREAM_BRANCH:$DOWNSTREAM_BRANCH"
+                   sleep 10
+               '''
+            if (config.validation) {
+                config.testRevision = sh(script: "git -C '${checkoutDir}' rev-parse HEAD",
+                                         returnStdout: true).trim()
+            }
+        }
+    }
+    List result = []
     String jenkinsfilePath = checkoutDir + '/Jenkinsfile'
     if (fileExists(jenkinsfilePath)) {
-        String jenkinsfileContent = readFile(jenkinsfilePath)
+        String content = readFile(jenkinsfilePath)
+        if (config.validation) {
+            // Capture this before checkout switches back to origin/master.
+            config.jenkinsfile = content
+        }
         knownParameters.each { param ->
-            if (jenkinsfileContent.contains(param)) {
-                Boolean defaultValue = param in ['CI_medium_TEST', 'CI_large_TEST'] ? false : true
-                result.add(booleanParam(name: param, value: defaultValue))
+            if (content.contains(param)) {
+                result.add(booleanParam(name: param, value: !(param in ['CI_medium_TEST', 'CI_large_TEST'])))
             }
         }
     } else {
         echo "Warning: Jenkinsfile not found at ${jenkinsfilePath}"
     }
-
-    sh label: 'Delete local test branch',
-       script: '''dir="''' + checkoutDir + '''"
-                  if ! cd $dir; then
-                      echo "$dir does not exist"
-                      exit 1
-                  fi
-                  git checkout origin/master
-                  if ! git branch -D ''' + test_branch(branch) + '''; then
-                      git status
-                      git branch -a
-                      exit 1
-                  fi'''
+    withEnv(["DOWNSTREAM_DIR=${checkoutDir}", "DOWNSTREAM_BRANCH=${test_branch(branch, config)}"]) {
+        sh label: 'Delete local test branch', script: '''
+            set -eu
+            cd "$DOWNSTREAM_DIR"
+            git checkout --detach origin/master
+            git branch -D "$DOWNSTREAM_BRANCH"
+        '''
+    }
     return result
-} // call
+}
