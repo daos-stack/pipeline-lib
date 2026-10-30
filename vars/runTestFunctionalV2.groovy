@@ -43,10 +43,6 @@ Map call(Map config = [:]) {
 
     Map stage_info = parseStageInfo(config)
 
-    if (!fileExists('ci/functional/test_main.sh')) {
-        return runTestFunctionalV1(config)
-    }
-
     Boolean test_rpms = false
     if (config['test_rpms'] == 'true') {
         test_rpms = true
