@@ -4,6 +4,11 @@
  * SPDX-License-Identifier: BSD-2-Clause-Patent
  */
 
+/* Policies, launch guards, artifact checks and evidence validation for
+ * VM-only DAOS dependency candidate validation and deferred publication.
+ */
+
+/** Update this expected downstream target list and keep the Declarative matrix axis in sync. */
 List branches() {
     return ['master', 'release/2.6', 'release/2.8']
 }
@@ -16,7 +21,12 @@ Map repositories() {
             ubuntu_rolling: [format: 'apt', tech: 'ubuntu-rolling']]
 }
 
-/** Read the target's parameter types without taking selection policy from its defaults. */
+/**
+ * Read supported one-line parameter declarations without taking selection
+ * policy from target defaults. This regex scanner is not a Groovy parser:
+ * multiline declarations, computed names, and other arbitrary Groovy forms
+ * are unsupported and fail validation rather than being inferred.
+ */
 Map declarations(String source) {
     Map declared = [:]
     String block = source.split(/(?m)^\s*parameters\s*\{/, 2).last()
@@ -29,6 +39,28 @@ Map declarations(String source) {
         }
     }
     return declared
+}
+
+/** Require one complete, unambiguous cell result for every expected branch. */
+List aggregate(List records, List expected) {
+    Map byBranch = [:]
+    records.each { record ->
+        if (!(record instanceof Map) || !(record.branch in expected)) {
+            error("Unexpected or malformed dependency-validation result: ${record}")
+        }
+        if (byBranch.containsKey(record.branch)) {
+            error("Duplicate dependency-validation result for ${record.branch}")
+        }
+        if (!record.completed || !record.url || record.cleanupError ||
+            !(record.result in ['SUCCESS', 'FAILURE', 'UNSTABLE'])) {
+            error("Incomplete dependency validation for ${record.branch}: ${record}")
+        }
+        byBranch[record.branch] = record
+    }
+    if (byBranch.keySet() != expected.toSet()) {
+        error("Missing dependency-validation results: expected ${expected}, found ${byBranch.keySet()}")
+    }
+    return expected.collect { byBranch[it] }
 }
 
 /** Configure every requested control explicitly for each supported DAOS branch. */

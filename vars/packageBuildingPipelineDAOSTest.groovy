@@ -85,6 +85,8 @@ void call(Map pipeline_args) {
         publish_branch = 'master'
     }
 
+    // packages holds ordinary candidate archives and distro context; results is populated
+    // only by the post-matrix fan-in; upstream identifies this candidate build for audit.
     Map validation = [packages: [:], results: [], upstream: env.BUILD_URL]
     pipeline {
         agent none
@@ -731,7 +733,7 @@ void call(Map pipeline_args) {
             } //stage('Build')
                 } // candidate build stages
             } // stage('Build candidates')
-            stage('Validate dependencies') {
+            stage('Prepare dependency validation') {
                 steps {
                     script {
                         if (currentBuild.currentResult != 'SUCCESS' ||
@@ -744,99 +746,176 @@ void call(Map pipeline_args) {
                         if (extra.tokenize().any { it.tokenize('@').first() == project }) {
                             error("PR-repos must not override this build's ${project} packages")
                         }
-                        String repos = ("${project}@${env.BRANCH_NAME}:${env.BUILD_NUMBER} " + extra).trim()
-                        packageCandidateValidation.branches().each { branch ->
-                            Map result = [branch: branch, result: 'NOT_BUILT', completed: false]
-                            validation.results << result
-                            Map setup = [validation: true, distros: distros, args: pipeline_args,
-                                         launch: [job: env.JOB_NAME, build: env.BUILD_NUMBER,
-                                                  repositories: repos]]
-                            Exception failure = null
-                            try {
-                                node('lightweight') {
-                                    setupDownstreamTesting('daos-stack/daos', branch, '''Skip-test-hardware: true
+                        List matrixBranches = ['master', 'release/2.6', 'release/2.8']
+                        if (packageCandidateValidation.branches() != matrixBranches) {
+                            error('Update the TEST_BRANCH matrix when changing dependency-validation branches()')
+                        }
+                        validation.repositories = ("${project}@${env.BRANCH_NAME}:${env.BUILD_NUMBER} " + extra).trim()
+                    }
+                }
+            }
+            stage('Validate dependencies') {
+                matrix {
+                    axes {
+                        axis {
+                            name 'TEST_BRANCH'
+                            values 'master', 'release/2.6', 'release/2.8'
+                        }
+                    }
+                    stages {
+                        stage('Validate branch') {
+                            steps {
+                                script {
+                                    String branch = env.TEST_BRANCH
+                                    String cellKey = branch.replace('/', '-')
+                                    Map result = [branch: branch, result: 'NOT_BUILT', completed: false]
+                                    Map setup = [validation: true, distros: distros, args: pipeline_args,
+                                                 launch: [job: env.JOB_NAME, build: env.BUILD_NUMBER,
+                                                          repositories: validation.repositories]]
+                                    Exception failure = null
+                                    Exception recordFailure = null
+                                    try {
+                                        node('lightweight') {
+                                            setupDownstreamTesting('daos-stack/daos', branch, '''Skip-test-hardware: true
 Skip-func-test-hw: true
 Skip-func-hw-test: true
 Skip-fault-injection: true
 Skip-fault-injection-test: true
 ''', setup)
-                                }
-                                String job = 'daos-stack/daos/' + setupDownstreamTesting.test_branch(branch)
-                                setupDownstreamTesting.waitForJob(job)
-                                def bootstrap = build(job: job, propagate: false, wait: true,
-                                    parameters: [booleanParam(name: 'DEPENDENCY_VALIDATION_SETUP', value: true)])
-                                if (bootstrap.result != 'SUCCESS') {
-                                    error("DAOS ${branch} parameter setup failed: ${bootstrap.absoluteUrl}")
-                                }
-                                setupDownstreamTesting.waitForJob(job, setup.coverage.parameters, setup.launch.id)
-                                Map selected = setup.coverage.parameters +
-                                    [DEPENDENCY_VALIDATION_SETUP: false, DEPENDENCY_VALIDATION_ID: setup.launch.id]
-                                List parameters = selected.collect { name, value ->
-                                    value instanceof Boolean ? booleanParam(name: name, value: value) :
-                                        string(name: name, value: value.toString())
-                                }
-                                def downstream = build(job: job, propagate: false, wait: true, parameters: parameters)
-                                result.result = downstream.result
-                                result.url = downstream.absoluteUrl
-                                node('lightweight') {
-                                    result.completed = packageCandidateValidation.completed(result, setup.coverage)
-                                }
-                            } catch (org.jenkinsci.plugins.workflow.steps.FlowInterruptedException interrupted) {
-                                failure = interrupted
-                                result.result = 'ABORTED'
-                                result.error = interrupted.toString()
-                                throw interrupted
-                            } catch (Exception exception) {
-                                failure = exception
-                                result.error = exception.toString()
-                                echo "DAOS ${branch} validation blocked: ${exception}"
-                            } finally {
-                                if (setup.createdRef) {
-                                    result.syntheticRef = setup.createdRef
-                                    try {
+                                        }
+                                        String job = 'daos-stack/daos/' + setupDownstreamTesting.test_branch(branch)
+                                        setupDownstreamTesting.waitForJob(job)
+                                        def bootstrap = build(job: job, propagate: false, wait: true,
+                                            parameters: [booleanParam(name: 'DEPENDENCY_VALIDATION_SETUP', value: true)])
+                                        if (bootstrap.result != 'SUCCESS') {
+                                            error("DAOS ${branch} parameter setup failed: ${bootstrap.absoluteUrl}")
+                                        }
+                                        setupDownstreamTesting.waitForJob(
+                                            job, setup.coverage.parameters, setup.launch.id)
+                                        Map selected = setup.coverage.parameters +
+                                            [DEPENDENCY_VALIDATION_SETUP: false,
+                                             DEPENDENCY_VALIDATION_ID: setup.launch.id]
+                                        List parameters = selected.collect { name, value ->
+                                            value instanceof Boolean ? booleanParam(name: name, value: value) :
+                                                string(name: name, value: value.toString())
+                                        }
+                                        def downstream = build(job: job, propagate: false, wait: true,
+                                            parameters: parameters)
+                                        result.result = downstream.result
+                                        result.url = downstream.absoluteUrl
                                         node('lightweight') {
-                                            Exception diagnosticFailure = null
+                                            result.completed = packageCandidateValidation.completed(
+                                                result, setup.coverage)
+                                        }
+                                    } catch (Exception exception) {
+                                        result.result = exception instanceof
+                                            org.jenkinsci.plugins.workflow.steps.FlowInterruptedException ?
+                                            'ABORTED' : 'FAILURE'
+                                        result.error = exception.toString()
+                                        if (exception instanceof
+                                            org.jenkinsci.plugins.workflow.steps.FlowInterruptedException) {
+                                            failure = exception
+                                        } else {
+                                            echo "DAOS ${branch} validation blocked: ${exception}"
+                                        }
+                                    } finally {
+                                        if (setup.createdRef) {
+                                            result.syntheticRef = setup.createdRef
                                             try {
-                                                String diagnostic = 'dependency-validation-' +
-                                                    branch.replace('/', '-') + '.json'
-                                                writeFile file: diagnostic,
-                                                    text: groovy.json.JsonOutput.toJson(result)
-                                                archiveArtifacts artifacts: diagnostic
-                                            } catch (Exception diagnosticException) {
-                                                diagnosticFailure = diagnosticException
-                                                throw diagnosticException
-                                            } finally {
-                                                try {
-                                                    setupDownstreamTesting.cleanupValidation('daos-stack/daos', branch, setup)
-                                                } catch (Exception deletionException) {
-                                                    result.cleanupError = deletionException.toString()
-                                                    echo "DAOS ${branch} branch cleanup failed: ${deletionException}"
-                                                    if (!diagnosticFailure ||
-                                                        (deletionException instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException &&
-                                                         !(diagnosticFailure instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException))) {
-                                                        throw deletionException
+                                                node('lightweight') {
+                                                    sh 'mkdir -p dependency-validation-diagnostics dependency-validation-results'
+                                                    try {
+                                                        writeFile file: "dependency-validation-diagnostics/${cellKey}.json",
+                                                            text: groovy.json.JsonOutput.toJson(result)
+                                                        archiveArtifacts artifacts:
+                                                            "dependency-validation-diagnostics/${cellKey}.json"
+                                                    } catch (Exception exception) {
+                                                        result.diagnosticError = exception.toString()
+                                                        result.completed = false
+                                                        if (exception instanceof
+                                                            org.jenkinsci.plugins.workflow.steps.FlowInterruptedException &&
+                                                            !failure) {
+                                                            failure = exception
+                                                        }
+                                                        echo "DAOS ${branch} diagnostics could not be retained: ${exception}"
+                                                    }
+                                                    try {
+                                                        setupDownstreamTesting.cleanupValidation(
+                                                            'daos-stack/daos', branch, setup)
+                                                    } catch (Exception exception) {
+                                                        result.cleanupError = exception.toString()
+                                                        result.completed = false
+                                                        if (exception instanceof
+                                                            org.jenkinsci.plugins.workflow.steps.FlowInterruptedException &&
+                                                            !failure) {
+                                                            failure = exception
+                                                        }
+                                                        echo "DAOS ${branch} branch cleanup failed: ${exception}"
                                                     }
                                                 }
+                                            } catch (Exception exception) {
+                                                result.cleanupError = exception.toString()
+                                                result.completed = false
+                                                if (exception instanceof
+                                                    org.jenkinsci.plugins.workflow.steps.FlowInterruptedException &&
+                                                    !failure) {
+                                                    failure = exception
+                                                }
+                                                echo "DAOS ${branch} diagnostics or cleanup could not run: ${exception}"
                                             }
                                         }
-                                    } catch (Exception cleanupException) {
-                                        result.cleanupError = cleanupException.toString()
-                                        echo "DAOS ${branch} diagnostic retention/cleanup failed: ${cleanupException}"
-                                        if (!failure ||
-                                            (cleanupException instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException &&
-                                             !(failure instanceof org.jenkinsci.plugins.workflow.steps.FlowInterruptedException))) {
-                                            throw cleanupException
+                                        try {
+                                            node('lightweight') {
+                                                sh 'mkdir -p dependency-validation-results'
+                                                writeFile file: "dependency-validation-results/${cellKey}.json",
+                                                    text: groovy.json.JsonOutput.toJson(result)
+                                                archiveArtifacts artifacts:
+                                                    "dependency-validation-results/${cellKey}.json"
+                                            }
+                                        } catch (Exception exception) {
+                                            recordFailure = exception
+                                            if (exception instanceof
+                                                org.jenkinsci.plugins.workflow.steps.FlowInterruptedException &&
+                                                !failure) {
+                                                failure = exception
+                                            }
+                                            echo "DAOS ${branch} result could not be retained: ${exception}"
                                         }
+                                    }
+                                    if (failure) {
+                                        throw failure
+                                    }
+                                    if (recordFailure) {
+                                        throw recordFailure
                                     }
                                 }
                             }
                         }
-                        validation.outcome = validation.results.any { it.result == 'ABORTED' } ? 'ABORTED' :
-                            validation.results.any { it.result != 'SUCCESS' && it.result != 'UNSTABLE' } ? 'FAILURE' :
-                            validation.results.any { it.result == 'UNSTABLE' } ? 'UNSTABLE' : 'SUCCESS'
-                        if (validation.results.any { !it.completed }) {
-                            validation.outcome = validation.outcome == 'ABORTED' ? 'ABORTED' : 'FAILURE'
-                            error('Required DAOS testing is missing, aborted, skipped, or unverifiable')
+                    }
+                }
+            }
+            stage('Collect dependency validation') {
+                agent { label 'lightweight' }
+                steps {
+                    script {
+                        dir("dependency-validation-fanin-${env.BUILD_NUMBER}") {
+                            deleteDir()
+                            copyArtifacts projectName: env.JOB_NAME, selector: specific(env.BUILD_NUMBER),
+                                filter: 'dependency-validation-results/*.json'
+                            def files = findFiles(glob: 'dependency-validation-results/*.json')
+                            List expectedBranches = packageCandidateValidation.branches()
+                            List expectedFiles = expectedBranches.collect { it.replace('/', '-') + '.json' }
+                            if (files.size() != expectedFiles.size() ||
+                                files.collect { it.name }.toSet() != expectedFiles.toSet()) {
+                                error("Dependency-validation result files do not match expected matrix branches: ${files*.name}")
+                            }
+                            List records = files.collect {
+                                readJSON(file: it.path, returnPojo: true)
+                            }
+                            validation.results = packageCandidateValidation.aggregate(
+                                records, expectedBranches)
+                            validation.outcome = validation.results.any { it.result == 'FAILURE' } ? 'FAILURE' :
+                                validation.results.any { it.result == 'UNSTABLE' } ? 'UNSTABLE' : 'SUCCESS'
                         }
                     }
                 }
