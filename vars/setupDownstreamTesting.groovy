@@ -28,10 +28,41 @@ void cleanup(String project, String branch) {
     }
 }
 
+/** Delete only the unchanged synthetic commit prepared by this validation invocation. */
+void cleanupValidation(String project, String branch, Map config) {
+    Map created = config.createdRef
+    if (!created) {
+        return
+    }
+    if (created.project != project || created.branch != test_branch(branch) ||
+        !(created.revision ==~ /[a-f0-9]{40}/)) {
+        error('Invalid dependency-validation branch ownership')
+    }
+    withCredentials(githubAccess()) {
+        withEnv(["DOWNSTREAM_URL=https://github.com/${project}.git",
+                 "DOWNSTREAM_BRANCH=${created.branch}", "DOWNSTREAM_SHA=${created.revision}"]) {
+            sh label: 'Delete owned validation branch',
+               script: gitAuthentication() + '''
+                   set -eu
+                   ref="refs/heads/$DOWNSTREAM_BRANCH"
+                   remote_ref=$(git ls-remote --heads "$DOWNSTREAM_URL" "$ref")
+                   if [ -z "$remote_ref" ]; then
+                       exit 0
+                   fi
+                   remote_sha=$(printf '%s\\n' "$remote_ref" | cut -f1)
+                   if [ "$remote_sha" != "$DOWNSTREAM_SHA" ]; then
+                       echo "Refusing to delete replaced validation branch $DOWNSTREAM_BRANCH" >&2
+                       exit 1
+                   fi
+                   git push --force-with-lease="$ref:$DOWNSTREAM_SHA" "$DOWNSTREAM_URL" ":$ref"
+               '''
+        }
+    }
+}
+
 /**
  * Set up a downstream test branch and return the legacy parameter defaults.
- * Optional validation configuration adds captured source
- * revisions, the actual test Jenkinsfile, and archived execution evidence.
+ * Validation configuration verifies explicit parameters and guards setup/test launches.
  * Existing callers retain their branch names and returned parameter defaults.
  */
 List call(String project, String branch, String commit_pragmas = '', Map config = [:]) {
@@ -85,10 +116,33 @@ List call(String project, String branch, String commit_pragmas = '', Map config 
                    fi
                '''
             if (config.validation) {
-                config.sourceRevision = sh(script: "git -C '${checkoutDir}' rev-parse HEAD",
-                                           returnStdout: true).trim()
                 String path = checkoutDir + '/Jenkinsfile'
-                writeFile file: path, text: packageCandidateValidation.instrument(readFile(path), config)
+                String source = readFile(path)
+                config.coverage = packageCandidateValidation.coverage(branch, config.distros, config.args, source)
+                Map selected = config.coverage.parameters
+                selected.TestTag = config.coverage.tags.split(' ').collect {
+                    it + packageBuildingPipelineDAOSTest.skipped_tests_tags(branch)
+                }.join(' ')
+                selected.CI_PR_REPOS = config.launch.repositories
+                selected.BuildPriority = getPriority().toString()
+                if (config.coverage.prebuilt) {
+                    selected.CI_RPM_TEST_VERSION = daosLatestVersion(branch, config.coverage.versionDistro)
+                    if (!selected.CI_RPM_TEST_VERSION?.trim()) {
+                        error("No prebuilt DAOS version for ${branch}")
+                    }
+                }
+                packageCandidateValidation.validateParameters(branch, selected, source)
+                config.launch.parameters = selected
+                config.launch.id = "${config.launch.job}:${config.launch.build}".toString()
+                if (source.readLines().findAll { it ==~ /job_status_internal\s*=.*/ }.size() != 1) {
+                    error('Cannot guard downstream launch before its branch whitelist')
+                }
+                String encoded = groovy.json.JsonOutput.toJson(
+                    groovy.json.JsonOutput.toJson(config.launch)).replace('$', '\\$')
+                String guard = "if (!packageCandidateValidation.launch(${encoded})) { return }\n"
+                writeFile file: path, text: source.replaceFirst(/(?m)^job_status_internal\s*=/) {
+                    guard + it
+                }
             }
             writeFile file: checkoutDir + '/.git/downstream-message', text: message
             sh label: 'Commit and push test branch',
@@ -97,12 +151,26 @@ List call(String project, String branch, String commit_pragmas = '', Map config 
                    cd "$DOWNSTREAM_DIR"
                    git commit ''' + (config.validation ? '-s ' : '') + '''--allow-empty -F .git/downstream-message -- Jenkinsfile
                    git show
-                   git push -f origin "$DOWNSTREAM_BRANCH:$DOWNSTREAM_BRANCH"
-                   sleep 10
-               '''
+                   remote_ref=$(git ls-remote --heads origin "refs/heads/$DOWNSTREAM_BRANCH")
+                   if [ -n "$remote_ref" ]; then
+                       echo "Refusing to overwrite existing downstream branch $DOWNSTREAM_BRANCH" >&2
+                       exit 1
+                   fi
+               ''' + (config.validation ? '' : '''
+                   git push origin "refs/heads/$DOWNSTREAM_BRANCH:refs/heads/$DOWNSTREAM_BRANCH"
+               ''')
             if (config.validation) {
-                config.testRevision = sh(script: "git -C '${checkoutDir}' rev-parse HEAD",
-                                         returnStdout: true).trim()
+                String revision = sh(script: 'git -C "$DOWNSTREAM_DIR" rev-parse HEAD',
+                                     returnStdout: true).trim()
+                // Record before pushing so cancellation or later setup errors still permit cleanup.
+                config.createdRef = [project: project, branch: test_branch(branch), revision: revision]
+                sh label: 'Push validation branch', script: gitAuthentication() + '''
+                    set -eu
+                    cd "$DOWNSTREAM_DIR"
+                    # An empty lease permits creation only, including races after the absence check.
+                    git push --force-with-lease="refs/heads/$DOWNSTREAM_BRANCH:" origin \
+                        "refs/heads/$DOWNSTREAM_BRANCH:refs/heads/$DOWNSTREAM_BRANCH"
+                '''
             }
         }
     }
@@ -110,10 +178,6 @@ List call(String project, String branch, String commit_pragmas = '', Map config 
     String jenkinsfilePath = checkoutDir + '/Jenkinsfile'
     if (fileExists(jenkinsfilePath)) {
         String content = readFile(jenkinsfilePath)
-        if (config.validation) {
-            // Capture this before checkout switches back to origin/master.
-            config.jenkinsfile = content
-        }
         knownParameters.each { param ->
             if (content.contains(param)) {
                 result.add(booleanParam(name: param, value: !(param in ['CI_medium_TEST', 'CI_large_TEST'])))
@@ -131,4 +195,34 @@ List call(String project, String branch, String commit_pragmas = '', Map config 
         '''
     }
     return result
+}
+
+/** Poll only expected discovery/schema-not-ready responses; other HTTP failures propagate. */
+void waitForJob(String job, Map selected = [:], String identity = '') {
+    String url = env.JENKINS_URL + job.tokenize('/').collect {
+        'job/' + URLEncoder.encode(it, 'UTF-8')
+    }.join('/') + '/api/json?tree=' +
+        URLEncoder.encode('property[parameterDefinitions[_class,name,defaultParameterValue[value]]]', 'UTF-8')
+    timeout(time: 5, unit: 'MINUTES') {
+        waitUntil(initialRecurrencePeriod: 5000) {
+            def response = httpRequest(url: url, quiet: true, timeout: 30, validResponseCodes: '200,404')
+            if (response.status == 404) {
+                return false
+            }
+            if (!identity) {
+                return true
+            }
+            Map jobInfo = new groovy.json.JsonSlurperClassic().parseText(response.content)
+            List definitions = (jobInfo.property ?: []).collectMany { it.parameterDefinitions ?: [] }
+            return definitions.any {
+                it.name == 'DEPENDENCY_VALIDATION_ID' && it.defaultParameterValue?.value == identity
+            } && selected.every { name, value ->
+                definitions.any {
+                    it.name == name &&
+                        it._class == (value instanceof Boolean ?
+                            'hudson.model.BooleanParameterDefinition' : 'hudson.model.StringParameterDefinition')
+                }
+            }
+        }
+    }
 }
