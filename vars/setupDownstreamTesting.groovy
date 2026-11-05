@@ -202,17 +202,21 @@ void waitForJob(String job, Map selected = [:], String identity = '') {
     String url = env.JENKINS_URL + job.tokenize('/').collect {
         'job/' + URLEncoder.encode(it, 'UTF-8')
     }.join('/') + '/api/json?tree=' +
-        URLEncoder.encode('property[parameterDefinitions[_class,name,defaultParameterValue[value]]]', 'UTF-8')
+        URLEncoder.encode('buildable,disabled,property[branch[_class],parameterDefinitions[_class,name,defaultParameterValue[value]]]', 'UTF-8')
     timeout(time: 5, unit: 'MINUTES') {
         waitUntil(initialRecurrencePeriod: 5000) {
             def response = httpRequest(url: url, quiet: true, timeout: 30, validResponseCodes: '200,404')
             if (response.status == 404) {
                 return false
             }
+            Map jobInfo = new groovy.json.JsonSlurperClassic().parseText(response.content)
+            if (jobInfo.buildable != true || jobInfo.disabled == true ||
+                (jobInfo.property ?: []).any { it.branch?._class == 'jenkins.branch.Branch$Dead' }) {
+                return false
+            }
             if (!identity) {
                 return true
             }
-            Map jobInfo = new groovy.json.JsonSlurperClassic().parseText(response.content)
             List definitions = (jobInfo.property ?: []).collectMany { it.parameterDefinitions ?: [] }
             return definitions.any {
                 it.name == 'DEPENDENCY_VALIDATION_ID' && it.defaultParameterValue?.value == identity
