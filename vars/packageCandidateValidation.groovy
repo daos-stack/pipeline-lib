@@ -193,8 +193,11 @@ Map coverage(String branch, List distros, Map args, String source) {
 /** A setup invocation registers only verified controls and never enters the DAOS pipeline. */
 boolean launch(String encoded) {
     Map expected = new groovy.json.JsonSlurperClassic().parseText(encoded)
-    if (!currentBuild.getBuildCauses('hudson.model.Cause$UpstreamCause').any {
-        it.upstreamProject == expected.job && it.upstreamBuild.toString() == expected.build
+    // The typed RunWrapper filter matches exact classes, not Pipeline's upstream subclass.
+    if (!currentBuild.getBuildCauses().any {
+        it._class in ['hudson.model.Cause$UpstreamCause',
+                      'org.jenkinsci.plugins.workflow.support.steps.build.BuildUpstreamCause'] &&
+        it.upstreamProject == expected.job && it.upstreamBuild?.toString() == expected.build
     }) {
         echo 'Ignoring unrelated or automatic dependency-validation launch'
         return false
