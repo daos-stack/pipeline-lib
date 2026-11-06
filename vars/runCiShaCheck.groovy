@@ -23,10 +23,10 @@ import groovy.transform.Field
  */
 String runCiSha(String body) {
     String text = (body ?: '').trim()
-    if (!(text ==~ /\/run-ci(\s+[0-9a-fA-F]{7,40})?/)) {
+    if (!(text ==~ /(?i)\/run-ci(\s+[0-9a-f]{7,40})?/)) {
         return null
     }
-    return text.replaceFirst(/\/run-ci\s*/, '').toLowerCase()
+    return text.replaceFirst(/(?i)\/run-ci\s*/, '').toLowerCase()
 }
 
 /**

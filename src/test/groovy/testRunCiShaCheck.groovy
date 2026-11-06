@@ -109,6 +109,7 @@ class TestRunCiShaCheck {
         assertEquals('', script.runCiSha('/run-ci'))
         assertEquals('', script.runCiSha('  /run-ci \n'))
         assertEquals('abcdef1', script.runCiSha('/run-ci ABCDEF1'))
+        assertEquals('abcdef1', script.runCiSha('/RUN-CI abcdef1'))
         assertNull(script.runCiSha('/run-ci abc'))
         assertNull(script.runCiSha('/run-ci ' + HEAD + '0'))
         assertNull(script.runCiSha('please /run-ci'))
