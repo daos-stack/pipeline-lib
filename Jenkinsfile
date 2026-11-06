@@ -18,7 +18,8 @@
 // That PR should be landed with out deleting the PR branch.
 // Then a second PR submitted to comment out the @Library line, and when it
 // is landed, both PR branches can be deleted.
-//@Library(value='pipeline-lib@my_branch_name') _
+// Temporary SRE-4139 draft wiring; remove this pin before landing.
+@Library(value='pipeline-lib@ryon-jensen/sre-4139-candidate-validation') _
 
 /* groovylint-disable-next-line CompileStatic */
 job_status_internal = [:]
@@ -776,9 +777,9 @@ pipeline {
         stage('DAOS Build and Test') {
             when {
                 beforeAgent true
-                expression {
-                    currentBuild.currentResult == 'SUCCESS' && !skipStage()
-                }
+                // Temporary SRE-4139 draft safety: never create legacy downstream jobs.
+                // Go's candidate validation exercises the guarded VM-only downstream path.
+                expression { false }
             }
             matrix {
                 axes {

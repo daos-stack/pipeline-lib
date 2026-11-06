@@ -1,7 +1,7 @@
 #!/usr/bin/groovy
 /* groovylint-disable DuplicateMapLiteral, DuplicateStringLiteral, NestedBlockDepth, VariableName */
 /* Copyright 2019-2024 Intel Corporation
- * Copyright 2025 Hewlett Packard Enterprise Development LP
+ * Copyright 2025-2026 Hewlett Packard Enterprise Development LP
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+// SRE-4139: validate archived packages on VMs before publication.
 // To test changes to this pipeline you need push changes to this file to
 // a PR and then to modify the line the Jenkinsfile for a
 // project to point to the above branch.  Then build and test as usual
@@ -84,8 +85,16 @@ void call(Map pipeline_args) {
         publish_branch = 'master'
     }
 
+    // packages holds ordinary candidate archives and distro context; results is populated
+    // only by the post-matrix fan-in; upstream identifies this candidate build for audit.
+    Map validation = [packages: [:], results: [], upstream: env.BUILD_URL]
     pipeline {
-        agent { label 'lightweight' }
+        agent none
+        // A waiting approval must not let a newer build publish ahead of this build.
+        options {
+            disableConcurrentBuilds()
+            copyArtifactPermission("/${env.JOB_NAME}")
+        }
 
         /* DO NOT enable this without going and selecting builds in
          * all RPM build projects that should be marked Keep-forever
@@ -94,10 +103,13 @@ void call(Map pipeline_args) {
          * options { buildDiscarder(logRotator(numToKeepStr: '10')) }
          */
 
-        environment {
-            PACKAGING_BRANCH = commitPragma('Packaging-branch', 'master')
-        }
         stages {
+            stage('Build candidates') {
+                agent { label 'lightweight' }
+                environment {
+                    PACKAGING_BRANCH = commitPragma('Packaging-branch', 'master')
+                }
+                stages {
             stage('Validation') {
                 parallel {
                     stage('centos8 changed to el8') {
@@ -347,12 +359,9 @@ void call(Map pipeline_args) {
                                               pipeline_args.get('add_archiving_cmds', '').replace('<distro>',
                                                                                                   'centos7') +
                                              '\ncreaterepo artifacts/centos7/'
-                                publishToRepository product: package_name,
-                                                    format: 'yum',
-                                                    maturity: 'stable',
-                                                    tech: 'el-7',
-                                                    repo_dir: 'artifacts/centos7/',
-                                                    publish_branch: publish_branch
+                                script {
+                                    validation.packages.centos7 = packageCandidateValidation.checkArtifacts('centos7')
+                                }
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
                                                             allowEmptyArchive: true
@@ -423,12 +432,9 @@ void call(Map pipeline_args) {
                                               cp -r . $OLDPWD/artifacts/el8/)\n''' +
                                               pipeline_args.get('add_archiving_cmds', '').replace('<distro>', 'el8') +
                                              '\ncreaterepo artifacts/el8/'
-                                publishToRepository product: package_name,
-                                                    format: 'yum',
-                                                    maturity: 'stable',
-                                                    tech: 'el-8',
-                                                    repo_dir: 'artifacts/el8/',
-                                                    publish_branch: publish_branch
+                                script {
+                                    validation.packages.el8 = packageCandidateValidation.checkArtifacts('el8')
+                                }
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
                                                             allowEmptyArchive: true
@@ -499,12 +505,9 @@ void call(Map pipeline_args) {
                                               cp -r . $OLDPWD/artifacts/el9/)\n''' +
                                               pipeline_args.get('add_archiving_cmds', '').replace('<distro>', 'el9') +
                                              '\ncreaterepo artifacts/el9/'
-                                publishToRepository product: package_name,
-                                                    format: 'yum',
-                                                    maturity: 'stable',
-                                                    tech: 'el-9',
-                                                    repo_dir: 'artifacts/el9/',
-                                                    publish_branch: publish_branch
+                                script {
+                                    validation.packages.el9 = packageCandidateValidation.checkArtifacts('el9')
+                                }
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
                                                             allowEmptyArchive: true
@@ -576,12 +579,9 @@ void call(Map pipeline_args) {
                                               pipeline_args.get('add_archiving_cmds', '').replace('<distro>',
                                                                                                   'leap15') +
                                              '\ncreaterepo artifacts/leap15/'
-                                publishToRepository product: package_name,
-                                                    format: 'yum',
-                                                    maturity: 'stable',
-                                                    tech: 'leap-15',
-                                                    repo_dir: 'artifacts/leap15/',
-                                                    publish_branch: publish_branch
+                                script {
+                                    validation.packages.leap15 = packageCandidateValidation.checkArtifacts('leap15')
+                                }
                                 archiveArtifacts artifacts: pipeline_args.get('add_artifacts',
                                                                               'no-optional-artifacts-to-archive'),
                                                             allowEmptyArchive: true
@@ -659,12 +659,10 @@ void call(Map pipeline_args) {
                                                 dpkg-scanpackages . /dev/null | \
                                                   gzip -9c > Packages.gz
                                               popd'''
-                                publishToRepository product: package_name,
-                                                    format: 'apt',
-                                                    maturity: 'stable',
-                                                    tech: 'ubuntu-20.04',
-                                                    repo_dir: 'artifacts/ubuntu20.04/',
-                                                    publish_branch: publish_branch
+                                script {
+                                    validation.packages['ubuntu20.04'] =
+                                        packageCandidateValidation.checkArtifacts('ubuntu20.04')
+                                }
                             }
                             unsuccessful {
                                 sh label: 'Collect artifacts',
@@ -716,12 +714,10 @@ void call(Map pipeline_args) {
                                                 dpkg-scanpackages . /dev/null | \
                                                   gzip -9c > Packages.gz
                                               popd'''
-                                publishToRepository product: package_name,
-                                                    format: 'apt',
-                                                    maturity: 'stable',
-                                                    tech: 'ubuntu-rolling',
-                                                    repo_dir: 'artifacts/ubuntu_rolling/',
-                                                    publish_branch: publish_branch
+                                script {
+                                    validation.packages.ubuntu_rolling =
+                                        packageCandidateValidation.checkArtifacts('ubuntu_rolling')
+                                }
                             }
                             unsuccessful {
                                 sh label: 'Collect artifacts',
@@ -735,105 +731,263 @@ void call(Map pipeline_args) {
                     } //stage('Build DEB on Ubuntu rolling')
                 } // parallel
             } //stage('Build')
-            stage('Test') {
-                when {
-                    beforeAgent true
-                    expression {
-                        currentBuild.currentResult == 'SUCCESS' &&
-                        !skipStage([axes: (env.TEST_BRANCH ?: '').replaceAll('/', '-')])
+                } // candidate build stages
+            } // stage('Build candidates')
+            stage('Prepare dependency validation') {
+                steps {
+                    script {
+                        if (currentBuild.currentResult != 'SUCCESS' ||
+                            !distros || distros.toSet().size() != distros.size() ||
+                            validation.packages.keySet() != distros.toSet()) {
+                            error('Every configured package build and archive must succeed before validation')
+                        }
+                        String project = env.JOB_NAME.tokenize('/')[-2]
+                        String extra = cachedCommitPragma('PR-repos') ?: ''
+                        if (extra.tokenize().any { it.tokenize('@').first() == project }) {
+                            error("PR-repos must not override this build's ${project} packages")
+                        }
+                        List matrixBranches = ['master', 'release/2.6', 'release/2.8']
+                        if (packageCandidateValidation.branches() != matrixBranches) {
+                            error('Update the TEST_BRANCH matrix when changing dependency-validation branches()')
+                        }
+                        validation.repositories = ("${project}@${env.BRANCH_NAME}:${env.BUILD_NUMBER} " + extra).trim()
                     }
                 }
+            }
+            stage('Validate dependencies') {
                 matrix {
                     axes {
                         axis {
                             name 'TEST_BRANCH'
-                            values 'master',
-                                   'release/2.6'
-                        }
-                    }
-                    when {
-                        beforeAgent true
-                        expression {
-                            // Need to pass the stage name: https://issues.jenkins.io/browse/JENKINS-69394
-                            !skipStage([stage_name: 'Test Packages',
-                                        axes: env.TEST_BRANCH.replaceAll('/', '-')])
+                            values 'master', 'release/2.6', 'release/2.8'
                         }
                     }
                     stages {
-                        stage('Test Packages') {
+                        stage('Validate branch') {
                             steps {
-                                setupDownstreamTesting('daos-stack/daos', env.TEST_BRANCH)
-                                build job: 'daos-stack/daos/' + setupDownstreamTesting.test_branch(env.TEST_BRANCH),
-                                      parameters: [string(name: 'TestTag',
-                                                          value: ('load_mpi test_core_files ' +
-                                                                   /* groovylint-disable-next-line LineLength */
-                                                                   pipeline_args.get('test-tag', '')).trim().split(' ').collect {
-                                                                       tag ->
-                                                                       tag + skipped_tests_tags(env.TEST_BRANCH)
-                                                                   }.join(' ')),
-                                                   string(name: 'CI_RPM_TEST_VERSION',
-                                                          value: pipeline_args.get('skip-build', true) ?
-                                                               daosLatestVersion(env.TEST_BRANCH, 'el8') : ''),
-                                                   string(name: 'CI_PROVISIONING_POOL', value: 'default'),
-                                                   string(name: 'CI_BUILD_DESCRIPTION',
-                                                          value: 'Dependency Validation Build Test'),
-                                                   /* groovylint-disable-next-line UnnecessaryGetter */
-                                                   string(name: 'BuildPriority', value: getPriority()),
-                                                   booleanParam(name: 'CI_FI_el8_TEST', value: false),
-                                                   booleanParam(name: 'CI_FUNCTIONAL_el7_TEST',
-                                                                value: 'centos7' in distros),
-                                                   booleanParam(name: 'CI_MORE_FUNCTIONAL_PR_TESTS', value: true),
-                                                   booleanParam(name: 'CI_FUNCTIONAL_el8_TEST',
-                                                                value: 'el8' in distros),
-                                                   booleanParam(name: 'CI_FUNCTIONAL_el9_TEST',
-                                                                value: 'el9' in distros),
-                                                   booleanParam(name: 'CI_FUNCTIONAL_leap15_TEST',
-                                                                value: 'leap15' in distros),
-                                                   booleanParam(name: 'CI_SCAN_RPMS_el7_TEST', value: false),
-                                                   booleanParam(name: 'CI_RPMS_el7_TEST',
-                                                                value: 'centos7' in distros),
-                                                   booleanParam(name: 'CI_medium_TEST',
-                                                                value: 'el8' in distros),
-                                                   booleanParam(name: 'CI_large_TEST', value: false),
-                                                   string(name: 'CI_PR_REPOS',
-                                                          value: env.JOB_NAME.split('/')[1] + '@' +
-                                                                 "${env.BRANCH_NAME}:${env.BUILD_ID}" +
-                                                                 ' ' + cachedCommitPragma('PR-repos')),
-                                                   booleanParam(name: 'CI_RPM_el8_NOBUILD',
-                                                                value: pipeline_args.get('skip-build', true) ||
-                                                                  !('el8' in distros)),
-                                                   booleanParam(name: 'CI_RPM_el9_NOBUILD',
-                                                                value: pipeline_args.get('skip-build', true) ||
-                                                                  !('el9' in distros)),
-                                                   booleanParam(name: 'CI_RPM_leap15_NOBUILD',
-                                                                value: pipeline_args.get('skip-build', true) ||
-                                                                  !('leap15' in distros)),
-                                                   booleanParam(name: 'CI_DEB_Ubuntu20_NOBUILD',
-                                                                value: pipeline_args.get('skip-build', true) ||
-                                                                       !('ubuntu20.04' in distros)),
-                                                   booleanParam(name: 'CI_ALLOW_UNSTABLE_TEST',
-                                                                value: cachedCommitPragma('Allow-unstable-test').toLowerCase() == 'true')
-                                                  ]
-                            } //steps
-                            post {
-                                success {
-                                    script {
-                                        setupDownstreamTesting.cleanup('daos-stack/daos', env.TEST_BRANCH)
+                                script {
+                                    String branch = env.TEST_BRANCH
+                                    String cellKey = branch.replace('/', '-')
+                                    Map result = [branch: branch, result: 'NOT_BUILT', completed: false]
+                                    Map setup = [validation: true, distros: distros, args: pipeline_args,
+                                                 launch: [job: env.JOB_NAME, build: env.BUILD_NUMBER,
+                                                          repositories: validation.repositories]]
+                                    Exception failure = null
+                                    Exception recordFailure = null
+                                    try {
+                                        node('lightweight') {
+                                            setupDownstreamTesting('daos-stack/daos', branch, '''Skip-test-hardware: true
+Skip-func-test-hw: true
+Skip-func-hw-test: true
+Skip-fault-injection: true
+Skip-fault-injection-test: true
+''', setup)
+                                        }
+                                        String job = 'daos-stack/daos/' + setupDownstreamTesting.test_branch(branch)
+                                        setupDownstreamTesting.waitForJob(job)
+                                        def bootstrap = build(job: job, propagate: false, wait: true,
+                                            parameters: [booleanParam(name: 'DEPENDENCY_VALIDATION_SETUP', value: true)])
+                                        if (bootstrap.result != 'SUCCESS') {
+                                            error("DAOS ${branch} parameter setup failed: ${bootstrap.absoluteUrl}")
+                                        }
+                                        setupDownstreamTesting.waitForJob(
+                                            job, setup.coverage.parameters, setup.launch.id)
+                                        Map selected = setup.coverage.parameters +
+                                            [DEPENDENCY_VALIDATION_SETUP: false,
+                                             DEPENDENCY_VALIDATION_ID: setup.launch.id]
+                                        List parameters = selected.collect { name, value ->
+                                            value instanceof Boolean ? booleanParam(name: name, value: value) :
+                                                string(name: name, value: value.toString())
+                                        }
+                                        def downstream = build(job: job, propagate: false, wait: true,
+                                            parameters: parameters)
+                                        result.result = downstream.result
+                                        result.url = downstream.absoluteUrl
+                                        node('lightweight') {
+                                            result.completed = packageCandidateValidation.completed(
+                                                result, setup.coverage)
+                                        }
+                                    } catch (Exception exception) {
+                                        result.result = exception instanceof
+                                            org.jenkinsci.plugins.workflow.steps.FlowInterruptedException ?
+                                            'ABORTED' : 'FAILURE'
+                                        result.error = exception.toString()
+                                        if (exception instanceof
+                                            org.jenkinsci.plugins.workflow.steps.FlowInterruptedException) {
+                                            failure = exception
+                                        } else {
+                                            echo "DAOS ${branch} validation blocked: ${exception}"
+                                        }
+                                    } finally {
+                                        if (setup.createdRef) {
+                                            result.syntheticRef = setup.createdRef
+                                            try {
+                                                node('lightweight') {
+                                                    sh 'mkdir -p dependency-validation-diagnostics dependency-validation-results'
+                                                    try {
+                                                        writeFile file: "dependency-validation-diagnostics/${cellKey}.json",
+                                                            text: groovy.json.JsonOutput.toJson(result)
+                                                        archiveArtifacts artifacts:
+                                                            "dependency-validation-diagnostics/${cellKey}.json"
+                                                    } catch (Exception exception) {
+                                                        result.diagnosticError = exception.toString()
+                                                        result.completed = false
+                                                        if (exception instanceof
+                                                            org.jenkinsci.plugins.workflow.steps.FlowInterruptedException &&
+                                                            !failure) {
+                                                            failure = exception
+                                                        }
+                                                        echo "DAOS ${branch} diagnostics could not be retained: ${exception}"
+                                                    }
+                                                    try {
+                                                        setupDownstreamTesting.cleanupValidation(
+                                                            'daos-stack/daos', branch, setup)
+                                                    } catch (Exception exception) {
+                                                        result.cleanupError = exception.toString()
+                                                        result.completed = false
+                                                        if (exception instanceof
+                                                            org.jenkinsci.plugins.workflow.steps.FlowInterruptedException &&
+                                                            !failure) {
+                                                            failure = exception
+                                                        }
+                                                        echo "DAOS ${branch} branch cleanup failed: ${exception}"
+                                                    }
+                                                }
+                                            } catch (Exception exception) {
+                                                result.cleanupError = exception.toString()
+                                                result.completed = false
+                                                if (exception instanceof
+                                                    org.jenkinsci.plugins.workflow.steps.FlowInterruptedException &&
+                                                    !failure) {
+                                                    failure = exception
+                                                }
+                                                echo "DAOS ${branch} diagnostics or cleanup could not run: ${exception}"
+                                            }
+                                        }
+                                        try {
+                                            node('lightweight') {
+                                                sh 'mkdir -p dependency-validation-results'
+                                                writeFile file: "dependency-validation-results/${cellKey}.json",
+                                                    text: groovy.json.JsonOutput.toJson(result)
+                                                archiveArtifacts artifacts:
+                                                    "dependency-validation-results/${cellKey}.json"
+                                            }
+                                        } catch (Exception exception) {
+                                            recordFailure = exception
+                                            if (exception instanceof
+                                                org.jenkinsci.plugins.workflow.steps.FlowInterruptedException &&
+                                                !failure) {
+                                                failure = exception
+                                            }
+                                            echo "DAOS ${branch} result could not be retained: ${exception}"
+                                        }
+                                    }
+                                    if (failure) {
+                                        throw failure
+                                    }
+                                    if (recordFailure) {
+                                        throw recordFailure
                                     }
                                 }
-                                always {
-                                    writeFile file: stageStatusFilename(env.STAGE_NAME,
-                                                                        env.TEST_BRANCH.replaceAll('/', '-')),
-                                              text: currentBuild.currentResult + '\n'
-                                    archiveArtifacts artifacts: stageStatusFilename(
-                                                                    env.STAGE_NAME,
-                                                                    env.TEST_BRANCH.replaceAll('/', '-'))
-                                }
-                            } // post
-                        } // stage('Test Packages')
-                    } // stages
-                } // matrix
-            } // stage('Test')
+                            }
+                        }
+                    }
+                }
+            }
+            stage('Collect dependency validation') {
+                agent { label 'lightweight' }
+                steps {
+                    script {
+                        dir("dependency-validation-fanin-${env.BUILD_NUMBER}") {
+                            deleteDir()
+                            copyArtifacts projectName: env.JOB_NAME, selector: specific(env.BUILD_NUMBER),
+                                filter: 'dependency-validation-results/*.json'
+                            def files = findFiles(glob: 'dependency-validation-results/*.json')
+                            List expectedBranches = packageCandidateValidation.branches()
+                            List expectedFiles = expectedBranches.collect { it.replace('/', '-') + '.json' }
+                            if (files.size() != expectedFiles.size() ||
+                                files.collect { it.name }.toSet() != expectedFiles.toSet()) {
+                                error("Dependency-validation result files do not match expected matrix branches: ${files*.name}")
+                            }
+                            List records = files.collect {
+                                readJSON(file: it.path, returnPojo: true)
+                            }
+                            validation.results = packageCandidateValidation.aggregate(
+                                records, expectedBranches)
+                            validation.outcome = validation.results.any { it.result == 'FAILURE' } ? 'FAILURE' :
+                                validation.results.any { it.result == 'UNSTABLE' } ? 'UNSTABLE' : 'SUCCESS'
+                        }
+                    }
+                }
+            }
+            stage('Approve failed validation') {
+                when {
+                    expression {
+                        !env.CHANGE_ID && env.BRANCH_NAME == publish_branch &&
+                            validation.results.any { it.result != 'SUCCESS' }
+                    }
+                }
+                steps {
+                    script {
+                        validation.approval = [status: 'PENDING']
+                        try {
+                            validation.approval = packageCandidateValidation.approve(validation.results) +
+                                [status: 'APPROVED']
+                        } catch (Exception exception) {
+                            validation.approval = [status: 'DENIED_OR_INVALID']
+                            throw exception
+                        }
+                    }
+                }
+            }
+            stage('Publish packages') {
+                when {
+                    expression { !env.CHANGE_ID && env.BRANCH_NAME == publish_branch }
+                }
+                agent { label 'lightweight' }
+                steps {
+                    script {
+                        if (!validation.results.every { it.completed } ||
+                            (validation.outcome != 'SUCCESS' && validation.approval?.status != 'APPROVED')) {
+                            error('Publication requires completed validation and any necessary approval')
+                        }
+                        writeFile file: 'dependency-validation.json',
+                                  text: groovy.json.JsonOutput.toJson(validation)
+                        archiveArtifacts artifacts: 'dependency-validation.json'
+                        dir("dependency-publication-${env.BUILD_NUMBER}") {
+                            deleteDir()
+                            copyArtifacts projectName: env.JOB_NAME, selector: specific(env.BUILD_NUMBER),
+                                          filter: 'artifacts/**'
+                            distros.each { distro ->
+                                packageCandidateValidation.checkArtifacts(distro, false)
+                            }
+                            distros.each { distro ->
+                                Map route = packageCandidateValidation.repositories()[distro] +
+                                    validation.packages[distro] +
+                                    [product: package_name, maturity: 'stable', repo_dir: "artifacts/${distro}/",
+                                     publish_branch: publish_branch, required: true]
+                                echo "Publishing ${distro} from ${env.BUILD_URL}; uploads are not atomic"
+                                publishToRepository(route)
+                            }
+                        }
+                    }
+                }
+            }
         } // stages
+        post {
+            always {
+                script {
+                    if (validation.outcome && validation.outcome != 'SUCCESS' &&
+                        currentBuild.currentResult != 'ABORTED') {
+                        currentBuild.result = validation.outcome
+                    }
+                    node('lightweight') {
+                        writeFile file: 'dependency-validation.json',
+                                  text: groovy.json.JsonOutput.toJson(validation)
+                        archiveArtifacts artifacts: 'dependency-validation.json'
+                    }
+                }
+            }
+        }
     } // pipeline
 } // call

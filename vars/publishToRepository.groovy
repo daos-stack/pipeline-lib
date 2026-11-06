@@ -31,10 +31,15 @@
  *                          step if the contents differ.
  * config['publish_branch'] The branch to publish from.  Defaults to release/*
  *                          and master.
+ * config['required']       Fail rather than silently skipping when the site
+ *                          publisher is unavailable. Default false.
  */
 
 void call(Map config = [:]) {
     if (env.REPOSITORY_URL == null) {
+        if (config.get('required', false)) {
+            error('Publication required but REPOSITORY_URL is not configured')
+        }
         println('No REPOSITORY_URL environment variable configured.')
         return
     }
@@ -55,8 +60,11 @@ void call(Map config = [:]) {
     }
 
     try {
-        return publishToRepositorySystem(config)
+        publishToRepositorySystem(config)
     } catch (java.lang.NoSuchMethodError e) {
+        if (config.get('required', false)) {
+            error('Publication required but publishToRepositorySystem is unavailable')
+        }
         println('A REPOSITORY_URL environment variable was configured.')
         println('Could not find a publishToRepositorySystem step in' +
                 ' a shared groovy library')
