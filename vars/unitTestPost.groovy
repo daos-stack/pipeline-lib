@@ -1,4 +1,4 @@
-/* groovylint-disable DuplicateNumberLiteral */
+/* groovylint-disable DuplicateNumberLiteral, DuplicateStringLiteral, VariableName */
 // vars/unitTestPost.groovy
 
   /**
@@ -27,7 +27,6 @@
    *
    * config['FI']                  Set to true for Fault Injection testing.
    *                               FI also set NLT to true.
-   *
    */
 /* groovylint-disable-next-line MethodSize */
 void call(Map config = [:]) {
@@ -36,7 +35,7 @@ void call(Map config = [:]) {
 
     // Stash the Valgrind files for later analysis
     if (config['valgrind_stash']) {
-        String valgrind_pattern = config.get('valgrind_pattern', 
+        String valgrind_pattern = config.get('valgrind_pattern',
                                              stage_info.get('valgrind_pattern',
                                                             'unit-test-*memcheck.xml'))
         try {
@@ -60,10 +59,10 @@ void call(Map config = [:]) {
     }
 
     List artifact_list = config.get('artifacts', ['run_test.sh/*'])
-
     String testResults = config.get('testResults',
                                     stage_info.get('testResults',
                                                    'test_results/*.xml'))
+
     if (testResults != 'None' ) {
         // groovylint-disable-next-line NoDouble
         double health_scale = 1.0
@@ -104,17 +103,20 @@ void call(Map config = [:]) {
         archiveArtifacts artifacts: artifactPat,
                      allowEmptyArchive: results['ignore_failure']
     }
-    String target_stash = "${stage_info['target']}-${stage_info['compiler']}"
-    if (stage_info['build_type']) {
-        target_stash += '-' + stage_info['build_type']
+    String target = config.get('target', stage_info['ci_target'])
+    String compiler = config.get('compiler', stage_info['compiler'])
+    String build_type = config.get('build_type', stage_info['build_type'])
+    String target_stash = "${target}-${compiler}"
+    if (build_type) {
+        target_stash += "-${build_type}"
     }
     // Coverage instrumented tests and Valgrind are probably mutually exclusive
-    if (stage_info['compiler'] == 'covc') {
+    if (compiler == 'covc') {
         return
     }
 
     Boolean fi = config.get('FI', false)
-    Boolean nlt = fi || config.get('NLT',stage_info.get('NLT', false))
+    Boolean nlt = fi || config.get('NLT', stage_info.get('NLT', false))
     if (nlt) {
         String cb_result = currentBuild.result
         discoverGitReferenceBuild(referenceJob: config.get('referenceJobName',
@@ -142,7 +144,7 @@ void call(Map config = [:]) {
                        [threshold: 1, type: 'TOTAL_HIGH'],
                        [threshold: 1, type: 'NEW_NORMAL', unstable: true],
                        [threshold: 1, type: 'NEW_LOW', unstable: true]],
-                     name: fi?'Fault injection testing':'NLT',
+                     name: fi ? 'Fault injection testing' : 'NLT',
                      tools: nltTools,
                      scm: 'daos-stack/daos'
 
