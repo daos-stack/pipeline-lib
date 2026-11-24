@@ -112,6 +112,7 @@ Map call(Map kwargs = [:]) {
                     println("[${name}] Running functionalTest() on ${label} with tags=${tags}")
                     Map ftestConfig = [
                         image_version: image_version,
+                        repo_file_url: kwargs.get('repo_file_url', env.REPO_FILE_URL ?: ''),
                         inst_repos: daosRepos(distro),
                         inst_rpms: functionalPackages(
                             clientVersion: 1,

@@ -55,6 +55,7 @@ Map call(Map config = [:]) {
                        "WITH_VALGRIND=${stage_info.get('with_valgrind', '')} " +
                        (env.DAOS_HTTPS_PROXY ? 'DAOS_HTTPS_PROXY="' + env.DAOS_HTTPS_PROXY + '" ' : '') +
                        (env.DAOS_NO_PROXY ? 'DAOS_NO_PROXY="' + env.DAOS_NO_PROXY + '" ' : '') +
+                       'REPO_FILE_URL="' + config.get('repo_file_url', env.REPO_FILE_URL ?: '') + '" ' +
                        'ci/functional/test_main.sh'
 
     String basedir = 'install/lib/daos/TESTING/ftest/avocado/job-results/'
@@ -75,6 +76,7 @@ Map call(Map config = [:]) {
     config.remove('ftest_arg')
     config.remove('node_count')
     config.remove('test_rpms')
+    config.remove('repo_file_url')
 
     // Notify SCM result in post steps.
     config['notify_result'] = false
