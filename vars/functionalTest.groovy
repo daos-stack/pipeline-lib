@@ -113,6 +113,7 @@ Map call(Map config = [:]) {
     run_test_config['ftest_arg'] = config.get('ftest_arg', stage_info['ftest_arg'])
     run_test_config['context'] = context
     run_test_config['description'] = description
+    run_test_config['repo_file_url'] = config.get('repo_file_url', env.REPO_FILE_URL ?: '')
 
     Map runtestData = [:]
     if (config.get('test_function', 'runTestFunctional') ==
